@@ -4,8 +4,6 @@
 # Build output
 /Debug/
 /Release/
-/DebugNoUnicode/
-/ReleaseNoUnicode/
 /x64/
 /ARM64/
 */Debug/

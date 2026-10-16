@@ -1,9 +1,7 @@
 <Solution>
   <Configurations>
     <BuildType Name="Debug" />
-    <BuildType Name="DebugNoUnicode" />
     <BuildType Name="Release" />
-    <BuildType Name="ReleaseNoUnicode" />
     <Platform Name="Win32" />
     <Platform Name="x64" />
   </Configurations>
