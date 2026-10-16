@@ -224,6 +224,32 @@ void ViewerWindow::applySettings()
   changeCursor(m_conConf->getLocalCursorShape());
   enableUserElements();
   viewerCoreSettings();
+  updateDisplayRequest();
+}
+
+bool ViewerWindow::wantsDisplayKeptOn()
+{
+  // For now the display is kept on in view-only mode, where the viewer
+  // is typically used as a monitor without local input. This can become
+  // a separate connection option.
+  return m_conConf->isViewOnly();
+}
+
+void ViewerWindow::updateDisplayRequest()
+{
+  if (m_isConnected && wantsDisplayKeptOn()) {
+    if (!m_displayRequest.isActive()) {
+      try {
+        m_displayRequest.activate(formatWindowName().getString());
+        m_logWriter.info(_T("Keeping the display on while connected"));
+      } catch (Exception &e) {
+        m_logWriter.error(_T("Cannot keep the display on: %s"), e.getMessage());
+      }
+    }
+  } else if (m_displayRequest.isActive()) {
+    m_displayRequest.deactivate();
+    m_logWriter.info(_T("No longer keeping the display on"));
+  }
 }
 
 void ViewerWindow::changeCursor(int type)
@@ -929,6 +955,7 @@ bool ViewerWindow::onClose()
 bool ViewerWindow::onDestroy()
 {
   KillTimer(m_hWnd, TIMER_DESKTOP_STATE);
+  m_displayRequest.deactivate();
   return true;
 }
 

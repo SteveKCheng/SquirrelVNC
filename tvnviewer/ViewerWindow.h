@@ -38,6 +38,7 @@
 #include "viewer-core/RemoteViewerCore.h"
 #include "viewer-core/CoreEventsAdapter.h"
 #include "viewer-core/VncAuthentication.h"
+#include "win-system/DisplayRequest.h"
 #include "win-system/SystemInformation.h"
 #include "win-system/WindowsApplication.h"
 #include "win-system/WinHooks.h"
@@ -196,10 +197,20 @@ private:
   StringStorage formatWindowName() const;
   void updateKeyState();
 
+  // Returns true if the display should be kept on while connected.
+  bool wantsDisplayKeptOn();
+  // Activates or clears m_displayRequest to match the connection state
+  // and wantsDisplayKeptOn().
+  void updateDisplayRequest();
+
   // onHookProc function implementation of HookEventListener base abstract class.
   virtual LRESULT onHookProc(int code, WPARAM wParam, LPARAM lParam);
   WinHooks m_winHooks;
   bool m_hooksEnabledFirstTime;
+
+  // Keeps the display on (no screen saver, display power-off or lock
+  // screen) while connected, if wantsDisplayKeptOn() returns true.
+  DisplayRequest m_displayRequest;
 };
 
 #endif

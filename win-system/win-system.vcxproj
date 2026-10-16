@@ -173,6 +173,7 @@
     <ClCompile Include="CtrlAltDelSimulator.cpp" />
     <ClCompile Include="CurrentConsoleProcess.cpp" />
     <ClCompile Include="DibSection.cpp" />
+    <ClCompile Include="DisplayRequest.cpp" />
     <ClCompile Include="DynamicLibrary.cpp" />
     <ClCompile Include="EmulatedAnonymousPipeFactory.cpp" />
     <ClCompile Include="Environment.cpp" />
@@ -225,6 +226,7 @@
     <ClInclude Include="CtrlAltDelSimulator.h" />
     <ClInclude Include="CurrentConsoleProcess.h" />
     <ClInclude Include="DibSection.h" />
+    <ClInclude Include="DisplayRequest.h" />
     <ClInclude Include="DynamicLibrary.h" />
     <ClInclude Include="EmulatedAnonymousPipeFactory.h" />
     <ClInclude Include="Environment.h" />
