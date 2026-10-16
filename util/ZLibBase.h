@@ -25,7 +25,7 @@
 #ifndef _ZLIB_BASE_H_
 #define _ZLIB_BASE_H_
 
-#include "zlib/zlib.h"
+#include <zlib.h>
 #include <vector>
 
 class ZLibBase
