@@ -315,11 +315,6 @@
     <ClInclude Include="WatermarksController.h" />
     <ClInclude Include="ZrleDecoder.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\libjpeg\libjpeg.vcxproj">
-      <Project>{4793826b-b077-4d75-a36c-66c9724c08f4}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

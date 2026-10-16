@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    Third-party libraries come from vcpkg in manifest mode (vcpkg.json next
+    to this file). Uses the vcpkg in VCPKG_ROOT if set, otherwise the one
+    bundled with Visual Studio. Static triplets (x64-windows-static,
+    x86-windows-static) match the static CRT (/MT) these projects use.
+  -->
+  <PropertyGroup>
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <TvnVcpkgMSBuildDir Condition="'$(VCPKG_ROOT)' != ''">$(VCPKG_ROOT)\scripts\buildsystems\msbuild\</TvnVcpkgMSBuildDir>
+    <TvnVcpkgMSBuildDir Condition="'$(VCPKG_ROOT)' == ''">$(VsInstallRoot)\VC\vcpkg\scripts\buildsystems\msbuild\</TvnVcpkgMSBuildDir>
+  </PropertyGroup>
+  <Import Project="$(TvnVcpkgMSBuildDir)vcpkg.props" />
+</Project>
