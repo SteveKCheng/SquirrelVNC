@@ -64,6 +64,7 @@ public:
 protected:
   BOOL onInitDialog();
   BOOL onCommand(UINT controlID, UINT notificationID);
+  BOOL onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis);
   bool m_isListening;
 
   Control m_listening;

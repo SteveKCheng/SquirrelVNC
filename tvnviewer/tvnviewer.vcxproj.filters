@@ -214,12 +214,6 @@
     <None Include="res\toolbar.bmp">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\tightvnc.bmp">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\tightvnc48.bmp">
-      <Filter>Resource Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="tvnviewer.rc">

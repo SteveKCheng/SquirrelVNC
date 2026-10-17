@@ -38,10 +38,8 @@
 #define IDR_ACCEL_APP_KEYS              137
 #define IDS_LICENSING_INFO              137
 #define IDS_QUESTION_SAVE_PASSWORD      138
-#define IDB_LOGO_BIG                    139
 #define IDS_CONNECTION_INFO_CAPTION     139
 #define IDS_ABOUT_VIEWER                140
-#define IDB_LOGO_48                     141
 #define IDS_CONNECTION_INFO_FORMAT      141
 #define IDS_UNKNOWN_ERROR_IN_VIEWER     143
 #define IDS_CONFIGURATION_LISTEN_PORT   144
@@ -158,6 +156,7 @@
 #define IDC_CWARN_FS                    1088
 #define IDC_ID_EDIT                     1089
 #define IDC_LABEL_ID                    1090
+#define IDC_LOGO                        1093
 #define ID_CONN_OPTIONS                 40001
 #define ID_CONN_INFO                    40002
 #define ID_SHOW_TOOLBAR                 40004
@@ -172,7 +171,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        232
 #define _APS_NEXT_COMMAND_VALUE         40010
-#define _APS_NEXT_CONTROL_VALUE         1093
+#define _APS_NEXT_CONTROL_VALUE         1094
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

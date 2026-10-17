@@ -24,6 +24,7 @@
 #include "LoginDialog.h"
 #include "NamingDefs.h"
 #include "OptionsDialog.h"
+#include "gui/ScaledIcons.h"
 
 LoginDialog::LoginDialog(TvnViewer *viewer)
 : BaseDialog(IDD_LOGINDIALOG),
@@ -151,6 +152,14 @@ void LoginDialog::onListening()
 void LoginDialog::onAbout()
 {
   m_viewer->postMessage(TvnViewer::WM_USER_ABOUT);
+}
+
+BOOL LoginDialog::onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis)
+{
+  if (controlID == IDC_LOGO) {
+    ScaledIcons::drawCentered(dis, IDI_APPICON);
+  }
+  return TRUE;
 }
 
 BOOL LoginDialog::onCommand(UINT controlID, UINT notificationID)

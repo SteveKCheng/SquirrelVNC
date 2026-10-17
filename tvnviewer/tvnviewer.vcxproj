@@ -238,8 +238,6 @@
     <None Include="res\ftfile.ico" />
     <None Include="res\nocursor.cur" />
     <None Include="res\smalldot.cur" />
-    <None Include="res\tightvnc.bmp" />
-    <None Include="res\tightvnc48.bmp" />
     <None Include="res\toolbar.bmp" />
   </ItemGroup>
   <ItemGroup>

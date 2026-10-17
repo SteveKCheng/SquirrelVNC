@@ -30,7 +30,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE
 CAPTION "About SquirrelVNC"
 FONT 8, "Ms Shell Dlg 2", 0, 0, 0x0
 BEGIN
-    CONTROL         IDB_LOGO_BIG,IDC_STATIC,"Static",SS_BITMAP | WS_GROUP,24,14,60,55
+    CONTROL         "",IDC_LOGO,"Static",SS_OWNERDRAW | WS_GROUP,24,14,60,55
     LTEXT           "SquirrelVNC: a VNC viewer for Windows",IDC_STATIC,107,12,189,10
     LTEXT           "Version unknown, build time unknown",IDC_STATIC_VERSION,107,20,189,10
     LTEXT           "Derived from TightVNC.\nCopyright (C) 2008-2026 GlavSoft LLC.",IDC_STATIC,107,38,189,19
@@ -161,7 +161,7 @@ BEGIN
     GROUPBOX        "Reverse Connections",IDC_STATIC,7,62,270,34
     LTEXT           "Listening mode allows people to attach your viewer to their desktops. Viewer will wait for incoming connections.",IDC_STATIC,16,73,186,18,NOT WS_GROUP
     GROUPBOX        "SquirrelVNC",IDC_STATIC,7,101,270,64
-    CONTROL         IDB_LOGO_48,IDC_STATIC,"Static",SS_BITMAP,22,119,32,30
+    CONTROL         "",IDC_LOGO,"Static",SS_OWNERDRAW,22,119,32,30
     LTEXT           "SquirrelVNC is a VNC viewer for Windows.",IDC_STATIC,69,111,200,10,NOT WS_GROUP
     LTEXT           "Its source code is available to everyone under the\nGNU General Public License.",IDC_STATIC,69,122,200,18,NOT WS_GROUP
     DEFPUSHBUTTON   "Connect",IDOK,209,17,60,14,WS_GROUP
@@ -380,8 +380,6 @@ END
 //
 
 IDB_TOOLBAR             BITMAP                  "res\\toolbar.bmp"
-IDB_LOGO_BIG            BITMAP                  "res\\tightvnc.bmp"
-IDB_LOGO_48             BITMAP                  "res\\tightvnc48.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

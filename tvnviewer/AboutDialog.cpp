@@ -26,6 +26,7 @@
 #include "win-system/VersionInfo.h"
 #include "win-system/Environment.h"
 #include "gui/Control.h"
+#include "gui/ScaledIcons.h"
 #include "BuildTime.h"
 #include "resource.h"
 
@@ -102,6 +103,14 @@ BOOL AboutDialog::onInitDialog()
 BOOL AboutDialog::onNotify(UINT controlID, LPARAM data)
 {
   return FALSE;
+}
+
+BOOL AboutDialog::onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis)
+{
+  if (controlID == IDC_LOGO) {
+    ScaledIcons::drawCentered(dis, IDI_APPICON);
+  }
+  return TRUE;
 }
 
 BOOL AboutDialog::onCommand(UINT controlID, UINT notificationID)

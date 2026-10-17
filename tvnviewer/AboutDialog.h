@@ -73,6 +73,11 @@ protected:
   virtual BOOL onCommand(UINT controlID, UINT notificationID);
   /**
    * Inherited from BaseDialog.
+   * Draws the logo.
+   */
+  virtual BOOL onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis);
+  /**
+   * Inherited from BaseDialog.
    * Does nothing.
    */
   virtual BOOL onDestroy();

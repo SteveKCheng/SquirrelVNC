@@ -55,6 +55,12 @@ public:
    * icon cannot be loaded at that size.
    */
   static HICON get(UINT id, int width, int height);
+
+  /**
+   * Draws the icon centred in an owner-drawn static control, as large as
+   * fits, on the background the parent gives static controls.
+   */
+  static void drawCentered(const DRAWITEMSTRUCT *dis, UINT id);
 };
 
 #endif // _SCALED_ICONS_H_
