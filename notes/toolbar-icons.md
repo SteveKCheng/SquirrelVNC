@@ -2,7 +2,7 @@
 
 ## Old 16×16 icons used by TightVNC
 
-| Icon function | Description of TightVNC's icon |
+| Toolbar function | Description of TightVNC's icon |
 | - | - |
 | New connection… | Two computers connected to each other |
 | Save session to a .vnc file | 3½" floppy disk |
@@ -21,23 +21,30 @@
 | Scale: Auto | Magnifying glass with “A” written on its viewport |
 | Full screen | Rectangle, with four arrows in the cardinal directions inside it pointing outward |
 
-## Replacements for icons in SquirrelVNC
+## Replacement SVG icons in SquirrelVNC
 
-| Icon function | Identifier from artistic source | File name |
-| - | - |
-| New connection… | streamline-color-projector-board | toolbar-new |
-| Save session to a .vnc file | streamline-color-inbox-favorite | toolbar-save |
-| Connection options… | streamline-colr-task-list | toolbar-options |
-| Connection info… | streamline-color-signal-full | toolbar-info |
-| Pause | streamline-color-button-pause-2 | toolbar-pause |
-| Request screen refresh | streamline-color-arrow-round-right | toolbar-refresh |
-| Send Ctrl+Alt+Del | streamline-color-delete-keyboard | toolbar-key-sac |
-| Send Ctrl+Esc | streamline-color-windows | streamtoolbar-key-win |
-| Ctrl key down | vaadin-ctrl-a | toolbar-key-ctrl |
-| Alt key down | vaadin-alt-a | toolbar-key-alt |
-| Transfer files… | streamline-color-cloud-data-transfer | toolbar-file-transfer |
-| Scale in | streamline-color-magnifying-glass | toolbar-scale-in |
-| Scale out | streamline-color-magnifying-glass | toolbar-scale-out |
-| Scale: 100% | streamline-color-magnifying-glass | toolbar-scale-full |
-| Scale: Auto | streamline-color-magnifying-glass | toolbar-scale-auto |
-| Full screen | streamline-color-arrow-expand |  toolbar-full-screen |
+| Toolbar function | Identifier from artistic source | File name in repository |
+| - | - | - |
+| New connection… | `streamline-color-projector-board` | `toolbar-new` |
+| Save session to a .vnc file | `streamline-color-inbox-favorite` | `toolbar-save` |
+| Connection options… | `streamline-colr-task-list` | `toolbar-options` |
+| Connection info… | `streamline-color-signal-full` | `toolbar-info` |
+| Pause | `streamline-color-button-pause-2` | `toolbar-pause` |
+| Request screen refresh | `streamline-color-arrow-round-right` | `toolbar-refresh` |
+| Send Ctrl+Alt+Del | `streamline-color-delete-keyboard` | `toolbar-key-sac` |
+| Send Ctrl+Esc | `streamline-color-windows` | `toolbar-key-win` |
+| Ctrl key down | `vaadin-ctrl-a` | `toolbar-key-ctrl` |
+| Alt key down | `vaadin-alt-a` | `toolbar-key-alt` |
+| Transfer files… | `streamline-color-cloud-data-transfer` | `toolbar-file-transfer` |
+| Scale in | `streamline-color-magnifying-glass` | `toolbar-scale-in` |
+| Scale out | `streamline-color-magnifying-glass` | `toolbar-scale-out` |
+| Scale: 100% | `streamline-color-magnifying-glass` | `toolbar-scale-full` |
+| Scale: Auto | `streamline-color-magnifying-glass` | `toolbar-scale-auto` |
+| Full screen | `streamline-color-arrow-expand` | ` toolbar-full-screen` |
+
+**Notes**: 
+
+  - The icons from `vaadin-*` had their colors changed
+    to match the color scheme of `streamline-color-*`.
+  - The symbols in the magnifying glasses for the `toolbar-scale-*` icons were 
+    manually added by SquirrelVNC's author.
