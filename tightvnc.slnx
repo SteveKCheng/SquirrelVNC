@@ -7,57 +7,16 @@
   </Configurations>
   <Project Path="client-config-lib/client-config-lib.vcxproj" />
   <Project Path="config-lib/config-lib.vcxproj" />
-  <Project Path="desktop-ipc/desktop-ipc.vcxproj" />
-  <Project Path="desktop/desktop.vcxproj" />
-  <Project Path="fb-update-sender/fb-update-sender.vcxproj" />
   <Project Path="file-lib/file-lib.vcxproj" />
   <Project Path="ft-client-lib/ft-client-lib.vcxproj" />
   <Project Path="ft-common/ft-common.vcxproj" />
-  <Project Path="ft-server-lib/ft-server-lib.vcxproj" />
   <Project Path="gui/gui.vcxproj" />
-  <Project Path="hookldr/hookldr.vcxproj" />
-  <Project Path="http-server-lib/http-server-lib.vcxproj" />
   <Project Path="io-lib/io-lib.vcxproj" />
-  <Project Path="log-server/log-server.vcxproj" />
   <Project Path="log-writer/log-writer.vcxproj" />
   <Project Path="network/network.vcxproj" />
   <Project Path="region/region.vcxproj" />
-  <Project Path="rfb-sconn/rfb-sconn.vcxproj" />
   <Project Path="rfb/rfb.vcxproj" />
-  <Project Path="screen-hooks/screenhooks.vcxproj" />
-  <Project Path="server-config-lib/server-config-lib.vcxproj" />
-  <Project Path="setup-helper/setup-helper.vcxproj" />
   <Project Path="thread/thread.vcxproj" />
-  <Project Path="tvncontrol-app/tvncontrol-app.vcxproj" />
-  <Project Path="tvnserver-app/tvnserver-app.vcxproj">
-    <BuildDependency Project="win-event-log/win-event-log.vcxproj" />
-  </Project>
-  <Project Path="tvnserver/tvnserver.vcxproj">
-    <BuildDependency Project="config-lib/config-lib.vcxproj" />
-    <BuildDependency Project="desktop-ipc/desktop-ipc.vcxproj" />
-    <BuildDependency Project="desktop/desktop.vcxproj" />
-    <BuildDependency Project="fb-update-sender/fb-update-sender.vcxproj" />
-    <BuildDependency Project="file-lib/file-lib.vcxproj" />
-    <BuildDependency Project="ft-common/ft-common.vcxproj" />
-    <BuildDependency Project="ft-server-lib/ft-server-lib.vcxproj" />
-    <BuildDependency Project="gui/gui.vcxproj" />
-    <BuildDependency Project="http-server-lib/http-server-lib.vcxproj" />
-    <BuildDependency Project="io-lib/io-lib.vcxproj" />
-    <BuildDependency Project="log-server/log-server.vcxproj" />
-    <BuildDependency Project="log-writer/log-writer.vcxproj" />
-    <BuildDependency Project="network/network.vcxproj" />
-    <BuildDependency Project="region/region.vcxproj" />
-    <BuildDependency Project="rfb-sconn/rfb-sconn.vcxproj" />
-    <BuildDependency Project="rfb/rfb.vcxproj" />
-    <BuildDependency Project="server-config-lib/server-config-lib.vcxproj" />
-    <BuildDependency Project="thread/thread.vcxproj" />
-    <BuildDependency Project="tvncontrol-app/tvncontrol-app.vcxproj" />
-    <BuildDependency Project="tvnserver-app/tvnserver-app.vcxproj" />
-    <BuildDependency Project="util/util.vcxproj" />
-    <BuildDependency Project="win-event-log/win-event-log.vcxproj" />
-    <BuildDependency Project="win-system/win-system.vcxproj" />
-    <BuildDependency Project="wsconfig-lib/wsconfig-lib.vcxproj" />
-  </Project>
   <Project Path="tvnviewer/tvnviewer.vcxproj">
     <BuildDependency Project="client-config-lib/client-config-lib.vcxproj" />
     <BuildDependency Project="ft-client-lib/ft-client-lib.vcxproj" />
@@ -77,7 +36,5 @@
     <BuildDependency Project="viewer-core/viewer-core.vcxproj" />
     <BuildDependency Project="win-system/win-system.vcxproj" />
   </Project>
-  <Project Path="win-event-log/win-event-log.vcxproj" />
   <Project Path="win-system/win-system.vcxproj" />
-  <Project Path="wsconfig-lib/wsconfig-lib.vcxproj" />
 </Solution>
