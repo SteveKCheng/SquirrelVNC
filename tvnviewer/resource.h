@@ -19,7 +19,6 @@
 #define IDS_CONFIG                      123
 #define ftclient_fileExistDialog        124
 #define IDS_CLOSE                       124
-#define IDS_URL_LICENSING_FVA           125
 #define IDS_URL_PRODUCT_FVA             126
 #define IDD_CMDLINE                     127
 #define IDS_CMDLINE_HELP                127
@@ -44,7 +43,6 @@
 #define IDS_ABOUT_VIEWER                140
 #define IDB_LOGO_48                     141
 #define IDS_CONNECTION_INFO_FORMAT      141
-#define IDS_URL_LICENSING_FVC           142
 #define IDS_UNKNOWN_ERROR_IN_VIEWER     143
 #define IDS_CONFIGURATION_LISTEN_PORT   144
 #define IDS_CONFIGURATION_LOG_LEVEL     145
@@ -152,7 +150,6 @@
 #define IDC_STQUALITY                   1077
 #define IDC_STQUALITY2                  1078
 #define IDC_VISIT_WEB_SITE_BUTTON       1079
-#define IDC_ORDER_SUPPORT_BUTTON        1080
 #define IDC_STATIC_VERSION              1081
 #define IDC_STATIC_LICENSING            1082
 #define IDC_LISTENING                   1083

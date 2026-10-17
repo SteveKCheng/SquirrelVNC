@@ -26,8 +26,6 @@
 #include "NamingDefs.h"
 #include "OptionsDialog.h"
 
-#include "win-system/Shell.h"
-
 LoginDialog::LoginDialog(TvnViewer *viewer)
 : BaseDialog(IDD_LOGINDIALOG),
   m_viewer(viewer),
@@ -131,28 +129,6 @@ BOOL LoginDialog::onOptions()
   return TRUE;
 }
 
-void LoginDialog::onOrder()
-{
-  openUrl(StringTable::getString(IDS_URL_LICENSING_FVC));
-}
-
-void LoginDialog::openUrl(const TCHAR *url)
-{
-  // TODO: removed duplicated code (see AboutDialog.h)
-  try {
-    Shell::open(url, 0, 0);
-  } catch (const SystemException &sysEx) {
-    StringStorage message;
-
-    message.format(StringTable::getString(IDS_FAILED_TO_OPEN_URL_FORMAT), sysEx.getMessage());
-
-    MessageBox(m_ctrlThis.getWindow(),
-               message.getString(),
-               StringTable::getString(IDS_MBC_TVNVIEWER),
-               MB_OK | MB_ICONEXCLAMATION);
-  }
-}
-
 void LoginDialog::setListening(bool isListening)
 {
   m_isListening = isListening;
@@ -227,10 +203,6 @@ BOOL LoginDialog::onCommand(UINT controlID, UINT notificationID)
   case IDC_LISTENING:
     onListening();
     kill(0);
-    break;
-
-  case IDC_ORDER_SUPPORT_BUTTON:
-    onOrder();
     break;
 
   case IDC_BABOUT:

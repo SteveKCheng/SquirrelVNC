@@ -35,9 +35,7 @@ BEGIN
     LTEXT           "Version unknown, build time unknown",IDC_STATIC_VERSION,107,20,189,10
     LTEXT           "Copyright (C) 2026 GlavSoft LLC.\nAll Rights Reserved.",IDC_STATIC,107,38,189,19
     LTEXT           "",IDC_STATIC_LICENSING,107,64,189,10
-    LTEXT           "We provide technical support, development and customization services on TightVNC.\nThe source code is available commercially as well, if the GPL license is not acceptable.\nPlease visit the Web site for more information on our products.",IDC_STATIC,13,81,283,26
     DEFPUSHBUTTON   "Visit the Web Site",IDC_VISIT_WEB_SITE_BUTTON,7,116,94,15,WS_GROUP
-    PUSHBUTTON      "Commercial Licensing",IDC_ORDER_SUPPORT_BUTTON,107,116,94,15
     PUSHBUTTON      "Close This Window",IDCANCEL,207,116,94,15
 END
 
@@ -164,12 +162,11 @@ BEGIN
     GROUPBOX        "TightVNC Viewer",IDC_STATIC,7,101,270,64
     CONTROL         IDB_LOGO_48,IDC_STATIC,"Static",SS_BITMAP,22,119,32,30
     LTEXT           "TightVNC is cross-platform remote control software.",IDC_STATIC,69,111,200,10,NOT WS_GROUP
-    LTEXT           "Its source code is available to everyone, either freely\n(GNU GPL license) or commercially (with no GPL restrictions).",IDC_STATIC,69,122,200,18,NOT WS_GROUP
+    LTEXT           "Its source code is available to everyone under the\nGNU General Public License.",IDC_STATIC,69,122,200,18,NOT WS_GROUP
     DEFPUSHBUTTON   "Connect",IDOK,209,17,60,14,WS_GROUP
     PUSHBUTTON      "&Options...",IDC_BOPTIONS,209,36,60,14
     PUSHBUTTON      "&Listening mode",IDC_LISTENING,209,74,60,14
     PUSHBUTTON      "&Version info...",IDC_BABOUT,69,144,60,14
-    PUSHBUTTON      "Licensing",IDC_ORDER_SUPPORT_BUTTON,139,144,60,14
     PUSHBUTTON      "Configure...",IDC_BCONFIGURATION,209,144,60,14
 END
 
@@ -503,7 +500,6 @@ BEGIN
     IDS_LISTENING_OPTIONS   "Options for incoming connections..."
     IDS_CONFIG              "Configuration..."
     IDS_CLOSE               "Close listening daemon"
-    IDS_URL_LICENSING_FVA   "http://www.tightvnc.com/licensing/?f=va"
     IDS_URL_PRODUCT_FVA     "http://www.tightvnc.com/?f=va"
     IDS_CMDLINE_HELP        "TightVNC Viewer allows you to view and control remote hosts\r\nwhere TightVNC Server or compatible software is running.\r\n\r\nCommand line syntax is the following.\r\n\r\nStart the viewer:\r\n  tvnviewer\r\n\r\nStart the viewer and connect to the specified host:\r\n  tvnviewer hostname::port [OPTIONS]\r\n  tvnviewer -host=hostname [OPTIONS]\r\n  tvnviewer -optionsfile=FILENAME [OPTIONS]\r\n\r\nStart the viewer in the listening mode:\r\n  tvnviewer -listen\r\n\r\nShow this help on command line usage:\r\n  tvnviewer -help\r\n\r\nThe following OPTIONS are supported (all of them should be used in the\r\nform -option=VALUE where both option name and value are case-insensitive):\r\n\r\n  -optionsfile\tThe specified file will be read and the corresponding\r\n\t\tconnection will be restored (use Save Connection Info\r\n\t\tto create such files).\r\n\r\n  -host\t\tConnect to the specified host name.\r\n\r\n  -port\t\tSpecify the port number.\r\n\r\n  -password\tSpecify the password for authenticating to the server.\r\n\r\n  -showcontrols\tShow toolbar.\r\n\r\n  -viewonly\tView only (input ignored).\r\n\r\n  -useclipboard\tUse clipboard (yes/no).\r\n\r\n  -scale\tScale by (auto, 50, 100, 150...).\r\n\r\n  -fullscreen\tFull-screen mode.\r\n\r\n  -warnfullscr\tShow full-screen warning.\r\n\r\n  -encoding\t (hextile, tight, rre, zrle).\r\n\r\n  -copyrect\t.\r\n\r\n  -mousecursor\t (no, local).\r\n\r\n  -mouselocal\t(no, snalldot, normal).\r\n\r\n  -mouseswap\tSwap right and middle buttons.\r\n\r\n  -jpegimagequality\tSet Jpeg image quality [0..9].\r\n\r\n  -compressionlevel\tSet custom compression level [0..9].\r\n\r\n  -logpath\tSpecify the path to logfile.\r\n"
 END
@@ -527,7 +523,6 @@ BEGIN
     IDS_ABOUT_VIEWER        "About TightVNC Viewer..."
     IDS_CONNECTION_INFO_FORMAT 
                             "Host: %s\nDesktop: %s\nProtocol: %s\nResolution: %ix%i %i bits\nKeyboard layout: %s"
-    IDS_URL_LICENSING_FVC   "http://www.tightvnc.com/licensing/?f=vc"
     IDS_UNKNOWN_ERROR_IN_VIEWER 
                             "Error in TightVNC Viewer. The program will be closed."
 END
