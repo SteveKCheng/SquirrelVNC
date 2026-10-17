@@ -28,7 +28,8 @@
 // Direct2D's SVG support (Windows 10 1703 and later) covers static
 // SVG 1.1 shapes, paths, fills, strokes, gradients, clip paths, opacity
 // and transforms. Text, filters, masks, patterns and markers are not
-// supported and are skipped without an error.
+// supported and are skipped by Direct2D without an error; svg2ico warns
+// about them.
 //
 // Rendering uses a WIC bitmap render target, which is always software
 // rendered and needs neither a GPU nor an interactive session.
@@ -58,8 +59,9 @@ namespace {
 const wchar_t USAGE[] =
   L"Usage: svg2ico [options] input.svg\n"
   L"\n"
-  L"Renders input.svg into square icons. The drawing (its viewBox) is\n"
-  L"scaled to fit inside the icon, keeping its aspect ratio.\n"
+  L"Renders input.svg into square icons. The drawing (its viewBox, or\n"
+  L"else its width and height) is scaled to fit inside the icon, keeping\n"
+  L"its aspect ratio.\n"
   L"\n"
   L"Options:\n"
   L"  --ico FILE          Write all sizes into one .ico file.\n"
@@ -69,6 +71,10 @@ const wchar_t USAGE[] =
   L"                      (default: 16,20,24,32,40,48,64,96,256).\n"
   L"  --margin PERCENT    Empty margin on each side, as a percentage of the\n"
   L"                      icon size (default: 0).\n"
+  L"  --extent UNITS      Scale as if the drawing were at least UNITS user\n"
+  L"                      units across, so that a smaller drawing is\n"
+  L"                      surrounded by empty space. For icons drawn on\n"
+  L"                      grids of different sizes (default: none).\n"
   L"  --align MODE        Where the drawing sits along its shorter axis:\n"
   L"                      center, start (top/left) or end (bottom/right)\n"
   L"                      (default: center).\n"
@@ -84,6 +90,7 @@ struct Options
   std::wstring pngPrefix = L"icon-";
   std::vector<UINT> sizes = { 16, 20, 24, 32, 40, 48, 64, 96, 256 };
   float margin = 0.0f;
+  float extent = 0.0f;
   Align align = Align::Center;
   bool snap = true;
 };
@@ -163,6 +170,13 @@ Options parseOptions(int argc, wchar_t *argv[])
       options.margin = wcstof(text.c_str(), &end) / 100.0f;
       if (text.empty() || *end != L'\0' || options.margin < 0.0f || options.margin >= 0.5f) {
         throw Error("Invalid margin \"" + narrow(text) + "\": must be 0 to less than 50");
+      }
+    } else if (arg == L"--extent") {
+      std::wstring text = value();
+      wchar_t *end = nullptr;
+      options.extent = wcstof(text.c_str(), &end);
+      if (text.empty() || *end != L'\0' || !(options.extent > 0.0f)) {
+        throw Error("Invalid extent \"" + narrow(text) + "\": must be positive");
       }
     } else if (arg == L"--align") {
       std::wstring mode = value();
@@ -269,7 +283,7 @@ public:
     // the drawing's own aspect ratio, so the default preserveAspectRatio
     // maps the viewBox onto it exactly, and the offset positions it.
     float inner = size * (1.0f - 2.0f * options.margin);
-    float scale = inner / (std::max)(viewBox.width, viewBox.height);
+    float scale = inner / (std::max)({ viewBox.width, viewBox.height, options.extent });
     float width = viewBox.width * scale;
     float height = viewBox.height * scale;
     float x = offset(size, width, options);
@@ -286,20 +300,50 @@ public:
   }
 
 private:
+  // Returns the root element's viewBox. Without one, the drawing has no
+  // scaling, so a viewBox from (0, 0) to its width and height is set.
   static D2D1_SVG_VIEWBOX getViewBox(ID2D1SvgDocument *document)
   {
     ComPtr<ID2D1SvgElement> root;
     document->GetRoot(root.GetAddressOf());
+    if (!root) {
+      throw Error("The SVG document has no root element");
+    }
     D2D1_SVG_VIEWBOX viewBox = {};
-    if (root && root->IsAttributeSpecified(L"viewBox")) {
+    if (root->IsAttributeSpecified(L"viewBox")) {
       check(root->GetAttributeValue(L"viewBox", D2D1_SVG_ATTRIBUTE_POD_TYPE_VIEWBOX,
                                     &viewBox, sizeof(viewBox)),
             "Reading the viewBox");
+    } else {
+      viewBox.width = getLength(root.Get(), L"width");
+      viewBox.height = getLength(root.Get(), L"height");
+      check(root->SetAttributeValue(L"viewBox", D2D1_SVG_ATTRIBUTE_POD_TYPE_VIEWBOX,
+                                    &viewBox, sizeof(viewBox)),
+            "Setting the viewBox");
     }
     if (viewBox.width <= 0.0f || viewBox.height <= 0.0f) {
-      throw Error("The SVG root element needs a viewBox with a positive width and height");
+      throw Error("The SVG root element needs a viewBox, or a width and height,"
+                  " that are positive");
     }
     return viewBox;
+  }
+
+  // Width or height of the root element, which must be a plain number
+  // (user units or pixels) when there is no viewBox.
+  static float getLength(ID2D1SvgElement *root, const wchar_t *name)
+  {
+    D2D1_SVG_LENGTH length = {};
+    if (!root->IsAttributeSpecified(name)) {
+      return 0.0f;
+    }
+    check(root->GetAttributeValue(name, D2D1_SVG_ATTRIBUTE_POD_TYPE_LENGTH,
+                                  &length, sizeof(length)),
+          "Reading the width or height");
+    if (length.units != D2D1_SVG_LENGTH_UNITS_NUMBER) {
+      throw Error("Without a viewBox, the SVG root element's width and height"
+                  " must not be percentages");
+    }
+    return length.value;
   }
 
   // Offset of the drawing along one axis: the free space is split
@@ -365,6 +409,38 @@ private:
   ComPtr<IWICImagingFactory> m_wicFactory;
 };
 
+// Direct2D drops the elements it does not support while parsing, without
+// an error, so they are looked for in the source. Element names are taken
+// from the start tags; elements in other namespaces, such as Inkscape's,
+// are not drawn by any renderer and are ignored. The warnings are in the
+// format that MSBuild shows as warnings.
+void warnUnsupported(const std::vector<BYTE> &svg, const std::wstring &path)
+{
+  static const char *const SUPPORTED[] = {
+    "svg", "g", "defs", "use", "path", "rect", "circle", "ellipse",
+    "line", "polyline", "polygon", "linearGradient", "radialGradient",
+    "stop", "clipPath", "image", "title", "desc", "metadata",
+  };
+  std::vector<std::string> reported;
+  std::string text(svg.begin(), svg.end());
+  for (size_t pos = text.find('<'); pos != std::string::npos; pos = text.find('<', pos + 1)) {
+    size_t end = text.find_first_of(" \t\r\n/>", pos + 1);
+    std::string name = text.substr(pos + 1, end == std::string::npos ? std::string::npos
+                                                                     : end - pos - 1);
+    // Skip end tags, comments, CDATA, the XML declaration and namespaced
+    // elements.
+    if (name.empty() || name.find_first_of("/!?:") != std::string::npos) {
+      continue;
+    }
+    if (std::find(std::begin(SUPPORTED), std::end(SUPPORTED), name) == std::end(SUPPORTED) &&
+        std::find(reported.begin(), reported.end(), name) == reported.end()) {
+      fprintf(stderr, "%s : warning : <%s> is not supported by Direct2D and is not drawn\n",
+              narrow(path).c_str(), name.c_str());
+      reported.push_back(name);
+    }
+  }
+}
+
 void appendLE(std::vector<BYTE> &out, UINT32 value, int bytes)
 {
   for (int i = 0; i < bytes; i++) {
@@ -407,6 +483,7 @@ std::vector<BYTE> buildIco(const std::vector<UINT> &sizes,
 void run(const Options &options)
 {
   std::vector<BYTE> svg = readFile(options.input);
+  warnUnsupported(svg, options.input);
   Renderer renderer(svg);
 
   std::vector<std::vector<BYTE>> images;
