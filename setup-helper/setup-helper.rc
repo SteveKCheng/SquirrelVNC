@@ -14,7 +14,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// русский resources
+// Russian resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
 #ifdef _WIN32
@@ -86,7 +86,7 @@ BEGIN
     END
 END
 
-#endif    // русский resources
+#endif    // Russian resources
 /////////////////////////////////////////////////////////////////////////////
 
 
