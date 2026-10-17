@@ -799,8 +799,10 @@ int RemoteViewerCore::initAuthentication()
   m_logWriter.debug(_T("Select authentication capability"));
   if (numEnabled == 0) {
     if (newerViewerAuthCaps.isEnabled(AuthDefs::SRP6DUAL)) {
-      throw Exception(_T("This server requires TightVNC Viewer version 4 or later. ")
-                      _T("To use this Viewer, configure Legacy VNC authentication on the server."));
+      throw Exception(_T("The server offers only SRP-6 authentication, ")
+                      _T("which this viewer does not support. ")
+                      _T("Enable VNC password authentication on the server ")
+                      _T("(\"Legacy VNC authentication\" in TightVNC Server 4)."));
     }
     throw Exception(_T("The server does not offer a compatible authentication method. ")
                     _T("Check the server's authentication settings."));
