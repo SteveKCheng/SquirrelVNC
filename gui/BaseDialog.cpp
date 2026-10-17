@@ -47,9 +47,6 @@ BaseDialog::BaseDialog(const TCHAR *resourceName)
 
 BaseDialog::~BaseDialog()
 {
-  if (m_hicon) {
-    DeleteObject(m_hicon);
-  }
   if (m_resourceName != 0) {
     free(m_resourceName);
   }
@@ -232,9 +229,6 @@ void BaseDialog::updateIcon()
 
 void BaseDialog::loadIcon(DWORD id)
 {
-  if (m_hicon) {
-    DeleteObject(m_hicon);
-  }
   m_hicon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(id));
 }
 

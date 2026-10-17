@@ -116,6 +116,8 @@ protected:
   bool m_isModal;
   bool m_isCreated;
 
+  // Shared icon from LoadIcon(), so it is not destroyed (DestroyIcon()
+  // must not be called for shared icons).
   HICON m_hicon;
 };
 

@@ -37,9 +37,6 @@ BaseWindow::~BaseWindow()
   if (m_bWndCreated && m_hWnd) {
     DestroyWindow(m_hWnd);
   }
-  if (m_hicon) {
-    DeleteObject(m_hicon);
-  }
 }
 
 void BaseWindow::setClass(const StringStorage *className)
@@ -74,10 +71,7 @@ bool BaseWindow::createWindow(const StringStorage *windowName, DWORD style, HWND
 
 void BaseWindow::loadIcon(DWORD id)
 {
-  if (m_hicon) {
-    DeleteObject(m_hicon);
-    m_hicon = 0;
-  }
+  m_hicon = 0;
   if (IS_INTRESOURCE(id)) {
     m_hicon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(id));
     SetClassLongPtr(m_hWnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(m_hicon));

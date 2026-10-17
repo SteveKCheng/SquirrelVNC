@@ -160,17 +160,14 @@ void FileInfoListView::loadImages()
   icon = rLoader->loadIcon(MAKEINTRESOURCE(IDI_FILEUP));
   _ASSERT(icon != NULL);
   ImageList_AddIcon(m_smallImageList, icon);
-  DestroyIcon(icon);
 
   icon = rLoader->loadIcon(MAKEINTRESOURCE(IDI_FOLDER_ICON));
   _ASSERT(icon != NULL);
   ImageList_AddIcon(m_smallImageList, icon);
-  DestroyIcon(icon);
 
   icon = rLoader->loadIcon(MAKEINTRESOURCE(IDI_FILE_ICON));
   _ASSERT(icon != NULL);
   ImageList_AddIcon(m_smallImageList, icon);
-  DestroyIcon(icon);
 }
 
 void FileInfoListView::sort(int columnIndex)
