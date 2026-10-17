@@ -302,6 +302,8 @@ public:
 private:
   // Returns the root element's viewBox. Without one, the drawing has no
   // scaling, so a viewBox from (0, 0) to its width and height is set.
+  // The root's width and height are then set to 100%: otherwise Direct2D
+  // draws the root at that size, whatever the viewport.
   static D2D1_SVG_VIEWBOX getViewBox(ID2D1SvgDocument *document)
   {
     ComPtr<ID2D1SvgElement> root;
@@ -325,6 +327,9 @@ private:
       throw Error("The SVG root element needs a viewBox, or a width and height,"
                   " that are positive");
     }
+    D2D1_SVG_LENGTH fill = { 100.0f, D2D1_SVG_LENGTH_UNITS_PERCENTAGE };
+    check(root->SetAttributeValue(L"width", fill), "Setting the width");
+    check(root->SetAttributeValue(L"height", fill), "Setting the height");
     return viewBox;
   }
 

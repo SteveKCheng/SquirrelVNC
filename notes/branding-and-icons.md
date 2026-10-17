@@ -131,7 +131,9 @@ svg2ico [--ico FILE] [--png-dir DIR] [--png-prefix TEXT] [--sizes LIST]
 
 - Scales the viewBox to fit the square icon, keeping the aspect ratio.
   Without a viewBox, it uses one from (0, 0) to the root's `width` and
-  `height`. `--margin` leaves a percentage of the size empty on each
+  `height`. It then sets the root's `width` and `height` to 100%, since
+  Direct2D otherwise draws the root at that size whatever the viewport.
+  `--margin` leaves a percentage of the size empty on each
   side; `--extent` scales as if the drawing were at least that many
   user units across, so that drawings on smaller grids keep the same
   scale; `--align` places the drawing along its shorter axis. The
