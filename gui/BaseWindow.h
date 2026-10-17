@@ -117,8 +117,8 @@ protected:
   HWND m_hWnd;
   StringStorage m_className;
   StringStorage m_windowName;
-  // Shared icon from LoadIcon(), so it is not destroyed (DestroyIcon()
-  // must not be called for shared icons).
+  // Large icon cached by ScaledIcons for the life of the process, so it
+  // is not destroyed.
   HICON m_hicon;
 
   bool m_bWndCreated;

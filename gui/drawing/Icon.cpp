@@ -22,6 +22,7 @@
 //
 
 #include "Icon.h"
+#include "gui/ScaledIcons.h"
 
 Icon::Icon()
 : m_hasOwnIcon(true), m_icon(NULL)
@@ -49,8 +50,7 @@ Icon::Icon(Bitmap *bitmap, Bitmap *mask)
 Icon::Icon(DWORD icon)
 : m_hasOwnIcon(false)
 {
-  HINSTANCE hInstance = GetModuleHandle(NULL);
-  m_icon = LoadIcon(hInstance, MAKEINTRESOURCE(icon));
+  m_icon = ScaledIcons::getSmall(icon);
 }
 
 Icon::~Icon()

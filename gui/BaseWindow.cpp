@@ -23,6 +23,7 @@
 
 #include "util/CommonHeader.h"
 #include "BaseWindow.h"
+#include "ScaledIcons.h"
 
 BaseWindow::BaseWindow()
 : m_hWnd(0),
@@ -72,8 +73,10 @@ void BaseWindow::loadIcon(DWORD id)
 {
   m_hicon = 0;
   if (IS_INTRESOURCE(id)) {
-    m_hicon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(id));
+    m_hicon = ScaledIcons::getLarge(id);
     SetClassLongPtr(m_hWnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(m_hicon));
+    SetClassLongPtr(m_hWnd, GCLP_HICONSM,
+                    reinterpret_cast<LONG_PTR>(ScaledIcons::getSmall(id)));
   } else {
     SetClassLongPtr(m_hWnd, GCLP_HICON, static_cast<LONG_PTR>(id));
   }

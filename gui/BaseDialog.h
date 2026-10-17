@@ -115,9 +115,10 @@ protected:
   bool m_isModal;
   bool m_isCreated;
 
-  // Shared icon from LoadIcon(), so it is not destroyed (DestroyIcon()
-  // must not be called for shared icons).
+  // Large and small icons cached by ScaledIcons for the life of the
+  // process, so they are not destroyed.
   HICON m_hicon;
+  HICON m_hiconSmall;
 };
 
 #endif

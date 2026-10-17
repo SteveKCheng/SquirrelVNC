@@ -169,6 +169,7 @@
     <ClCompile Include="PaintWindow.cpp" />
     <ClCompile Include="ProgressBar.cpp" />
     <ClCompile Include="drawing\SolidBrush.cpp" />
+    <ClCompile Include="ScaledIcons.cpp" />
     <ClCompile Include="ScrollBar.cpp" />
     <ClCompile Include="SpinControl.cpp" />
     <ClCompile Include="StringFilter.cpp" />
@@ -209,6 +210,7 @@
     <ClInclude Include="PaintWindow.h" />
     <ClInclude Include="ProgressBar.h" />
     <ClInclude Include="drawing\SolidBrush.h" />
+    <ClInclude Include="ScaledIcons.h" />
     <ClInclude Include="ScrollBar.h" />
     <ClInclude Include="SpinControl.h" />
     <ClInclude Include="StringFilter.h" />

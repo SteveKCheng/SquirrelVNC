@@ -22,6 +22,7 @@
 //
 
 #include "BaseDialog.h"
+#include "ScaledIcons.h"
 
 #include "util/CommonHeader.h"
 
@@ -29,17 +30,20 @@
 #include <crtdbg.h>
 
 BaseDialog::BaseDialog()
-: m_ctrlParent(NULL), m_resourceName(0), m_resourceId(0), m_hicon(0)
+: m_ctrlParent(NULL), m_resourceName(0), m_resourceId(0), m_hicon(0),
+  m_hiconSmall(0)
 {
 }
 
 BaseDialog::BaseDialog(DWORD resourceId)
-: m_ctrlParent(NULL), m_resourceName(0), m_resourceId(resourceId), m_hicon(0)
+: m_ctrlParent(NULL), m_resourceName(0), m_resourceId(resourceId), m_hicon(0),
+  m_hiconSmall(0)
 {
 }
 
 BaseDialog::BaseDialog(const TCHAR *resourceName)
-: m_ctrlParent(NULL), m_resourceName(0), m_resourceId(0), m_hicon(0)
+: m_ctrlParent(NULL), m_resourceName(0), m_resourceId(0), m_hicon(0),
+  m_hiconSmall(0)
 {
   setResourceName(resourceName);
 }
@@ -223,12 +227,14 @@ void BaseDialog::updateIcon()
 {
   if (m_hicon) {
     SetClassLongPtr(m_ctrlThis.getWindow(), GCLP_HICON, (LONG_PTR)m_hicon);
+    SetClassLongPtr(m_ctrlThis.getWindow(), GCLP_HICONSM, (LONG_PTR)m_hiconSmall);
   }
 }
 
 void BaseDialog::loadIcon(DWORD id)
 {
-  m_hicon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(id));
+  m_hicon = ScaledIcons::getLarge(id);
+  m_hiconSmall = ScaledIcons::getSmall(id);
 }
 
 bool BaseDialog::setForeground()

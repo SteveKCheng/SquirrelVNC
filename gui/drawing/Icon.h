@@ -35,6 +35,8 @@ public:
   Icon(HICON icon);
   Icon(Bitmap *bitmap);
   Icon(Bitmap *bitmap, Bitmap *mask);
+  // Small icon from the resources (see ScaledIcons), for the
+  // notification area.
   Icon(DWORD icon);
   virtual ~Icon();
 
