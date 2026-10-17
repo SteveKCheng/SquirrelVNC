@@ -22,7 +22,7 @@
 //
 
 #include "ToolBar.h"
-#include <CommCtrl.h>
+#include "ScaledIcons.h"
 
 ToolBar::ToolBar()
 {
@@ -33,6 +33,7 @@ ToolBar::ToolBar()
   InitCommonControlsEx(&initCtrlEx);
 
   m_hWndToolbar = 0;
+  m_imageList = 0;
   m_initialStr = -1;
 }
 
@@ -40,6 +41,9 @@ ToolBar::~ToolBar()
 {
   if (m_hWndToolbar) {
     DestroyWindow(m_hWndToolbar);
+  }
+  if (m_imageList) {
+    ImageList_Destroy(m_imageList);
   }
 }
 
@@ -70,18 +74,19 @@ void ToolBar::setViewAutoButtons(int iButton, int style)
   m_autoButtons[iButton] = style;
 }
 
-void ToolBar::loadToolBarfromRes(DWORD id)
+void ToolBar::loadIcons(UINT firstId, int count)
 {
-  BITMAP bmp;
-
-  HBITMAP hbmp = LoadBitmap(GetModuleHandle(NULL),
-                            MAKEINTRESOURCE(id));
-  GetObject(hbmp, sizeof(BITMAP), &bmp);
-  m_width = bmp.bmWidth;
-  m_height = bmp.bmHeight;
-  m_numberTB = m_width / m_height;
-  m_id = id;
-  DeleteObject(hbmp);
+  _ASSERT(m_imageList == 0);
+  // The toolbar's buttons are sized to fit the images.
+  m_width = GetSystemMetrics(SM_CXSMICON);
+  m_height = GetSystemMetrics(SM_CYSMICON);
+  m_imageList = ImageList_Create(m_width, m_height, ILC_COLOR32, count, 0);
+  for (int i = 0; i < count; i++) {
+    // The image list copies the icon, which stays in ScaledIcons' cache.
+    ImageList_AddIcon(m_imageList, ScaledIcons::get(firstId + i, m_width, m_height));
+  }
+  m_numberTB = count;
+  m_id = firstId;
 }
 
 void ToolBar::setButtonsRange(DWORD id)
@@ -119,16 +124,19 @@ void ToolBar::attachToolBar(HWND hwnd)
   }
   m_autoButtons.clear();
 
-  m_hWndToolbar = CreateToolbarEx(hwnd,
+  m_hWndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, 0,
      WS_VISIBLE | WS_CHILD | TBSTYLE_TOOLTIPS | WS_CLIPSIBLINGS | TBSTYLE_FLAT | WS_BORDER,
-     m_id,
-     static_cast<int>(tbuttons.size()),
-     GetModuleHandle(NULL),
-     m_id,
-     &tbuttons.front(),
-     static_cast<int>(tbuttons.size()),
      0, 0, 0, 0,
-     sizeof(TBBUTTON));
+     hwnd,
+     reinterpret_cast<HMENU>(static_cast<INT_PTR>(m_id)),
+     GetModuleHandle(NULL),
+     0);
+  SendMessage(m_hWndToolbar, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
+  // Disabled buttons are drawn greyed from the same images.
+  SendMessage(m_hWndToolbar, TB_SETIMAGELIST, 0, reinterpret_cast<LPARAM>(m_imageList));
+  SendMessage(m_hWndToolbar, TB_ADDBUTTONS, tbuttons.size(),
+              reinterpret_cast<LPARAM>(&tbuttons.front()));
+  SendMessage(m_hWndToolbar, TB_AUTOSIZE, 0, 0);
   SendMessage(m_hWndToolbar, TB_SETINDENT, 4, 0);
 }
 

@@ -2,7 +2,6 @@
 // Microsoft Visual C++ generated include file.
 // Used by tvnviewer.rc
 //
-#define IDB_TOOLBAR                     101
 #define IDI_CNOCURSOR                   102
 #define IDI_CSMALLDOT                   103
 #define IDI_APPICON                     104
@@ -70,6 +69,22 @@
 #define IDS_TB_SCALEAUTO                214
 #define IDS_TB_FULLSCREEN               215
 #define IDS_TB_CONFIGURATION            216
+#define IDI_TB_NEWCONNECTION            300
+#define IDI_TB_SAVESESSION              301
+#define IDI_TB_CONNOPTIONS              302
+#define IDI_TB_CONNINFO                 303
+#define IDI_TB_PAUSE                    304
+#define IDI_TB_REFRESH                  305
+#define IDI_TB_CTRLALTDEL               306
+#define IDI_TB_CTRLESC                  307
+#define IDI_TB_CTRL                     308
+#define IDI_TB_ALT                      309
+#define IDI_TB_TRANSFER                 310
+#define IDI_TB_SCALEIN                  311
+#define IDI_TB_SCALEOUT                 312
+#define IDI_TB_SCALE100                 313
+#define IDI_TB_SCALEAUTO                314
+#define IDI_TB_FULLSCREEN               315
 #define IDD_FS_WARNING                  230
 #define IDC_LABEL                       1001
 #define IDC_FILENAME_EDIT               1002

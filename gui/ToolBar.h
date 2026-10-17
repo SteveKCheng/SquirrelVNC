@@ -25,6 +25,7 @@
 #define _TOOL_BAR_H_
 
 #include "util/CommonHeader.h"
+#include <CommCtrl.h>
 
 class ToolBar
 {
@@ -41,14 +42,15 @@ public:
 
   // setViewAutoButtons()
   // It used only for auto buttons creation from
-  // bitmap and making gaps or separators.
+  // icons and making gaps or separators.
   void setViewAutoButtons(int iButton, int style);
 
-  // loadToolBarfromRes()
-  // This procedure will load a toolbar image from resource
-  // id is a number of bitmap. It means that buttons are
-  // square(for example 16x16).
-  void loadToolBarfromRes(DWORD id);
+  // loadIcons()
+  // Sets the icons for the buttons: count icon resources with
+  // consecutive ids starting from firstId, one per button. They are
+  // loaded at the size of small icons for the current DPI. firstId
+  // is also the toolbar's control id.
+  void loadIcons(UINT firstId, int count);
 
   // setButtonsRange()
   // If we want to catch the message from toolbar that some buttons
@@ -58,7 +60,7 @@ public:
 
   // attachToolBar()
   // This one will create and attach toolbar window to 
-  // which handle is passed in hwnd. Only for toolbar from bitmap.
+  // which handle is passed in hwnd. Only for toolbar from loadIcons().
   void attachToolBar(HWND hwnd);
 
   ///////////////////////////////////////////////////////// 
@@ -140,6 +142,7 @@ private:
   DWORD m_id;
   int m_width, m_height;
   HWND m_hWndToolbar;
+  HIMAGELIST m_imageList;
 
   std::map<int, int> m_autoButtons;
 };

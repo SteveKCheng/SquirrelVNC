@@ -376,13 +376,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Bitmap
-//
-
-IDB_TOOLBAR             BITMAP                  "res\\toolbar.bmp"
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Cursor
 //
 
@@ -401,6 +394,22 @@ IDI_APPICON             ICON                    "SquirrelVNC.ico"
 IDI_FILE_ICON           ICON                    "res\\ftfile.ico"
 IDI_FILEUP              ICON                    "res\\fileup.ico"
 IDI_FOLDER_ICON         ICON                    "res\\ftdir.ico"
+IDI_TB_NEWCONNECTION    ICON                    "toolbar-new.ico"
+IDI_TB_SAVESESSION      ICON                    "toolbar-save.ico"
+IDI_TB_CONNOPTIONS      ICON                    "toolbar-options.ico"
+IDI_TB_CONNINFO         ICON                    "toolbar-info.ico"
+IDI_TB_PAUSE            ICON                    "toolbar-pause.ico"
+IDI_TB_REFRESH          ICON                    "toolbar-refresh.ico"
+IDI_TB_CTRLALTDEL       ICON                    "toolbar-key-sac.ico"
+IDI_TB_CTRLESC          ICON                    "toolbar-key-win.ico"
+IDI_TB_CTRL             ICON                    "toolbar-key-ctrl.ico"
+IDI_TB_ALT              ICON                    "toolbar-key-alt.ico"
+IDI_TB_TRANSFER         ICON                    "toolbar-file-transfer.ico"
+IDI_TB_SCALEIN          ICON                    "toolbar-scale-in.ico"
+IDI_TB_SCALEOUT         ICON                    "toolbar-scale-out.ico"
+IDI_TB_SCALE100         ICON                    "toolbar-scale-full.ico"
+IDI_TB_SCALEAUTO        ICON                    "toolbar-scale-auto.ico"
+IDI_TB_FULLSCREEN       ICON                    "toolbar-full-screen.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

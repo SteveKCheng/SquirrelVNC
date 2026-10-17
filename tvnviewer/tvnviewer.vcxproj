@@ -238,7 +238,6 @@
     <None Include="res\ftfile.ico" />
     <None Include="res\nocursor.cur" />
     <None Include="res\smalldot.cur" />
-    <None Include="res\toolbar.bmp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="tvnviewer.rc" />
@@ -296,15 +295,23 @@
     </ProjectReference>
   </ItemGroup>
   <!--
-    The application icon is rendered from the SVG logo at build time by
-    tools/svg2ico into $(IntDir)icons, which the resource compiler searches
-    for the files that tvnviewer.rc names.
+    The application icon and the toolbar icons are rendered from SVG at
+    build time by tools/svg2ico into $(IntDir)icons, which the resource
+    compiler searches for the files that tvnviewer.rc names.
+
+    The toolbar icons are drawn on 14- and 16-unit grids; extent 16 draws
+    them at the same scale, one unit per pixel at 16 pixels. Their sizes
+    are those of small icons from 100% to 400% scaling.
   -->
   <PropertyGroup>
     <SvgIconDir>$(IntDir)icons\</SvgIconDir>
     <Svg2IcoExe>$(OutDir)svg2ico.exe</Svg2IcoExe>
     <AppIconSvg>$(MSBuildProjectDirectory)\..\art\logo-publish.svg</AppIconSvg>
+    <ToolbarIconSizes>16,20,24,28,32,40,48,56,64</ToolbarIconSizes>
   </PropertyGroup>
+  <ItemGroup>
+    <ToolbarIconSvg Include="..\art\toolbar\*.svg" />
+  </ItemGroup>
   <ItemDefinitionGroup>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(SvgIconDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -314,6 +321,12 @@
           Inputs="$(AppIconSvg);$(Svg2IcoExe)" Outputs="$(SvgIconDir)SquirrelVNC.ico">
     <MakeDir Directories="$(SvgIconDir)" />
     <Exec Command="&quot;$(Svg2IcoExe)&quot; --ico &quot;$(SvgIconDir)SquirrelVNC.ico&quot; &quot;$(AppIconSvg)&quot;" />
+  </Target>
+  <Target Name="RenderToolbarIcons" BeforeTargets="ResourceCompile"
+          Inputs="@(ToolbarIconSvg);$(Svg2IcoExe)"
+          Outputs="@(ToolbarIconSvg->'$(SvgIconDir)%(Filename).ico')">
+    <MakeDir Directories="$(SvgIconDir)" />
+    <Exec Command="&quot;$(Svg2IcoExe)&quot; --sizes $(ToolbarIconSizes) --extent 16 --ico &quot;$(SvgIconDir)%(ToolbarIconSvg.Filename).ico&quot; &quot;%(ToolbarIconSvg.FullPath)&quot;" />
   </Target>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

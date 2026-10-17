@@ -111,7 +111,7 @@ bool ViewerWindow::onCreate(LPCREATESTRUCT lps)
 
   setClassCursor(LoadCursor(NULL, IDC_ARROW));
   loadIcon(IDI_APPICON);
-  m_toolbar.loadToolBarfromRes(IDB_TOOLBAR);
+  m_toolbar.loadIcons(IDI_TB_NEWCONNECTION, IDI_TB_FULLSCREEN - IDI_TB_NEWCONNECTION + 1);
   m_toolbar.setButtonsRange(IDS_TB_NEWCONNECTION);
   m_toolbar.setViewAutoButtons(4, ToolBar::TB_Style_sep);
   m_toolbar.setViewAutoButtons(6, ToolBar::TB_Style_sep);
