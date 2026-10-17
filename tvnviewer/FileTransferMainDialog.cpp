@@ -231,7 +231,7 @@ bool FileTransferMainDialog::tryClose()
   }
   if (MessageBox(m_ctrlThis.getWindow(),
                  _T("Do you want to close file transfers and terminate current operation?"),
-                 _T("TightVNC File Transfers"),
+                 _T("VNC File Transfers"),
                  MB_YESNO | MB_ICONQUESTION) == IDYES) {
     // Set flag
     m_isClosing = true;
