@@ -32,9 +32,9 @@ const TCHAR LogNames::LOG_DIR_NAME[] = _T("SquirrelVNC");
 const TCHAR RegistryPaths::VIEWER_PATH[] = _T("Software\\SquirrelVNC");
 
 const TCHAR ApplicationNames::WINDOW_CLASS_NAME[] = 
-  _T("TvnApplicationClass");
+  _T("SquirrelVncApplicationClass");
 
-const TCHAR WindowNames::TVN_WINDOW_CLASS_NAME[] = _T("TvnWindowClass");
+const TCHAR WindowNames::TVN_WINDOW_CLASS_NAME[] = _T("SquirrelVncWindowClass");
 const TCHAR WindowNames::TVN_WINDOW_TITLE_NAME[] = _T("SquirrelVNC");
 const TCHAR WindowNames::TVN_SUB_WINDOW_TITLE_NAME[] = _T("Viewer");
 
