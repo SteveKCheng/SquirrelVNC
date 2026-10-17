@@ -23,8 +23,8 @@
 
 #include "NamingDefs.h"
 
-const TCHAR ProductNames::PRODUCT_NAME[] = _T("TightVNC");
-const TCHAR ProductNames::VIEWER_PRODUCT_NAME[] = _T("TightVNC Viewer");
+const TCHAR ProductNames::PRODUCT_NAME[] = _T("SquirrelVNC");
+const TCHAR ProductNames::VIEWER_PRODUCT_NAME[] = _T("SquirrelVNC");
 
 const TCHAR LogNames::VIEWER_LOG_FILE_STUB_NAME[] = _T("tvnviewer");
 const TCHAR LogNames::LOG_DIR_NAME[] = _T("TightVNC");
@@ -35,6 +35,6 @@ const TCHAR ApplicationNames::WINDOW_CLASS_NAME[] =
   _T("TvnApplicationClass");
 
 const TCHAR WindowNames::TVN_WINDOW_CLASS_NAME[] = _T("TvnWindowClass");
-const TCHAR WindowNames::TVN_WINDOW_TITLE_NAME[] = _T("TightVNC Viewer");
+const TCHAR WindowNames::TVN_WINDOW_TITLE_NAME[] = _T("SquirrelVNC");
 const TCHAR WindowNames::TVN_SUB_WINDOW_TITLE_NAME[] = _T("Viewer");
 
