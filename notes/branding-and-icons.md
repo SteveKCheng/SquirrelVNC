@@ -61,11 +61,12 @@ which added the logo in `art/`).
   encoding and `TightDecoder`, and comments describing TightVNC
   protocol extensions. They name the protocol, not the product.
 - **The `.vnc` file extension.**
-- **Internal names.** The `TvnViewer` class, `TVN_*` constants, the
-  window classes `TvnApplicationClass` and `TvnWindowClass`, the
-  `tvnviewer/` directory and project, and `tightvnc.slnx`. They are
-  invisible to users; they could be renamed in one mechanical commit
-  later.
+- **Internal names.** The `TvnViewer` class, `TVN_*` constants, and
+  the `tvnviewer/` directory and project. They are invisible to users;
+  they could be renamed in one mechanical commit later. The window
+  classes (now `SquirrelVncApplicationClass` and
+  `SquirrelVncWindowClass`) and the solution (now `SquirrelVNC.slnx`)
+  were renamed afterwards.
 - **`tvnviewer/cmdline-help.docx`**, a Word copy of the command-line
   help, to be reviewed for anything worth keeping. Documentation is to
   be in Markdown; there will be no WinHelp/HTML Help.
