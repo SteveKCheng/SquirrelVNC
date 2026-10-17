@@ -55,6 +55,14 @@ which added the logo in `art/`).
 | `bbea3e1` | `gui/ScaledIcons`: window, dialog and tray icons are loaded at the sizes for the current DPI. |
 | `7d75607` | The About and connection dialog logos are drawn from the application icon. `res/tightvnc.bmp` and `res/tightvnc48.bmp` removed. |
 
+### `toolbar-icons`
+
+| Commit | Change |
+|---|---|
+| `90b1c40` | SVG art for the 16 toolbar buttons in `art/toolbar/`, and `notes/toolbar-icons.md` on where it came from. |
+| `fee5088` | `svg2ico`: SVGs without a viewBox, `--extent`, and warnings for elements Direct2D does not draw. |
+| `f031ad6` | The `RenderToolbarIcons` target renders the toolbar icons; `gui/ToolBar` loads them into an image list at the DPI size. `res/toolbar.bmp` removed. |
+
 ## What was kept
 
 - **Protocol names.** `VendorDefs::TIGHTVNC` ("TGHT"), the Tight
@@ -107,18 +115,31 @@ byte-identical PNGs.
   stays legible down to 16 px. The art may later be squeezed
   horizontally by about 5%, but not more without spoiling the
   composition.
+- `art/toolbar/` has one SVG per toolbar button, named
+  `toolbar-*.svg`; `notes/toolbar-icons.md` lists their sources. They
+  are minimal placeholders, drawn on 14- or 16-unit grids, with only
+  `width` and `height` (no viewBox). Text must be converted to paths:
+  Direct2D does not draw `<text>`.
 
 ### `svg2ico`
 
 ```
 svg2ico [--ico FILE] [--png-dir DIR] [--png-prefix TEXT] [--sizes LIST]
-        [--margin PERCENT] [--align center|start|end] [--no-snap] input.svg
+        [--margin PERCENT] [--extent UNITS] [--align center|start|end]
+        [--no-snap] input.svg
 ```
 
 - Scales the viewBox to fit the square icon, keeping the aspect ratio.
-  `--margin` leaves a percentage of the size empty on each side;
-  `--align` places the drawing along its shorter axis. The offset is
-  rounded to whole pixels unless `--no-snap` is given.
+  Without a viewBox, it uses one from (0, 0) to the root's `width` and
+  `height`. `--margin` leaves a percentage of the size empty on each
+  side; `--extent` scales as if the drawing were at least that many
+  user units across, so that drawings on smaller grids keep the same
+  scale; `--align` places the drawing along its shorter axis. The
+  offset is rounded to whole pixels unless `--no-snap` is given.
+- Direct2D drops elements it does not support while parsing, so
+  `svg2ico` looks for them in the source and prints warnings in
+  MSBuild's format (`file : warning : …`). Elements in other
+  namespaces, such as Inkscape's, are ignored.
 - Default sizes 16, 20, 24, 32, 40, 48, 64, 96, 256: the small and
   large icons at 100–200% scaling, plus Explorer's large views.
 - The .ico stores every image as 32-bit PNG, which Windows Vista and
@@ -135,6 +156,13 @@ svg2ico [--ico FILE] [--png-dir DIR] [--png-prefix TEXT] [--sizes LIST]
   compiler's include path, so `tvnviewer.rc` names just
   `"SquirrelVNC.ico"`. The target is skipped when neither the SVG nor
   `svg2ico.exe` changed.
+- The `RenderToolbarIcons` target renders every `art/toolbar/*.svg` to
+  `$(IntDir)icons\<name>.ico` with `--extent 16`, at sizes 16, 20, 24,
+  28, 32, 40, 48, 56 and 64: the small icon size from 100% to 400%
+  scaling. At 16 pixels one unit is one pixel, so the 14-unit drawings
+  get a one-pixel border. A new SVG is
+  picked up by the wildcard, but also needs an `ICON` line in
+  `tvnviewer.rc`.
 - No generated binaries are in the repository.
 
 ### Loading at run time
@@ -157,6 +185,13 @@ otherwise the next larger one scaled down by Windows.
   boxes (About: 60×55 dialog units; connection dialog: 32×30).
   `ScaledIcons::drawCentered()` draws the icon as the largest square
   that fits, centred.
+- The toolbar icons are resources `IDI_TB_NEWCONNECTION` (300) to
+  `IDI_TB_FULLSCREEN` (315), in button order. `ToolBar::loadIcons()`
+  loads them at `SM_CXSMICON` × `SM_CYSMICON` into a 32-bit image list
+  (`ImageList_Create` with `ILC_COLOR32`), which `attachToolBar()` sets
+  with `TB_SETIMAGELIST`. The buttons are sized to the images.
+  Disabled buttons are greyed by the toolbar from the same images; a
+  separate disabled image list could be added if that looks poor.
 
 ## Follow-ups
 
@@ -171,11 +206,8 @@ otherwise the next larger one scaled down by Windows.
   100%) are scaled by Windows from the next larger image rather than
   rendered by Direct2D. Adding intermediate sizes to the .ico, or
   rendering at run time, would avoid that.
-- **Toolbar:** its 16 buttons are still the 16×16 4-bit bitmap
-  `res/toolbar.bmp`. They need SVG art of their own; then `svg2ico`
-  can render them and `gui/ToolBar.cpp` can use an image list at the
-  DPI size (`ImageList_Create` with `ILC_COLOR32`, `TB_SETIMAGELIST`)
-  instead of `TB_ADDBITMAP`.
+- **Toolbar art:** the toolbar icons are placeholders, to be replaced
+  by better or edited art.
 - **The remaining icons** (`ftfile.ico`, `fileup.ico`, `ftdir.ico` for
   file transfer, and the cursors) are still the old TightVNC files.
 - **Version from Git:** `3.0.0-pre` is hard-coded. The plan is to
