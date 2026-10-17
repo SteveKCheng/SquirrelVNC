@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Включаемый файл, созданный в Microsoft Visual C++.
-// Используется tvnviewer.rc
+// Microsoft Visual C++ generated include file.
+// Used by tvnviewer.rc
 //
 #define IDB_TOOLBAR                     101
 #define IDI_CNOCURSOR                   102

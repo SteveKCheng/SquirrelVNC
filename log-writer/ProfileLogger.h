@@ -38,7 +38,7 @@ struct ProcessorTimes {
   DateTime wall;
 };
 
-// Ñlass for acquiring processor load metrics.
+// Class for acquiring processor load metrics.
 class ProfileLogger
 {
 public:
