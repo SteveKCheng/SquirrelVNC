@@ -18,3 +18,5 @@
 # Visual Studio
 .vs/
 *.user
+# Resource editor cache
+*.aps
