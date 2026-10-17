@@ -399,7 +399,7 @@ IDI_CSMALLDOT           CURSOR                  "res\\smalldot.cur"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_APPICON             ICON                    "res\\appicon.ico"
+IDI_APPICON             ICON                    "SquirrelVNC.ico"
 IDI_FILE_ICON           ICON                    "res\\ftfile.ico"
 IDI_FILEUP              ICON                    "res\\fileup.ico"
 IDI_FOLDER_ICON         ICON                    "res\\ftdir.ico"

@@ -231,7 +231,7 @@
     <ClInclude Include="ViewerWindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\appicon.ico" />
+    <None Include="..\art\logo-publish.svg" />
     <None Include="res\dot.cur" />
     <None Include="res\fileup.ico" />
     <None Include="res\ftdir.ico" />
@@ -291,7 +291,32 @@
     <ProjectReference Include="..\win-system\win-system.vcxproj">
       <Project>{56eadc5b-9c2c-431c-9275-98fe9088518b}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\tools\svg2ico\svg2ico.vcxproj">
+      <Project>{c8a85bf1-5e04-4c6c-a4c4-0b78f90b9631}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemGroup>
+  <!--
+    The application icon is rendered from the SVG logo at build time by
+    tools/svg2ico into $(IntDir)icons, which the resource compiler searches
+    for the files that tvnviewer.rc names.
+  -->
+  <PropertyGroup>
+    <SvgIconDir>$(IntDir)icons\</SvgIconDir>
+    <Svg2IcoExe>$(OutDir)svg2ico.exe</Svg2IcoExe>
+    <AppIconSvg>$(MSBuildProjectDirectory)\..\art\logo-publish.svg</AppIconSvg>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(SvgIconDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <Target Name="RenderIcons" BeforeTargets="ResourceCompile"
+          Inputs="$(AppIconSvg);$(Svg2IcoExe)" Outputs="$(SvgIconDir)SquirrelVNC.ico">
+    <MakeDir Directories="$(SvgIconDir)" />
+    <Exec Command="&quot;$(Svg2IcoExe)&quot; --ico &quot;$(SvgIconDir)SquirrelVNC.ico&quot; &quot;$(AppIconSvg)&quot;" />
+  </Target>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

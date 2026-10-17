@@ -190,7 +190,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\appicon.ico">
+    <None Include="..\art\logo-publish.svg">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\dot.cur">
