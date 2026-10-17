@@ -1,7 +1,8 @@
 // Copyright (C) 2026 Steve Cheng.
 //
 //-------------------------------------------------------------------------
-// This file is part of a modified version of the TightVNC software.
+// This file is part of SquirrelVNC, a modified version of the TightVNC
+// software (https://www.tightvnc.com/).
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by

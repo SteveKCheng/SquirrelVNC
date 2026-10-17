@@ -33,8 +33,9 @@ BEGIN
     CONTROL         IDB_LOGO_BIG,IDC_STATIC,"Static",SS_BITMAP | WS_GROUP,24,14,60,55
     LTEXT           "TightVNC Viewer for Windows",IDC_STATIC,107,12,189,10
     LTEXT           "Version unknown, build time unknown",IDC_STATIC_VERSION,107,20,189,10
-    LTEXT           "Copyright (C) 2026 GlavSoft LLC.\nAll Rights Reserved.",IDC_STATIC,107,38,189,19
+    LTEXT           "Derived from TightVNC.\nCopyright (C) 2008-2026 GlavSoft LLC.",IDC_STATIC,107,38,189,19
     LTEXT           "",IDC_STATIC_LICENSING,107,64,189,10
+    LTEXT           "This program is free software: you may redistribute and modify it under the terms of the\nlicense above. It comes with ABSOLUTELY NO WARRANTY; see the license for details.",IDC_STATIC,13,81,283,26
     DEFPUSHBUTTON   "Visit the Web Site",IDC_VISIT_WEB_SITE_BUTTON,7,116,94,15,WS_GROUP
     PUSHBUTTON      "Close This Window",IDCANCEL,207,116,94,15
 END
@@ -429,7 +430,7 @@ BEGIN
             VALUE "FileDescription", "TightVNC Viewer"
             VALUE "FileVersion", "2, 8, 90, 0"
             VALUE "InternalName", "tvnviewer"
-            VALUE "LegalCopyright", "Copyright (C) 2026 GlavSoft LLC."
+            VALUE "LegalCopyright", "Copyright (C) 2008-2026 GlavSoft LLC."
             VALUE "OriginalFilename", "tvnviewer.exe"
             VALUE "ProductName", "TightVNC"
             VALUE "ProductVersion", "2, 8, 90, 0"
@@ -516,7 +517,7 @@ BEGIN
     IDS_SAVE_SESSION_FILTER_VNC_FILES "VNC-configuration files (*.vnc)"
     IDS_SAVE_SESSION_FILTER_ALL_FILES "All files (*.*)"
     IDS_SECURITY_WARNING_CAPTION "Security Warning"
-    IDS_LICENSING_INFO      "Licensing Terms: GNU General Public License version 2"
+    IDS_LICENSING_INFO      "License: GNU General Public License, version 2 or later"
     IDS_QUESTION_SAVE_PASSWORD 
                             "Do you want to save the password in this file?\r\nIf you save ""Yes"", anyone with access to this file could access your session and (potentially) discover your connection-password."
     IDS_CONNECTION_INFO_CAPTION "Connection Information"
