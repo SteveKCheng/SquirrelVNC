@@ -27,11 +27,11 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 IDD_ABOUT_DIALOG DIALOGEX 0, 0, 308, 138
 STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "About TightVNC Viewer"
+CAPTION "About SquirrelVNC"
 FONT 8, "Ms Shell Dlg 2", 0, 0, 0x0
 BEGIN
     CONTROL         IDB_LOGO_BIG,IDC_STATIC,"Static",SS_BITMAP | WS_GROUP,24,14,60,55
-    LTEXT           "TightVNC Viewer for Windows",IDC_STATIC,107,12,189,10
+    LTEXT           "SquirrelVNC: a VNC viewer for Windows",IDC_STATIC,107,12,189,10
     LTEXT           "Version unknown, build time unknown",IDC_STATIC_VERSION,107,20,189,10
     LTEXT           "Derived from TightVNC.\nCopyright (C) 2008-2026 GlavSoft LLC.",IDC_STATIC,107,38,189,19
     LTEXT           "",IDC_STATIC_LICENSING,107,64,189,10
@@ -74,7 +74,7 @@ END
 
 ftclient_mainDialog DIALOGEX 0, 0, 503, 320
 STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "TightVNC File Transfer"
+CAPTION "VNC File Transfer"
 FONT 8, "Ms Shell Dlg 2", 0, 0, 0x0
 BEGIN
     LTEXT           "Local Computer (Viewer)",IDC_STATIC,5,4,226,10
@@ -100,7 +100,7 @@ END
 
 IDD_CMDLINE DIALOGEX 0, 0, 280, 204
 STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "TightVNC Viewer - Command Line Help"
+CAPTION "SquirrelVNC - Command Line Help"
 FONT 8, "Ms Shell Dlg 2", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,115,183,50,14,BS_CENTER | WS_GROUP
@@ -109,7 +109,7 @@ END
 
 IDD_CONFIGURATION DIALOGEX 0, 0, 221, 216
 STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "TightVNC Viewer Configuration"
+CAPTION "SquirrelVNC Configuration"
 FONT 8, "Ms Shell Dlg 2", 0, 0, 0x0
 BEGIN
     GROUPBOX        "User Interface",IDC_STATIC,7,7,207,42,WS_GROUP
@@ -151,7 +151,7 @@ END
 
 IDD_LOGINDIALOG DIALOGEX 0, 0, 284, 172
 STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "New TightVNC Connection"
+CAPTION "New Connection - SquirrelVNC"
 FONT 8, "Ms Shell Dlg 2", 0, 0, 0x0
 BEGIN
     GROUPBOX        "Connection",IDC_STATIC,7,7,270,50,WS_GROUP
@@ -160,9 +160,9 @@ BEGIN
     LTEXT           "Enter a name or an IP address. To specify a port number, append it after two colons (for example, mypc::5902).",IDC_STATIC,16,34,186,18
     GROUPBOX        "Reverse Connections",IDC_STATIC,7,62,270,34
     LTEXT           "Listening mode allows people to attach your viewer to their desktops. Viewer will wait for incoming connections.",IDC_STATIC,16,73,186,18,NOT WS_GROUP
-    GROUPBOX        "TightVNC Viewer",IDC_STATIC,7,101,270,64
+    GROUPBOX        "SquirrelVNC",IDC_STATIC,7,101,270,64
     CONTROL         IDB_LOGO_48,IDC_STATIC,"Static",SS_BITMAP,22,119,32,30
-    LTEXT           "TightVNC is cross-platform remote control software.",IDC_STATIC,69,111,200,10,NOT WS_GROUP
+    LTEXT           "SquirrelVNC is a VNC viewer for Windows.",IDC_STATIC,69,111,200,10,NOT WS_GROUP
     LTEXT           "Its source code is available to everyone under the\nGNU General Public License.",IDC_STATIC,69,122,200,18,NOT WS_GROUP
     DEFPUSHBUTTON   "Connect",IDOK,209,17,60,14,WS_GROUP
     PUSHBUTTON      "&Options...",IDC_BOPTIONS,209,36,60,14
@@ -502,7 +502,7 @@ BEGIN
     IDS_CONFIG              "Configuration..."
     IDS_CLOSE               "Close listening daemon"
     IDS_URL_PRODUCT_FVA     "https://github.com/SteveKCheng/SquirrelVNC/"
-    IDS_CMDLINE_HELP        "TightVNC Viewer allows you to view and control remote hosts\r\nwhere TightVNC Server or compatible software is running.\r\n\r\nCommand line syntax is the following.\r\n\r\nStart the viewer:\r\n  tvnviewer\r\n\r\nStart the viewer and connect to the specified host:\r\n  tvnviewer hostname::port [OPTIONS]\r\n  tvnviewer -host=hostname [OPTIONS]\r\n  tvnviewer -optionsfile=FILENAME [OPTIONS]\r\n\r\nStart the viewer in the listening mode:\r\n  tvnviewer -listen\r\n\r\nShow this help on command line usage:\r\n  tvnviewer -help\r\n\r\nThe following OPTIONS are supported (all of them should be used in the\r\nform -option=VALUE where both option name and value are case-insensitive):\r\n\r\n  -optionsfile\tThe specified file will be read and the corresponding\r\n\t\tconnection will be restored (use Save Connection Info\r\n\t\tto create such files).\r\n\r\n  -host\t\tConnect to the specified host name.\r\n\r\n  -port\t\tSpecify the port number.\r\n\r\n  -password\tSpecify the password for authenticating to the server.\r\n\r\n  -showcontrols\tShow toolbar.\r\n\r\n  -viewonly\tView only (input ignored).\r\n\r\n  -useclipboard\tUse clipboard (yes/no).\r\n\r\n  -scale\tScale by (auto, 50, 100, 150...).\r\n\r\n  -fullscreen\tFull-screen mode.\r\n\r\n  -warnfullscr\tShow full-screen warning.\r\n\r\n  -encoding\t (hextile, tight, rre, zrle).\r\n\r\n  -copyrect\t.\r\n\r\n  -mousecursor\t (no, local).\r\n\r\n  -mouselocal\t(no, snalldot, normal).\r\n\r\n  -mouseswap\tSwap right and middle buttons.\r\n\r\n  -jpegimagequality\tSet Jpeg image quality [0..9].\r\n\r\n  -compressionlevel\tSet custom compression level [0..9].\r\n\r\n  -logpath\tSpecify the path to logfile.\r\n"
+    IDS_CMDLINE_HELP        "SquirrelVNC allows you to view and control remote hosts\r\nwhere a VNC server is running.\r\n\r\nCommand line syntax is the following.\r\n\r\nStart the viewer:\r\n  SquirrelVNC\r\n\r\nStart the viewer and connect to the specified host:\r\n  SquirrelVNC hostname::port [OPTIONS]\r\n  SquirrelVNC -host=hostname [OPTIONS]\r\n  SquirrelVNC -optionsfile=FILENAME [OPTIONS]\r\n\r\nStart the viewer in the listening mode:\r\n  SquirrelVNC -listen\r\n\r\nShow this help on command line usage:\r\n  SquirrelVNC -help\r\n\r\nThe following OPTIONS are supported (all of them should be used in the\r\nform -option=VALUE where both option name and value are case-insensitive):\r\n\r\n  -optionsfile\tThe specified file will be read and the corresponding\r\n\t\tconnection will be restored (use Save Connection Info\r\n\t\tto create such files).\r\n\r\n  -host\t\tConnect to the specified host name.\r\n\r\n  -port\t\tSpecify the port number.\r\n\r\n  -password\tSpecify the password for authenticating to the server.\r\n\r\n  -showcontrols\tShow toolbar.\r\n\r\n  -viewonly\tView only (input ignored).\r\n\r\n  -useclipboard\tUse clipboard (yes/no).\r\n\r\n  -scale\tScale by (auto, 50, 100, 150...).\r\n\r\n  -fullscreen\tFull-screen mode.\r\n\r\n  -warnfullscr\tShow full-screen warning.\r\n\r\n  -encoding\t (hextile, tight, rre, zrle).\r\n\r\n  -copyrect\t.\r\n\r\n  -mousecursor\t (no, local).\r\n\r\n  -mouselocal\t(no, snalldot, normal).\r\n\r\n  -mouseswap\tSwap right and middle buttons.\r\n\r\n  -jpegimagequality\tSet Jpeg image quality [0..9].\r\n\r\n  -compressionlevel\tSet custom compression level [0..9].\r\n\r\n  -logpath\tSpecify the path to logfile.\r\n"
 END
 
 STRINGTABLE
@@ -510,7 +510,7 @@ BEGIN
     IDS_FAILED_TO_OPEN_URL_FORMAT 
                             "Failed to open Web resource for the following reason:\n%s"
     IDS_TB_TOOLBAR          "Show &toolbar\tCtrl+Alt+Shift+T"
-    IDS_MBC_TVNVIEWER       "TightVNC Viewer"
+    IDS_MBC_TVNVIEWER       "SquirrelVNC"
     IDS_ERROR_IN_PROTOCOL   "Error in protocol. Please, reconnect to server."
     IDS_DISCONNECT          "Connection to server is closed."
     IDS_PRODUCT_VERSION_FORMAT "Version %s (built on %s)"
@@ -521,11 +521,11 @@ BEGIN
     IDS_QUESTION_SAVE_PASSWORD 
                             "Do you want to save the password in this file?\r\nIf you save ""Yes"", anyone with access to this file could access your session and (potentially) discover your connection-password."
     IDS_CONNECTION_INFO_CAPTION "Connection Information"
-    IDS_ABOUT_VIEWER        "About TightVNC Viewer..."
+    IDS_ABOUT_VIEWER        "About SquirrelVNC..."
     IDS_CONNECTION_INFO_FORMAT 
                             "Host: %s\nDesktop: %s\nProtocol: %s\nResolution: %ix%i %i bits\nKeyboard layout: %s"
     IDS_UNKNOWN_ERROR_IN_VIEWER 
-                            "Error in TightVNC Viewer. The program will be closed."
+                            "Error in SquirrelVNC. The program will be closed."
 END
 
 STRINGTABLE
@@ -534,7 +534,7 @@ BEGIN
     IDS_CONFIGURATION_LOG_LEVEL "Log level"
     IDS_CONFIGURATION_HISTORY_LIMIT "History limit"
     IDS_OPTIONS_SCALE       "Scale"
-    IDS_CONFIGURATION_CAPTION "TightVNC Viewer Configuration"
+    IDS_CONFIGURATION_CAPTION "SquirrelVNC Configuration"
     IDS_OPTIONS_CAPTION     "Connection Options"
     IDS_ERROR_VALUE_FIELD_ONLY_NUMERIC "Value in field '%s' must be numeric."
     IDS_ERROR_VALUE_FIELD_ONLY_POSITIVE_NUMERIC 
