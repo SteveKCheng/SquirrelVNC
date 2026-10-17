@@ -26,10 +26,10 @@
 const TCHAR ProductNames::PRODUCT_NAME[] = _T("SquirrelVNC");
 const TCHAR ProductNames::VIEWER_PRODUCT_NAME[] = _T("SquirrelVNC");
 
-const TCHAR LogNames::VIEWER_LOG_FILE_STUB_NAME[] = _T("tvnviewer");
-const TCHAR LogNames::LOG_DIR_NAME[] = _T("TightVNC");
+const TCHAR LogNames::VIEWER_LOG_FILE_STUB_NAME[] = _T("SquirrelVNC");
+const TCHAR LogNames::LOG_DIR_NAME[] = _T("SquirrelVNC");
 
-const TCHAR RegistryPaths::VIEWER_PATH[] = _T("Software\\TightVNC\\Viewer");
+const TCHAR RegistryPaths::VIEWER_PATH[] = _T("Software\\SquirrelVNC");
 
 const TCHAR ApplicationNames::WINDOW_CLASS_NAME[] = 
   _T("TvnApplicationClass");

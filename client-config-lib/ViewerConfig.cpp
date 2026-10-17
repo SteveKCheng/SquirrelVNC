@@ -221,7 +221,7 @@ Logger *ViewerConfig::initLog(const TCHAR logDir[], const TCHAR logName[], bool 
     logFileFolderPath.format(_T("%s"), logDir);
   }
 
-  // Create TightVNC folder
+  // Create the log folder
   {
     File folder(logFileFolderPath.getString());
     folder.mkdir();
