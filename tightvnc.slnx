@@ -17,6 +17,7 @@
   <Project Path="region/region.vcxproj" />
   <Project Path="rfb/rfb.vcxproj" />
   <Project Path="thread/thread.vcxproj" />
+  <Project Path="tools/svg2ico/svg2ico.vcxproj" />
   <Project Path="tvnviewer/tvnviewer.vcxproj">
     <BuildDependency Project="client-config-lib/client-config-lib.vcxproj" />
     <BuildDependency Project="ft-client-lib/ft-client-lib.vcxproj" />
