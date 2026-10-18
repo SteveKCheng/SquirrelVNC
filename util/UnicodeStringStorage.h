@@ -42,7 +42,7 @@ public:
   virtual void setString(const WCHAR *string);
 
   // Returns pointer to the first symbol.
-  const WCHAR *getString() const;
+  _Ret_z_ const WCHAR *getString() const;
 
     // Returns length of string (in characters, not including terminating null character).
   size_t getLength() const;

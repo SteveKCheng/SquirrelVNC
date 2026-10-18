@@ -39,7 +39,7 @@ public:
   virtual void setString(const char *string);
 
   // Returns pointer to the first symbol.
-  const char *getString() const;
+  _Ret_z_ const char *getString() const;
 
     // Returns length of string (in characters, not including terminating null character).
   size_t getLength() const;

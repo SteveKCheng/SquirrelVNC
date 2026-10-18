@@ -59,7 +59,7 @@ public:
   virtual void setString(const TCHAR *string);
 
   // Returns pointer to the first symbol.
-  const TCHAR *getString() const;
+  _Ret_z_ const TCHAR *getString() const;
 
     // Returns length of string (in characters, not including terminating null character).
   size_t getLength() const;
