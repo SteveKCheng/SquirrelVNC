@@ -43,7 +43,7 @@ public:
    * be a full path or a URL: a bare file name is searched for, starting
    * with the current directory.
    *
-   * As for any ShellExecute() call, the calling thread should have
+   * As for any ShellExecuteEx() call, the calling thread should have
    * initialized COM, since the program or shell extension that handles
    * the file may need it.
    *
@@ -51,10 +51,8 @@ public:
    * @param parameters parameters, if file is a program; may be null.
    * @param workDirectory working directory; may be null for the current
    *   one.
-   * @throws SystemException on fail, carrying ShellExecute()'s error code.
-   *   Most of those codes are Win32 error codes, but SE_ERR_SHARE to
-   *   SE_ERR_DLLNOTFOUND (26 to 32) are not, so the exception's message is
-   *   wrong for them.
+   * @throws SystemException on fail, carrying the Win32 error code that
+   *   ShellExecuteEx() left in GetLastError().
    */
   static void open(const TCHAR *file,
                    const TCHAR *parameters,

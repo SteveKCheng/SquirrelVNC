@@ -31,14 +31,21 @@ Shell::Shell()
 
 void Shell::open(const TCHAR *file, const TCHAR *parameters, const TCHAR *workDirectory)
 {
-  // ShellExecute() returns an HINSTANCE only for compatibility with 16-bit
-  // Windows; as documented, it is cast to INT_PTR, and 32 or less is an
-  // error code.
-  INT_PTR ret = reinterpret_cast<INT_PTR>(
-    ShellExecute(0, _T("open"), file, parameters, workDirectory, SW_SHOW));
+  // ShellExecuteEx() rather than ShellExecute(): when it fails, it sets
+  // GetLastError() to a Win32 error code.  ShellExecute() instead returns
+  // error codes from 16-bit Windows, some of which (SE_ERR_SHARE to
+  // SE_ERR_DLLNOTFOUND, 26 to 32) mean something else as Win32 codes.
+  SHELLEXECUTEINFO info;
+  ZeroMemory(&info, sizeof(info));
+  info.cbSize = sizeof(info);
+  info.lpVerb = _T("open");
+  info.lpFile = file;
+  info.lpParameters = parameters;
+  info.lpDirectory = workDirectory;
+  info.nShow = SW_SHOW;
 
-  if (ret <= 32) {
-    throw SystemException(static_cast<int>(ret));
+  if (!ShellExecuteEx(&info)) {
+    throw SystemException(static_cast<int>(GetLastError()));
   }
 }
 
