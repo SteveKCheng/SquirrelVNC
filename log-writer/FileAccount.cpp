@@ -220,7 +220,7 @@ void FileAccount::setNewFile(unsigned char newLevel, const TCHAR *newDir)
     if (levelChangedFromZero && !asFirstOpen) {
       StringStorage message;
       message.format(_T("Log verbosity level has been changed from 0 to %d"),
-                     (int)m_level, (int) newLevel);
+                     (int)m_level);
       print(1, message.getString());
     }
     return;

@@ -215,7 +215,7 @@ void FileTransferRequestSender::sendFolderSizeRequest(const TCHAR *fullPath)
 {
   AutoLock al(m_output);
 
-  m_logWriter->info(_T("Sending get folder size request with parameters:\n\tpath = %d\n"),
+  m_logWriter->info(_T("Sending get folder size request with parameters:\n\tpath = %s\n"),
                     fullPath);
 
   m_output->writeUInt32(FTMessage::DIRSIZE_REQUEST);

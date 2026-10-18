@@ -193,7 +193,7 @@ bool RfbKeySym::TryTranslateNotPrintableToUnicode(unsigned short virtKey, HKL cu
   else {
     outBuff[0] = 0;
   }
-  m_log->debug(_T("ToUnicodeEx() without ctrl and alt return %d wchars : %S"), count, outBuff);
+  m_log->debug(_T("ToUnicodeEx() without ctrl and alt return %d wchars : %s"), count, outBuff);
 
   if (count == 1) { // other case will be ignored
     *unicodeChar = outBuff[0];
@@ -237,7 +237,7 @@ bool RfbKeySym::vkCodeToString(unsigned short virtKey, bool down, std::wstring *
         outBuff[0] = 0;
       }
       //ToUnicodeEx can return without null termination
-      m_log->debug(_T("ToUnicodeEx() function called second. Returned: %d. Output buff: %S"), count, outBuff);
+      m_log->debug(_T("ToUnicodeEx() function called second. Returned: %d. Output buff: %s"), count, outBuff);
       res->erase();
       return false;
     } else if (!m_allowProcessCharEvent) {
@@ -256,7 +256,7 @@ bool RfbKeySym::vkCodeToString(unsigned short virtKey, bool down, std::wstring *
   } else {
     outBuff[0] = 0;
   }
-  m_log->debug(_T("ToUnicodeEx() returned %d, output buff : %S"), count, outBuff);
+  m_log->debug(_T("ToUnicodeEx() returned %d, output buff : %s"), count, outBuff);
 
   if (count == 1 && !m_allowProcessCharEvent) {
     res->push_back(GettingCharFromCtrlSymbol(outBuff[0]));
