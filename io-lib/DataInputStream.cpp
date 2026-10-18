@@ -128,6 +128,9 @@ INT64 DataInputStream::readInt64()
 void DataInputStream::readUTF8(StringStorage *storage)
 {
   UINT32 sizeInBytes = readUInt32();
+  if (sizeInBytes > MAX_UTF8_SIZE) {
+    throw IOException(_T("String in the stream is too long"));
+  }
   if (sizeInBytes > 0) {
     std::vector<char> buffer(sizeInBytes);
     readFully(&buffer.front(), sizeInBytes);

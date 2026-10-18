@@ -69,6 +69,27 @@ public:
   INT32 readInt32() throw(IOException);
   INT64 readInt64() throw(IOException);
 
+  /**
+   * Largest size in bytes that readUTF8() accepts.
+   *
+   * The size comes from the other end of the connection, so without a limit
+   * it could make readUTF8() allocate up to 4 GiB.  The strings read this way
+   * are file names and messages, so 1 MiB is far more than needed.
+   */
+  static const UINT32 MAX_UTF8_SIZE = 1024 * 1024;
+
+  /**
+   * Reads a string as a 32-bit size in bytes followed by that many bytes of
+   * UTF-8, and converts it into storage.  Invalid UTF-8 sequences become
+   * U+FFFD, as MultiByteToWideChar() converts them.
+   *
+   * @param storage receives the string; must not be null.
+   * @throws IOException if the size is over MAX_UTF8_SIZE, leaving the
+   *   string's bytes unread, so the stream cannot be read further; or on
+   *   errors reading the stream.
+   * @throws Exception if the conversion fails.  storage is unchanged
+   *   whenever this throws.
+   */
   void readUTF8(StringStorage *storage) throw(IOException);
 
 protected:
