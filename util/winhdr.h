@@ -41,8 +41,6 @@
 #include <ws2tcpip.h>
 #include <wspiapi.h>
 #include <windows.h>
-#include <psapi.h>
-#include <Wtsapi32.h>
 #include <tchar.h>
 #include <commctrl.h>
 // hide annoying warning c:\program files(x86)\windows kits\8.1\include\um\dbghelp.h(1544) : warning C4091 : 'typedef ' : ignored on left of '' when no variable is declared
