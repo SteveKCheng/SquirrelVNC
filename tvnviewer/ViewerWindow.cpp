@@ -1273,10 +1273,12 @@ LRESULT ViewerWindow::onHookProc(int code, WPARAM wParam, LPARAM lParam)
     newLParam |= ((str->flags & LLKHF_ALTDOWN) > 0) << 29;
     // Set the transition state bit.
     newLParam |= ((str->flags & LLKHF_UP) > 0) << 31;
-    if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
-      PostMessage(m_dsktWnd.getHWnd(), wParam, str->vkCode, newLParam);
-    } else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
-      PostMessage(m_dsktWnd.getHWnd(), wParam, str->vkCode, newLParam);
+    // For a low-level keyboard hook, wParam is the identifier of the
+    // keyboard message, as documented, so it fits a UINT.
+    UINT message = static_cast<UINT>(wParam);
+    if (message == WM_KEYDOWN || message == WM_SYSKEYDOWN ||
+        message == WM_KEYUP || message == WM_SYSKEYUP) {
+      PostMessage(m_dsktWnd.getHWnd(), message, str->vkCode, newLParam);
     }
     return true;
   } else {
