@@ -27,15 +27,14 @@
 
 #include "CoreEventsAdapter.h"
 
-FbUpdateNotifier::FbUpdateNotifier(FrameBuffer *fb, LocalMutex *fbLock, LogWriter *logWriter, WatermarksController* wmController)
+FbUpdateNotifier::FbUpdateNotifier(FrameBuffer *fb, LocalMutex *fbLock, LogWriter *logWriter)
 : m_frameBuffer(fb),
   m_fbLock(fbLock),
   m_logWriter(logWriter),
   m_cursorPainter(fb, logWriter),
   m_isNewSize(false),
   m_isCursorChange(false),
-  m_adapter(0),
-  m_watermarksController(wmController)
+  m_adapter(0)
 {
   m_oldPosition = m_cursorPainter.hideCursor();
 
@@ -121,18 +120,6 @@ void FbUpdateNotifier::execute()
 	  update.addRect(&cursor);
 	  update.addRect(&m_oldPosition);
 
-#ifdef _DEMO_VERSION_
-	  Rect curWmRect = m_watermarksController->CurrentRect();
-	  Region reg(curWmRect);
-	  reg.intersect(&update);
-	  bool isIntersect = !reg.isEmpty();
-	  if (isIntersect)
-	  {
-		m_watermarksController->showWaterMarks(m_frameBuffer, m_fbLock);
-		update.addRect(curWmRect);
-	  }
-#endif
-
       vector<Rect> updateList;
       update.getRectVector(&updateList);
       m_logWriter->detail(_T("FbUpdateNotifier (event): %zu updates"), updateList.size());
@@ -145,11 +132,6 @@ void FbUpdateNotifier::execute()
         m_logWriter->error(_T("FbUpdateNotifier (event): error in update"));
       }
       
-
-#ifdef _DEMO_VERSION_
-	  if (isIntersect)
-		m_watermarksController->hideWatermarks(m_frameBuffer, m_fbLock);
-#endif
 
 	  m_oldPosition = m_cursorPainter.hideCursor();
 

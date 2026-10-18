@@ -123,9 +123,6 @@
     <ClCompile Include="VncAuthenticationHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WatermarksController.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AuthHandler.h">
@@ -234,12 +231,6 @@
       <Filter>Decoders</Filter>
     </ClInclude>
     <ClInclude Include="VncAuthenticationHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WatermarksController.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="watermark-bmp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -163,7 +163,6 @@
     <ClCompile Include="RreDecoder.cpp" />
     <ClCompile Include="TightDecoder.cpp" />
     <ClCompile Include="VncAuthenticationHandler.cpp" />
-    <ClCompile Include="WatermarksController.cpp" />
     <ClCompile Include="ZrleDecoder.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -202,8 +201,6 @@
     <ClInclude Include="RreDecoder.h" />
     <ClInclude Include="TightDecoder.h" />
     <ClInclude Include="VncAuthenticationHandler.h" />
-    <ClInclude Include="watermark-bmp.h" />
-    <ClInclude Include="WatermarksController.h" />
     <ClInclude Include="ZrleDecoder.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

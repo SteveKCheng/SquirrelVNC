@@ -40,7 +40,6 @@
 #include "FbUpdateNotifier.h"
 #include "ServerMessageListener.h"
 #include "TcpConnection.h"
-#include "WatermarksController.h"
 
 #include <map>
 
@@ -557,8 +556,6 @@ private:
   RfbOutputGate *m_output;
 
   CoreEventsAdapter *m_adapter;
-
-  WatermarksController m_watermarksController;
 
   // m_decoderStore depends on m_logWriter and must be defined after it.
   // See also: C++ standard 12.6.2 - Initializing bases and members.

@@ -270,3 +270,8 @@ git diff -U0 --diff-filter=M 630df21~1 20956d9 -- '*.cpp' | grep '^-[^-/ {}#	]'
   called. Every log message still asked it for statistics to print, under
   a mutex, and got none. It was found through a narrowing warning
   (C4267) in its statistics code.
+- **viewer-core/WatermarksController** (both files) and
+  **viewer-core/watermark-bmp.h**, which drew a watermark over the remote
+  desktop in TightVNC's demo version. Everything that used them was
+  inside `#ifdef _DEMO_VERSION_`, which nothing defines, so only an empty
+  object was ever built. Found through its C4238 warnings at `/W4`.

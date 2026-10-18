@@ -40,7 +40,6 @@
 #include "RfbPointerEventClientMessage.h"
 #include "RfbSetEncodingsClientMessage.h"
 #include "RfbSetPixelFormatClientMessage.h"
-#include "WatermarksController.h"
 #include "ViewerBufferSize.h"
 
 #include "RawDecoder.h"
@@ -68,7 +67,7 @@ static const UINT32 MAX_DESKTOP_NAME_LENGTH = 64 * 1024;
 RemoteViewerCore::RemoteViewerCore(Logger *logger)
 : m_logWriter(logger),
   m_tcpConnection(&m_logWriter),
-  m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
+  m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter),
   m_decoderStore(&m_logWriter),
   m_isTightEnabled(true),
   m_isUtf8ClipboardEnabled(false)
@@ -82,7 +81,7 @@ RemoteViewerCore::RemoteViewerCore(const TCHAR *host, UINT16 port,
                                    bool sharedFlag)
 : m_logWriter(logger),
   m_tcpConnection(&m_logWriter),
-  m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
+  m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter),
   m_decoderStore(&m_logWriter),
   m_isTightEnabled(true),
   m_isUtf8ClipboardEnabled(false)
@@ -98,7 +97,7 @@ RemoteViewerCore::RemoteViewerCore(SocketIPv4 *socket,
                                    bool sharedFlag)
 : m_logWriter(logger),
   m_tcpConnection(&m_logWriter),
-  m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
+  m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter),
   m_decoderStore(&m_logWriter),
   m_isTightEnabled(true),
   m_isUtf8ClipboardEnabled(false)
@@ -114,7 +113,7 @@ RemoteViewerCore::RemoteViewerCore(RfbInputGate *input, RfbOutputGate *output,
                                    bool sharedFlag)
 : m_logWriter(logger),
   m_tcpConnection(&m_logWriter),
-  m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
+  m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter),
   m_decoderStore(&m_logWriter),
   m_isTightEnabled(true),
   m_isUtf8ClipboardEnabled(false)
@@ -800,10 +799,6 @@ void RemoteViewerCore::setFbProperties(const Dimension *fbDimension,
   if (!ViewerBufferSize::fitsFrameBuffer(width, height, bitsPerPixel / 8)) {
     throw Exception(_T("Framebuffer is too large"));
   }
-
-#ifdef _DEMO_VERSION_
-	m_watermarksController.setNewFbProperties(&fbDimension->getRect(), fbPixelFormat);
-#endif
 
   const PixelFormat &pxFormat = *fbPixelFormat;
   StringStorage pxString;
