@@ -18,10 +18,13 @@ remains in the git history before the commit that removes it.
   pixels, and encodes with hardware H.264/AVC444. The TightVNC server
   shares the console and encodes pixels on the CPU.
 - VNC's strength is a simple protocol for non-Windows desktops and
-  specialized uses (kiosks, industrial displays, extra monitors). Those
-  are client-side concerns for this project.
-- GUI test automation, a traditional VNC use, is better done with the
+  specialized uses: kiosks, industrial displays, single-window apps, 
+  extra monitors. Those are client-side concerns for this project.
+- GUI test automation, a traditional use for VNC, is better done with the
   platform's accessibility APIs.
+- TightVNC's server likely has security vulnerabilities like what has been
+  found in the rest of the code, and this project does not have bandwidth to 
+  address all those.
 - The remaining reasons to run a VNC server on Windows are Windows Home
   editions (no RDP host) and remote support for the person at the
   console.
