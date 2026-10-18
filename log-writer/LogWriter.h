@@ -38,6 +38,17 @@ public:
   LogWriter(Logger *logger);
   virtual ~LogWriter();
 
+  // All the functions below that take fmt and arguments format them as printf
+  // does, and pass the result to the Logger if it accepts the level.
+  //
+  // fmt must be a literal or other text from the program itself, never text
+  // that comes from outside it, such as a message received from the server or
+  // the message of an exception: pass such text as an argument for "%s".
+  // The arguments must match fmt as for printf.
+  //
+  // These functions do not throw.  If the CRT cannot format the message, fmt
+  // is logged unformatted.
+
   // Write most important log messages such as code internal errors
   // (what shouldn't have happened but it did).
   void interror(const TCHAR *fmt, ...);
@@ -75,6 +86,9 @@ protected:
   static const int LOG_DEBUG = 9;
 
 private:
+  // Formats fmt with argList and passes the result to m_logger, which must
+  // not be null, at logLevel.  argList must have been started with va_start
+  // and is left for the caller to end with va_end.
   void vprintLog(int logLevel, const TCHAR *fmt, va_list argList);
 
   Logger *m_logger;

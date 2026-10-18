@@ -130,10 +130,16 @@ void LogWriter::vprintLog(int logLevel, const TCHAR *fmt, va_list argList)
   if (m_logger != 0) {
     // Format the original string.
     int count = _vsctprintf(fmt, argList);
-    std::vector<TCHAR> formattedString(count + 1);
-    _vstprintf(&formattedString.front(), fmt, argList);
-
-    m_logger->print(logLevel, &formattedString.front());
+    std::vector<TCHAR> formattedString;
+    if (count >= 0) {
+      formattedString.resize((size_t)count + 1);
+      _vstprintf(formattedString.data(), fmt, argList);
+      m_logger->print(logLevel, formattedString.data());
+    } else {
+      // The CRT could not format the message.  Log the format string as is,
+      // so the message is not lost.
+      m_logger->print(logLevel, fmt);
+    }
 // #if DROP_TIME_STAT // test code
     std::vector<std::vector<TCHAR>> resultStrings = m_profiler->dropStat();
     for (size_t i = 0; i < resultStrings.size(); i++) {
