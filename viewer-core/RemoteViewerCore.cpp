@@ -1345,7 +1345,7 @@ void RemoteViewerCore::clientAndServerInit()
     throw Exception(_T("Desktop name is too long"));
   }
   std::vector<char> buffer(sizeInBytes + 1);
-  m_input->read(&buffer.front(), sizeInBytes);
+  m_input->readFully(&buffer.front(), sizeInBytes);
   buffer[sizeInBytes] = '\0';
   AnsiStringStorage ansiStr;
   ansiStr.setString(&buffer[0]);
