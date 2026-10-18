@@ -118,8 +118,12 @@ ProcessorTimes LogWriter::checkPoint(const TCHAR * tag)
   return m_profiler->checkPoint(tag);
 }
 
+// Turn off the MSVC warning about "unsafe functions" in the CRT.
+// 
+// The below usage is safe since the required buffer size is calculated upfront,
+// exactly with a count-only version of "printf".
 #pragma warning(push)
-#pragma warning(disable:4996)
+#pragma warning(disable:4996)   
 
 void LogWriter::vprintLog(int logLevel, const TCHAR *fmt, va_list argList)
 {
@@ -141,4 +145,4 @@ void LogWriter::vprintLog(int logLevel, const TCHAR *fmt, va_list argList)
   }
 }
 
-#pragma warning(pop)
+#pragma warning(pop)    // disable:C4996
