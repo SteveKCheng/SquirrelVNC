@@ -77,11 +77,6 @@ void FileAccount::getFileName(StringStorage *fileName)
   *fileName = m_fileName;
 }
 
-bool FileAccount::isTheOurFileName(const TCHAR *fileName)
-{
-  return m_fileName.isEqualTo(fileName);
-}
-
 void FileAccount::print(unsigned int processId,
                         unsigned int threadId,
                         const DateTime *dt,

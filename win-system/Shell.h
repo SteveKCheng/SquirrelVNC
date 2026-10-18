@@ -37,14 +37,6 @@ class Shell
 {
 public:
   /**
-   * Runs application as administrator and waits until execution finished.
-   * @param pathToFile path to executable.
-   * @param parameters execute parameters.
-   * @throws SystemException on fail.
-   */
-  static void runAsAdmin(const TCHAR *pathToFile, const TCHAR *parameters) throw(SystemException);
-
-  /**
    * Opens file with default action specified in Windows.
    * @param file target file.
    * @param parameters parameters.

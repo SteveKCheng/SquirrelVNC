@@ -36,8 +36,6 @@ public:
 
   static const int VNC_PASSWORD_SIZE = 8;
 
-  void updatePlain(const UINT8 cryptedPass[VNC_PASSWORD_SIZE]);
-
   // Encrypt the plain password and fills by encrypted values the
   // encryptedPass[8] array.
   static void getEncryptedPass(UINT8 encryptedPass[VNC_PASSWORD_SIZE],
@@ -48,9 +46,6 @@ public:
   static void VncPassCrypt::getPlainPass(UINT8 plainPassword[VNC_PASSWORD_SIZE],
                                          const UINT8 encryptedPass[VNC_PASSWORD_SIZE]);
 
-  // Returns true if it's matched.
-  bool challengeAndResponseIsValid(const UINT8 challenge[16],
-                                   const UINT8 response[16]);
   void clearPlainPass();
 
 private:

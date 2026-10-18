@@ -79,22 +79,9 @@ void Control::setUnsignedInt(unsigned int value)
   setText(text.getString());
 }
 
-//
-// FIXME: Stub
-//
-
-void Control::setTextVerticalAlignment(VerticalAlignment align)
-{
-}
-
 void Control::setFocus()
 {
   ::SetFocus(m_hwnd);
-}
-
-bool Control::hasFocus()
-{
-  return (::GetFocus() == m_hwnd) || (GetForegroundWindow() == m_hwnd);
 }
 
 bool Control::setForeground()
@@ -123,15 +110,6 @@ void Control::getText(StringStorage *storage)
   std::vector<TCHAR> buf(length + 1);
   GetWindowText(m_hwnd, &buf.front(), length + 1);
   storage->setString(&buf.front());
-}
-
-//
-// FIXME: Stub
-//
-
-VerticalAlignment Control::getTextVerticalAlignment()
-{
-  return Left;
 }
 
 HWND Control::getWindow()
@@ -191,12 +169,6 @@ void Control::removeExStyle(DWORD styleFlag)
   DWORD flags = getExStyle();
   flags &= ~styleFlag;
   setExStyle(flags);
-}
-
-bool Control::isExStyleEnabled(DWORD styleFlag)
-{
-  DWORD flags = getExStyle();
-  return (flags & styleFlag) == styleFlag;
 }
 
 void Control::replaceWindowProc(WNDPROC wndProc)

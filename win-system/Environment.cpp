@@ -123,50 +123,10 @@ bool Environment::getCurrentModulePath(StringStorage *out)
   return true;
 } // void
 
-bool Environment::isItTheSamePathAsCurrent(unsigned int pId)
-{
-  StringStorage currModulePath, testedModulePath;
-  ProcessHandle pHandle;
-
-  pHandle.openProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-                      0, pId);
-  pHandle.getProcessModulePath(&testedModulePath);
-  getCurrentModulePath(&currModulePath);
-
-  return currModulePath.isEqualTo(&testedModulePath);
-}
-
-bool Environment::getCurrentModuleFolderPath(StringStorage *out)
-{
-  if (!getCurrentModulePath(out)) {
-    return false;
-  }
-
-  size_t lastPos = out->findLast(_T('\\'));
-
-  if (lastPos != (size_t)-1) {
-    out->getSubstring(out, 0, std::max(lastPos - 1, (size_t) 0));
-  }
-
-  return true;
-}
-
 bool Environment::getCurrentUserName(StringStorage *out, LogWriter *log)
 {
   *out = WTS::getCurrentUserName(log);
   return !out->isEmpty();
-}
-
-bool Environment::getComputerName(StringStorage *out)
-{
-  TCHAR compName[MAX_COMPUTERNAME_LENGTH + 1];
-  DWORD length = MAX_COMPUTERNAME_LENGTH + 1;
-  if (GetComputerName(compName, &length) == 0) {
-    return false;
-  }
-  out->setString(compName);
-  out->toLowerCase();
-  return true;
 }
 
 
@@ -187,24 +147,6 @@ bool Environment::isWinNTFamily()
   return m_osVerInfo.dwPlatformId == VER_PLATFORM_WIN32_NT;
 }
 
-bool Environment::isWin2000()
-{
-  init();
-  return m_osVerInfo.dwMajorVersion == 5 && m_osVerInfo.dwMinorVersion == 0;
-}
-
-bool Environment::isWinXP()
-{
-  init();
-  return ((m_osVerInfo.dwMajorVersion == 5) && (m_osVerInfo.dwMinorVersion == 1) && isWinNTFamily());
-}
-
-bool Environment::isWin2003Server()
-{
-  init();
-  return ((m_osVerInfo.dwMajorVersion == 5) && (m_osVerInfo.dwMinorVersion == 2) && isWinNTFamily());
-}
-
 bool Environment::isVistaOrLater()
 {
   init();
@@ -215,18 +157,6 @@ bool Environment::isWin7()
 {
   init();
   return ((m_osVerInfo.dwMajorVersion == 6) && (m_osVerInfo.dwMinorVersion == 1) && isWinNTFamily());
-}
-
-void Environment::simulateCtrlAltDel(LogWriter *log)
-{
-  // FIXME: Do not use log here.
-  log->info(_T("Requested Ctrl+Alt+Del simulation"));
-
-  // Are we running on Windows NT OS family?
-  if (!isVistaOrLater() && isWinNTFamily()) {
-    CtrlAltDelSimulator cadSim;
-    cadSim.wait();
-  }
 }
 
 void Environment::simulateCtrlAltDelUnderVista(LogWriter *log)
@@ -244,30 +174,5 @@ void Environment::simulateCtrlAltDelUnderVista(LogWriter *log)
   } catch (Exception &e) {
     log->error(_T("The simulateCtrlAltDelUnderVista() function failed: %s"),
                e.getMessage());
-  }
-}
-
-bool Environment::isAeroOn(LogWriter *log)
-{
-  try {
-    DynamicLibrary dwmLib(_T("Dwmapi.dll"));
-    DwmIsCompositionEnabled dwmIsEnabled =
-      (DwmIsCompositionEnabled)dwmLib.getProcAddress("DwmIsCompositionEnabled");
-    if (dwmIsEnabled == 0) {
-      throw Exception(_T("The DwmIsCompositionEnabled() has not been found in the Dwmapi.dll"));
-    }
-    BOOL result = FALSE;
-    HRESULT dwmIsEnabledResult = dwmIsEnabled(&result);
-    if (dwmIsEnabledResult != S_OK) {
-      StringStorage errMess;
-      errMess.format(_T("The DwmIsCompositionEnabled() error code is %d"),
-                     (int)dwmIsEnabledResult);
-      throw Exception(_T(""));
-    }
-    return result != FALSE;
-  } catch (Exception &e) {
-    log->error(_T("The DwmIsCompositionEnabled() function failed: %s"),
-               e.getMessage());
-    throw;
   }
 }

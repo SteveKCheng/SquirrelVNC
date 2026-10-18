@@ -113,11 +113,6 @@ void LogWriter::debug(const TCHAR *fmt, ...)
   }
 }
 
-bool LogWriter::isDebug()
-{
-  return (m_logger != 0 && m_logger->acceptsLevel(LOG_DEBUG));
-}
-
 ProcessorTimes LogWriter::checkPoint(const TCHAR * tag)
 {
   return m_profiler->checkPoint(tag);

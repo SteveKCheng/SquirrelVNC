@@ -48,11 +48,6 @@ void ConnectionHistory::setLimit(size_t limit)
   }
 }
 
-size_t ConnectionHistory::getLimit() const
-{
-  return m_limit;
-}
-
 void ConnectionHistory::load()
 {
   releaseHosts();

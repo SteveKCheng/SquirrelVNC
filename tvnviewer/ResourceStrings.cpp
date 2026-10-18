@@ -52,15 +52,3 @@ StringStorage ResourceStrings::getStrRes(int strRes)
   rLoader->loadString(strRes, &str);
   return str.getString();
 }
-
-StringStorage ResourceStrings::getStrPureRes(int strRes) 
-{
-  StringStorage strTemp = getStrRes(strRes);
-  size_t index = strTemp.findChar(_T('\t'));
-  if (index != -1) {
-    index /= sizeof(TCHAR);
-    strTemp.truncate(1+index);
-  }
-  strTemp.removeChars(_T("&"), 1);
-  return strTemp;
-}

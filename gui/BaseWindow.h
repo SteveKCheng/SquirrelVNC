@@ -53,8 +53,6 @@ public:
   // basic window manipulation procedures
   void show();
   void hide();
-  void enableWindow(bool bEnable);
-  void updateWindow();
   bool setSize(int width, int height);
   bool setPosition(int xPos, int yPos);
   void setWindowText(const StringStorage *text);
@@ -68,10 +66,7 @@ public:
   void setParent(HWND hwnd);
 
   // for changing registered class parameters of created window
-  void setClassStyle(DWORD style);
   void setClassCursor(HCURSOR hcursor);
-  void setClassBackground(HBRUSH hbrush);
-  void setClassMenu(LONG menu);
 
   // for changing or get style and exstyle of window
   LONG getStyle();
@@ -81,11 +76,6 @@ public:
 
   // full redraw of window area
   void redraw(const RECT *rcArea = 0);
-
-  // set or kill timer, with identifactor ident
-  // and time in milliseconds
-  void setTimer(UINT_PTR ident, UINT time);
-  void killTimer(UINT_PTR ident);
 
   // set foreground window
   void setForegroundWindow();

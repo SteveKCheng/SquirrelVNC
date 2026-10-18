@@ -55,11 +55,6 @@ TcpServer::~TcpServer()
   }
 }
 
-const TCHAR *TcpServer::getBindHost() const
-{
-  return m_bindHost.getString();
-}
-
 unsigned short TcpServer::getBindPort() const
 {
   return m_bindPort;

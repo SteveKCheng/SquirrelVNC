@@ -88,12 +88,6 @@ public:
   void addItem(int index, const TCHAR *caption, LPARAM tag, int imageIndex);
 
   //
-  // Removes item with specified index from list view
-  //
-
-  void removeItem(int i);
-
-  //
   // Removes all list view items from list view
   //
 
@@ -130,22 +124,10 @@ public:
   int getSelectedIndex();
 
   //
-  // Selectes list view item with specified index
-  //
-
-  void selectItem(int index);
-
-  //
   // Changes full row select style of list view
   //
 
   void setFullRowSelectStyle(bool fullRowSelect);
-
-  //
-  // Enabled or disables multi selection on list view
-  //
-
-  void allowMultiSelection(bool allow);
 
   //
   // Returns count of selected items in list view

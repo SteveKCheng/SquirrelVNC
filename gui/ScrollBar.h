@@ -53,8 +53,6 @@ public:
 
   static const int SCROLL_STEP = 5;
 protected:
-  void enableVirtualScroll();
-  void disableVirtualScroll();
   bool _showVertScroll(bool show);
   bool _showHorzScroll(bool show);
 

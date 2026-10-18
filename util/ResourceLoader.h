@@ -47,13 +47,6 @@ public:
   virtual ~ResourceLoader();
 
   /**
-   * Loads standart icon from resources.
-   * @param iconName icon name.
-   * @return icon handle of 0 if cannot load icon.
-   */
-  HICON loadStandartIcon(const TCHAR *iconName);
-
-  /**
    * Loads icon from resources.
    * @param iconName icon name.
    * @return icon handle of 0 if cannot load icon.

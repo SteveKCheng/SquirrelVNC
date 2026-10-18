@@ -58,8 +58,6 @@ public:
 
   void appendString(const char *string);
 
-  static bool checkAnsiConversion(StringStorage &string);
-
 private:
   typedef std::vector<char> BufferType;
   BufferType m_buffer;

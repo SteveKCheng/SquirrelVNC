@@ -42,12 +42,6 @@ public:
   // update() function.
   PixelFormat getPixelFormat();
 
-  // Returns a desktop dimension that was at latest call of the
-  // update() function.
-  // Desktop dimension is a dimension of windows virtual desktop including
-  // all monitors.
-  Dimension getDesktopDimension();
-
   // Returns a rectangle that was at latest call of the
   // update() function.
   // The rectangle is a rectangle of windows virtual desktop including
@@ -72,11 +66,6 @@ public:
   // Fills the BMI structure. If dc == 0 the getBMI() function will
   // use a current desktop dc.
   void getBMI(BMI *bmi, HDC dc);
-
-  // Windows contain both visible and invisible pseudo-monitors
-  // that are associated with mirroring drivers.
-  // The function returns only visible monitor count.
-  size_t getVisibleMonitorCount();
 
 private:
   void fillPixelFormat(const BMI *bmi);

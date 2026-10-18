@@ -59,13 +59,6 @@ public:
    */
   void setArguments(const TCHAR *args);
 
-  // Sets standard in/out/error handles for the child process.
-  void setStandardIoHandles(HANDLE stdIn, HANDLE stdOut, HANDLE stdErr);
-
-  // If handlesIsInerited is true the handles of the parent process can
-  // be used by the child process.
-  void setHandleInheritances(bool handlesIsInerited);
-
   /**
    * Starts execution of process.
    * @throws SystemException on error.
@@ -77,27 +70,6 @@ public:
    * @throws SystemException on fail.
    */
   virtual void kill() throw(SystemException);
-
-  /**
-   * Blocks the current thread of execution until the process has exited.
-   */
-  void waitForExit();
-
-  /**
-   * Breaks awaiting caused by waitForExit call.
-   */
-  void stopWait();
-
-  /**
-   * Returns exit code of terminated process.
-   * @throws SystemException on fail.
-   */
-  DWORD getExitCode() throw(SystemException);
-
-  /**
-   * Returns the process handle if process already run and zero otherwise.
-   */
-  HANDLE getProcessHandle();
 
 protected:
   /**

@@ -33,7 +33,6 @@ public:
   static const UINT32 NONE = 1;
   static const UINT32 VNC = 2;
   static const UINT32 TIGHT = 16;
-  static UINT32 convertFromAuthType(UINT32 authType);
 };
 
 class AuthDefs
@@ -48,11 +47,6 @@ public:
   static const char *const SIG_VNC;
   static const char *const SIG_EXTERNAL;
   static const char *const SIG_SRP6DUAL;
-
-  // Return TightVNC authentication method corresponding to a VNC-style
-  // security type. Returns 0 if the specified security type does not map
-  // to any valid authentication type supported in TightVNC.
-  static UINT32 convertFromSecurityType(UINT32 securityType);
 };
 
 #endif // __RFB_AUTH_DEFS_H_INCLUDED__

@@ -305,19 +305,6 @@ public:
   void refreshFrameBuffer();
 
   //
-  // Specifies whether viewer force full update requests.
-  //
-  void forceFullUpdateRequests(const bool& forceUpdate);
-
-  //
-  // Defers an update requests till timeout(in milliseconds) is expired.
-  // Timeout starts when a previous request is sent. But anyway the next update
-  // request will not send until the response on the previous request is 
-  // recieved even if timeout is expired.
-  //
-  void deferUpdateRequests(const int& milliseconds);
-
-  //
   // Send a keyboard event. Arguments specify the event as defined in the
   // RFB v.3 protocol specification.
   //
@@ -388,14 +375,6 @@ public:
   void ignoreCursorShapeUpdates(bool ignored);
 
   //
-  // Enable or disable Tight security type (enabled by default). If enabled,
-  // security type Tight will be selected if server supports it. 
-  // If disabled, viewer does not select Tight security type even 
-  // the server claims that supports it.
-  //
-  void enableTightSecurityType(bool enabled);
-  
-  //
   // Work with capabilities is documented in interface CapabilitiesManager.
   // Next methods is implements of CapabilitiesManager.
   //
@@ -430,7 +409,6 @@ public:
 
   // returns list of server displays offsets and dimensions
   std::vector<Rect> getDesktops();
-  Dimension getDesktopSize();
 
 private:
   //

@@ -89,11 +89,6 @@ public:
    */
   void bind(const SocketAddressIPv4 &addr) throw(SocketException);
   /**
-   * Checks if this socket is bound and used for server needs.
-   * @return true if socket used as server and successfully bounded, false otherwise.
-   */
-  bool isBound();
-  /**
    * Socket listen method.
    * @param backlog max count of connections in pool.
    * @throws SocketException on fail.
@@ -130,22 +125,8 @@ public:
 
   int available();
 
-  /**
-   * Returns local address of socket (for listening socket).
-   * @param addr output parameter that will contain socket address.
-   * @return true on success, false on fail.
-   */
-  bool getLocalAddr(SocketAddressIPv4 *addr);
-  /**
-   * Returns peer address.
-   * @param addr output parameter that will contain socket address.
-   * @return true on success, false on fail.
-   */
-  bool getPeerAddr(SocketAddressIPv4 *addr);
-
   /* Auxiliary */
   void setSocketOptions(int level, int name, void *value, socklen_t len) throw(SocketException);
-  void getSocketOptions(int level, int name, void *value, socklen_t *len) throw(SocketException);
 
   /* Socket options */
   void enableNaggleAlgorithm(bool enabled) throw(SocketException);

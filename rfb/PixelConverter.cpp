@@ -169,16 +169,6 @@ void PixelConverter::setPixelFormats(const PixelFormat *dstPf,
   }
 }
 
-size_t PixelConverter::getSrcBitsPerPixel() const
-{
-  return m_srcFormat.bitsPerPixel;
-}
-
-size_t PixelConverter::getDstBitsPerPixel() const
-{
-  return m_dstFormat.bitsPerPixel;
-}
-
 void PixelConverter::fillHexBitsTable(const PixelFormat *dstPf,
                                       const PixelFormat *srcPf)
 {

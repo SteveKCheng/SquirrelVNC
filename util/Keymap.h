@@ -39,29 +39,12 @@ class Keymap
 {
 public:
   /**
-   * Converts X11 key sym to virtual key code.
-   * @param keySym X11 key sym.
-   * @param vkCode [out] virtual key code.
-   * @param extended [out] if the key in the Windows must be marked as extended
-   * the extended argument will be returned with the true value.
-   * @return true if keySym is translated into virtual key code, false otherwise.
-   */
-  bool keySymToVirtualCode(UINT32 keySym, BYTE *vkCode, bool *extended);
-  /**
    * Converts virtual key code to X11 key sym.
    * @param vkCode virtual key code.
    * @param keySym [out] X11 key sym.
    * @return true if virtual key code is translated into keySym, false otherwise.
    */
   bool virtualCodeToKeySym(UINT32 *keySym, BYTE vkCode);
-
-  /**
-   * Converts X11 key sym to TCHAR.
-   * @param keySym X11 key sym.
-   * @param ch [out] char.
-   * @return true if keySym is translated into char, false otherwise.
-   */
-  bool keySymToUnicodeChar(UINT32 keySym, WCHAR *ch);
 
   /**
    * Converts char to X11 key sym.

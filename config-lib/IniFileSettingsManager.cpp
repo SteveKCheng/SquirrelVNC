@@ -50,11 +50,6 @@ void IniFileSettingsManager::setApplicationName(const TCHAR *appName)
   m_appName.setString(appName);
 }
 
-void IniFileSettingsManager::setPathToFile(const TCHAR *pathToFile)
-{
-  m_pathToFile.setString(pathToFile);
-}
-
 bool IniFileSettingsManager::isOk()
 {
   return !m_pathToFile.isEmpty();

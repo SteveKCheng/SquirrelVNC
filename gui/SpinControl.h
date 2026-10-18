@@ -36,7 +36,6 @@ public:
   void setBuddy(Control *buddyControl);
   void setRange(short lower, short upper);
   void setRange32(int lower, int upper);
-  void setAccel(UINT nSec, UINT nInc);
 
   //
   // Auto acceleration methods
@@ -46,8 +45,6 @@ public:
   // Handler, call it on UDN_DELTAPOS notification
   //
 
-  void autoAccelerationHandler(LPNMUPDOWN message);
-  void enableAutoAcceleration(bool enabled);
   void setAutoAccelerationParams(const std::vector<int> *limitters,
                                  const std::vector<int> *deltas,
                                  int maxDelta);

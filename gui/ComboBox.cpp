@@ -89,11 +89,6 @@ void ComboBox::setSelectedItem(int index)
   ComboBox_SetCurSel(m_hwnd, index);
 }
 
-void ComboBox::deleteItem(int index)
-{
-  ComboBox_DeleteString(m_hwnd, index);
-}
-
 void ComboBox::removeAllItems()
 {
   ComboBox_ResetContent(m_hwnd);

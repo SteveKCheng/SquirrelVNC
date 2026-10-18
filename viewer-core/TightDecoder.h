@@ -87,7 +87,6 @@ private:
                          const vector<UINT8> &pixels,
                          size_t pixelOffset);
 
-  UINT32 transformPixelToTight(UINT32 color);
   vector<UINT8> TightDecoder::transformArray(const vector<UINT8> &buffer);
 
   vector<Inflater *> m_inflater;

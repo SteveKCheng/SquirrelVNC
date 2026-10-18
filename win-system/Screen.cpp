@@ -48,11 +48,6 @@ PixelFormat Screen::getPixelFormat()
   return m_pixelFormat;
 }
 
-Dimension Screen::getDesktopDimension()
-{
-  return Dimension(&m_virtDesktopRect);
-}
-
 Rect Screen::getDesktopRect()
 {
   return m_virtDesktopRect;
@@ -150,11 +145,4 @@ void Screen::fillScreenRect()
   m_virtDesktopRect.top = GetSystemMetrics(SM_YVIRTUALSCREEN);
   m_virtDesktopRect.setWidth(GetSystemMetrics(SM_CXVIRTUALSCREEN));
   m_virtDesktopRect.setHeight(GetSystemMetrics(SM_CYVIRTUALSCREEN));
-}
-
-size_t Screen::getVisibleMonitorCount()
-{
-  int monitorCount = GetSystemMetrics(SM_CMONITORS);
-  // Why check for the result? Skip it.
-  return (size_t)monitorCount;
 }

@@ -32,19 +32,3 @@ bool SystemInformation::getDesktopArea(RECT *rc)
 {
   return !!SystemParametersInfo(SPI_GETWORKAREA, 0, rc, 0);
 }
-
-bool SystemInformation::isSupportStretchBlt(HDC hdc) 
-{
-  int rasterCaps = GetDeviceCaps(hdc, RASTERCAPS);
-  return !!(rasterCaps & RC_STRETCHBLT);
-}
-
-int SystemInformation::getBitsPixel(HDC hdc) 
-{
-  return GetDeviceCaps(hdc, BITSPIXEL);
-}
-
-int SystemInformation::getMonitorCount() 
-{
-  return GetSystemMetrics(SM_CMONITORS);
-}

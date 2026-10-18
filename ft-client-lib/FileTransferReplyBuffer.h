@@ -52,7 +52,6 @@ public:
   UINT32 getDownloadBufferSize();
   vector<UINT8> getDownloadBuffer();
 
-  UINT8 getDownloadFileFlags();
   UINT64 getDownloadLastModified();
 
   UINT64 getDirSize();

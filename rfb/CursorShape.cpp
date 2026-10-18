@@ -48,20 +48,6 @@ void CursorShape::assignMaskFromRfb(const char *srcMask)
   }
 }
 
-void CursorShape::assignMaskFromWindows(const char *srcMask)
-{
-  if (!m_mask.empty()) {
-    int height = m_pixels.getDimension().height;
-    int winWidthInBytes = ((m_pixels.getDimension().width + 15) / 16) * 2;
-    int rfbWidthInBytes = getMaskWidthInBytes();
-    for (int i = 0; i < height; i++) {
-      memcpy(&m_mask[i * rfbWidthInBytes],
-             &srcMask[i * winWidthInBytes],
-             rfbWidthInBytes);
-    }
-  }
-}
-
 bool CursorShape::setDimension(const Dimension *newDim)
 {
   bool result = m_pixels.setDimension(newDim);
@@ -80,12 +66,6 @@ bool CursorShape::setProperties(const Dimension *newDim,
   bool result = m_pixels.setDimension(newDim) &&
                 m_pixels.setPixelFormat(pixelFormat);
   return result && resizeBuffer();
-}
-
-void CursorShape::resetToEmpty()
-{
-  setDimension(&Dimension(0, 0));
-  setHotSpot(0, 0);
 }
 
 bool CursorShape::resizeBuffer()

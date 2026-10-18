@@ -67,21 +67,6 @@ void RegistryKey::open(RegistryKey *rootKey,
   initialize(rootKey->m_key, entry, createIfNotExists, sa);
 }
 
-HKEY RegistryKey::getHKEY() const
-{
-  return m_key;
-}
-
-bool RegistryKey::createSubKey(const TCHAR *subkey)
-{
-  if (!isOpened()) {
-    return false;
-  }
-
-  RegistryKey regKey(m_key, subkey);
-  return regKey.isOpened();
-}
-
 bool RegistryKey::deleteSubKey(const TCHAR *subkey)
 {
   if (!isOpened()) {

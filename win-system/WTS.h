@@ -83,54 +83,18 @@ public:
   static DWORD getActiveConsoleSessionId(LogWriter *log);
 
   /**
-   * Returns session id of this process console.
-   */
-  static DWORD WTS::getProcessSessionId(LogWriter* log);
-
-  /**
   * Gets RDP console session id.
   * @return RDP console session id if WTS is avaliable and RDP console exists or 0 if
   * WinAPI WTSEnumerateSessions function not avaliable or there is no sessions with RDP in name.
   */
   static DWORD getRdpSessionId(LogWriter *log);
 
-  /**
-  * @return true if sessionId is the RDP console session id.
-  */
-  static bool SessionIsRdpSession(DWORD sessionId, LogWriter *log);
-
-  /**
-   * Queries user token in active console session.
-   * @return user token.
-   * @throws SystemException on fail.
-   * @remark if WTSQueryUserToken is avaliable when it will be used with
-   * session id equal to active console session id, if not, then user
-   * process id will be used to get user token (this id can be set by using of
-   * defineConsoleUserProcessId() method).
-   */
-  static HANDLE queryConsoleUserToken(LogWriter *log) throw(SystemException);
-
   static HANDLE sessionUserToken(DWORD sessionId, LogWriter* log) throw(SystemException);
-
-  /**
-   * Defines global (for WTS class) user process that will be used
-   * for getting token of user in active console session if WTSQueryUserToken WinAPI function
-   * is unavaliable (Windows 2000 case).
-   * @param userProcessId user process id.
-   */
-  static void defineConsoleUserProcessId(DWORD userProcessId);
-
-  // This function dupplicate token impersonated to named pipe cliend end.
-  // This should work only for win2000 because other windows version have
-  // rdp.
-  static void duplicatePipeClientToken(HANDLE pipeHandle);
 
   static StringStorage getUserName(DWORD sessionId, LogWriter *log);
   static StringStorage getCurrentUserName(LogWriter* log);
 
   static bool sessionIsLocked(DWORD sessionId, LogWriter* log);
-
-  static HANDLE duplicateCurrentProcessUserToken(bool rdpEnabled, LogWriter* log) throw(SystemException);
 
   static HANDLE duplicateUserImpersonationToken(HANDLE token, DWORD sessionId, LogWriter* log);
 

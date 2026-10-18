@@ -64,11 +64,6 @@ void NotifyIcon::hide()
   m_visible = false;
 }
 
-const Icon *NotifyIcon::getIcon() const
-{
-  return m_icon;
-}
-
 bool NotifyIcon::isVisible() const
 {
   return m_visible;
@@ -93,17 +88,5 @@ void NotifyIcon::setText(const TCHAR *text)
   const size_t BUFFER_SIZE_TCHARS = sizeof(m_nid.szTip) / sizeof(TCHAR);
   _tcsncpy_s(m_nid.szTip, BUFFER_SIZE_TCHARS, text, _TRUNCATE);
 
-  Shell_NotifyIcon(NIM_MODIFY, &m_nid);
-}
-
-void
-NotifyIcon::showBalloon(const TCHAR *message, const TCHAR *caption,
-                      DWORD timeoutMillis)
-{
-  m_nid.uFlags = NIF_INFO;
-  _tcsncpy_s(m_nid.szInfo, 255, message, _TRUNCATE);
-  _tcsncpy_s(m_nid.szInfoTitle, 63, caption, _TRUNCATE);
-  m_nid.dwInfoFlags = NIIF_INFO;
-  m_nid.uTimeout = timeoutMillis;
   Shell_NotifyIcon(NIM_MODIFY, &m_nid);
 }

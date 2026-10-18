@@ -76,12 +76,6 @@ public:
   bool isDirectory() const;
 
   //
-  // Returns true if EXECUTABLE flag is set
-  //
-
-  bool isExecutable() const;
-
-  //
   // Sets last modification time (in seconds from unix epoch)
   //
 
@@ -116,12 +110,6 @@ public:
   //
 
   UINT64 getSize() const;
-
-  //
-  // Returns file flags (see FileInfo static constants)
-  //
-
-  UINT16 getFlags() const;
 
   //
   // Returns file name

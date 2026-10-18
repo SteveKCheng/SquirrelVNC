@@ -75,12 +75,6 @@ public:
    */
   static void addModelessDialog(HWND dialogWindow);
 
-  /**
-   * Removes dialog from application modeless dialog list.
-   * @param dialogWindow HWND of modeless dialog.
-   */
-  static void removeModelessDialog(HWND dialogWindow);
-
 protected:
   // Creates a window to receive messages.
   virtual void createWindow(const TCHAR *className);

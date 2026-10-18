@@ -36,8 +36,6 @@ public:
   bool isValid(int res); 
   // this function returns string as it is stored
   StringStorage getStrRes(int strRes); 
-  // this function returns the string without '\t' and '&'
-  StringStorage getStrPureRes(int strRes);
 
 protected:
   int m_min, m_max;

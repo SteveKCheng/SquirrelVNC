@@ -37,36 +37,6 @@ ScrollBar::ScrollBar()
 {
 }
 
-void ScrollBar::enableVirtualScroll()
-{
-  if (m_isVert) {
-    showVertScroll(false);
-    m_isVVert = false;
-  }
-  if (m_isHorz) {
-    showHorzScroll(false);
-    m_isVHorz = false;
-  }
-}
-
-void ScrollBar::disableVirtualScroll()
-{
-  if (m_isVert != m_isVVert) {
-    showVertScroll(m_isVVert);
-    if (m_isVVert) {
-      setVertRange(m_vMin, m_vMax, m_vStep);
-      setVertPos(m_vPos);
-    }
-  }
-  if (m_isHorz != m_isVHorz) {
-    showHorzScroll(m_isVHorz);
-    if (m_isVHorz) {
-      setHorzRange(m_hMin, m_hMax, m_hStep);
-      setHorzPos(m_hPos);
-    }
-  }
-}
-
 void ScrollBar::setWindow(HWND hwnd) {
   m_hwnd = hwnd;
 }

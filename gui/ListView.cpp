@@ -137,11 +137,6 @@ void ListView::addItem(int index, const TCHAR *caption, LPARAM tag, int imageInd
   ListView_InsertItem(m_hwnd, &lvI);
 }
 
-void ListView::removeItem(int i)
-{
-  ListView_DeleteItem(getWindow(), i);
-}
-
 void ListView::clear()
 {
   ListView_DeleteAllItems(m_hwnd);
@@ -210,31 +205,12 @@ int ListView::getSelectedIndex()
   return iSelect;
 }
 
-void ListView::selectItem(int index)
-{
-  WPARAM itemIndex = (WPARAM)index;
-  ListView_SetItemState(m_hwnd, -1, 0, LVIS_SELECTED);
-  SendMessage(m_hwnd, LVM_ENSUREVISIBLE , itemIndex, FALSE);
-  ListView_SetItemState(m_hwnd, itemIndex, LVIS_SELECTED, LVIS_SELECTED);
-  ListView_SetItemState(m_hwnd, itemIndex, LVIS_FOCUSED, LVIS_FOCUSED);
-  setFocus();
-}
-
 void ListView::setFullRowSelectStyle(bool fullRowSelect)
 {
   if (fullRowSelect) {
     addExStyle(LVS_EX_FULLROWSELECT);
   } else {
     removeExStyle(LVS_EX_FULLROWSELECT);
-  }
-}
-
-void ListView::allowMultiSelection(bool allow)
-{
-  if (allow) {
-    removeStyle(LVS_SINGLESEL);
-  } else {
-    addStyle(LVS_SINGLESEL);
   }
 }
 

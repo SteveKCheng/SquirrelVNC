@@ -223,8 +223,3 @@ BOOL LoginDialog::onCommand(UINT controlID, UINT notificationID)
   }
   return TRUE;
 }
-
-StringStorage LoginDialog::getServerHost()
-{
-  return m_serverHost;
-}

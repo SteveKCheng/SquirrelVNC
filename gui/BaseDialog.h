@@ -71,13 +71,6 @@ public:
   bool setForeground();
 
 protected:
-  /**
-   * Sets default push button for dialog.
-   * @pararm buttonId new default push button id.
-   */
-  void setDefaultPushButton(UINT buttonId);
-
-protected:
 
   //
   // This methods must be overrided by child classes.

@@ -39,18 +39,6 @@ public:
   ~File();
 
   //
-  // Tests whether the application can read the file denoted by this pathname
-  //
-
-  bool canRead() const;
-
-  //
-  // Tests whether the application can read the file denoted by this pathname
-  //
-
-  bool canWrite() const;
-
-  //
   // Atomically creates a new, empty file named by this pathname
   // if and only if a file with this name does not yet exist.
   //
@@ -75,13 +63,6 @@ public:
   @param name out parameter for file name.
   */
   void getName(StringStorage *name) const;
-
-  /**
-  Returns extension of file denoted by this pathname (without "." character).
-  @param ext out parameter for file extension.
-  @remark if filename has no extension, then ext will contain empty string("").
-  */
-  void getFileExtension(StringStorage *ext) const;
 
   /**
   Tests whether the file denoted by this pathname is a normal file.

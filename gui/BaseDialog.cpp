@@ -69,11 +69,6 @@ void BaseDialog::setResourceId(DWORD id)
   m_resourceId = id;
 }
 
-void BaseDialog::setDefaultPushButton(UINT buttonId)
-{
-  SendMessage(m_ctrlThis.getWindow(), DM_SETDEFID, buttonId, 0);
-}
-
 void BaseDialog::setParent(Control *ctrlParent)
 {
   m_ctrlParent = ctrlParent;

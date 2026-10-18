@@ -132,11 +132,6 @@ bool WinFile::isValid()
   return m_hFile != INVALID_HANDLE_VALUE;
 }
 
-void WinFile::getPathName(StringStorage *pathName)
-{
-  *pathName = m_pathToFile;
-}
-
 void WinFile::seek(INT64 n)
 {
   LARGE_INTEGER fileSize;

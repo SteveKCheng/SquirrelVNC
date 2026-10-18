@@ -110,13 +110,6 @@ void WindowsApplication::addModelessDialog(HWND dialogWindow)
   m_modelessDialogList.push_back(dialogWindow);
 }
 
-void WindowsApplication::removeModelessDialog(HWND dialogWindow)
-{
-  AutoLock l(&m_MDLMutex);
-
-  m_modelessDialogList.remove(dialogWindow);
-}
-
 bool WindowsApplication::processDialogMessage(MSG *msg)
 {
   AutoLock l(&m_MDLMutex);

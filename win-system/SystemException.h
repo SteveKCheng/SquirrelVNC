@@ -63,16 +63,6 @@ public:
    * Destructor, does nothing.
    */
   virtual ~SystemException();
-  /**
-   * Returns error code.
-   * @return windows error code associated with this exception.
-   */
-  int getErrorCode() const;
-  /**
-   * Returns system error description.
-   * @return system error description.
-   */
-  const TCHAR *getSystemErrorDescription() const;
 private:
   /**
    * Creates formatted message for exception.

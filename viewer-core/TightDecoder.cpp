@@ -85,15 +85,6 @@ void TightDecoder::decode(RfbInputGate *input,
     processBasicTypes(input, fb, dstRect, compressionControl);
 }
 
-UINT32 TightDecoder::transformPixelToTight(UINT32 color)
-{
-  UINT32 result = 0;
-  result |= (color & 0xFF) << 16;
-  result |= color & 0xFF00;
-  result |= (color >> 16);
-  return result;
-}
-
 vector<UINT8> TightDecoder::transformArray(const vector<UINT8> &buffer)
 {
   vector<UINT8> result(buffer.size() * 4 / 3);

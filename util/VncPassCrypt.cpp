@@ -37,13 +37,6 @@ VncPassCrypt::~VncPassCrypt()
   clearPlainPass();
 }
 
-void VncPassCrypt::updatePlain(const UINT8 cryptedPass[VNC_PASSWORD_SIZE])
-{
-  DesCrypt desCrypt;
-  desCrypt.decrypt(&m_plainPassword.front(), cryptedPass,
-                   m_plainPassword.size(), m_key);
-}
-
 void VncPassCrypt::getEncryptedPass(UINT8 encryptedPass[VNC_PASSWORD_SIZE],
                                     const UINT8 plainPassword[VNC_PASSWORD_SIZE])
 {
@@ -58,20 +51,6 @@ void VncPassCrypt::getPlainPass(UINT8 plainPassword[VNC_PASSWORD_SIZE],
   DesCrypt desCrypt;
   desCrypt.decrypt(plainPassword, encryptedPass,
                    VNC_PASSWORD_SIZE, m_key);
-}
-
-bool VncPassCrypt::challengeAndResponseIsValid(const UINT8 challenge[16],
-                                               const UINT8 response[16])
-{
-  UINT8 cryptedChallenge[16];
-  DesCrypt desCrypt;
-  desCrypt.encrypt(cryptedChallenge, challenge,
-                   sizeof(cryptedChallenge), &m_plainPassword.front());
-  if (memcmp(cryptedChallenge, response, sizeof(cryptedChallenge)) == 0) {
-    return true;
-  } else {
-    return false;
-  }
 }
 
 void VncPassCrypt::clearPlainPass()

@@ -30,9 +30,6 @@
 #include "sockdefs.h"
 #include "win-system/WsaStartup.h"
 
-// FIXME: Deprecated method, only for testing of old code.
-void getLocalIPAddrString(char *buffer, int buflen);
-
 class SocketAddressIPv4
 {
 public:

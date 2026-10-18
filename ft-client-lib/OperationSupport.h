@@ -43,8 +43,6 @@ public:
   bool isRemoveSupported() const;
   bool isMkDirSupported() const;
   bool isCompressionSupported() const;
-  bool isMD5Supported() const;
-  bool isDirSizeSupported() const;
 
 protected:
   static bool isSupport(const std::vector<UINT32> &codes, UINT32 code);

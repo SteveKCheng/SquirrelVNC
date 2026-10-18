@@ -120,16 +120,6 @@ bool OperationSupport::isCompressionSupported() const
   return m_isCompressionSupported;
 }
 
-bool OperationSupport::isMD5Supported() const
-{
-  return m_isMD5Supported;
-}
-
-bool OperationSupport::isDirSizeSupported() const
-{
-  return m_isDirSizeSupported;
-}
-
 bool OperationSupport::isSupport(const std::vector<UINT32> &codes, UINT32 code)
 {
   return std::find(codes.begin(), codes.end(), code) != codes.end();

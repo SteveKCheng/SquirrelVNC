@@ -39,13 +39,10 @@ public:
   NotifyIcon(bool showAfterCreation = true);
   virtual ~NotifyIcon();
 
-  const Icon *getIcon() const;
   bool isVisible() const;
 
   void setIcon(Icon *icon);
   void setText(const TCHAR *text);
-
-  void showBalloon(const TCHAR *message, const TCHAR *caption, DWORD timeoutMillis);
 
   void show();
   void hide();

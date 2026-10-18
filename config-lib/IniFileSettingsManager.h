@@ -40,9 +40,6 @@ public:
   // Sets application name (section name)
   void setApplicationName(const TCHAR *appName);
 
-  // Sets path to ini file
-  void setPathToFile(const TCHAR *pathToFile);
-
   //
   // Inherited from SettingsManager class
   //

@@ -109,11 +109,6 @@ public:
   void appendChar(TCHAR c);
 
   /**
-   * Quotes the self content.
-  */
-  void quoteSelf();
-
-  /**
    * Checks if this string are equals to other.
    * @param other other string.
    * @return true if strings are equal.
@@ -126,22 +121,6 @@ public:
    * @remark see overload of isEqualTo method.
    */
   bool isEqualTo(const StringStorage *other) const;
-
-  //
-  // Splits this string into getSubstring and stores output getSubstring to string array,
-  // count of substrings are placed into array length.
-  // Returns false if arrayLength is not enough to hold all substrings and stringArray
-  // is not NULL, true otherwise.
-  // Remark: if return value is false, than arrayLength will not contain getSubstring count.
-  // Parameters:
-  // [IN] delimiters - string that contains delimiter characters
-  // (every symbol in this string is delimiter).
-  // [OUT] stringArray - array for substrings output. Can be NULL.
-  // [IN, OUT] arrayLength - contain stringArray length on input and substrings count on
-  // output. Can be used if stringArray == NULL combination to get substrings count.
-  //
-
-  bool split(const TCHAR *delimiters, StringStorage *stringArray, size_t *arrayLength) const;
 
   //
   // Return a pointer to the first occurrence of a search substr in the
@@ -196,11 +175,6 @@ public:
   void toLowerCase();
 
   //
-  // Converts string notated by this container to upper case
-  //
-  void toUpperCase();
-
-  //
   // Create string notated by this container using format string, and arguments.
   //
 
@@ -215,12 +189,6 @@ public:
   bool operator == (const StringStorage &str) const;
   bool operator < (const StringStorage &str) const;
   void operator += (const TCHAR* str);
-
-  //
-  // Replaces one character with other this string.
-  //
-
-  void replaceChar(TCHAR oldChar, TCHAR newChar);
 
 private:
   typedef std::vector<TCHAR> BufferType;

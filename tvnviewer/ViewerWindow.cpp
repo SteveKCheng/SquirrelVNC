@@ -1185,11 +1185,6 @@ void ViewerWindow::onCutText(const StringStorage *cutText)
   m_dsktWnd.setClipboardData(cutText);
 }
 
-void ViewerWindow::doCommand(int iCommand)
-{
-  postMessage(WM_COMMAND, iCommand);
-}
-
 bool ViewerWindow::requiresReconnect() const
 {
   return m_requiresReconnect;

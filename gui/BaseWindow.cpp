@@ -82,12 +82,6 @@ void BaseWindow::loadIcon(DWORD id)
   }
 }
 
-void BaseWindow::enableWindow(bool bEnable)
-{
-  _ASSERT(m_hWnd != 0);
-  EnableWindow(m_hWnd, bEnable);
-}
-
 bool BaseWindow::destroyWindow()
 {
   if (m_hWnd) {
@@ -129,28 +123,10 @@ void BaseWindow::setParent(HWND hwnd)
   SetParent(m_hWnd, hwnd);
 }
 
-void BaseWindow::setClassStyle(DWORD style)
-{
-  _ASSERT(m_hWnd != 0);
-  SetClassLong(m_hWnd, GCL_STYLE, style);
-}
-
 void BaseWindow::setClassCursor(HCURSOR hcursor)
 {
   _ASSERT(m_hWnd != 0);
   SetClassLongPtr(m_hWnd, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(hcursor));
-}
-
-void BaseWindow::setClassBackground(HBRUSH hbrush)
-{
-  _ASSERT(m_hWnd != 0);
-  SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, reinterpret_cast<LONG_PTR>(hbrush));
-}
-
-void BaseWindow::setClassMenu(LONG menu)
-{
-  _ASSERT(m_hWnd != 0);
-  SetClassLongPtr(m_hWnd, GCLP_MENUNAME, menu);
 }
 
 LONG BaseWindow::getStyle()
@@ -175,24 +151,6 @@ void BaseWindow::setExStyle(DWORD exstyle)
 {
   _ASSERT(m_hWnd != 0);
   SetWindowLong(m_hWnd, GWL_EXSTYLE, exstyle);
-}
-
-void BaseWindow::updateWindow()
-{
-  _ASSERT(m_hWnd != 0);
-  UpdateWindow(m_hWnd);
-}
-
-void BaseWindow::setTimer(UINT_PTR ident, UINT time)
-{
-  _ASSERT(m_hWnd != 0);
-  SetTimer(m_hWnd, ident, time, 0);
-}
-
-void BaseWindow::killTimer(UINT_PTR ident)
-{
-  _ASSERT(m_hWnd != 0);
-  KillTimer(m_hWnd, ident);
 }
 
 bool BaseWindow::onCommand(WPARAM wParam, LPARAM lParam)

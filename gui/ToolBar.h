@@ -73,24 +73,6 @@ public:
   bool create(int tbID, HWND parentHwnd, 
        DWORD dwStyle = WS_CHILD | WS_VISIBLE | TBSTYLE_FLAT);
 
-  // addBitmap() adds one or more images from resources to
-  // the list of button images available for a toolbar.
-  // Returns the index of the first new image if successful,
-  // or -1 otherwise.
-  LRESULT addBitmap(int nButtons, UINT bitmapID);
-
-  // addSystemBitmap() adds the system-defined button bitmaps to the list
-  // of the toolbar button specifying by stdBitmapID. Returns the index of 
-  // the first new image if successful, or -1 otherwise.
-  LRESULT addSystemBitmap(UINT stdBitmapID);
-
-  // addNButton() adds nButtons buttons to a toolbar.
-  bool addNButton(int nButtons, LPTBBUTTON tbb);
-
-  // addButton() adds one button.
-  bool addButton(int iBitmap, int idCommand, BYTE state=TBSTATE_ENABLED, 
-                 BYTE style=TBSTYLE_BUTTON,  UINT dwData=0, int iString=0);
-
   // checkButton() checks or unchecks a given button in a toolbar control.
   bool checkButton(int idButton, bool check);
 
@@ -98,24 +80,14 @@ public:
   // in the toolbar.
   bool enableButton(int idButton, bool enable);
 
-  // pressButton() presses or releases the specified button in the toolbar.
-  bool pressButton(int idButton, bool press);
-
   // getButtonRect() gets the bounding rectangle of a button in a toolbar.
   bool getButtonRect(int nIndex, LPRECT buttonRect);
-
-  // setButtonSize() sets the size of the buttons to be added to a toolbar.
-  // Button size must be largen the button bitmap.
-  bool setButtonsSize(int width, int height);
 
   // autoSize() resizes the toolbar window.
   void autoSize();
 
   // getButtonsHeight() retrieves the height of the toolbar buttons.
   int getButtonsHeight();
-
-  // getButtonsWidth() retrieves the width of the toolbar buttons.
-  int getButtonsWidth();
 
   // isVisible() check the toolbar window on visible.
   bool isVisible();
@@ -125,10 +97,6 @@ public:
 
   // show() displays the toolbar window.
   void show();
-
-  // getTotalWidth() returns the total size of all buttons and 
-  // separators in the toolbar.
-  int getTotalWidth();
 
   // getHeight() returns the toolbar window height.
   int getHeight();

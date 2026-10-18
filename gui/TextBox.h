@@ -32,32 +32,6 @@ public:
   ~TextBox();
 public:
 
-  //
-  // Text limit
-  //
-
-  size_t getTextLengthLimit();
-  void setTextLengthLimit(size_t limit);
-
-  //
-  // Methods for multiline textboxes
-  //
-
-  int getCurrentLineIndex();
-  int getLineCount();
-
-  //
-  // Get / set caret position
-  //
-
-  int getCaretPos();
-  void setCaretPos(int h, int v);
-
-  //
-  // Text selection
-  //
-
-  void selectText(size_t startPos, size_t endPos);
 };
 
 #endif

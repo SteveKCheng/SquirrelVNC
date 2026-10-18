@@ -63,44 +63,18 @@ public:
   // Sets full path to current executing process file to out argument
   static bool getCurrentModulePath(StringStorage *out);
 
-  // pId - the process id that be tested
-  // return true if tested process has the same path as current process
-  // else return false
-  // throw Exception an error.
-  static bool isItTheSamePathAsCurrent(unsigned int pId);
-
-  // Sets full path to folder (without last directory separator character)
-  // where current executing process file is located to out argument.
-  static bool getCurrentModuleFolderPath(StringStorage *out);
-
   // Returns user name of the current desktop
   static bool getCurrentUserName(StringStorage *out, LogWriter *log);
 
-  // Fills "out" by computer name string.
-  // Returns true if success.
-  static bool getComputerName(StringStorage *out);
-
   // Returns true if run under a windows NT family
   static bool isWinNTFamily();
-  // Returns true if run under windows XP
-  static bool isWin2000();
-  // Returns true if run under windows XP
-  static bool isWinXP();
-  // Returns true if run windows 2003 server.
-  static bool isWin2003Server();
   // Returns true if run under Windows Vista or later
   static bool isVistaOrLater();
   // Returns true if run Windows7 or Win2008 R2 server.
   static bool isWin7();
 
-  // Simulates the "ctrl + alt + del" combination under WindowsXP.
-  static void simulateCtrlAltDel(LogWriter *log);
-
   // Simulates the "ctrl + alt + del" combination by using the "SAS" lib.
   static void simulateCtrlAltDelUnderVista(LogWriter *log);
-
-  // Returns true if the Aero is On.
-  static bool isAeroOn(LogWriter *log);
 
 private:
   static void init();

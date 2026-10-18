@@ -34,10 +34,7 @@ public:
   static bool parseInt(const TCHAR *str, int *out);
   // FIXME: it returns true on values that greater then 0xFFFFFFFF.
   static bool parseUInt(const TCHAR *str, unsigned int *out);
-  static bool parseUInt64(const TCHAR *str, UINT64 *out);
   static bool parseHex(const TCHAR *str, unsigned int *out);
-  static bool parseByte(const TCHAR *str, unsigned char *out);
-  static bool parseByteHex(const TCHAR *str, unsigned char *out);
 };
 
 #endif

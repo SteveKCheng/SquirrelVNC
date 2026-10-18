@@ -307,18 +307,6 @@ void RemoteViewerCore::refreshFrameBuffer()
   m_isRefreshing = true;
 }
 
-void RemoteViewerCore::forceFullUpdateRequests(const bool& forceUpdate)
-{
-	m_forceFullUpdate = forceUpdate;
-	m_updateRequestSender.setIsIncremental(!forceUpdate);
-}
-
-void RemoteViewerCore::deferUpdateRequests(const int& milliseconds)
-{
-	m_updateTimeout = milliseconds;
-	m_updateRequestSender.setTimeout(milliseconds);
-}
-
 void RemoteViewerCore::sendFbUpdateRequest(bool incremental)
 {
   {
@@ -617,11 +605,6 @@ void RemoteViewerCore::authenticate()
       throw AuthException(errorMessage.getString());
     }
   }
-}
-
-void RemoteViewerCore::enableTightSecurityType(bool enabled)
-{
-  m_isTightEnabled = enabled;	
 }
 
 int RemoteViewerCore::negotiateSecurityType()
@@ -1529,9 +1512,4 @@ void RemoteViewerCore::sendEncodings()
 std::vector<Rect> RemoteViewerCore::getDesktops()
 {
   return m_desktops;
-}
-
-Dimension RemoteViewerCore::getDesktopSize()
-{
-  return m_desktopSize;
 }

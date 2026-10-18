@@ -183,7 +183,6 @@ private:
   void doFullScr();
   void doUnFullScr();
   void doSize();
-  void doCommand(int iCommand);
   void showFileTransferDialog();
   void showWindow();
   void enableUserElements();

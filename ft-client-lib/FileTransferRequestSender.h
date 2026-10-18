@@ -38,7 +38,6 @@ public:
 
   void setOutput(RfbOutputGate *outputStream);
 
-  void sendCompressionSupportRequest() throw(IOException);
   void sendFileListRequest(const TCHAR *fullPath, bool useCompression) throw(IOException);
   void sendDownloadRequest(const TCHAR *fullPathName, UINT64 offset) throw(IOException);
   void sendDownloadDataRequest(UINT32 size, bool useCompression) throw(IOException);

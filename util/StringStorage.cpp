@@ -154,13 +154,6 @@ void StringStorage::appendChar(TCHAR c)
   appendString(string);
 }
 
-void StringStorage::quoteSelf()
-{
-  StringStorage quotedString;
-  quotedString.format(_T("\"%s\""), getString());
-  setString(quotedString.getString());
-}
-
 bool StringStorage::isEqualTo(const StringStorage *other) const
 {
   return isEqualTo(other->getString());
@@ -178,68 +171,6 @@ bool StringStorage::isEqualTo(const TCHAR *other) const
     return false;
   }
   return _tcscmp(getString(), other) == 0;
-}
-
-bool StringStorage::split(const TCHAR *delimiters, StringStorage *stringArray, size_t *arrayLength) const
-{
-  // Special case for empty string.
-  if (this->getLength() == 0) {
-    *arrayLength = 0;
-    return true;
-  }
-
-  StringStorage copy(this->getString());
-
-  size_t chunksCount = 0;
-
-  size_t index = 0;
-
-  do {
-    StringStorage chunk(_T(""));
-
-    index = copy.findOneOf(delimiters);
-
-    //
-    // Case when no delimitter found.
-    //
-
-    if ((index == (size_t)-1) && (chunksCount == 0)) {
-      if (arrayLength != 0) {
-        if (stringArray != 0) {
-          if (*arrayLength < 1) {
-            return false;
-          }
-        }
-        *arrayLength = 1;
-      } else {
-        return false;
-      }
-      if (stringArray != 0) {
-        stringArray->setString(getString());
-      }
-      return true;
-    }
-
-    if (index == -1) {
-      chunk = copy;
-    } else {
-      copy.getSubstring(&chunk, 0, index - 1);
-    }
-
-    copy.getSubstring(&copy, index + 1, copy.getLength() - 1);
-
-    if ((stringArray != NULL) && (chunksCount >= *arrayLength)) {
-      return false;
-    } else if (stringArray != NULL) {
-      stringArray[chunksCount] = chunk;
-    }
-
-    chunksCount++;
-  } while (index != -1);
-
-  *arrayLength = chunksCount;
-
-  return true;
 }
 
 size_t StringStorage::findChar(const TCHAR c)
@@ -337,11 +268,6 @@ void StringStorage::toLowerCase()
   }
 }
 
-void StringStorage::toUpperCase()
-{
-  _tcsupr_s(&m_buffer.front(), getLength() + 1);
-}
-
 void StringStorage::format(const TCHAR *format, ...)
 {
   va_list vl;
@@ -375,14 +301,4 @@ bool StringStorage::operator < (const StringStorage &str) const
 void StringStorage::operator += (const TCHAR* str) 
 {
   appendString(str);
-}
-
-void StringStorage::replaceChar(TCHAR oldChar, TCHAR newChar)
-{
-  size_t length = getLength();
-  for (size_t i = 0; i < length; i++) {
-    if (m_buffer[i] == oldChar) {
-      m_buffer[i] = newChar;
-    }
-  }
 }

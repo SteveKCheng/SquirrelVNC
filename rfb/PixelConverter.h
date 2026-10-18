@@ -60,12 +60,6 @@ public:
   virtual void setPixelFormats(const PixelFormat *dstPf,
                                const PixelFormat *srcPf);
 
-  // Return the number of bits per pixel from the source pixel format.
-  virtual size_t getSrcBitsPerPixel() const;
-
-  // Return the number of bits per pixel from the destination pixel format.
-  virtual size_t getDstBitsPerPixel() const;
-
 protected:
   void reset();
 

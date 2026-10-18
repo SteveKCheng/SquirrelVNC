@@ -63,9 +63,6 @@ public:
   // Selects item with specified index
   void setSelectedItem(int index);
 
-  // Deletes item from specified location
-  void deleteItem(int index);
-
   // Removes all combo box items
   void removeAllItems();
 };

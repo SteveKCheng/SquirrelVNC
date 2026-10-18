@@ -76,10 +76,6 @@ public:
   // Puts the clear file name to the *fileName argument.
   void getFileName(StringStorage *fileName);
 
-  // Tests the fileName argument with our clear file name if they
-  // are equal the function returns true else false.
-  bool isTheOurFileName(const TCHAR *fileName);
-
   // Stores a log message to the log file if level is less or equal than
   // the log verbosity level.
   virtual void print(unsigned int processId,

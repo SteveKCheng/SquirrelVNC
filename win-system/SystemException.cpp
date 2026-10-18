@@ -53,16 +53,6 @@ SystemException::~SystemException()
 {
 }
 
-int SystemException::getErrorCode() const
-{
-  return m_errcode;
-}
-
-const TCHAR *SystemException::getSystemErrorDescription() const
-{
-  return m_systemMessage.getString();
-}
-
 void SystemException::createMessage(const TCHAR *userMessage, int errcode)
 {
   if (userMessage == 0 && errcode == ERROR_SUCCESS) {

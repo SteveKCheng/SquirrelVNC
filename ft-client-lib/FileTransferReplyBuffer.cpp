@@ -69,11 +69,6 @@ UINT32 FileTransferReplyBuffer::getDownloadBufferSize()
   return m_downloadBufferSize;
 }
 
-UINT8 FileTransferReplyBuffer::getDownloadFileFlags()
-{
-  return m_downloadFileFlags;
-}
-
 UINT64 FileTransferReplyBuffer::getDownloadLastModified()
 {
   return m_downloadLastModified;

@@ -58,11 +58,6 @@ public:
   void setLimit(size_t limit);
 
   /**
-   * Returns connection history entries limit.
-   */
-  size_t getLimit() const;
-
-  /**
    * Loads connection history from registry.
    */
   void load();

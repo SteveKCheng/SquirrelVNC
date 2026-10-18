@@ -58,11 +58,6 @@ public:
   virtual ~TcpServer();
 
   /**
-   * Returns bind host.
-   */
-  const TCHAR *getBindHost() const;
-
-  /**
    * Returns bind port.
    */
   unsigned short getBindPort() const;

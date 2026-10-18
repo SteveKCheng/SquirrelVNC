@@ -48,16 +48,11 @@ public:
   int getPixelsSize() const { return m_pixels.getBufferSize(); }
   const char *getMask() const { return m_mask.empty() ? 0 : &m_mask.front(); }
   void assignMaskFromRfb(const char *srcMask);
-  void assignMaskFromWindows(const char *srcMask);
   int getMaskSize() const;
   int getMaskWidthInBytes() const;
 
   void setHotSpot(int x, int y) { m_hotSpot.x = x; m_hotSpot.y = y; }
   Point getHotSpot() const { return m_hotSpot; }
-
-  // Resets the cursor shape to empty state (zero dimension and hot spot
-  // and empty masks). But the pixel format saves the same.
-  void resetToEmpty();
 
 private:
   bool resizeBuffer();

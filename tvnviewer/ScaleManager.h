@@ -52,12 +52,6 @@ public:
   // point is scaled
   void setStartPoint(int x, int y);
 
-  // get viewed rectangle
-  void getViewedRect(Rect *rcViewed) const;
-
-  // get scaled rectangle
-  Rect getScaledRect();
-
   // get source rectangle
   void getSourceRect(Rect *rcSource) const;
 
@@ -98,7 +92,6 @@ protected:
 
 private:
   Rect calcScaled(const Rect *rcViewed, bool bCent);
-  void keepAspectRatio(Rect *rc) const;
 
 };
 

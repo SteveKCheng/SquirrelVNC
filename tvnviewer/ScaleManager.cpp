@@ -62,15 +62,6 @@ void ScaleManager::setScreenResolution(int maxWidth, int maxHeight)
   setWindow(&m_rcWindow);
 }
 
-void ScaleManager::keepAspectRatio(Rect *rc) const
-{
-  int iHeight = rc->getHeight() / m_scrHScale;
-  int iWidth = rc->getWidth() / m_scrWScale;
-  int iBar = min(iHeight, iWidth);
-  rc->right = rc->left + iBar * m_scrWScale;
-  rc->bottom = rc->top + iBar * m_scrHScale;
-}
-
 void ScaleManager::setScale(int scale)
 {
   m_scale = scale;
@@ -201,19 +192,6 @@ void ScaleManager::setStartPoint(int x, int y)
     }
   }
   Rect rcScaled = calcScaled(&m_rcViewed, true);
-}
-
-void ScaleManager::getViewedRect(Rect *rcViewed) const
-{
-  Rect rect(&m_rcViewed);
-  rect.setLocation(m_iCentX, m_iCentY);
-
-  rcViewed->setRect(&rect);
-}
-
-Rect ScaleManager::getScaledRect()
-{
-  return calcScaled(&m_rcViewed, true);
 }
 
 void ScaleManager::getDestinationRect(Rect *rcDestination)

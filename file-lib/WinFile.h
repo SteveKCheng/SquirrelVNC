@@ -86,9 +86,6 @@ public:
   // called successfully.
   bool isValid();
 
-  // Return valid path name to a file.
-  void getPathName(StringStorage *pathName);
-
   // Set file pointer to specified position starting from current
   // file pointer position. Can move forward and backward.
   void seek(INT64 n);

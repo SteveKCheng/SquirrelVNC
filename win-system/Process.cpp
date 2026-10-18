@@ -58,18 +58,6 @@ void Process::setArguments(const TCHAR *args)
   m_args.setString(args);
 }
 
-void Process::setStandardIoHandles(HANDLE stdIn, HANDLE stdOut, HANDLE stdErr)
-{
-  m_stdIn = stdIn;
-  m_stdOut = stdOut;
-  m_stdErr = stdErr;
-}
-
-void Process::setHandleInheritances(bool handlesIsInerited)
-{
-  m_handlesIsInherited = handlesIsInerited;
-}
-
 void Process::getStartupInfo(STARTUPINFO *sti)
 {
   ZeroMemory(sti, sizeof(STARTUPINFO));
@@ -108,34 +96,6 @@ void Process::kill()
   if (TerminateProcess(m_hProcess, 0) == 0) {
     throw SystemException();
   }
-}
-
-void Process::waitForExit()
-{
-  HANDLE handleArray[2] = { m_hProcess, m_hStopWait };
-
-  WaitForMultipleObjects(2, handleArray, FALSE, INFINITE);
-}
-
-void Process::stopWait()
-{
-  SetEvent(m_hStopWait);
-}
-
-DWORD Process::getExitCode()
-{
-  DWORD exitCode;
-
-  if (GetExitCodeProcess(m_hProcess, &exitCode) == 0) {
-    throw SystemException();
-  }
-
-  return exitCode;
-}
-
-HANDLE Process::getProcessHandle()
-{
-  return m_hProcess;
 }
 
 StringStorage Process::getCommandLineString()

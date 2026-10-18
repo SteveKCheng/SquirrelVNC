@@ -55,30 +55,6 @@ void CapsContainer::add(const RfbCapabilityInfo *capinfo,
   descMap[capinfo->code] = desc;
 }
 
-bool CapsContainer::isAdded(UINT32 code) const
-{
-  AutoLock al(&m_mapLock);
-
-  return isKnown(code);
-}
-
-bool CapsContainer::getInfo(UINT32 code, RfbCapabilityInfo *capinfo)
-{
-  AutoLock al(&m_mapLock);
-  if (isKnown(code)) {
-    *capinfo = infoMap[code];
-    return true;
-  }
-
-  return false;
-}
-
-StringStorage CapsContainer::getDescription(UINT32 code) const
-{
-  AutoLock al(&m_mapLock);
-  return (isKnown(code)) ? descMap.find(code)->second : StringStorage();
-}
-
 bool CapsContainer::enable(const RfbCapabilityInfo *capinfo)
 {
   AutoLock al(&m_mapLock);

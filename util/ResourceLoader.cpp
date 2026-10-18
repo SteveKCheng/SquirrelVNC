@@ -35,11 +35,6 @@ ResourceLoader::~ResourceLoader()
 {
 }
 
-HICON ResourceLoader::loadStandartIcon(const TCHAR *iconName)
-{
-  return LoadIcon(NULL, iconName);
-}
-
 HICON ResourceLoader::loadIcon(const TCHAR *iconName)
 {
   return LoadIcon(m_appInstance, iconName);

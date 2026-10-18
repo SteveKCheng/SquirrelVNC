@@ -37,7 +37,6 @@ public:
 
 public:
   static HKEY getCurrentUserKey();
-  static HKEY getCurrentLocalMachineKey();
 
 private:
   Registry();

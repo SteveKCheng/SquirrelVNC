@@ -53,16 +53,6 @@ File::~File()
 {
 }
 
-bool File::canRead() const
-{
-  return tryCreateFile(GENERIC_READ, OPEN_EXISTING);
-}
-
-bool File::canWrite() const
-{
-  return tryCreateFile(GENERIC_WRITE, OPEN_EXISTING);
-}
-
 bool File::createNewFile() const
 {
   return tryCreateFile(GENERIC_READ | GENERIC_WRITE, CREATE_NEW);
@@ -105,21 +95,6 @@ void File::getName(StringStorage *name) const
   } // for every char in string
 
   m_pathName.getSubstring(name, i, m_pathName.getLength() - 1);
-}
-
-void File::getFileExtension(StringStorage *ext) const
-{
-  StringStorage fileName;
-
-  getName(&fileName);
-
-  size_t pointPos = fileName.findLast(_T('.'));
-
-  if (pointPos == (size_t)-1) {
-    ext->setString(_T(""));
-  } else {
-    fileName.getSubstring(ext, pointPos + 1, fileName.getLength() - 1);
-  }
 }
 
 bool File::isFile() const

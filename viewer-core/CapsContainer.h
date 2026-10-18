@@ -64,25 +64,6 @@ public:
            StringStorage desc = _T(""));
 
   //
-  // Check if a capability with the specified code was added earlier.
-  //
-  bool isAdded(UINT32 code) const;
-
-  //
-  // Fill in a rfbCapabilityInfo structure with contents corresponding to the
-  // specified code. Returns true on success, false if the specified code is
-  // not known.
-  //
-  bool getInfo(UINT32 code, RfbCapabilityInfo *capinfo);
-
-  //
-  // Get a description string for the specified capability code. Returns NULL
-  // either if the code is not known, or if there is no description for this
-  // capability.
-  //
-  StringStorage getDescription(UINT32 code) const;
-
-  //
   // Mark the specified capability as "enabled". This function checks "vendor"
   // and "name" signatures in the existing record and in the argument structure
   // and enables the capability only if both records are the same.

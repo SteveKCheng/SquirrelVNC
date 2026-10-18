@@ -66,22 +66,10 @@ public:
   virtual void setUnsignedInt(unsigned int value);
 
   //
-  // Sets text vertical alignment
-  //
-
-  void setTextVerticalAlignment(VerticalAlignment align);
-
-  //
   // Sets input focus to this control
   //
 
   void setFocus();
-
-  //
-  // Return true if window has input focus
-  //
-
-  bool hasFocus();
 
   //
   // Puts this control foreground and activates it
@@ -112,12 +100,6 @@ public:
   //
 
   virtual void getText(StringStorage *storage);
-
-  //
-  // Returns text vertical alignment
-  //
-
-  VerticalAlignment getTextVerticalAlignment();
 
   //
   // Gets HWND associated with this control
@@ -172,7 +154,6 @@ protected:
   void removeExStyle(DWORD styleFlag);
 
   DWORD getExStyle();
-  bool isExStyleEnabled(DWORD styleFlag);
 
   //
   // Replaces default window proc with wndProc.

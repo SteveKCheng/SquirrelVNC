@@ -39,21 +39,6 @@ PixelFormat StandardPixelFormatFactory::create32bppPixelFormat()
   return pixelFormat;
 }
 
-PixelFormat StandardPixelFormatFactory::create16bppPixelFormat()
-{
-  PixelFormat pixelFormat;
-  pixelFormat.initBigEndianByNative();
-  pixelFormat.bitsPerPixel = 16;
-  pixelFormat.blueMax = 31;
-  pixelFormat.blueShift = 0;
-  pixelFormat.greenMax = 63;
-  pixelFormat.greenShift = 5;
-  pixelFormat.redMax = 31;
-  pixelFormat.redShift = 11;
-  pixelFormat.colorDepth = 16;
-  return pixelFormat;
-}
-
 PixelFormat StandardPixelFormatFactory::create8bppPixelFormat()
 {
   PixelFormat pixelFormat;
@@ -66,35 +51,5 @@ PixelFormat StandardPixelFormatFactory::create8bppPixelFormat()
   pixelFormat.blueMax = 3;
   pixelFormat.blueShift = 6;
   pixelFormat.colorDepth = 8;
-  return pixelFormat;
-}
-
-PixelFormat StandardPixelFormatFactory::create6bppPixelFormat()
-{
-  PixelFormat pixelFormat;
-  pixelFormat.initBigEndianByNative();
-  pixelFormat.bitsPerPixel = 8;
-  pixelFormat.blueMax = 3;
-  pixelFormat.blueShift = 0;
-  pixelFormat.greenMax = 3;
-  pixelFormat.greenShift = 2;
-  pixelFormat.redMax = 3;
-  pixelFormat.redShift = 4;
-  pixelFormat.colorDepth = 6;
-  return pixelFormat;
-}
-
-PixelFormat StandardPixelFormatFactory::create3bppPixelFormat()
-{
-  PixelFormat pixelFormat;
-  pixelFormat.initBigEndianByNative();
-  pixelFormat.bitsPerPixel = 8;
-  pixelFormat.blueMax = 1;
-  pixelFormat.blueShift = 0;
-  pixelFormat.greenMax = 1;
-  pixelFormat.greenShift = 1;
-  pixelFormat.redMax = 1;
-  pixelFormat.redShift = 2;
-  pixelFormat.colorDepth = 3;
   return pixelFormat;
 }

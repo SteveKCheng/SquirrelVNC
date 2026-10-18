@@ -27,27 +27,3 @@ const char *const AuthDefs::SIG_NONE = "NOAUTH__";
 const char *const AuthDefs::SIG_VNC = "VNCAUTH_";
 const char *const AuthDefs::SIG_EXTERNAL = "XTRNAUTH";
 const char *const AuthDefs::SIG_SRP6DUAL = "SRP6DUAL";
-
-UINT32 SecurityDefs::convertFromAuthType(UINT32 authType)
-{
-  switch (authType) {
-  case AuthDefs::NONE:
-    return NONE;
-  case AuthDefs::VNC:
-    return VNC;
-  }
-
-  return INVALID; // no corresponding authentication method
-}
-
-UINT32 AuthDefs::convertFromSecurityType(UINT32 securityType)
-{
-  switch (securityType) {
-  case SecurityDefs::NONE:
-    return NONE;
-  case SecurityDefs::VNC:
-    return VNC;
-  }
-
-  return 0; // no corresponding authentication method
-}

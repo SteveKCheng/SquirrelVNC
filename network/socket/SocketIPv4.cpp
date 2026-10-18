@@ -134,13 +134,6 @@ void SocketIPv4::bind(const SocketAddressIPv4 &addr)
   m_isBound = true;
 }
 
-bool SocketIPv4::isBound()
-{
-  AutoLock l(&m_mutex);
-
-  return m_isBound;
-}
-
 void SocketIPv4::listen(int backlog)
 {
   if (::listen(m_socket, backlog) == SOCKET_ERROR) {
@@ -265,43 +258,10 @@ int SocketIPv4::recv(char *buffer, int size, int flags)
   return result;
 }
 
-bool SocketIPv4::getLocalAddr(SocketAddressIPv4 *addr)
-{
-  AutoLock l(&m_mutex);
-
-  if (m_localAddr == 0) {
-    return false;
-  }
-
-  *addr = *m_localAddr;
-
-  return true;
-}
-
-bool SocketIPv4::getPeerAddr(SocketAddressIPv4 *addr)
-{
-  AutoLock l(&m_mutex);
-
-  if (m_peerAddr == 0) {
-    return false;
-  }
-
-  *addr = *m_peerAddr;
-
-  return true;
-}
-
 /* Auxiliary */
 void SocketIPv4::setSocketOptions(int level, int name, void *value, socklen_t len)
 {
   if (setsockopt(m_socket, level, name, (char*)value, len) == SOCKET_ERROR) {
-    throw SocketException();
-  }
-}
-
-void SocketIPv4::getSocketOptions(int level, int name, void *value, socklen_t *len)
-{
-  if (getsockopt(m_socket, level, name, (char*)value, len) == SOCKET_ERROR) {
     throw SocketException();
   }
 }

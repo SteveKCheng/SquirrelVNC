@@ -1025,59 +1025,6 @@ const UINT32 EXTENDED_KEYS[] = {
   XK_Down
 };
 
-long keysym2ucs(unsigned short keysym)
-{
-  int min = 0;
-  int max = sizeof(keysymtab) / sizeof(struct codepair) - 1;
-  int mid;
-
-  /* first check for Latin-1 characters (1:1 mapping) */
-  if ((keysym >= 0x0020 && keysym <= 0x007e) ||
-    (keysym >= 0x00a0 && keysym <= 0x00ff))
-    return keysym;
-
-  /* also check for directly encoded 24-bit UCS characters */
-  if ((keysym & 0xff000000) == 0x01000000)
-    return keysym & 0x00ffffff;
-
-  /* binary search in table */
-  while (max >= min) {
-    mid = (min + max) / 2;
-    if (keysymtab[mid].keysym < keysym)
-      min = mid + 1;
-    else if (keysymtab[mid].keysym > keysym)
-      max = mid - 1;
-    else {
-      /* found it */
-      return keysymtab[mid].ucs;
-    }
-  }
-
-  /* no matching Unicode value found */
-  return -1;
-}
-
-bool Keymap::keySymToVirtualCode(UINT32 keySym, BYTE *vkCode, bool *extended)
-{
-  // Is extended key in the Windows?
-  *extended = false;
-  for (size_t j = 0; j < sizeof(EXTENDED_KEYS) / sizeof(UINT32); j++) {
-    if (EXTENDED_KEYS[j] == keySym) {
-      *extended = true;
-      break;
-    }
-  }
-
-  for (UINT i = 0; i < sizeof(SERVER_AUXILIARY_TRANSLATE_TABLE) /
-                              sizeof(KS2VKEntry); i++) {
-    if (SERVER_AUXILIARY_TRANSLATE_TABLE[i].keySym == keySym) {
-      *vkCode = SERVER_AUXILIARY_TRANSLATE_TABLE[i].vkCode;
-      return true;
-    }
-  }
-  return false;
-}
-
 bool Keymap::virtualCodeToKeySym(UINT32 *keySym, BYTE vkCode)
 {
   for (UINT i = 0; i < sizeof(VIEWER_AUXILIARY_TRANSLATE_TABLE) / sizeof(KS2VKEntry); i++) {
@@ -1086,37 +1033,6 @@ bool Keymap::virtualCodeToKeySym(UINT32 *keySym, BYTE vkCode)
       return true;
     }
   }
-  return false;
-}
-
-bool Keymap::keySymToUnicodeChar(UINT32 keySym, WCHAR *ch)
-{
-  // X sym as unicode with flag.
-  // Note this method is valid only for
-  // 0x100-0x10ffff unicode value range.
-  bool hasCustomUnicodeFlag = (keySym & 0x01000000) != 0;
-  keySym &= ~0x01000000;
-  if (hasCustomUnicodeFlag && keySym >= 0x100 && keySym <= 0x10ffff) {
-    *ch = keySym & 0xffff;
-    return true;
-  }
-   // Latin-1 characters.
-  if ((keySym >= 32 && keySym <= 126) || (keySym >= 160 && keySym <= 255)) {
-    *ch = (WCHAR)keySym;
-
-    return true;
-  } else {
-     // Use code from XFree86 to lookup unicode character.
-
-    long res = keysym2ucs(keySym);
-
-    if (res != -1) {
-      *ch = (WCHAR)res;
-
-      return true;
-    }
-  }
-
   return false;
 }
 

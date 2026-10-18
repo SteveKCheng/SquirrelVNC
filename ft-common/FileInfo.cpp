@@ -57,11 +57,6 @@ bool FileInfo::isDirectory() const
   return (m_flags & FileInfo::DIRECTORY) ? true : false;
 }
 
-bool FileInfo::isExecutable() const
-{
-  return (m_flags & FileInfo::EXECUTABLE) ? true : false;
-}
-
 void FileInfo::setLastModified(UINT64 time)
 {
   m_lastModified = time;
@@ -90,11 +85,6 @@ UINT64 FileInfo::lastModified() const
 UINT64 FileInfo::getSize() const
 {
   return m_sizeInBytes;
-}
-
-UINT16 FileInfo::getFlags() const
-{
-  return m_flags;
 }
 
 const TCHAR *FileInfo::getFileName() const

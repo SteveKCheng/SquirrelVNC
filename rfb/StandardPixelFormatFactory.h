@@ -32,17 +32,8 @@ public:
   // specifies 16777216 colors, 8bit per Red, 8bit per Green, 8bit per Blue
   static PixelFormat create32bppPixelFormat();
   
-  // specifies 65536 colors, 5bit per Red, 6bit per Green, 5bit per Blue
-  static PixelFormat create16bppPixelFormat();
-
   // specifies 256 colors, 2bit per Blue, 3bit per Green & Red
   static PixelFormat create8bppPixelFormat();
-
-  // specifies 64 colors, 2bit per Red, Green & Blue
-  static PixelFormat create6bppPixelFormat();
-
-  // specifies 8 colors, 1bit per Red, Green & Blue
-  static PixelFormat create3bppPixelFormat();
 };
 
 #endif

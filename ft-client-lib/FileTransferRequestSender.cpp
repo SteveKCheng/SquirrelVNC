@@ -40,16 +40,6 @@ void FileTransferRequestSender::setOutput(RfbOutputGate *outputStream)
   m_output = outputStream;
 }
 
-void FileTransferRequestSender::sendCompressionSupportRequest()
-{
-  AutoLock al(m_output);
-
-  m_logWriter->info(_T("%s\n"), _T("Sending compresion support request"));
-
-  m_output->writeUInt32(FTMessage::COMPRESSION_SUPPORT_REQUEST);
-  m_output->flush();
-}
-
 void FileTransferRequestSender::sendFileListRequest(const TCHAR *fullPath,
                                                     bool useCompression)
 {

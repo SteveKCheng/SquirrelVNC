@@ -53,19 +53,6 @@ public:
             bool createIfNotExists = true,
             SECURITY_ATTRIBUTES *sa = 0);
 
-  //
-  // Returns WinAPI HKEY handle.
-  //
-  HKEY getHKEY() const;
-
-  // Creates subkey.
-  //
-  // Returns true in two cases:
-  // 1) subkey exists;
-  // 2) subkey didn't exists, and subkey was succerfully created
-  //    by method call.
-  //
-  bool createSubKey(const TCHAR *subkey);
   // Deletes subkey from this registry entry.
   bool deleteSubKey(const TCHAR *subkey);
   // Deletes subkey tree from this registry entry

@@ -147,29 +147,11 @@ bool ToolBar::enableButton(int idButton, bool enable)
   return !!result;
 }
 
-bool ToolBar::pressButton(int idButton, bool press)
-{
-  LRESULT result = SendMessage(m_hWndToolbar, TB_PRESSBUTTON,
-                               idButton, MAKELONG(press, 0));
-  return !!result;
-}
-
 bool ToolBar::getButtonRect(int nIndex, LPRECT buttonRect)
 {
   LRESULT result = SendMessage(m_hWndToolbar, TB_GETITEMRECT,
                                nIndex, (LPARAM)buttonRect);
   return !!result;
-}
-
-bool ToolBar::setButtonsSize(int width, int height)
-{
-  LRESULT result = SendMessage(m_hWndToolbar, TB_SETBUTTONSIZE,
-                               0, MAKELONG(width, height));
-  if (result) {
-     SendMessage(m_hWndToolbar, TB_AUTOSIZE, 0, 0);
-     return true;
-  }
-  return false;
 }
 
 void ToolBar::autoSize()
@@ -192,23 +174,11 @@ int ToolBar::getButtonsHeight()
   return HIWORD(SendMessage(m_hWndToolbar, TB_GETBUTTONSIZE, 0, 0));
 }
 
-int ToolBar::getButtonsWidth()
-{
-  return LOWORD(SendMessage(m_hWndToolbar, TB_GETBUTTONSIZE, 0, 0));
-}
-
 int ToolBar::getHeight()
 {
   RECT r;
   GetWindowRect(m_hWndToolbar, &r);
   return r.bottom - r.top;
-}
-
-int ToolBar::getTotalWidth()
-{
-  SIZE size;
-  SendMessage(m_hWndToolbar, TB_GETMAXSIZE, 0, reinterpret_cast<LPARAM>(&size));
-  return size.cx;
 }
 
 void ToolBar::show()
@@ -239,49 +209,4 @@ LRESULT ToolBar::getState(int idButton)
   LRESULT result = SendMessage(m_hWndToolbar, TB_GETSTATE, 
                    idButton, 0);
   return result;
-}
-
-LRESULT ToolBar::addBitmap(int nButtons, UINT bitmapID)
-{
-  TBADDBITMAP resBitmap;
-
-  resBitmap.hInst = GetModuleHandle(0);
-  resBitmap.nID = bitmapID;
-  return SendMessage(m_hWndToolbar, TB_ADDBITMAP, nButtons, reinterpret_cast<LPARAM>(&resBitmap));
-}
-
-LRESULT ToolBar::addSystemBitmap(UINT stdBitmapID)
-{
-  TBADDBITMAP resBitmap;
-
-  resBitmap.hInst = HINST_COMMCTRL;
-  resBitmap.nID = stdBitmapID;
-  return SendMessage(m_hWndToolbar, TB_ADDBITMAP, 0, (LPARAM)&resBitmap);
-}
-
-bool ToolBar::addButton(int iBitmap, int idCommand, BYTE state, BYTE style, UINT dwData, int iString)
-{
-  TBBUTTON tbb;
-
-  tbb.iBitmap = iBitmap;
-  tbb.idCommand = idCommand;
-  tbb.fsState = state;
-  tbb.fsStyle = style;
-  tbb.dwData = dwData;
-  tbb.iString = iString;
-
-  LRESULT result = SendMessage(m_hWndToolbar, TB_ADDBUTTONS, 1, reinterpret_cast<LPARAM>(&tbb));
-  if (result) {
-    SendMessage(m_hWndToolbar, TB_AUTOSIZE, 0, 0);
-  }
-  return !!result;
-}
-
-bool ToolBar::addNButton(int nButtons, LPTBBUTTON tbb)
-{
-  LRESULT result = SendMessage(m_hWndToolbar, TB_ADDBUTTONS, nButtons, reinterpret_cast<LPARAM>(tbb));
-  if (result) {
-    SendMessage(m_hWndToolbar, TB_AUTOSIZE, 0, 0);
-  }
-  return !!result;
 }
