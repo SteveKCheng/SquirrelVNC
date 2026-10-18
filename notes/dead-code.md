@@ -252,3 +252,12 @@ git diff --name-status 630df21~1 20956d9 | grep '^D'      # removed files
 # return types written on their own line):
 git diff -U0 --diff-filter=M 630df21~1 20956d9 -- '*.cpp' | grep '^-[^-/ {}#	]'
 ```
+
+## Later removals
+
+- **win-system/Process** (both files), whose only user was the button
+  that opens the log folder in the Configuration dialog. That button ran
+  `explorer` through `CreateProcess()`, which searched the viewer's own
+  directory for it first. `4638a6c` switched it to
+  `Shell::showInFolder()`, and the commit that adds this entry removed
+  the class.

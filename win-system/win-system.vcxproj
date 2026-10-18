@@ -170,7 +170,6 @@
     <ClCompile Include="DibSection.cpp" />
     <ClCompile Include="DisplayRequest.cpp" />
     <ClCompile Include="Environment.cpp" />
-    <ClCompile Include="Process.cpp" />
     <ClCompile Include="Registry.cpp" />
     <ClCompile Include="RegistryKey.cpp" />
     <ClCompile Include="Screen.cpp" />
@@ -191,7 +190,6 @@
     <ClInclude Include="DisplayRequest.h" />
     <ClInclude Include="Environment.h" />
     <ClInclude Include="HookEventListener.h" />
-    <ClInclude Include="Process.h" />
     <ClInclude Include="Registry.h" />
     <ClInclude Include="RegistryKey.h" />
     <ClInclude Include="Screen.h" />
