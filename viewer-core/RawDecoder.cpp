@@ -48,7 +48,6 @@ void RawDecoder::process(RfbInputGate *input,
   }
 
   int width = rect->getWidth();
-  int height = rect->getHeight();
 
   // Division with round to up.
   int deltaHeight = (AREA_OF_ONE_PART + width - 1) / width;

@@ -118,8 +118,6 @@ void DataOutputStream::writeInt64(INT64 x)
 
 void DataOutputStream::writeUTF8(const TCHAR *string)
 {
-  size_t sizeInBytes = 0;
-
   // to UTF8 string convertion
   StringStorage stringStorage(string);
   Utf8StringStorage utf8String(&stringStorage);

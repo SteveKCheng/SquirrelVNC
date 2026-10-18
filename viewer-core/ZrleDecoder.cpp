@@ -226,19 +226,15 @@ void ZrleDecoder::readPackedPaletteTile(DataInputStream *input,
   Palette palette;
   readPalette(input, paletteSize, &palette);
 
-  int m = 0;
   unsigned char mask = 0;
   unsigned char deltaOffset = 0;
   if (paletteSize == 2) {
-    m = (width + 7) / 8;
     mask = 0x01;
     deltaOffset = 1;
   } else if (paletteSize == 3 || paletteSize == 4) {
-    m = (width + 3) / 4;
     mask = 0x03;
     deltaOffset = 2;
   } else if (paletteSize >= 5 && paletteSize <= 16) {
-    m = (width + 1) / 2;
     mask = 0x0F;
     deltaOffset = 4;
   }
@@ -246,7 +242,6 @@ void ZrleDecoder::readPackedPaletteTile(DataInputStream *input,
   for (int y = 0; y < height; y++) {
     // bit lenght of UINT8
     unsigned char offset = 8;
-    int index = 0;
     // FIXME: optimization. Read by line.
     int entryByIndex = input->readUInt8();
 

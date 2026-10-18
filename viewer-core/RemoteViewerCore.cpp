@@ -1145,12 +1145,13 @@ void RemoteViewerCore::receiveSetColorMapEntries()
   // read padding: 1 byte
   m_input->readUInt8();
 
-  UINT16 firstColour = m_input->readUInt16();
+  // Colour maps are not supported, so the message is read and ignored.
+  m_input->readUInt16(); // first-colour
   UINT16 numberOfColours = m_input->readUInt16();
   for (size_t i = 0; i < numberOfColours; i++) {
-    UINT16 red = m_input->readUInt16();
-    UINT16 green = m_input->readUInt16();
-    UINT16 blue = m_input->readUInt16();
+    m_input->readUInt16(); // red
+    m_input->readUInt16(); // green
+    m_input->readUInt16(); // blue
   }
 }
 
