@@ -128,8 +128,13 @@ ProcessorTimes LogWriter::checkPoint(const TCHAR * tag)
 void LogWriter::vprintLog(int logLevel, const TCHAR *fmt, va_list argList)
 {
   if (m_logger != 0) {
-    // Format the original string.
-    int count = _vsctprintf(fmt, argList);
+    // Format the original string.  argList is read twice, to count and then
+    // to format, so the count reads a copy: reading a va_list leaves it
+    // unusable on some ABIs (MSVC's is a plain pointer passed by value).
+    va_list countArgs;
+    va_copy(countArgs, argList);
+    int count = _vsctprintf(fmt, countArgs);
+    va_end(countArgs);
     std::vector<TCHAR> formattedString;
     if (count >= 0) {
       formattedString.resize((size_t)count + 1);
