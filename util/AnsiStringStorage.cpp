@@ -60,7 +60,9 @@ void AnsiStringStorage::setString(const char *string)
     throw Exception(_T("String too large"));
 
   m_buffer.resize(length + 1);
-  memcpy(m_buffer.data(), string, getSize());
+  // memmove because string may point into this object's own buffer, as in
+  // self-assignment; shrinking the vector does not reallocate it.
+  memmove(m_buffer.data(), string, getSize());
 }
 
 const char *AnsiStringStorage::getString() const

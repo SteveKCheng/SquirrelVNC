@@ -58,7 +58,9 @@ void UnicodeStringStorage::setString(const WCHAR *string)
 
   size_t length = wcslen(string);
   m_buffer.resize(length + 1);
-  memcpy(m_buffer.data(), string, getSize());
+  // memmove because string may point into this object's own buffer, as in
+  // self-assignment; shrinking the vector does not reallocate it.
+  memmove(m_buffer.data(), string, getSize());
 }
 
 const WCHAR *UnicodeStringStorage::getString() const

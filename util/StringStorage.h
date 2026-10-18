@@ -61,7 +61,10 @@ public:
   */
   virtual ~StringStorage();
 
-  // Fills internal buffer by the string.
+  // Sets this string to a copy of string, which may be null for the empty
+  // string.  string may point into this object's own characters (but is
+  // then invalidated, as for any change).  Throws Exception if string is
+  // too long for its length plus terminator to be counted in a size_t.
   virtual void setString(const TCHAR *string);
 
   /**
@@ -167,7 +170,8 @@ public:
    */
   void removeChars(const TCHAR badCharacters[], size_t count);
 
-  // Removes count characters from the specified start index.
+  // Removes count characters from the specified start index.  The string is
+  // unchanged if this throws.
   // Throws Exception if startIndex + count > length in the release
   // configuration and throws an ASSERTION FAILED message in the debug
   // configuration.

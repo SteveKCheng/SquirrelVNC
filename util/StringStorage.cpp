@@ -59,7 +59,9 @@ void StringStorage::setString(const TCHAR *string)
   if (length == SIZE_MAX)
     throw Exception(_T("String too large"));
   resizeBuffer(length + 1);
-  memcpy(m_buffer.data(), string, getSize());
+  // memmove because string may point into this object's own buffer, as in
+  // self-assignment; shrinking the vector does not reallocate it.
+  memmove(m_buffer.data(), string, getSize());
 }
 
 void StringStorage::resizeBuffer(size_t newSize)
@@ -227,7 +229,8 @@ void StringStorage::remove(size_t startIndex, size_t count)
   BufferType newBuffer = m_buffer;
 
   size_t copyCount = getSize() - (startIndex + count) * sizeof(TCHAR);
-  memcpy(&newBuffer[startIndex], &newBuffer[startIndex + count], copyCount);
+  // The ranges overlap whenever more than count characters follow.
+  memmove(&newBuffer[startIndex], &newBuffer[startIndex + count], copyCount);
   setString(newBuffer.data());
 }
 

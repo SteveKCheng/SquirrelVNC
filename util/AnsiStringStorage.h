@@ -35,7 +35,10 @@ public:
   AnsiStringStorage(const AnsiStringStorage &stringBuffer);
   ~AnsiStringStorage();
 
-  // Fills internal buffer by the string.
+  // Sets this string to a copy of string, which may be null for the empty
+  // string.  string may point into this object's own characters (but is
+  // then invalidated, as for any change).  Throws Exception if string is
+  // too long for its length plus terminator to be counted in a size_t.
   virtual void setString(const char *string);
 
   // Returns the characters as a null-terminated string, never null.  As for

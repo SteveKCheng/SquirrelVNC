@@ -38,7 +38,9 @@ public:
   void fromStringStorage(const StringStorage *src);
   void toStringStorage(StringStorage *dst);
 
-  // Fills internal buffer by the string.
+  // Sets this string to a copy of string, which may be null for the empty
+  // string.  string may point into this object's own characters (but is
+  // then invalidated, as for any change).
   virtual void setString(const WCHAR *string);
 
   // Returns the characters as a null-terminated string, never null.  As for
