@@ -38,6 +38,8 @@ public:
   virtual ~RfbKeySym();
 
   // This function doesn't distinguish between left and right modifiers.
+  // virtKey must be in the key map's translation table, as the modifiers
+  // and Esc are; see sendMappedKey().
   void sendModifier(unsigned char virtKey, bool down);
 
   void processKeyEvent(unsigned short virtKey, unsigned int addKeyData);
@@ -92,6 +94,13 @@ private:
 
   // Checks virtKey state with the server side state and sends difference
   void checkAndSendDiff(unsigned char virtKey, unsigned char state);
+
+  // Sends virtKey to the server as the keysym that m_keyMap translates it
+  // to.  It is for keys with a fixed keysym, such as the modifiers, which
+  // all callers pass.  If virtKey is not in the map, nothing is sent and
+  // debug builds assert: the lookup's result is not used, since it would
+  // be uninitialized.
+  void sendMappedKey(unsigned char virtKey, bool down);
 
   // Send one key event (Alt translated to Meta if Scroll Lock is on).
   virtual void sendKeySymEvent(unsigned int rfbKeySym, bool down);

@@ -46,10 +46,7 @@ RfbKeySym::~RfbKeySym()
 
 void RfbKeySym::sendModifier(unsigned char virtKey, bool down)
 {
-  UINT32 rfbSym;
-  bool success = m_keyMap.virtualCodeToKeySym(&rfbSym, virtKey);
-  _ASSERT(success);
-  sendKeySymEvent(rfbSym, down);
+  sendMappedKey(virtKey, down);
 
   m_viewerKeyState[virtKey] = down ? 128 : 0;
   virtKey = distinguishLeftRightModifier(virtKey, false);
@@ -396,11 +393,8 @@ void RfbKeySym::restoreModifiers()
 
 void RfbKeySym::releaseModifier(unsigned char modifier)
 {
-  UINT32 rfbSym;
   if (isPressed(modifier)) {
-    bool success = m_keyMap.virtualCodeToKeySym(&rfbSym, modifier);
-    _ASSERT(success);
-    sendKeySymEvent(rfbSym, false);
+    sendMappedKey(modifier, false);
   }
 }
 
@@ -426,11 +420,8 @@ void RfbKeySym::restoreMeta()
 
 void RfbKeySym::restoreModifier(unsigned char modifier)
 {
-  UINT32 rfbSym;
   if (isPressed(modifier)) {
-    bool success = m_keyMap.virtualCodeToKeySym(&rfbSym, modifier);
-    _ASSERT(success);
-    sendKeySymEvent(rfbSym, true);
+    sendMappedKey(modifier, true);
   }
 }
 
@@ -444,10 +435,7 @@ void RfbKeySym::checkAndSendDiff(unsigned char virtKey, unsigned char state)
   m_serverKeyState[virtKey] = testedState ? 128 : 0;
 
   if (testedState != srvState) { 
-    UINT32 rfbSym;
-    bool success = m_keyMap.virtualCodeToKeySym(&rfbSym, virtKey);
-    _ASSERT(success);
-    sendKeySymEvent(rfbSym, testedState);
+    sendMappedKey(virtKey, testedState);
   }
 }
 
@@ -455,6 +443,16 @@ void RfbKeySym::clearKeyState()
 {
   memset(m_viewerKeyState, 0, sizeof(m_viewerKeyState));
   memset(m_serverKeyState, 0, sizeof(m_serverKeyState));
+}
+
+void RfbKeySym::sendMappedKey(unsigned char virtKey, bool down)
+{
+  UINT32 rfbSym;
+  if (m_keyMap.virtualCodeToKeySym(&rfbSym, virtKey)) {
+    sendKeySymEvent(rfbSym, down);
+  } else {
+    _ASSERT(false);
+  }
 }
 
 bool RfbKeySym::isPressed(unsigned char virtKey)
