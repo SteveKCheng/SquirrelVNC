@@ -26,7 +26,6 @@
     </ClInclude>
     <ClInclude Include="RfbInputGate.h" />
     <ClInclude Include="RfbOutputGate.h" />
-    <ClInclude Include="TcpClientThread.h" />
     <ClInclude Include="TcpServer.h" />
   </ItemGroup>
   <ItemGroup>
@@ -47,7 +46,6 @@
     </ClCompile>
     <ClCompile Include="RfbInputGate.cpp" />
     <ClCompile Include="RfbOutputGate.cpp" />
-    <ClCompile Include="TcpClientThread.cpp" />
     <ClCompile Include="TcpServer.cpp" />
   </ItemGroup>
 </Project>

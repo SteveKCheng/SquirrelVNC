@@ -138,19 +138,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FileInfo.cpp" />
-    <ClCompile Include="FileTransferException.cpp" />
     <ClCompile Include="FolderListener.cpp" />
     <ClCompile Include="FTMessage.cpp" />
     <ClCompile Include="OperationNotSupportedException.cpp" />
-    <ClCompile Include="WinFilePath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FileInfo.h" />
-    <ClInclude Include="FileTransferException.h" />
     <ClInclude Include="FolderListener.h" />
     <ClInclude Include="FTMessage.h" />
     <ClInclude Include="OperationNotSupportedException.h" />
-    <ClInclude Include="WinFilePath.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

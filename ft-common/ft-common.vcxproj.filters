@@ -18,9 +18,6 @@
     <ClCompile Include="FileInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FileTransferException.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="FolderListener.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -30,15 +27,9 @@
     <ClCompile Include="OperationNotSupportedException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WinFilePath.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FileInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FileTransferException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FolderListener.h">
@@ -48,9 +39,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OperationNotSupportedException.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WinFilePath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

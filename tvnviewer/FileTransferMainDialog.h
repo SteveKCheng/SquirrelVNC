@@ -28,7 +28,6 @@
 #include "gui/Control.h"
 #include "gui/TextBox.h"
 #include "gui/ComboBox.h"
-#include "gui/ImagedButton.h"
 #include "gui/ProgressBar.h"
 
 #include "ft-common/FileInfo.h"

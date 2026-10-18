@@ -26,7 +26,6 @@
 
 #include <shlobj.h>
 #include <crtdbg.h>
-#include "win-system/AutoImpersonator.h"
 #include "win-system/WTS.h"
 #include "win-system/ProcessHandle.h"
 #include "Shell.h"

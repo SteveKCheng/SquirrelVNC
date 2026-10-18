@@ -24,8 +24,6 @@
 #include "Keymap.h"
 
 #include "util/winhdr.h"
-#include "win-system/InputInjector.h"
-#include "win-system/Keyboard.h"
 #include <crtdbg.h>
 
 #define XK_MISCELLANY

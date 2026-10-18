@@ -14,19 +14,10 @@
     <ClCompile Include="AnsiStringStorage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Command.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandLine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CommandLineArgs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DateTime.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Deflater.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DesCrypt.cpp">
@@ -38,16 +29,7 @@
     <ClCompile Include="Inflater.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="KeyContainer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Keymap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MacroCommand.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="md5.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ResourceLoader.cpp">
@@ -80,33 +62,18 @@
     <ClCompile Include="ZlibException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DemandTimer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CommandLineFormatException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CommandLineFormatHelp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BrokenHandleException.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GetCPUtime.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MemUsage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnsiStringStorage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Command.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CommandLine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CommandLineArgs.h">
@@ -116,9 +83,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DateTime.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Deflater.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DesCrypt.h">
@@ -133,19 +97,10 @@
     <ClInclude Include="inttypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="KeyContainer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Keymap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ListenerContainer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MacroCommand.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="md5.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ResourceLoader.h">
@@ -164,9 +119,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StringTemplate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StringVector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Unicode.h">
@@ -190,22 +142,13 @@
     <ClInclude Include="ZlibException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DemandTimer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CommandLineFormatException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CommandLineFormatHelp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BrokenHandleException.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GetCPUtime.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MemUsage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

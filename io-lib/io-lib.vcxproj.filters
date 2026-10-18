@@ -17,9 +17,6 @@
     <ClCompile Include="ByteArrayInputStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ByteArrayOutputStream.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Channel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -41,18 +38,12 @@
     <ClCompile Include="BufferedInputStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataCopy.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BufferedOutputStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ByteArrayInputStream.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ByteArrayOutputStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Channel.h">
@@ -74,9 +65,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BufferedInputStream.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DataCopy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -25,7 +25,6 @@
 #define __TEXTBOX_H_
 
 #include "Control.h"
-#include "Tooltip.h"
 
 class TextBox : public Control
 {
@@ -59,12 +58,6 @@ public:
   //
 
   void selectText(size_t startPos, size_t endPos);
-
-  //
-  // Tooltip methods
-  //
-
-  void showBalloonTip(Tooltip *tip);
 };
 
 #endif

@@ -29,7 +29,6 @@
 #include "DeviceContext.h"
 #include "Bitmap.h"
 #include "Brush.h"
-#include "Pen.h"
 
 class Graphics
 {
@@ -48,8 +47,6 @@ public:
   void setTextColor(COLORREF color);
   // Sets current brush.
   void setBrush(const Brush *brush);
-  // Sets current pen.
-  void setPen(const Pen *pen);
 
   // Moves cursor to specified position.
   void moveTo(int x, int y);

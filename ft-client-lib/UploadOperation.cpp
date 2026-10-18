@@ -23,7 +23,6 @@
 
 #include "UploadOperation.h"
 
-#include "ft-common/WinFilePath.h"
 #include "ft-common/FolderListener.h"
 #include "file-lib/EOFException.h"
 

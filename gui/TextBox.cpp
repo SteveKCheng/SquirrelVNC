@@ -66,8 +66,3 @@ void TextBox::selectText(size_t startPos, size_t endPos)
   SendMessage(getWindow(), EM_SETSEL, startPos, endPos);
 }
 
-void TextBox::showBalloonTip(Tooltip *tip)
-{
-  tip->showTooltip(this);
-}
-

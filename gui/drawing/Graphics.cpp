@@ -53,12 +53,6 @@ void Graphics::setBrush(const Brush *brush)
   m_dc->selectObject(object);
 }
 
-void Graphics::setPen(const Pen *pen)
-{
-  HGDIOBJ object = (pen != 0) ? pen->m_pen : 0;
-  m_dc->selectObject(object);
-}
-
 void Graphics::moveTo(int x, int y)
 {
   MoveToEx(m_dc->m_dc, x, y, NULL);
