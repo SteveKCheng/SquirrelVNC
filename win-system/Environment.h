@@ -25,9 +25,6 @@
 #define _ENVIRONMENT_H_
 
 #include "util/StringStorage.h"
-#include "log-writer/LogWriter.h"
-
-#include <winnt.h>
 
 class Environment
 {
@@ -62,24 +59,6 @@ public:
 
   // Sets full path to current executing process file to out argument
   static bool getCurrentModulePath(StringStorage *out);
-
-  // Returns user name of the current desktop
-  static bool getCurrentUserName(StringStorage *out, LogWriter *log);
-
-  // Returns true if run under a windows NT family
-  static bool isWinNTFamily();
-  // Returns true if run under Windows Vista or later
-  static bool isVistaOrLater();
-  // Returns true if run Windows7 or Win2008 R2 server.
-  static bool isWin7();
-
-  // Simulates the "ctrl + alt + del" combination by using the "SAS" lib.
-  static void simulateCtrlAltDelUnderVista(LogWriter *log);
-
-private:
-  static void init();
-  // Operation system version info.
-  static OSVERSIONINFO m_osVerInfo;
 };
 
 #endif

@@ -167,14 +167,10 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CtrlAltDelSimulator.cpp" />
     <ClCompile Include="DibSection.cpp" />
     <ClCompile Include="DisplayRequest.cpp" />
-    <ClCompile Include="DynamicLibrary.cpp" />
     <ClCompile Include="Environment.cpp" />
-    <ClCompile Include="PipeImpersonatedThread.cpp" />
     <ClCompile Include="Process.cpp" />
-    <ClCompile Include="ProcessHandle.cpp" />
     <ClCompile Include="Registry.cpp" />
     <ClCompile Include="RegistryKey.cpp" />
     <ClCompile Include="Screen.cpp" />
@@ -189,18 +185,13 @@
     <ClCompile Include="WinHooks.cpp" />
     <ClCompile Include="WinProcessCommandLine.cpp" />
     <ClCompile Include="WsaStartup.cpp" />
-    <ClCompile Include="WTS.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CtrlAltDelSimulator.h" />
     <ClInclude Include="DibSection.h" />
     <ClInclude Include="DisplayRequest.h" />
-    <ClInclude Include="DynamicLibrary.h" />
     <ClInclude Include="Environment.h" />
     <ClInclude Include="HookEventListener.h" />
-    <ClInclude Include="PipeImpersonatedThread.h" />
     <ClInclude Include="Process.h" />
-    <ClInclude Include="ProcessHandle.h" />
     <ClInclude Include="Registry.h" />
     <ClInclude Include="RegistryKey.h" />
     <ClInclude Include="Screen.h" />
@@ -215,7 +206,6 @@
     <ClInclude Include="WinHooks.h" />
     <ClInclude Include="WinProcessCommandLine.h" />
     <ClInclude Include="WsaStartup.h" />
-    <ClInclude Include="WTS.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

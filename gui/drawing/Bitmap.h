@@ -53,7 +53,6 @@ protected:
 
   friend class Icon;
   friend class Graphics;
-  friend class BitmapGraphics;
 };
 
 #endif

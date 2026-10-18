@@ -51,8 +51,3 @@ DeviceContext::~DeviceContext()
     DeleteDC(m_dc);
   }
 }
-
-HGDIOBJ DeviceContext::selectObject(HGDIOBJ object)
-{
-  return SelectObject(m_dc, object);
-}

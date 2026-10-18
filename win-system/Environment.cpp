@@ -22,20 +22,10 @@
 //
 
 #include "Environment.h"
-#include "CtrlAltDelSimulator.h"
 
 #include <shlobj.h>
 #include <crtdbg.h>
-#include "win-system/WTS.h"
-#include "win-system/ProcessHandle.h"
-#include "Shell.h"
-#include "DynamicLibrary.h"
 #include <vector>
-#include <algorithm>
-
-OSVERSIONINFO Environment::m_osVerInfo = { 0 };
-typedef VOID (WINAPI *SendSas)(BOOL asUser);
-typedef HRESULT (WINAPI *DwmIsCompositionEnabled)(BOOL *pfEnabled);
 
 Environment::Environment()
 {
@@ -122,57 +112,3 @@ bool Environment::getCurrentModulePath(StringStorage *out)
 
   return true;
 } // void
-
-bool Environment::getCurrentUserName(StringStorage *out, LogWriter *log)
-{
-  *out = WTS::getCurrentUserName(log);
-  return !out->isEmpty();
-}
-
-
-void Environment::init()
-{
-  if (m_osVerInfo.dwOSVersionInfoSize == 0) {
-    m_osVerInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-
-    if (!GetVersionEx(&m_osVerInfo)) {
-      m_osVerInfo.dwOSVersionInfoSize = 0;
-    }
-  }
-}
-
-bool Environment::isWinNTFamily()
-{
-  init();
-  return m_osVerInfo.dwPlatformId == VER_PLATFORM_WIN32_NT;
-}
-
-bool Environment::isVistaOrLater()
-{
-  init();
-  return m_osVerInfo.dwMajorVersion >= 6;
-}
-
-bool Environment::isWin7()
-{
-  init();
-  return ((m_osVerInfo.dwMajorVersion == 6) && (m_osVerInfo.dwMinorVersion == 1) && isWinNTFamily());
-}
-
-void Environment::simulateCtrlAltDelUnderVista(LogWriter *log)
-{
-  // FIXME: Do not use log here.
-  log->info(_T("Requested Ctrl+Alt+Del simulation under Vista or later"));
-
-  try {
-    DynamicLibrary sasLib(_T("sas.dll"));
-    SendSas sendSas = (SendSas)sasLib.getProcAddress("SendSAS");
-    if (sendSas == 0) {
-      throw Exception(_T("The SendSAS function has not been found"));
-    }
-    sendSas(FALSE); // Try only under service
-  } catch (Exception &e) {
-    log->error(_T("The simulateCtrlAltDelUnderVista() function failed: %s"),
-               e.getMessage());
-  }
-}

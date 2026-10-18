@@ -44,16 +44,11 @@ private:
   friend class PaintWindow;
 
 protected:
-  // Selects an object into this device context.
-  HGDIOBJ selectObject(HGDIOBJ object);
-
-protected:
   HDC m_dc;
   HWND m_wnd;
   bool m_hasOwnDC;
 
   friend class Graphics;
-  friend class BitmapGraphics;
 };
 
 #endif

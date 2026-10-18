@@ -11,12 +11,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CtrlAltDelSimulator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DynamicLibrary.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DisplayRequest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -24,9 +18,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Process.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ProcessHandle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Registry.cpp">
@@ -53,12 +44,6 @@
     <ClCompile Include="WindowsEvent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WTS.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PipeImpersonatedThread.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="WinProcessCommandLine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -82,12 +67,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CtrlAltDelSimulator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DynamicLibrary.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DisplayRequest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -95,9 +74,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Process.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ProcessHandle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Registry.h">
@@ -122,12 +98,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WindowsEvent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WTS.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PipeImpersonatedThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WinProcessCommandLine.h">

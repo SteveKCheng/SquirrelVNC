@@ -14,8 +14,6 @@ public:
 	~UpdateRequestSender();
 
 	void setWasUpdated();
-	void setTimeout(int miliseconds);
-	void setIsIncremental(bool isIncremental);
 	void setOutput(RfbOutputGate* output);
 
 	int getTimeout();

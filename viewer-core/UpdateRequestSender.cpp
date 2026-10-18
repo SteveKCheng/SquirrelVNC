@@ -32,18 +32,6 @@ void UpdateRequestSender::setWasUpdated()
 	m_wasUpdateRecieved = true;
 }
 
-void UpdateRequestSender::setTimeout(int miliseconds)
-{
-	AutoLock al(&m_timeOutLock);
-	m_timeOut = miliseconds;
-}
-
-void UpdateRequestSender::setIsIncremental(bool isIncremental)
-{
-	AutoLock al(&m_isIncrimentalLock);
-	m_isIncrimental = isIncremental;
-}
-
 void UpdateRequestSender::setOutput(RfbOutputGate* output)
 {
 	{
