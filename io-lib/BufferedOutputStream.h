@@ -46,17 +46,15 @@ public:
    * Writes data to output stream (with buffering).
    * @remark method can write data to inner buffer, not to real output stream.
    * data will be written to real output stream it inner buffer will overflow.
-   * @throw IOException on error.
-   * @fixme really it can throw any kind of exception.
+   * @throws whatever the real output stream's write() throws.
    */
-  virtual size_t write(const void *buffer, size_t len) throw(IOException);
+  virtual size_t write(const void *buffer, size_t len);
 
   /**
    * Writes content of inner buffer to real output stream.
-   * @throws IOException on error.
-   * @fixme really it can throw any kind of exception.
+   * @throws whatever the real output stream's write() throws.
    */
-  void flush() throw(IOException);
+  void flush();
 
 protected:
   DataOutputStream *m_output;

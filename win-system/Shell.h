@@ -56,7 +56,7 @@ public:
    */
   static void open(const TCHAR *file,
                    const TCHAR *parameters,
-                   const TCHAR *workDirectory) throw(SystemException);
+                   const TCHAR *workDirectory);
 
   /**
    * Opens a File Explorer window on the folder containing a file, with the
@@ -77,7 +77,7 @@ public:
    *   shell fails to open the window.
    */
   static void showInFolder(const TCHAR *file,
-                           const TCHAR *folder) throw(SystemException);
+                           const TCHAR *folder);
 private:
   /**
    * Don't allow instanizing of class.

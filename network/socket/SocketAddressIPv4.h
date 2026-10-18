@@ -49,7 +49,10 @@ public:
   // Returns socket port number 
   unsigned short SocketAddressIPv4::getPort() const;
 
-  static SocketAddressIPv4 resolve(const TCHAR *host, unsigned short port) throw(SocketException);
+  // Resolves host, a name or a dotted IPv4 address, to its first IPv4
+  // address.  Throws SocketException if it cannot be resolved, and
+  // Exception if it cannot be converted to the ANSI code page.
+  static SocketAddressIPv4 resolve(const TCHAR *host, unsigned short port);
 
 protected:
   WsaStartup m_wsaStartup;

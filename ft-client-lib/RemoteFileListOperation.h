@@ -41,7 +41,7 @@ public:
   // Methods inherited from FileTransferOperation class
   //
 
-  virtual void start() throw(IOException);
+  virtual void start();
 
   //
   // File transfer message handlers

@@ -24,18 +24,6 @@
 #ifndef __COMMONHEADER_H__
 #define __COMMONHEADER_H__
 
-//
-// Disable warning C4290 cause
-//
-// "A function is declared using exception specification,
-// which Visual C++ accepts but does not implement" (c) MSDN.
-//
-// "Visual C++ departs from the ANSI Standard in its implementation
-// of exception specifications" (c) MSDN.
-//
-// For more info read topic "Exception Specifications" on MSDN.
-//
-
 #ifdef WIN32
 #include "winhdr.h"
 #endif // WIN32

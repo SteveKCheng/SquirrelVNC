@@ -39,7 +39,11 @@ public:
                 bool *isListening);
 
   // this function parse the command line
-  void parse() throw(CommandLineFormatException, CommandLineFormatHelp);
+  //
+  // Throws CommandLineFormatHelp if a help option is given, so that the
+  // caller shows the help, and CommandLineFormatException if the command
+  // line, or the options file it names, is not valid.
+  void parse();
 
   // this function creates the modal dialog with text how to use it
   void onHelp();

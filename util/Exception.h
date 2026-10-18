@@ -24,8 +24,6 @@
 #ifndef _EXCEPTION_H_
 #define _EXCEPTION_H_
 
-#pragma warning(disable:4290)
-
 #include "StringStorage.h"
 
 /**

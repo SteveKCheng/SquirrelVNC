@@ -34,9 +34,6 @@ FileTransferMessageProcessor::~FileTransferMessageProcessor()
 
 void FileTransferMessageProcessor::processRfbMessage(DataInputStream *input,
                                                      UINT32 rfbMessage)
-     throw (IOException, ZLibException,
-            OperationNotSupportedException,
-            OperationNotPermittedException)
 {
   AutoLock al(&m_listeners);
 

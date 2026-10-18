@@ -42,12 +42,14 @@ public:
   // Inherited from Channel.
   //
 
-  virtual size_t read(void *, size_t) throw(IOException);
+  // read() and write() throw IOException on failure, including a closed
+  // connection in read().
+  virtual size_t read(void *, size_t);
 
-  virtual size_t write(const void *, size_t) throw(IOException);
+  virtual size_t write(const void *, size_t);
 
   // Closes connection and break all blocked operation.
-  // @throw Exception on error.
+  // Does not throw: a failure to shut the connection down is ignored.
   virtual void close();
 
   virtual size_t available();

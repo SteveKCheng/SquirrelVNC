@@ -44,7 +44,7 @@ public:
 
   virtual ~RemoteFileRenameOperation();
 
-  virtual void start() throw(IOException);
+  virtual void start();
 
 protected:
   virtual void onMvReply(DataInputStream *input);

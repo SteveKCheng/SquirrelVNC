@@ -31,6 +31,9 @@
 /**
  * Data input stream class (decorator pattern).
  * Allows to read typed data from input stream.
+ *
+ * The typed read functions read through readFully(), so they throw as it
+ * does.
  */
 class DataInputStream : public InputStream
 {
@@ -46,7 +49,7 @@ public:
    * Inherited from superclass.
    * Delegates execution of method to real input stream.
    */
-  virtual size_t read(void *buffer, size_t len) throw(IOException);
+  virtual size_t read(void *buffer, size_t len);
 
   virtual size_t available();
 
@@ -54,20 +57,20 @@ public:
    * Reads exactly specified count of bytes from input stream.
    * @param buffer [out] target buffer to receive data.
    * @param len count of bytes to read.
-   * @throws IOException on error.
-   * @fixme really it can throw any kind of exception.
+   * @throws whatever the underlying stream's read() throws: IOException
+   *   for a SocketStream or a ByteArrayInputStream.
    */
-  void readFully(void *buffer, size_t len) throw(IOException);
+  void readFully(void *buffer, size_t len);
 
-  UINT8 readUInt8() throw(IOException);
-  UINT16 readUInt16() throw(IOException);
-  UINT32 readUInt32() throw(IOException);
-  UINT64 readUInt64() throw(IOException);
+  UINT8 readUInt8();
+  UINT16 readUInt16();
+  UINT32 readUInt32();
+  UINT64 readUInt64();
 
-  INT8 readInt8() throw(IOException);
-  INT16 readInt16() throw(IOException);
-  INT32 readInt32() throw(IOException);
-  INT64 readInt64() throw(IOException);
+  INT8 readInt8();
+  INT16 readInt16();
+  INT32 readInt32();
+  INT64 readInt64();
 
   /**
    * Largest size in bytes that readUTF8() accepts.
@@ -90,7 +93,7 @@ public:
    * @throws Exception if the conversion fails.  storage is unchanged
    *   whenever this throws.
    */
-  void readUTF8(StringStorage *storage) throw(IOException);
+  void readUTF8(StringStorage *storage);
 
 protected:
   InputStream *m_inputStream;

@@ -42,10 +42,7 @@ public:
   FileTransferMessageProcessor();
   ~FileTransferMessageProcessor();
 
-  void processRfbMessage(DataInputStream *input, UINT32 rfbMessage)
-       throw (IOException, ZLibException,
-              OperationNotSupportedException,
-              OperationNotPermittedException);
+  void processRfbMessage(DataInputStream *input, UINT32 rfbMessage);
 };
 
 #endif

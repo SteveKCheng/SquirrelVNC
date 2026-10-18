@@ -54,9 +54,10 @@ public:
 
   /**
    * Flushes inner buffer to real output stream.
-   * @throws IOException on error.
+   * @throws whatever the real output stream's write() throws: IOException
+   *   for a SocketStream.
    */
-  virtual void flush() throw(IOException);
+  virtual void flush();
 
 private:
   /**

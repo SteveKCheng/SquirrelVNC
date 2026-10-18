@@ -39,7 +39,10 @@ public:
 
   void setUnpackedSize(size_t size);
 
-  void inflate() throw(ZLibException);
+  // Inflates the input into the output buffer.  Throws ZLibException if
+  // zlib reports an error, or if the input does not all fit in an output
+  // buffer of slightly more than the size given to setUnpackedSize().
+  void inflate();
 
 protected:
   z_stream m_zlibStream;
