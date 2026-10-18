@@ -58,7 +58,7 @@ void Utf8StringStorage::setString(const std::vector<char> *utf8Buffer)
 
 const char *Utf8StringStorage::getString() const
 {
-  return &m_buffer.front();
+  return m_buffer.data();
 }
 
 size_t Utf8StringStorage::getSize() const
@@ -97,7 +97,7 @@ void Utf8StringStorage::fromStringStorage(const StringStorage *src)
 
   m_buffer.resize(dstRequiredSize);
   WideCharToMultiByte(CP_UTF8, 0, uniString, constrSrcSize,
-                      &m_buffer.front(), dstRequiredSize, 0, 0);
+                      m_buffer.data(), dstRequiredSize, 0, 0);
 }
 
 void Utf8StringStorage::toStringStorage(StringStorage *dst)
@@ -105,19 +105,19 @@ void Utf8StringStorage::toStringStorage(StringStorage *dst)
   // 1) From UTF8 to UNICODE
   int constrSize = (int)getSize();
   _ASSERT(constrSize == getSize());
-  int dstReqSizeInSym = MultiByteToWideChar(CP_UTF8, 0, &m_buffer.front(),
+  int dstReqSizeInSym = MultiByteToWideChar(CP_UTF8, 0, m_buffer.data(),
                                             constrSize, 0, 0);
   if (dstReqSizeInSym == 0) {
     throw Exception(_T("Cannot convert a string from the UTF8 format"));
   }
   std::vector<WCHAR> uniBuff(dstReqSizeInSym + 1);
-  MultiByteToWideChar(CP_UTF8, 0, &m_buffer.front(),
-                      constrSize, &uniBuff.front(), dstReqSizeInSym);
+  MultiByteToWideChar(CP_UTF8, 0, m_buffer.data(),
+                      constrSize, uniBuff.data(), dstReqSizeInSym);
   // Add termination symbol to the unicode buffer because the source string
   // may be without it.
   uniBuff[dstReqSizeInSym] = L'\0';
 
   // 2) From UNICODE to StringStorage
-  UnicodeStringStorage uniString(&uniBuff.front());
+  UnicodeStringStorage uniString(uniBuff.data());
   uniString.toStringStorage(dst);
 }

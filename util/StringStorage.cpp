@@ -59,7 +59,7 @@ void StringStorage::setString(const TCHAR *string)
   if (length == SIZE_MAX)
     throw Exception(_T("String too large"));
   resizeBuffer(length + 1);
-  memcpy(&m_buffer.front(), string, getSize());
+  memcpy(m_buffer.data(), string, getSize());
 }
 
 void StringStorage::resizeBuffer(size_t newSize)
@@ -67,13 +67,13 @@ void StringStorage::resizeBuffer(size_t newSize)
   m_buffer.resize(newSize);
 
 #ifdef _DEBUG
-  m_readableString = &m_buffer.front();
+  m_readableString = m_buffer.data();
 #endif
 }
 
 const TCHAR *StringStorage::getString() const
 {
-  return &m_buffer.front();
+  return m_buffer.data();
 }
 
 size_t StringStorage::getLength() const
@@ -126,7 +126,7 @@ void StringStorage::getSubstring(StringStorage *substr,
     throw Exception(_T("String too large"));
 
   std::vector<TCHAR> autoBuffer(length + 1);
-  TCHAR *buffer = &autoBuffer.front();
+  TCHAR *buffer = autoBuffer.data();
   memcpy(buffer, &m_buffer[startIndex], length * sizeof(TCHAR));
   buffer[length] = '\0';
 
@@ -228,7 +228,7 @@ void StringStorage::remove(size_t startIndex, size_t count)
 
   size_t copyCount = getSize() - (startIndex + count) * sizeof(TCHAR);
   memcpy(&newBuffer[startIndex], &newBuffer[startIndex + count], copyCount);
-  setString(&newBuffer.front());
+  setString(newBuffer.data());
 }
 
 void StringStorage::truncate(size_t count)
@@ -240,7 +240,7 @@ void StringStorage::truncate(size_t count)
 
 TCHAR *StringStorage::find(const TCHAR *substr)
 {
-  return _tcsstr(&m_buffer.front(), substr);
+  return _tcsstr(m_buffer.data(), substr);
 }
 
 // FIXME: Use C functions.
@@ -279,7 +279,7 @@ void StringStorage::format(const TCHAR *format, ...)
   resizeBuffer(count + 1);
 
   va_start(vl, format);
-  _vstprintf_s(&m_buffer.front(), count + 1, format, vl);
+  _vstprintf_s(m_buffer.data(), count + 1, format, vl);
   va_end(vl);
 }
 

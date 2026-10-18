@@ -58,12 +58,12 @@ void UnicodeStringStorage::setString(const WCHAR *string)
 
   size_t length = wcslen(string);
   m_buffer.resize(length + 1);
-  memcpy(&m_buffer.front(), string, getSize());
+  memcpy(m_buffer.data(), string, getSize());
 }
 
 const WCHAR *UnicodeStringStorage::getString() const
 {
-  return &m_buffer.front();
+  return m_buffer.data();
 }
 
 size_t UnicodeStringStorage::getLength() const
@@ -89,7 +89,7 @@ void UnicodeStringStorage::fromStringStorage(const StringStorage *src)
   m_buffer.resize(constrCharCount);
   MultiByteToWideChar(CP_ACP, 0, src->getString(),
                       constrCharCount, // Size in bytes
-                      &m_buffer.front(),
+                      m_buffer.data(),
                       static_cast<int>(m_buffer.size()) // Size in WCHAR
                       );
 #else
@@ -113,8 +113,8 @@ void UnicodeStringStorage::toStringStorage(StringStorage *dst)
 
   // Convert to ansi
   if (WideCharToMultiByte(CP_ACP, 0, getString(), symbolCount,
-                          &ansiBuffer.front(), dstBuffSize, 0, 0) != 0) {
-    dst->setString(&ansiBuffer.front());
+                          ansiBuffer.data(), dstBuffSize, 0, 0) != 0) {
+    dst->setString(ansiBuffer.data());
   }
 #else
   dst->setString(getString());

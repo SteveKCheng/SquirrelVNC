@@ -60,12 +60,12 @@ void AnsiStringStorage::setString(const char *string)
     throw Exception(_T("String too large"));
 
   m_buffer.resize(length + 1);
-  memcpy(&m_buffer.front(), string, getSize());
+  memcpy(m_buffer.data(), string, getSize());
 }
 
 const char *AnsiStringStorage::getString() const
 {
-  return &m_buffer.front();
+  return m_buffer.data();
 }
 
 size_t AnsiStringStorage::getLength() const
@@ -104,7 +104,7 @@ void AnsiStringStorage::fromStringStorage(const StringStorage *src)
   int constrSize = (int)m_buffer.size();
   _ASSERT(constrSize == m_buffer.size());
   WideCharToMultiByte(CP_ACP, 0, src->getString(), -1,
-                      &m_buffer.front(), symbolCount, NULL, NULL);
+                      m_buffer.data(), symbolCount, NULL, NULL);
 #endif
 }
 
@@ -121,15 +121,15 @@ void AnsiStringStorage::toStringStorage(StringStorage *dst) const
   int symbolCount = (int)rawSize;
 
   std::vector<WCHAR> unicodeBuffer(symbolCount);
-  int result = MultiByteToWideChar(CP_ACP, 0, &m_buffer.front(),
+  int result = MultiByteToWideChar(CP_ACP, 0, m_buffer.data(),
                                    symbolCount,
-                                   &unicodeBuffer.front(),
+                                   unicodeBuffer.data(),
                                    symbolCount);
   if (result == 0) {
     throw Exception(_T("Cannot convert from Ansi to StringStorage"));
   }
 
-  dst->setString(&unicodeBuffer.front());
+  dst->setString(unicodeBuffer.data());
 #endif
 }
 
@@ -144,7 +144,7 @@ void AnsiStringStorage::format(const char *format, ...)
   m_buffer.resize(count + 1);
 
   va_start(vl, format);
-  vsprintf_s(&m_buffer.front(), count + 1, format, vl);
+  vsprintf_s(m_buffer.data(), count + 1, format, vl);
   va_end(vl);
 }
 
