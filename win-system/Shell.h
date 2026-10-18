@@ -46,6 +46,27 @@ public:
   static void open(const TCHAR *file,
                    const TCHAR *parameters,
                    const TCHAR *workDirectory) throw(SystemException);
+
+  /**
+   * Opens a File Explorer window on the folder containing a file, with the
+   * file selected.
+   *
+   * This goes through the shell's own API, so no process is started by
+   * name: running "explorer" with CreateProcess() would search for it in
+   * this program's directory first.
+   *
+   * The calling thread may or may not have initialized COM; if it has not,
+   * COM is initialized as single-threaded for the duration of the call.
+   *
+   * @param file full path of the file to select; must not be null.
+   * @param folder full path of the folder containing file; must not be
+   *   null.  If file does not exist, folder is selected in its parent
+   *   instead.
+   * @throws SystemException if neither file nor folder can be found, or the
+   *   shell fails to open the window.
+   */
+  static void showInFolder(const TCHAR *file,
+                           const TCHAR *folder) throw(SystemException);
 private:
   /**
    * Don't allow instanizing of class.

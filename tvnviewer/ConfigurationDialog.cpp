@@ -27,7 +27,7 @@
 #include "resource.h"
 
 #include "file-lib/File.h"
-#include "win-system/Process.h"
+#include "win-system/Shell.h"
 
 ConfigurationDialog::ConfigurationDialog()
 : BaseDialog(IDD_CONFIGURATION),
@@ -102,15 +102,13 @@ void ConfigurationDialog::onOpenFolderButtonClick()
   
   ViewerConfig::getInstance()->getLogDir(&logDir);
 
-  StringStorage command;
-  command.format(_T("explorer /select,%s\\%s.log"),
+  StringStorage logFile;
+  logFile.format(_T("%s\\%s.log"),
                  logDir.getString(),
                  LogNames::VIEWER_LOG_FILE_STUB_NAME);
 
-  Process explorer(command.getString());
-
   try {
-    explorer.start();
+    Shell::showInFolder(logFile.getString(), logDir.getString());
   } catch (...) {
     // TODO: Place error notification here.
   }

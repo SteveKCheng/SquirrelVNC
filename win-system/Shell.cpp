@@ -23,6 +23,8 @@
 
 #include "Shell.h"
 
+#include <shlobj.h>
+
 Shell::Shell()
 {
 }
@@ -33,5 +35,43 @@ void Shell::open(const TCHAR *file, const TCHAR *parameters, const TCHAR *workDi
 
   if (ret <= 32) {
     throw SystemException(ret);
+  }
+}
+
+void Shell::showInFolder(const TCHAR *file, const TCHAR *folder)
+{
+  // SHOpenFolderAndSelectItems() requires COM.  S_FALSE means it was already
+  // initialized on this thread, which still needs a matching CoUninitialize;
+  // RPC_E_CHANGED_MODE means it was initialized as multithreaded, which the
+  // shell also accepts, and must not be uninitialized here.
+  HRESULT hrInit = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED |
+                                        COINIT_DISABLE_OLE1DDE);
+  if (FAILED(hrInit) && hrInit != RPC_E_CHANGED_MODE) {
+    throw SystemException(hrInit);
+  }
+
+  // Fails if the path does not exist.
+  PIDLIST_ABSOLUTE pidl = ILCreateFromPath(file);
+  if (pidl == NULL) {
+    pidl = ILCreateFromPath(folder);
+  }
+
+  HRESULT hr = E_FAIL;
+  if (pidl != NULL) {
+    // With no child items, the item that pidl names is selected in its
+    // parent folder.
+    hr = SHOpenFolderAndSelectItems(pidl, 0, NULL, 0);
+    ILFree(pidl);
+  }
+
+  if (SUCCEEDED(hrInit)) {
+    CoUninitialize();
+  }
+
+  if (pidl == NULL) {
+    throw SystemException(_T("Cannot find the folder to show"));
+  }
+  if (FAILED(hr)) {
+    throw SystemException(hr);
   }
 }

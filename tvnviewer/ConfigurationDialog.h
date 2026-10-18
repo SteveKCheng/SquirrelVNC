@@ -50,6 +50,8 @@ public:
 protected:
   BOOL onCommand(UINT controlID, UINT notificationID);
   void onLogLevelChange();
+  // Shows the viewer's log file selected in File Explorer, or the log
+  // folder if there is no log file yet.  Errors are ignored.
   void onOpenFolderButtonClick();
   BOOL onInitDialog();
 
