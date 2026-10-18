@@ -28,6 +28,7 @@
 #include "file-lib/WinFileChannel.h"
 #include "FileInfoList.h"
 #include "CopyOperation.h"
+#include "util/DateTime.h"
 
 //
 // File transfer operation class for downloading files (and file trees).

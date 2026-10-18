@@ -29,6 +29,7 @@
 #include "FileTransferOperation.h"
 #include "FileInfoList.h"
 #include "CopyOperation.h"
+#include "util/DateTime.h"
 
 //
 // File transfer operation class for uploading files (and file trees).

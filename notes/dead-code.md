@@ -265,3 +265,8 @@ git diff -U0 --diff-filter=M 630df21~1 20956d9 -- '*.cpp' | grep '^-[^-/ {}#	]'
   which nothing called: the viewer uses `attachToolBar()`. It was found
   through its 64-bit cast warning (C4312), and removing it was simpler
   than fixing the cast.
+- **log-writer/ProfileLogger** (both files), a profiler whose checkpoints
+  were recorded only through `LogWriter::checkPoint()`, which nothing
+  called. Every log message still asked it for statistics to print, under
+  a mutex, and got none. It was found through a narrowing warning
+  (C4267) in its statistics code.

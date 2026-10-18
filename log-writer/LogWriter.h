@@ -26,7 +26,6 @@
 
 #include "Logger.h"
 #include "util/CharDefs.h"
-#include "ProfileLogger.h"
 
 // This class is a high level wrap for the Logger class. It helps write log in different
 // log levels by the different functions.
@@ -74,9 +73,6 @@ public:
   // to write log messages which helps to track work of a code as detailed as possible.
   void debug(_Printf_format_string_ const TCHAR *fmt, ...);
 
-  // Add profiler checkpoint
-  ProcessorTimes checkPoint(const TCHAR *tag);
-
 protected:
   static const int LOG_INTERR = 0;
   static const int LOG_ERR = 1;
@@ -93,7 +89,6 @@ private:
   void vprintLog(int logLevel, const TCHAR *fmt, va_list argList);
 
   Logger *m_logger;
-  ProfileLogger *m_profiler;
 };
 
 #endif // _LOGWRITER_H_

@@ -28,12 +28,10 @@
 LogWriter::LogWriter(Logger *logger)
 : m_logger(logger)
 {
-  m_profiler = new ProfileLogger();
 }
 
 LogWriter::~LogWriter()
 {
-  delete m_profiler;
 }
 
 void LogWriter::interror(const TCHAR *fmt, ...)
@@ -113,11 +111,6 @@ void LogWriter::debug(const TCHAR *fmt, ...)
   }
 }
 
-ProcessorTimes LogWriter::checkPoint(const TCHAR * tag)
-{
-  return m_profiler->checkPoint(tag);
-}
-
 // Turn off the MSVC warning about "unsafe functions" in the CRT.
 // 
 // The below usage is safe since the required buffer size is calculated upfront,
@@ -145,14 +138,6 @@ void LogWriter::vprintLog(int logLevel, const TCHAR *fmt, va_list argList)
       // so the message is not lost.
       m_logger->print(logLevel, fmt);
     }
-// #if DROP_TIME_STAT // test code
-    std::vector<std::vector<TCHAR>> resultStrings = m_profiler->dropStat();
-    for (size_t i = 0; i < resultStrings.size(); i++) {
-      formattedString = resultStrings[i];
-      if (formattedString.size() != 0)
-        m_logger->print(9, &formattedString.front());
-    }
-// #endif
   }
 }
 
