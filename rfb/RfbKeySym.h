@@ -41,6 +41,22 @@ public:
   void sendModifier(unsigned char virtKey, bool down);
 
   void processKeyEvent(unsigned short virtKey, unsigned int addKeyData);
+  /**
+   * Translates a key event to the characters it types with the current
+   * keyboard layout, given the key state in m_viewerKeyState.
+   *
+   * Calls ToUnicodeEx(), which changes the keyboard layout's dead-key state;
+   * this also updates the dead-key flags in this object.
+   *
+   * @param virtKey the virtual-key code of the key.
+   * @param isKeyDown whether the key is being pressed rather than released.
+   * @param res receives the characters; must not be null.  The characters are
+   *   appended, except where a double dead key is detected, when res is
+   *   cleared instead.
+   * @return true if the key typed characters other than through a dead key.
+   *   If Ctrl and Alt are held, the caller then releases them on the server
+   *   before sending the characters, since they were consumed in typing them.
+   */
   bool vkCodeToString(unsigned short virtKey, bool isKeyDown, std::wstring *res);
   void processCharEvent(WCHAR charCode, unsigned int addKeyData);
   // Checks a new modifiers state after focus restoration and sends difference
@@ -85,8 +101,16 @@ private:
 
   // helper functions
   WCHAR GettingCharFromCtrlSymbol(WCHAR ctrlSymbol);
-  // E.g if pressed Ctrl + Alt + A
-  // Try found char without modificators
+  /**
+   * Translates a key typed with Ctrl and Alt that gives no character, such as
+   * Ctrl+Alt+A, to the character it gives without them.
+   *
+   * @param virtKey the virtual-key code of the key.
+   * @param currentLayout the keyboard layout to translate with.
+   * @param unicodeChar receives the character on success; must not be null.
+   * @return true if the key gives exactly one character without Ctrl and
+   *   Alt.  *unicodeChar is unchanged otherwise.
+   */
   bool TryTranslateNotPrintableToUnicode(unsigned short virtKey, HKL currentLayout, WCHAR *unicodeChar);
 
   RfbKeySymListener *m_extKeySymListener;

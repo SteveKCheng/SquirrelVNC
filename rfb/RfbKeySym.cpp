@@ -169,9 +169,15 @@ WCHAR RfbKeySym::GettingCharFromCtrlSymbol(WCHAR ch)
   return ch;
 }
 
+// Number of characters ToUnicodeEx() may write into the buffers below.
+// ToUnicodeEx() does not null-terminate what it writes, and may return this
+// many characters, so the buffers hold one more for the terminator that is
+// stored after them.
+static const int OUT_BUFF_CAPACITY = 19;
+
 bool RfbKeySym::TryTranslateNotPrintableToUnicode(unsigned short virtKey, HKL currentLayout, WCHAR *unicodeChar)
 {
-  WCHAR outBuff[20];
+  WCHAR outBuff[OUT_BUFF_CAPACITY + 1];
   m_log->debug(_T("Was get a not printable symbol then try get a printable")
     _T(" with turned off the ctrl and alt modifiers"));
   // E.g if pressed Ctrl + Alt + A
@@ -185,7 +191,7 @@ bool RfbKeySym::TryTranslateNotPrintableToUnicode(unsigned short virtKey, HKL cu
   withoutCtrlAltKbdState[VK_RMENU] = 0;
   withoutCtrlAltKbdState[VK_MENU] = 0;
   int count = ToUnicodeEx(virtKey, 0, withoutCtrlAltKbdState, outBuff,
-    sizeof(outBuff) / sizeof(WCHAR),
+    OUT_BUFF_CAPACITY,
     0, currentLayout);
   if (count > 0) {
     outBuff[count] = 0;
@@ -205,12 +211,12 @@ bool RfbKeySym::TryTranslateNotPrintableToUnicode(unsigned short virtKey, HKL cu
 bool RfbKeySym::vkCodeToString(unsigned short virtKey, bool down, std::wstring *res) 
 {
   bool needReleaseModifiers = false;
-  WCHAR outBuff[20];
+  WCHAR outBuff[OUT_BUFF_CAPACITY + 1];
 
   HKL currentLayout = GetKeyboardLayout(0);
 
   int count = ToUnicodeEx(virtKey, 0, m_viewerKeyState, outBuff,
-      sizeof(outBuff) / sizeof(WCHAR),
+      OUT_BUFF_CAPACITY,
       0, currentLayout);
 
   // For keyboards with dead keys
@@ -229,7 +235,7 @@ bool RfbKeySym::vkCodeToString(unsigned short virtKey, bool down, std::wstring *
       m_allowProcessCharEvent = true;
       m_doubleDeadCatched = true;
       count = ToUnicodeEx(virtKey, 0, m_viewerKeyState, outBuff,
-          sizeof(outBuff) / sizeof(WCHAR),
+          OUT_BUFF_CAPACITY,
           0, currentLayout);
       if (count > 0) {
         outBuff[count] = 0;
@@ -249,7 +255,7 @@ bool RfbKeySym::vkCodeToString(unsigned short virtKey, bool down, std::wstring *
 
   if (count > 0) {
     count = ToUnicodeEx(virtKey, 0, m_viewerKeyState, outBuff,
-          sizeof(outBuff) / sizeof(WCHAR), 0, currentLayout);
+          OUT_BUFF_CAPACITY, 0, currentLayout);
   }
   if (count > 0) {
     outBuff[count] = 0;
