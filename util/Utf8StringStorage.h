@@ -26,9 +26,12 @@
 
 #include "StringStorage.h"
 
-// Note: The Utf8StringStorage class contains utf8 symbols "as is". The class
-// do not adds termination symbol(s) and do not remove it when
-// it already presented.
+// String of UTF-8 bytes, for sending and receiving strings in the protocol.
+//
+// As for StringStorage, the buffer always ends with a terminating null
+// character, so it is never empty.  setString() adds the terminator if the
+// bytes given do not end with one.  The bytes are otherwise kept as they
+// are, and are not checked to be valid UTF-8 until toStringStorage().
 class Utf8StringStorage
 {
 public:
@@ -38,15 +41,19 @@ public:
   Utf8StringStorage(const Utf8StringStorage &string);
   ~Utf8StringStorage();
 
-  // Sets internal buffer by an external utf8 string.
+  // Sets this string to a copy of the bytes in utf8Buffer, which must not be
+  // null, and may be empty.  A terminating null character is appended unless
+  // the last byte already is one.
   void setString(const std::vector<char> *utf8Buffer);
 
-  // Returns pointer to the string.
-  const char *getString() const;
+  // Returns the bytes as a null-terminated string, never null.  The result
+  // is valid only until this object is changed or destroyed.
+  _Ret_z_ const char *getString() const;
 
   // Returns size of string in bytes, including terminating null character.
   size_t getSize() const;
-  // Returns length of string (in characters, not including terminating null character).
+  // Returns the number of bytes (not characters), not including the
+  // terminating null character.
   size_t getLength() const;
   void fromStringStorage(const StringStorage *src);
   void toStringStorage(StringStorage *dst);

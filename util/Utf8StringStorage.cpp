@@ -29,7 +29,8 @@
 
 Utf8StringStorage::Utf8StringStorage()
 {
-  fromStringStorage(&StringStorage(_T("")));
+  StringStorage empty;
+  fromStringStorage(&empty);
 }
 
 Utf8StringStorage::Utf8StringStorage(const std::vector<char> *utf8Buffer)
@@ -54,6 +55,10 @@ Utf8StringStorage::~Utf8StringStorage()
 void Utf8StringStorage::setString(const std::vector<char> *utf8Buffer)
 {
   m_buffer = *utf8Buffer;
+  // Keep the terminating null that getString() and getLength() rely on.
+  if (m_buffer.empty() || m_buffer.back() != '\0') {
+    m_buffer.push_back('\0');
+  }
 }
 
 const char *Utf8StringStorage::getString() const
