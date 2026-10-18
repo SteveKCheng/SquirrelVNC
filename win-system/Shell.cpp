@@ -31,10 +31,14 @@ Shell::Shell()
 
 void Shell::open(const TCHAR *file, const TCHAR *parameters, const TCHAR *workDirectory)
 {
-  int ret = (int)ShellExecute(0, _T("open"), file, parameters, workDirectory, SW_SHOW);
+  // ShellExecute() returns an HINSTANCE only for compatibility with 16-bit
+  // Windows; as documented, it is cast to INT_PTR, and 32 or less is an
+  // error code.
+  INT_PTR ret = reinterpret_cast<INT_PTR>(
+    ShellExecute(0, _T("open"), file, parameters, workDirectory, SW_SHOW));
 
   if (ret <= 32) {
-    throw SystemException(ret);
+    throw SystemException(static_cast<int>(ret));
   }
 }
 

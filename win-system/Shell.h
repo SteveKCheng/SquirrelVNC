@@ -38,10 +38,23 @@ class Shell
 public:
   /**
    * Opens file with default action specified in Windows.
-   * @param file target file.
-   * @param parameters parameters.
-   * @param workDirectory working directory.
-   * @throws SystemException on fail.
+   *
+   * file may also be a URL, which opens in the default browser.  It should
+   * be a full path or a URL: a bare file name is searched for, starting
+   * with the current directory.
+   *
+   * As for any ShellExecute() call, the calling thread should have
+   * initialized COM, since the program or shell extension that handles
+   * the file may need it.
+   *
+   * @param file target file; must not be null.
+   * @param parameters parameters, if file is a program; may be null.
+   * @param workDirectory working directory; may be null for the current
+   *   one.
+   * @throws SystemException on fail, carrying ShellExecute()'s error code.
+   *   Most of those codes are Win32 error codes, but SE_ERR_SHARE to
+   *   SE_ERR_DLLNOTFOUND (26 to 32) are not, so the exception's message is
+   *   wrong for them.
    */
   static void open(const TCHAR *file,
                    const TCHAR *parameters,

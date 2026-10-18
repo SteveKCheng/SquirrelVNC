@@ -106,6 +106,7 @@ void ToolBar::attachToolBar(HWND hwnd)
      WS_VISIBLE | WS_CHILD | TBSTYLE_TOOLTIPS | WS_CLIPSIBLINGS | TBSTYLE_FLAT | WS_BORDER,
      0, 0, 0, 0,
      hwnd,
+     // A child window takes its control id in place of a menu, as documented.
      reinterpret_cast<HMENU>(static_cast<INT_PTR>(m_id)),
      GetModuleHandle(NULL),
      0);
