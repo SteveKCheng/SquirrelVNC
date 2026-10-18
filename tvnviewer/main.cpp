@@ -91,7 +91,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE,
                StringTable::getString(IDS_UNKNOWN_ERROR_IN_VIEWER),
                ProductNames::VIEWER_PRODUCT_NAME,
                MB_OK | MB_ICONERROR);
-    logWriter.debug(ex.getMessage());
+    logWriter.debug(_T("%s"), ex.getMessage());
   }
 
   return result;
