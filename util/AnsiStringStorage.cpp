@@ -96,6 +96,9 @@ void AnsiStringStorage::fromStringStorage(const StringStorage *src)
   // WideCharToMultiByte returns result length including terminating null character	
   int symbolCount = WideCharToMultiByte(CP_ACP, 0, src->getString(), -1, 
                                         NULL, 0, NULL, NULL);
+  if (symbolCount == 0) {
+    throw Exception(_T("Cannot convert from StringStorage to Ansi"));
+  }
 
   // Allocate space for the requred size
   m_buffer.resize(symbolCount);
@@ -140,11 +143,14 @@ void AnsiStringStorage::format(const char *format, ...)
   va_start(vl, format);
   int count = _vscprintf(format, vl);
   va_end(vl);
+  if (count < 0) {
+    throw Exception(_T("Cannot format string"));
+  }
 
-  m_buffer.resize(count + 1);
+  m_buffer.resize((size_t)count + 1);
 
   va_start(vl, format);
-  vsprintf_s(m_buffer.data(), count + 1, format, vl);
+  vsprintf_s(m_buffer.data(), (size_t)count + 1, format, vl);
   va_end(vl);
 }
 

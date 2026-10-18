@@ -275,11 +275,14 @@ void StringStorage::format(const TCHAR *format, ...)
   va_start(vl, format);
   int count = _vsctprintf(format, vl);
   va_end(vl);
+  if (count < 0) {
+    throw Exception(_T("Cannot format string"));
+  }
 
-  resizeBuffer(count + 1);
+  resizeBuffer((size_t)count + 1);
 
   va_start(vl, format);
-  _vstprintf_s(m_buffer.data(), count + 1, format, vl);
+  _vstprintf_s(m_buffer.data(), (size_t)count + 1, format, vl);
   va_end(vl);
 }
 
