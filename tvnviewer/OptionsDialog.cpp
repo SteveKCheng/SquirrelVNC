@@ -23,6 +23,16 @@
 
 #include "OptionsDialog.h"
 
+// Returns the encoding that an item of the encoding combo box stands for.
+// onInitDialog() stores the EncodingDefs value as each item's data, so
+// narrowing the LPARAM back to int is exact.  index must be a valid item
+// index: otherwise the result is CB_ERR (-1), which is no encoding that the
+// combo box offers.
+static inline int getEncodingOfItem(const ComboBox *comboBox, int index)
+{
+  return static_cast<int>(comboBox->getItemData(index));
+}
+
 OptionsDialog::OptionsDialog()
 : BaseDialog(IDD_OPTIONS),
   m_connected(false)
@@ -116,11 +126,11 @@ BOOL OptionsDialog::onInitDialog()
   setControlById(m_arrow, IDC_RARROW);
   setControlById(m_nlocal, IDC_RNLOCAL);
 
-  m_useEnc.addItem(_T("Raw"), reinterpret_cast<void *>(EncodingDefs::RAW));
-  m_useEnc.addItem(_T("Hextile"), reinterpret_cast<void *>(EncodingDefs::HEXTILE));
-  m_useEnc.addItem(_T("Tight"), reinterpret_cast<void *>(EncodingDefs::TIGHT));
-  m_useEnc.addItem(_T("RRE"), reinterpret_cast<void *>(EncodingDefs::RRE));
-  m_useEnc.addItem(_T("ZRLE"), reinterpret_cast<void *>(EncodingDefs::ZRLE));
+  m_useEnc.addItem(_T("Raw"), EncodingDefs::RAW);
+  m_useEnc.addItem(_T("Hextile"), EncodingDefs::HEXTILE);
+  m_useEnc.addItem(_T("Tight"), EncodingDefs::TIGHT);
+  m_useEnc.addItem(_T("RRE"), EncodingDefs::RRE);
+  m_useEnc.addItem(_T("ZRLE"), EncodingDefs::ZRLE);
 
 
   // FIXME: replaced literals to named constants
@@ -140,7 +150,7 @@ void OptionsDialog::updateControlValues()
 {
   // Preferred encoding
   for (int i = 0; i < m_useEnc.getItemsCount(); i++) {
-    int enc = reinterpret_cast<int>(m_useEnc.getItemData(i));
+    int enc = getEncodingOfItem(&m_useEnc, i);
     if (enc == m_conConfig->getPreferredEncoding()) {
       m_useEnc.setSelectedItem(i);
       break;
@@ -292,7 +302,7 @@ void OptionsDialog::onPreferredEncodingSelectionChange()
   if (index < 0) {
     return ;
   }
-  int encoding = reinterpret_cast<int>(m_useEnc.getItemData(index));
+  int encoding = getEncodingOfItem(&m_useEnc, index);
   switch (encoding) {
   case EncodingDefs::TIGHT:
     enableCustomCompression(m_compLvl.isChecked());
@@ -406,7 +416,7 @@ void OptionsDialog::apply()
   // Preferred encoding
   int pesii = m_useEnc.getSelectedItemIndex();
   if (pesii >= 0) {
-    int preferredEncoding = reinterpret_cast<int>(m_useEnc.getItemData(pesii));
+    int preferredEncoding = getEncodingOfItem(&m_useEnc, pesii);
     m_conConfig->setPreferredEncoding(preferredEncoding);
   } else {
     _ASSERT(pesii >= 0);

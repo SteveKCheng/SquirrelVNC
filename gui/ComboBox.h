@@ -36,23 +36,35 @@ public:
   // Adds new item to the end of combo box items list.
   int addItem(const TCHAR *text);
 
-  // Adds new item to the end of combo box items list.
-  int addItem(const TCHAR *text, void *tag);
+  // Adds new item to the end of combo box items list, with user data
+  // (tag) as for setItemData().  Returns the new item's index, or
+  // CB_ERR or CB_ERRSPACE if the item could not be added, in which case
+  // no data is set.
+  int addItem(const TCHAR *text, LPARAM tag);
 
   // Inserts new item to the specified position
   void insertItem(int index, const TCHAR *text);
 
-  // Inserts new item to the specified position
-  void insertItem(int index, const TCHAR *text, void *tag);
+  // Inserts new item to the specified position, or at the end if index is
+  // -1, with user data (tag) as for setItemData().  If the item could not
+  // be inserted, no data is set.
+  void insertItem(int index, const TCHAR *text, LPARAM tag);
 
   // Returns count of combo box items
   int getItemsCount() const;
 
-  // Sets user data (tag) associated with combo box item with specified index
-  void setItemData(int index, void *tag);
+  // Sets user data (tag) associated with combo box item with specified
+  // index.  The tag is an LPARAM, as the control stores it (and as in
+  // ListView), so an integer tag needs no cast to or from a pointer type;
+  // a pointer tag goes through reinterpret_cast.  An item's tag is 0 until
+  // set.  Does nothing if index is not a valid item
+  // index.
+  void setItemData(int index, LPARAM tag);
 
-  // Returns user data associated with combo box item with specified index
-  void *getItemData(int index) const;
+  // Returns user data associated with combo box item with specified index,
+  // or CB_ERR (-1) if index is not a valid item index.  Callers that store
+  // -1 as a tag cannot tell the two apart.
+  LPARAM getItemData(int index) const;
 
   // Sets text associated with combo box item with specified index
   virtual void getItemText(int index, StringStorage *storage) const;
