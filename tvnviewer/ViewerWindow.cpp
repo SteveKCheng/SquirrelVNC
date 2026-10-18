@@ -1263,16 +1263,19 @@ LRESULT ViewerWindow::onHookProc(int code, WPARAM wParam, LPARAM lParam)
       str->vkCode != VK_LCONTROL && str->vkCode != VK_RCONTROL &&
       str->vkCode != VK_LMENU && str->vkCode != VK_RMENU &&
       str->vkCode != VK_LSHIFT && str->vkCode != VK_RSHIFT) {
+    // The bits are assembled unsigned: shifting 1 into bit 31 of an int
+    // overflows it.
     // Set the repeat count for the current message bits.
-    LPARAM newLParam = 1;
-    // Set the scan code bits. 
-    newLParam |= (str->scanCode & 0xf) << 16;
+    UINT keyData = 1;
+    // Set the scan code bits (8 of them, 16 to 23).
+    keyData |= (str->scanCode & 0xFF) << 16;
     // Set the extended key bit.
-    newLParam |= (str->flags & LLKHF_EXTENDED) << 24;
+    keyData |= (str->flags & LLKHF_EXTENDED) << 24;
     // Set the context code bit.
-    newLParam |= ((str->flags & LLKHF_ALTDOWN) > 0) << 29;
+    keyData |= ((str->flags & LLKHF_ALTDOWN) != 0 ? 1u : 0u) << 29;
     // Set the transition state bit.
-    newLParam |= ((str->flags & LLKHF_UP) > 0) << 31;
+    keyData |= ((str->flags & LLKHF_UP) != 0 ? 1u : 0u) << 31;
+    LPARAM newLParam = keyData;
     // For a low-level keyboard hook, wParam is the identifier of the
     // keyboard message, as documented, so it fits a UINT.
     UINT message = static_cast<UINT>(wParam);
