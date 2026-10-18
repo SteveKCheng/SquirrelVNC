@@ -111,7 +111,7 @@ void RfbKeySym::processKeyEvent(unsigned short virtKey,
       releaseModifiers();
     }
 
-    for (int i = 0; i < chars.size(); i++) {
+    for (size_t i = 0; i < chars.size(); i++) {
       if (m_keyMap.unicodeCharToKeySym(chars[i], &rfbSym)) {
         sendKeySymEvent(rfbSym, down);
       } else {

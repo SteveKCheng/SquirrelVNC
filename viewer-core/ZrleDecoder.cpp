@@ -258,7 +258,8 @@ void ZrleDecoder::readPackedPaletteTile(DataInputStream *input,
           entryByIndex = input->readUInt8();
         }
       }
-      if (color > palette.size() - 1) {
+      // color is masked, so it is not negative.
+      if (static_cast<size_t>(color) >= palette.size()) {
         throw Exception(_T("Bad data received from the server: ZRLE color index exceeds palette size."));
       }
 
@@ -311,7 +312,7 @@ void ZrleDecoder::readPaletteRleTile(DataInputStream *input,
         throw Exception(_T("Bad data received from the server: ZRLE run length is too long in palette RLE tile."));
       }
     }
-    if (color > palette.size() - 1) {
+    if (color >= palette.size()) {
       throw Exception(_T("Bad data received from the server: ZRLE color index exceeds palette size."));
     }
 
