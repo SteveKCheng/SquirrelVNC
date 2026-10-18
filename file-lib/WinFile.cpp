@@ -198,7 +198,19 @@ size_t WinFile::write(const void *buff, size_t count)
 
 size_t WinFile::available() {
   LARGE_INTEGER fileSize;
-  GetFileSizeEx(m_hFile, &fileSize);
-  size_t pos = SetFilePointer(m_hFile, 0, 0, FILE_CURRENT);
-  return fileSize.QuadPart - pos;
+  LARGE_INTEGER pos;
+  LARGE_INTEGER zero;
+  zero.QuadPart = 0;
+  if (GetFileSizeEx(m_hFile, &fileSize) == 0 ||
+      SetFilePointerEx(m_hFile, zero, &pos, FILE_CURRENT) == 0) {
+    StringStorage errText;
+    Environment::getErrStr(&errText);
+    throw IOException(errText.getString());
+  }
+  // The position can be past the end of the file after a seek.
+  if (pos.QuadPart >= fileSize.QuadPart) {
+    return 0;
+  }
+  ULONGLONG remaining = (ULONGLONG)(fileSize.QuadPart - pos.QuadPart);
+  return remaining > SIZE_MAX ? SIZE_MAX : (size_t)remaining;
 }

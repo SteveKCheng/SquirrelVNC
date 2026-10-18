@@ -93,6 +93,10 @@ public:
   // @throw exception on a system error.
   void flush();
 
+  // Returns the number of bytes from the file pointer to the end of the
+  // file: 0 if the pointer is at or past the end, and SIZE_MAX if the count
+  // does not fit in a size_t (files over 4 GiB on Win32).
+  // @throw IOException on a system error.
   virtual size_t available();
 
 private:
