@@ -89,12 +89,20 @@ private:
    * uncompressedSize bytes, so callers may use its size as the size of the
    * data.
    *
-   * @throws IOException if the sizes are inconsistent: when the block is
+   * @throws IOException if either size is over MAX_DATA_BLOCK_SIZE, leaving
+   *   the block unread; if the sizes are inconsistent: when the block is
    *   not compressed and the sizes differ, when it is empty but the
    *   uncompressed size is not 0, or when it does not inflate to exactly
    *   uncompressedSize bytes; or on errors reading input.
    * @throws ZLibException if the data cannot be inflated.
    */
+  // Largest compressed or uncompressed size of a data block that
+  // readCompressedDataBlock() accepts, so that the server cannot make the
+  // viewer allocate up to 4 GiB twice over.  Download blocks are at most the
+  // 400,000 bytes the viewer requests; file lists of very large folders
+  // are the largest blocks expected.
+  static const UINT32 MAX_DATA_BLOCK_SIZE = 64 * 1024 * 1024;
+
   vector<UINT8> readCompressedDataBlock(DataInputStream *input,
                                         UINT32 compressedSize,
                                         UINT32 uncompressedSize,

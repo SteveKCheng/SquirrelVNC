@@ -248,6 +248,10 @@ vector<UINT8> FileTransferReplyBuffer::readCompressedDataBlock(DataInputStream *
   UINT32 coSize = compressedSize;
   UINT32 uncoSize = uncompressedSize;
 
+  if (coSize > MAX_DATA_BLOCK_SIZE || uncoSize > MAX_DATA_BLOCK_SIZE) {
+    throw IOException(_T("Data block is too large"));
+  }
+
   // Callers use the size of the result as the size of the data, so it must
   // not differ from what the server says it is.
   if (compressionLevel == 0 && coSize != uncoSize) {
