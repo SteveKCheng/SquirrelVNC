@@ -14,9 +14,6 @@
     <ClCompile Include="AutoLock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DesktopSelector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="LocalMutex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -26,9 +23,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AutoLock.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DesktopSelector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LocalMutex.h">

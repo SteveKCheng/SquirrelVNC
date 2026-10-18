@@ -26,7 +26,6 @@
 
 #include "util/CommonHeader.h"
 #include "LocalMutex.h"
-#include "DesktopSelector.h"
 
 /**
  * Thread priority enumeration.
@@ -47,7 +46,6 @@ enum THREAD_PRIORITY
  *
  * @fixme some of methods return bool instead of raising exceptions.
  * @fixme some methods seems to be not thread-safe (that uses m_active member).
- * @fixme member of HDESK type in THREAD class???
  */
 class Thread
 {
