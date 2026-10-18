@@ -61,7 +61,6 @@ void ZrleDecoder::decode(RfbInputGate *input,
                                                unpackedData.size());
   DataInputStream unpackedDataStream(&unpackedByteArrayStream);
 
-  m_numberFirstByte = 0;
   PixelFormat pxFormat = frameBuffer->getPixelFormat();
 
   if (pxFormat.bitsPerPixel == 8) {
@@ -72,16 +71,19 @@ void ZrleDecoder::decode(RfbInputGate *input,
     UINT32 colorMaxValue =  pxFormat.blueMax  << pxFormat.blueShift  |
                             pxFormat.greenMax << pxFormat.greenShift |
                             pxFormat.redMax   << pxFormat.redShift;
-    //for CPIXELS
+    // ZRLE sends 3-byte CPIXELs when the colours fit in the low 3 bytes or
+    // in the high 3 bytes.  Only the first is decoded: the viewer always
+    // sets a frame buffer format of its own before any update, and none
+    // of its formats put the colours in the high bytes.  The code that
+    // tried to decode that case wrote past its buffers; see the commit
+    // that removed it.
     if ((colorMaxValue & (0xFF000000))==0) {
       m_bytesPerPixel = 3;
-      m_numberFirstByte = 0;
     } else if ((colorMaxValue & 0xFF)==0) {
-      m_bytesPerPixel = 3;
-      m_numberFirstByte = 1;
+      throw Exception(_T("ZRLE decoding is not supported for a 32-bit pixel")
+                      _T(" format with the colours in the high 3 bytes."));
     } else /*for other cases*/{
       m_bytesPerPixel = 4;
-      m_numberFirstByte = 0;
     }
   }
 
@@ -182,7 +184,7 @@ void ZrleDecoder::readPalette(DataInputStream *input,
   palette->resize(paletteSize);
 
   for (int i = 0; i < paletteSize; i++) {
-    input->readFully(&(*palette)[i] + m_numberFirstByte, m_bytesPerPixel);
+    input->readFully(&(*palette)[i], m_bytesPerPixel);
   }
 }
 
@@ -201,12 +203,12 @@ void ZrleDecoder::readSolidTile(DataInputStream *input,
   size_t tileLength = tileRect->area();
   char solid[4] = {0, 0, 0, 0};
 
-  input->readFully(solid + m_numberFirstByte, m_bytesPerPixel);
+  input->readFully(solid, m_bytesPerPixel);
   
   char *pixelsPtr = &pixels.front();
   // TODO: Can we optimize this?
   for (size_t i = 0; i < tileLength; i++) {
-    memcpy(pixelsPtr + m_numberFirstByte, solid, m_bytesPerPixel); 
+    memcpy(pixelsPtr, solid, m_bytesPerPixel);
     pixelsPtr += m_bytesPerPixel;
   }
 }
@@ -276,7 +278,7 @@ void ZrleDecoder::readPlainRleTile(DataInputStream *input,
   size_t tileLength = tileRect->area();
   for (size_t indexByte = 0; indexByte < tileLength * m_bytesPerPixel;) {
     char color[4] = {0, 0, 0, 0};
-    input->readFully(color + m_numberFirstByte, m_bytesPerPixel);
+    input->readFully(color, m_bytesPerPixel);
 
     size_t runLength = readRunLength(input);
     if (indexByte + runLength * m_bytesPerPixel > pixels.size()) {

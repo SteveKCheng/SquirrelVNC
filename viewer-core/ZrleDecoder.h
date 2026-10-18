@@ -39,6 +39,10 @@ protected:
   typedef vector<unsigned int> Palette;
 
 protected:
+  // Decodes a ZRLE rectangle into frameBuffer, in the frame buffer's pixel
+  // format.  Throws Exception for data that does not fit dstRect or the
+  // frame buffer, and for a 32-bit pixel format whose colours are in the
+  // high 3 bytes, which is not supported.
   virtual void decode(RfbInputGate *input,
                       FrameBuffer *frameBuffer,
                       const Rect *dstRect);
@@ -83,7 +87,6 @@ protected:
 
   Inflater m_inflater;
   size_t m_bytesPerPixel;
-  size_t m_numberFirstByte;
 
 private:
   static const int TILE_SIZE = 64;
