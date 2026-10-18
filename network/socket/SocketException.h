@@ -48,7 +48,8 @@ public:
   int errno();
 
 protected:
-  // Sets m_errno to error, and m_message to the system's description of it.
+  // Sets m_errno to error, and m_message to the system's description of it,
+  // or to "Socket error <error>" if the system has none.
   void setErrno(int error);
 
 protected:
