@@ -38,7 +38,9 @@ public:
   // Fills internal buffer by the string.
   virtual void setString(const char *string);
 
-  // Returns pointer to the first symbol.
+  // Returns the characters as a null-terminated string, never null.  As for
+  // StringStorage, the buffer always holds the terminating null character,
+  // and the result is valid only until this object is changed or destroyed.
   _Ret_z_ const char *getString() const;
 
     // Returns length of string (in characters, not including terminating null character).
@@ -70,12 +72,13 @@ public:
    * arguments.
    *
    * @param format the format string, which must not contain text from
-   *   outside the program: pass any such text as an argument for %s.
+   *   outside the program: pass any such text as an argument for %s.  The
+   *   arguments must match it as for printf; /analyze checks this.
    * @throws Exception if the CRT cannot format the string, for example
    *   because of an invalid format specification.  This string is then
    *   left unchanged.
    */
-  void format(const char *format, ...);
+  void format(_Printf_format_string_ const char *format, ...);
 
   void appendString(const char *string);
 

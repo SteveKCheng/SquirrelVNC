@@ -41,7 +41,9 @@ public:
   // Fills internal buffer by the string.
   virtual void setString(const WCHAR *string);
 
-  // Returns pointer to the first symbol.
+  // Returns the characters as a null-terminated string, never null.  As for
+  // StringStorage, the buffer always holds the terminating null character,
+  // and the result is valid only until this object is changed or destroyed.
   _Ret_z_ const WCHAR *getString() const;
 
     // Returns length of string (in characters, not including terminating null character).

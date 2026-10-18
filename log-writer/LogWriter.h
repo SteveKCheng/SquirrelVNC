@@ -44,34 +44,35 @@ public:
   // fmt must be a literal or other text from the program itself, never text
   // that comes from outside it, such as a message received from the server or
   // the message of an exception: pass such text as an argument for "%s".
-  // The arguments must match fmt as for printf.
+  // The arguments must match fmt as for printf; fmt is annotated with
+  // _Printf_format_string_ so that the code analyser (/analyze) checks them.
   //
   // These functions do not throw.  If the CRT cannot format the message, fmt
   // is logged unformatted.
 
   // Write most important log messages such as code internal errors
   // (what shouldn't have happened but it did).
-  void interror(const TCHAR *fmt, ...);
+  void interror(_Printf_format_string_ const TCHAR *fmt, ...);
 
   // Write other important log messages that do not give continue work normally, such
   // as connection errors and other.
-  void error(const TCHAR *fmt, ...);
+  void error(_Printf_format_string_ const TCHAR *fmt, ...);
 
   // Write logs with the warning level that less that error level.
-  void warning(const TCHAR *fmt, ...);
+  void warning(_Printf_format_string_ const TCHAR *fmt, ...);
 
   // Write logs with neutral log levels.
-  void message(const TCHAR *fmt, ...);
+  void message(_Printf_format_string_ const TCHAR *fmt, ...);
 
   // Write logs with info level which less than the neutral "message" level.
-  void info(const TCHAR *fmt, ...);
+  void info(_Printf_format_string_ const TCHAR *fmt, ...);
 
   // Write logs with detailed level when need to get more details.
-  void detail(const TCHAR *fmt, ...);
+  void detail(_Printf_format_string_ const TCHAR *fmt, ...);
 
   // Write logs only for debug purposes, it most of detailed logs. Should to be used
   // to write log messages which helps to track work of a code as detailed as possible.
-  void debug(const TCHAR *fmt, ...);
+  void debug(_Printf_format_string_ const TCHAR *fmt, ...);
 
   // Add profiler checkpoint
   ProcessorTimes checkPoint(const TCHAR *tag);

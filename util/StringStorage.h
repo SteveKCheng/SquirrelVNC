@@ -28,8 +28,14 @@
 #include <vector>
 
 /**
-String class.
-*/
+ * String of TCHAR, owning its characters.
+ *
+ * The buffer always holds the characters followed by a terminating null
+ * character, so it is never empty, even for the empty string.  Every member
+ * function keeps this so: those that can fail throw and leave the string
+ * unchanged.  getString() therefore always returns a valid, null-terminated
+ * string, and getLength() is one less than the number of elements.
+ */
 class StringStorage
 {
 public:
@@ -58,7 +64,12 @@ public:
   // Fills internal buffer by the string.
   virtual void setString(const TCHAR *string);
 
-  // Returns pointer to the first symbol.
+  /**
+   * Returns the characters as a null-terminated string.
+   *
+   * The result is never null.  It points into this object's buffer, so it is
+   * valid only until this object is changed or destroyed.
+   */
   _Ret_z_ const TCHAR *getString() const;
 
     // Returns length of string (in characters, not including terminating null character).
@@ -174,11 +185,18 @@ public:
 
   void toLowerCase();
 
-  //
-  // Create string notated by this container using format string, and arguments.
-  //
-
-  void format(const TCHAR *format, ...);
+  /**
+   * Sets this string to the result of formatting with printf-style
+   * arguments.
+   *
+   * @param format the format string, which must not contain text from
+   *   outside the program, such as text from the server or the message of an
+   *   exception: pass any such text as an argument for %s.  The arguments
+   *   must match it as for printf; the code analyser (/analyze) checks this.
+   * @throws Exception if the CRT cannot format the string.  This string is
+   *   then left unchanged.
+   */
+  void format(_Printf_format_string_ const TCHAR *format, ...);
 
   //
   // Overload operator = for container copying
