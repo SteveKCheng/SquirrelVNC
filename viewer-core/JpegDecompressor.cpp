@@ -59,7 +59,7 @@ void JpegDecompressor::errorExit(j_common_ptr cinfo)
   throw Exception(error.getString());
 }
 
-void JpegDecompressor::outputMessage(j_common_ptr cinfo)
+void JpegDecompressor::outputMessage(j_common_ptr /* cinfo */)
 {
   return;
 }

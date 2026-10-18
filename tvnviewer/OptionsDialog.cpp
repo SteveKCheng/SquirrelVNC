@@ -329,7 +329,7 @@ void OptionsDialog::onJpegCompressionLevelScroll()
   m_quality2.setText(labelText.getString());
 }
 
-void OptionsDialog::onMessageReceived(UINT uMsg, WPARAM wParam, LPARAM lParam)
+void OptionsDialog::onMessageReceived(UINT uMsg, WPARAM /* wParam */, LPARAM lParam)
 {
   switch (uMsg) {
   case WM_HSCROLL:

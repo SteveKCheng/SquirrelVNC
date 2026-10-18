@@ -43,7 +43,7 @@ void AuthenticationDialog::setHostName(const StringStorage *hostname)
   m_strHost = *hostname;
 }
 
-BOOL AuthenticationDialog::onCommand(UINT controlID, UINT notificationID)
+BOOL AuthenticationDialog::onCommand(UINT controlID, UINT /* notificationID */)
 {
   if (controlID == IDOK) {
     m_password.getText(&m_strPassword);

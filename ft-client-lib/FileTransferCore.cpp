@@ -109,7 +109,7 @@ void FileTransferCore::updateSupportedOperations(const vector<UINT32> *clientCap
   m_supportedOps = OperationSupport(*clientCaps, *serverCaps);
 }
 
-void FileTransferCore::ftOpStarted(FileTransferOperation *sender)
+void FileTransferCore::ftOpStarted(FileTransferOperation * /* sender */)
 {
   m_ftInterface->onFtOpStarted();
 }
@@ -170,13 +170,13 @@ void FileTransferCore::ftOpFinished(FileTransferOperation *sender)
   m_ftInterface->onFtOpFinished(m_state, 0);
 } // void
 
-void FileTransferCore::ftOpErrorMessage(FileTransferOperation *sender,
+void FileTransferCore::ftOpErrorMessage(FileTransferOperation * /* sender */,
                                         const TCHAR *message)
 {
   m_ftInterface->onFtOpError(message);
 }
 
-void FileTransferCore::ftOpInfoMessage(FileTransferOperation *sender,
+void FileTransferCore::ftOpInfoMessage(FileTransferOperation * /* sender */,
                                        const TCHAR *message)
 {
   m_ftInterface->onFtOpInfo(message);

@@ -58,12 +58,12 @@ BOOL NewFolderDialog::onInitDialog()
   return TRUE;
 }
 
-BOOL NewFolderDialog::onNotify(UINT controlID, LPARAM data)
+BOOL NewFolderDialog::onNotify(UINT /* controlID */, LPARAM /* data */)
 {
   return TRUE;
 }
 
-BOOL NewFolderDialog::onCommand(UINT controlID, UINT notificationID)
+BOOL NewFolderDialog::onCommand(UINT controlID, UINT /* notificationID */)
 {
   switch (controlID) {
   case IDOK:

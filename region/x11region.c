@@ -983,6 +983,8 @@ miIntersectO (
     register int  	x2;
     register BoxPtr	pNextRect;
 
+    (void)pOverlap;
+
     pNextRect = REGION_TOP(pReg);
 
     assert(y1 < y2);
@@ -1761,6 +1763,8 @@ miSubtractO (
 {
     register BoxPtr	pNextRect;
     register int  	x1;
+
+    (void)pOverlap;
 
     x1 = r1->x1;
     

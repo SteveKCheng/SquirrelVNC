@@ -62,7 +62,7 @@ void WinHooks::registerKeyboardHook(HookEventListener *hookEventListener)
   }
 }
 
-void WinHooks::unregisterKeyboardHook(HookEventListener *hookEventListener)
+void WinHooks::unregisterKeyboardHook(HookEventListener * /* hookEventListener */)
 {
   if (s_hooks != 0) {
     UnhookWindowsHookEx(s_hooks);

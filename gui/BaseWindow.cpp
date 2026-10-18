@@ -153,22 +153,22 @@ void BaseWindow::setExStyle(DWORD exstyle)
   SetWindowLong(m_hWnd, GWL_EXSTYLE, exstyle);
 }
 
-bool BaseWindow::onCommand(WPARAM wParam, LPARAM lParam)
+bool BaseWindow::onCommand(WPARAM /* wParam */, LPARAM /* lParam */)
 {
   return false;
 }
 
-bool BaseWindow::onNotify(int idCtrl, LPNMHDR pnmh)
+bool BaseWindow::onNotify(int /* idCtrl */, LPNMHDR /* pnmh */)
 {
   return false;
 }
 
-bool BaseWindow::onSysCommand(WPARAM wParam, LPARAM lParam)
+bool BaseWindow::onSysCommand(WPARAM /* wParam */, LPARAM /* lParam */)
 {
   return false;
 }
 
-bool BaseWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
+bool BaseWindow::onMessage(UINT /* message */, WPARAM /* wParam */, LPARAM /* lParam */)
 {
   return false;
 }
@@ -262,7 +262,7 @@ void BaseWindow::redraw(const RECT *rcArea)
   }
 }
 
-bool BaseWindow::onMouse(unsigned char msg, unsigned short wspeed, POINT pt)
+bool BaseWindow::onMouse(unsigned char /* msg */, unsigned short /* wspeed */, POINT /* pt */)
 {
   return false;
 }

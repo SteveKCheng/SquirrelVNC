@@ -153,7 +153,7 @@ BOOL FileTransferMainDialog::onNotify(UINT controlID, LPARAM data)
   return TRUE;
 }
 
-BOOL FileTransferMainDialog::onCommand(UINT controlID, UINT notificationID)
+BOOL FileTransferMainDialog::onCommand(UINT controlID, UINT /* notificationID */)
 {
   switch (controlID) {
   case IDCANCEL:

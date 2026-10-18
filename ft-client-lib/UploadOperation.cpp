@@ -102,12 +102,12 @@ void UploadOperation::start()
                                 m_replyBuffer->isCompressionSupported());
 }
 
-void UploadOperation::onUploadReply(DataInputStream *input)
+void UploadOperation::onUploadReply(DataInputStream * /* input */)
 {
   sendFileDataChunk();
 }
 
-void UploadOperation::onUploadDataReply(DataInputStream *input)
+void UploadOperation::onUploadDataReply(DataInputStream * /* input */)
 {
   if (isTerminating()) {
     gotoNext();
@@ -117,7 +117,7 @@ void UploadOperation::onUploadDataReply(DataInputStream *input)
   sendFileDataChunk();
 }
 
-void UploadOperation::onUploadEndReply(DataInputStream *input)
+void UploadOperation::onUploadEndReply(DataInputStream * /* input */)
 {
   // Cleanup
   try { m_fis->close(); } catch (...) { }
@@ -131,13 +131,13 @@ void UploadOperation::onUploadEndReply(DataInputStream *input)
   gotoNext();
 }
 
-void UploadOperation::onMkdirReply(DataInputStream *input)
+void UploadOperation::onMkdirReply(DataInputStream * /* input */)
 {
   // Upload next file in the list
   gotoNext();
 }
 
-void UploadOperation::onLastRequestFailedReply(DataInputStream *input)
+void UploadOperation::onLastRequestFailedReply(DataInputStream * /* input */)
 {
   StringStorage errDesc;
 
@@ -157,7 +157,7 @@ void UploadOperation::onLastRequestFailedReply(DataInputStream *input)
   gotoNext();
 }
 
-void UploadOperation::onFileListReply(DataInputStream *input)
+void UploadOperation::onFileListReply(DataInputStream * /* input */)
 {
   initRemoteFiles(m_replyBuffer->getFilesInfo(),
                   m_replyBuffer->getFilesInfoCount());

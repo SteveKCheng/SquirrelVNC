@@ -160,27 +160,27 @@ void FileTransferReplyBuffer::onFileListReply(DataInputStream *input)
   }
 }
 
-void FileTransferReplyBuffer::onMd5DataReply(DataInputStream *input)
+void FileTransferReplyBuffer::onMd5DataReply(DataInputStream * /* input */)
 {
   throw OperationNotSupportedException();
 }
 
-void FileTransferReplyBuffer::onUploadReply(DataInputStream *input)
+void FileTransferReplyBuffer::onUploadReply(DataInputStream * /* input */)
 {
   m_logWriter->info(_T("Received upload reply\n"));
 }
 
-void FileTransferReplyBuffer::onUploadDataReply(DataInputStream *input)
+void FileTransferReplyBuffer::onUploadDataReply(DataInputStream * /* input */)
 {
   m_logWriter->info(_T("Received upload data reply\n"));
 }
 
-void FileTransferReplyBuffer::onUploadEndReply(DataInputStream *input)
+void FileTransferReplyBuffer::onUploadEndReply(DataInputStream * /* input */)
 {
   m_logWriter->info(_T("Received upload end reply\n"));
 }
 
-void FileTransferReplyBuffer::onDownloadReply(DataInputStream *input)
+void FileTransferReplyBuffer::onDownloadReply(DataInputStream * /* input */)
 {
   m_logWriter->info(_T("Received download reply\n"));
 }
@@ -214,17 +214,17 @@ void FileTransferReplyBuffer::onDownloadEndReply(DataInputStream *input)
                     m_downloadFileFlags, m_downloadLastModified);
 }
 
-void FileTransferReplyBuffer::onMkdirReply(DataInputStream *input)
+void FileTransferReplyBuffer::onMkdirReply(DataInputStream * /* input */)
 {
   m_logWriter->info(_T("Received mkdir reply\n"));
 }
 
-void FileTransferReplyBuffer::onRmReply(DataInputStream *input)
+void FileTransferReplyBuffer::onRmReply(DataInputStream * /* input */)
 {
   m_logWriter->info(_T("Received rm reply\n"));
 }
 
-void FileTransferReplyBuffer::onMvReply(DataInputStream *input)
+void FileTransferReplyBuffer::onMvReply(DataInputStream * /* input */)
 {
   m_logWriter->info(_T("Received rename reply\n"));
 }

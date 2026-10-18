@@ -152,12 +152,12 @@ bool BaseDialog::isCreated()
   return !!IsWindow(m_ctrlThis.getWindow());
 }
 
-BOOL BaseDialog::onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis)
+BOOL BaseDialog::onDrawItem(WPARAM /* controlID */, LPDRAWITEMSTRUCT /* dis */)
 {
   return TRUE;
 }
 
-void BaseDialog::onMessageReceived(UINT uMsg, WPARAM wParam, LPARAM lParam)
+void BaseDialog::onMessageReceived(UINT /* uMsg */, WPARAM /* wParam */, LPARAM /* lParam */)
 {
 }
 
@@ -242,12 +242,12 @@ BOOL BaseDialog::onInitDialog()
   return FALSE;
 }
 
-BOOL BaseDialog::onNotify(UINT controlID, LPARAM data)
+BOOL BaseDialog::onNotify(UINT /* controlID */, LPARAM /* data */)
 {
   return FALSE;
 }
 
-BOOL BaseDialog::onCommand(UINT controlID, UINT notificationID)
+BOOL BaseDialog::onCommand(UINT /* controlID */, UINT /* notificationID */)
 {
   return FALSE;
 }

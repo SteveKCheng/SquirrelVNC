@@ -38,7 +38,7 @@ BOOL FsWarningDialog::onInitDialog()
   return FALSE;
 }
 
-BOOL FsWarningDialog::onCommand(UINT controlID, UINT notificationID)
+BOOL FsWarningDialog::onCommand(UINT controlID, UINT /* notificationID */)
 {
   if (controlID == IDOK) {
     ViewerConfig *config = ViewerConfig::getInstance();

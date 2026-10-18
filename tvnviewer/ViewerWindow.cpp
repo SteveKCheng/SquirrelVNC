@@ -105,7 +105,7 @@ void ViewerWindow::setRemoteViewerCore(RemoteViewerCore *pCore)
   applySettings();
 }
 
-bool ViewerWindow::onCreate(LPCREATESTRUCT lps)
+bool ViewerWindow::onCreate(LPCREATESTRUCT /* lps */)
 {
   m_control.setWindow(m_hWnd);
 
@@ -345,12 +345,12 @@ bool ViewerWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
   return false;
 }
 
-bool ViewerWindow::onEraseBackground(HDC hdc) 
+bool ViewerWindow::onEraseBackground(HDC /* hdc */) 
 {
   return true;
 }
 
-bool ViewerWindow::onKillFocus(WPARAM wParam)
+bool ViewerWindow::onKillFocus(WPARAM /* wParam */)
 {
   if (!m_conConf->isViewOnly()) {
     m_toolbar.checkButton(IDS_TB_ALT, false);
@@ -712,7 +712,7 @@ void ViewerWindow::onAbout()
   m_application->postMessage(TvnViewer::WM_USER_ABOUT);
 }
 
-bool ViewerWindow::onCommand(WPARAM wParam, LPARAM lParam)
+bool ViewerWindow::onCommand(WPARAM wParam, LPARAM /* lParam */)
 {
   if (HIWORD(wParam) == 1) {
     int transl = translateAccelToTB(LOWORD(wParam));
@@ -926,7 +926,7 @@ void ViewerWindow::doUnFullScr()
   m_dsktWnd.setWinKeyIgnore(true);
 }
 
-bool ViewerWindow::onNotify(int idCtrl, LPNMHDR pnmh)
+bool ViewerWindow::onNotify(int /* idCtrl */, LPNMHDR pnmh)
 {
   ResourceLoader *rLoader = ResourceLoader::getInstance();
   LPTOOLTIPTEXT toolTipText = reinterpret_cast<LPTOOLTIPTEXT>(pnmh);
@@ -963,7 +963,7 @@ void ViewerWindow::doSize()
   postMessage(WM_SIZE);
 }
 
-bool ViewerWindow::onSize(WPARAM wParam, LPARAM lParam) 
+bool ViewerWindow::onSize(WPARAM /* wParam */, LPARAM /* lParam */) 
 {
   RECT rc;
   int x, y;
@@ -1063,7 +1063,7 @@ bool ViewerWindow::onFsWarning()
   return true;
 }
 
-bool ViewerWindow::onFocus(WPARAM wParam)
+bool ViewerWindow::onFocus(WPARAM /* wParam */)
 {
   SetFocus(m_dsktWnd.getHWnd());
   return true;
@@ -1255,7 +1255,7 @@ StringStorage ViewerWindow::formatWindowName() const
   return windowName;
 }
 
-LRESULT ViewerWindow::onHookProc(int code, WPARAM wParam, LPARAM lParam)
+LRESULT ViewerWindow::onHookProc(int /* code */, WPARAM wParam, LPARAM lParam)
 {
   KBDLLHOOKSTRUCT *str = (KBDLLHOOKSTRUCT*) lParam;
   // Ignoring of CapsLock, NumLock, ScrollLock, Control (Ctrl key), Menu (Alt key), Shift (shift key).

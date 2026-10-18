@@ -54,7 +54,7 @@ ControlTrayIcon::~ControlTrayIcon()
 {
 }
 
-LRESULT ControlTrayIcon::windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool *useDefWindowProc)
+LRESULT ControlTrayIcon::windowProc(HWND /* hWnd */, UINT uMsg, WPARAM /* wParam */, LPARAM lParam, bool *useDefWindowProc)
 {
   if (m_inWindowProc) {
     // This call is recursive, do not do any real work.

@@ -33,7 +33,7 @@ void CoreEventsAdapter::onBell()
 {
 }
 
-void CoreEventsAdapter::onCutText(const StringStorage *cutText)
+void CoreEventsAdapter::onCutText(const StringStorage * /* cutText */)
 {
 }
 
@@ -41,11 +41,11 @@ void CoreEventsAdapter::onEstablished()
 {
 }
 
-void CoreEventsAdapter::onConnected(RfbOutputGate *output)
+void CoreEventsAdapter::onConnected(RfbOutputGate * /* output */)
 {
 }
 
-void CoreEventsAdapter::onDisconnect(const StringStorage *message)
+void CoreEventsAdapter::onDisconnect(const StringStorage * /* message */)
 {
 }
 
@@ -54,15 +54,15 @@ void CoreEventsAdapter::onAuthError(const AuthException *exception)
   onError(exception);
 }
 
-void CoreEventsAdapter::onError(const Exception *exception)
+void CoreEventsAdapter::onError(const Exception * /* exception */)
 {
 }
 
-void CoreEventsAdapter::onFrameBufferUpdate(const FrameBuffer *fb,
-                                            const Rect *rect)
+void CoreEventsAdapter::onFrameBufferUpdate(const FrameBuffer * /* fb */,
+                                            const Rect * /* rect */)
 {
 }
 
-void CoreEventsAdapter::onFrameBufferPropChange(const FrameBuffer *fb)
+void CoreEventsAdapter::onFrameBufferPropChange(const FrameBuffer * /* fb */)
 {
 }

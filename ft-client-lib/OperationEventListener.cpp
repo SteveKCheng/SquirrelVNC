@@ -31,21 +31,21 @@ OperationEventListener::~OperationEventListener()
 {
 }
 
-void OperationEventListener::ftOpStarted(FileTransferOperation *sender)
+void OperationEventListener::ftOpStarted(FileTransferOperation * /* sender */)
 {
 }
 
-void OperationEventListener::ftOpFinished(FileTransferOperation *sender)
+void OperationEventListener::ftOpFinished(FileTransferOperation * /* sender */)
 {
 }
 
-void OperationEventListener::ftOpErrorMessage(FileTransferOperation *sender,
-                                              const TCHAR *message)
+void OperationEventListener::ftOpErrorMessage(FileTransferOperation * /* sender */,
+                                              const TCHAR * /* message */)
 {
 }
 
 void
-OperationEventListener::ftOpInfoMessage(FileTransferOperation *sender,
-                                        const TCHAR *message)
+OperationEventListener::ftOpInfoMessage(FileTransferOperation * /* sender */,
+                                        const TCHAR * /* message */)
 {
 }

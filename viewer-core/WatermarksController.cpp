@@ -76,14 +76,14 @@ void WatermarksController::setNewPixelFormat(const PixelFormat *pf)
 	}
 }
 
-void WatermarksController::showWaterMarks(FrameBuffer *frameBuffer, LocalMutex *fbLock)
+void WatermarksController::showWaterMarks(FrameBuffer *frameBuffer, LocalMutex * /* fbLock */)
 {
 	m_overlay.copyFrom(frameBuffer, m_currentRect.left, m_currentRect.top);
 
 	frameBuffer->copyFrom(&m_currentRect, &m_frameBuffer, 0, 0);
 }
 
-void WatermarksController::hideWatermarks(FrameBuffer *frameBuffer, LocalMutex *fbLock)
+void WatermarksController::hideWatermarks(FrameBuffer *frameBuffer, LocalMutex * /* fbLock */)
 {
 	frameBuffer->copyFrom(&m_currentRect, &m_overlay, 0, 0);
 }

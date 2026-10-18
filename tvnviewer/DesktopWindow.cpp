@@ -57,7 +57,7 @@ void DesktopWindow::setViewerCore(RemoteViewerCore *viewerCore)
   m_viewerCore = viewerCore;
 }
 
-bool DesktopWindow::onCreate(LPCREATESTRUCT pcs)
+bool DesktopWindow::onCreate(LPCREATESTRUCT /* pcs */)
 {
   m_sbar.setWindow(getHWnd());
   m_clipboard.setHWnd(getHWnd());
@@ -133,11 +133,11 @@ bool DesktopWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
   return false;
 }
 
-bool DesktopWindow::onEraseBackground(HDC hdc) {
+bool DesktopWindow::onEraseBackground(HDC /* hdc */) {
   return true;
 }
 
-bool DesktopWindow::onHScroll(WPARAM wParam, LPARAM lParam) 
+bool DesktopWindow::onHScroll(WPARAM wParam, LPARAM /* lParam */) 
 {
   switch(LOWORD(wParam)) {
     case SB_THUMBTRACK:
@@ -165,7 +165,7 @@ bool DesktopWindow::onHScroll(WPARAM wParam, LPARAM lParam)
   return true;
 }
 
-bool DesktopWindow::onVScroll(WPARAM wParam, LPARAM lParam) 
+bool DesktopWindow::onVScroll(WPARAM wParam, LPARAM /* lParam */) 
 {
   switch(LOWORD(wParam)) {
     case SB_THUMBTRACK:
@@ -291,7 +291,7 @@ bool DesktopWindow::onChar(WPARAM wParam, LPARAM lParam)
   return true;
 }
 
-bool DesktopWindow::onDeadChar(WPARAM wParam, LPARAM lParam) 
+bool DesktopWindow::onDeadChar(WPARAM /* wParam */, LPARAM /* lParam */) 
 {
   return true;
 }
@@ -490,7 +490,7 @@ void DesktopWindow::drawImage(const RECT *src, const RECT *dst)
   }
 }
 
-bool DesktopWindow::onSize(WPARAM wParam, LPARAM lParam) 
+bool DesktopWindow::onSize(WPARAM /* wParam */, LPARAM /* lParam */) 
 {
   calcClientArea();
   m_winResize = true; 
