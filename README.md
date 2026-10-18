@@ -4,22 +4,44 @@ SquirrelVNC is a fork of TightVNC's viewer with some improvements in aesthetics,
 
 ![](art/logo-publish.svg)
 
-## Fixes
+## Improvements over TightVNC
 
   - In “view-only mode”, the screen is prevented from locking / turning off for power-saving.
   - Program is DPI-aware
   - Modernized icons and logo
   - Codebase upgraded to latest compilers and libraries
+  - Security fixes \[[details](notes/security.md)\]
+
+## Goals of this project
+
+  - Fast, lightweight VNC viewer
+  - Use Windows-specific APIs as appropriate for performance and usability
+  - Minimal dependencies other than on a base Windows system
+  - Fix security vulnerabilities
+  - Compatibility with *modern* VNC servers
+  - Improve developers' productivity, and quality on this old codebase
+  - Enable AI agents to help with coding and maintenance
+
+## Non-goals for this project
+
+  - Porting to platforms other than Windows
+    - There are already good VNC clients out there for those platforms
+  - Supporting old versions of Windows that are out-of-support
+  - Reviving the server component of TightVNC; it is dropped \[[rationale](notes/old-server.md)\]
+  - Supporting every VNC extension under the sun
+  - For the author to sell proprietary versions of this software
 
 ## Status
 
-Originally the author only needed a small fix to TightVNC, but figured others might be interested, so it is published to GitHub.
+Originally the author only needed a small fix to TightVNC, but figured others might be interested, 
+so the result has been published to GitHub.
 
 It is, of course, a work in progress.
 
 ## Copyright
 
-Most of the code is ©GlavSoft, the original authors of TightVNC, licensed under GPL-2.0.
+Most of the code is coprighted by GlavSoft, the original authors of TightVNC, licensed under 
+[GPL-2.0](LICENSE.txt).
 
-This author's changes are also under GPL-2.0.
+The author's changes are also placed under GPL-2.0.
 
