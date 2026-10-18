@@ -61,6 +61,11 @@ public:
   //
 
   virtual void onCompressionSupportReply(DataInputStream *input) throw(IOException);
+  // Reads a file list reply into m_filesInfo and m_filesInfoCount, replacing
+  // the previous list.  If this throws, the previous list is gone and the new
+  // one may be partly read: m_filesInfoCount always counts the entries that
+  // m_filesInfo holds, but some may be left empty.  The count the server
+  // sends is rejected if the data is too short to hold that many entries.
   virtual void onFileListReply(DataInputStream *input) throw(IOException, ZLibException);
   virtual void onMd5DataReply(DataInputStream *input) throw(IOException, OperationNotSupportedException);
 

@@ -121,10 +121,20 @@ void FileTransferReplyBuffer::onFileListReply(DataInputStream *input)
       delete[] m_filesInfo;
       m_filesInfo = 0;
     }
+    // Keep the count consistent with m_filesInfo if reading fails below.
+    m_filesInfoCount = 0;
 
-    m_filesInfoCount = filesInfoReader.readUInt32();
-    if (m_filesInfoCount != 0) {
-      m_filesInfo = new FileInfo[m_filesInfoCount];
+    UINT32 filesInfoCount = filesInfoReader.readUInt32();
+    // Each entry takes at least 22 bytes (size, time, flags and the length
+    // of its name), so a count that the data cannot hold is rejected before
+    // allocating for it.
+    const size_t MIN_ENTRY_SIZE = 8 + 8 + 2 + 4;
+    if (filesInfoCount > (buffer.size() - 4) / MIN_ENTRY_SIZE) {
+      throw IOException(_T("File list is shorter than its count of files"));
+    }
+    if (filesInfoCount != 0) {
+      m_filesInfo = new FileInfo[filesInfoCount];
+      m_filesInfoCount = filesInfoCount;
     }
 
     for (UINT32 i = 0; i < m_filesInfoCount; i++) {
