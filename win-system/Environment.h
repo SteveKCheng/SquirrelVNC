@@ -35,8 +35,10 @@ public:
   Environment();
   ~Environment();
 
-  // Formates string from last system error code.
-  // @return false on an error.
+  // Sets out to the system's description of the error in GetLastError(),
+  // followed by the error code in parentheses.  If the system has no
+  // description, out is set to a placeholder with the code instead.
+  // out must not be null.  Does not throw, other than on lack of memory.
   static void getErrStr(StringStorage *out);
 
   // Formates string from last system error code with specification before.

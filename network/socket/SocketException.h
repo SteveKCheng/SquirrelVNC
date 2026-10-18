@@ -48,7 +48,7 @@ public:
   int errno();
 
 protected:
-  // Sets m_errno and generates error description string.
+  // Sets m_errno to error, and m_message to the system's description of it.
   void setErrno(int error);
 
 protected:

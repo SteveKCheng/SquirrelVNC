@@ -45,7 +45,7 @@ void Environment::getErrStr(StringStorage *out)
                     NULL, errCode,
                     MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
                     (LPTSTR)&buffer[0],
-                    sizeof(buffer), NULL) == 0) {
+                    sizeof(buffer) / sizeof(TCHAR), NULL) == 0) {
     out->format(_T("<<Cannot get text error describing>> (%u)"), errCode);
   } else {
     out->format(_T("%s (%u)"), buffer, errCode);

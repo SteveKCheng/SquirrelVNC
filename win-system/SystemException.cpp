@@ -72,7 +72,7 @@ void SystemException::createMessage(const TCHAR *userMessage, int errcode)
     errcode,
     MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
     (LPTSTR)&buffer[0],
-    sizeof(buffer),
+    sizeof(buffer) / sizeof(TCHAR),
     NULL) == 0) {
      formatMessageOk = false;
   }

@@ -54,7 +54,7 @@ void SocketException::setErrno(int error)
                 NULL, m_errno,
                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                 (LPTSTR)&buffer[0],
-                sizeof(buffer), NULL);
+                sizeof(buffer) / sizeof(TCHAR), NULL);
 
   m_message.setString(&buffer[0]);
 }

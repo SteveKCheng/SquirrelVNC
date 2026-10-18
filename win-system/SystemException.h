@@ -65,10 +65,21 @@ public:
   virtual ~SystemException();
 private:
   /**
-   * Creates formatted message for exception.
-   * @param userMessage user description about exception reason.
-   * @param errcode windows error code.
-   * @fixme document all special cases.
+   * Sets m_systemMessage and m_message for the exception.
+   *
+   * m_systemMessage is the system's description of errcode with the code
+   * appended, without line breaks, tabs or a final full stop, or just the
+   * code if the system has no description.  m_message is m_systemMessage,
+   * or, if userMessage is given, userMessage followed by m_systemMessage in
+   * parentheses.
+   *
+   * If errcode is 0 (ERROR_SUCCESS), both are set to userMessage alone, or
+   * to a fixed message saying that the error is unknown if userMessage is
+   * null too.
+   *
+   * @param userMessage description of what failed, or null.  It is copied,
+   *   not used as a format string.
+   * @param errcode Windows error code, or an HRESULT.
    */
   void createMessage(const TCHAR *userMessage, int errcode);
 private:
