@@ -88,26 +88,29 @@ void AnsiStringStorage::fromStringStorage(const StringStorage *src)
 #ifndef _UNICODE
   setString(src->getString());
 #else
-  size_t rawSize = getSize();
-  const size_t MAX_SAFE_SIZE = INT_MAX - 1024;
-  if (rawSize > MAX_SAFE_SIZE)
+  // WideCharToMultiByte takes and returns lengths as int.  Pass the length
+  // of the source explicitly, including its terminating null character, so
+  // that the result includes the terminator too.
+  size_t srcLength = src->getLength();
+  if (srcLength >= INT_MAX)
     throw Exception(_T("String too large for conversion"));
+  int srcCount = (int)srcLength + 1;
 
-  // WideCharToMultiByte returns result length including terminating null character	
-  int symbolCount = WideCharToMultiByte(CP_ACP, 0, src->getString(), -1, 
+  // Fails, returning 0, if the result would not fit in an int.
+  int symbolCount = WideCharToMultiByte(CP_ACP, 0, src->getString(), srcCount,
                                         NULL, 0, NULL, NULL);
   if (symbolCount == 0) {
     throw Exception(_T("Cannot convert from StringStorage to Ansi"));
   }
 
-  // Allocate space for the requred size
-  m_buffer.resize(symbolCount);
-
-  // Convert to ansi
-  int constrSize = (int)m_buffer.size();
-  _ASSERT(constrSize == m_buffer.size());
-  WideCharToMultiByte(CP_ACP, 0, src->getString(), -1,
-                      m_buffer.data(), symbolCount, NULL, NULL);
+  // Convert into a separate buffer so that this string is left unchanged
+  // if the conversion fails.
+  BufferType buffer(symbolCount);
+  if (WideCharToMultiByte(CP_ACP, 0, src->getString(), srcCount,
+                          buffer.data(), symbolCount, NULL, NULL) == 0) {
+    throw Exception(_T("Cannot convert from StringStorage to Ansi"));
+  }
+  m_buffer.swap(buffer);
 #endif
 }
 

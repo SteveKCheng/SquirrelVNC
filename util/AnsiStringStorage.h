@@ -51,9 +51,30 @@ public:
   // @return true if string is empty.
   bool isEmpty() const;
 
+  /**
+   * Sets this string to src converted to the system's ANSI code page.
+   *
+   * Characters that the code page cannot represent are replaced by its
+   * default character, as WideCharToMultiByte does.
+   *
+   * @param src the string to convert; must not be null.
+   * @throws Exception if src is too long for the Windows conversion
+   *   functions (INT_MAX characters or more), or the conversion fails.
+   *   This string is then left unchanged.
+   */
   void fromStringStorage(const StringStorage *src);
   void toStringStorage(StringStorage *dst) const;
 
+  /**
+   * Sets this string to the result of formatting with printf-style
+   * arguments.
+   *
+   * @param format the format string, which must not contain text from
+   *   outside the program: pass any such text as an argument for %s.
+   * @throws Exception if the CRT cannot format the string, for example
+   *   because of an invalid format specification.  This string is then
+   *   left unchanged.
+   */
   void format(const char *format, ...);
 
   void appendString(const char *string);
