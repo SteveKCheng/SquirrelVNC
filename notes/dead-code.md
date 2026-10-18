@@ -261,3 +261,7 @@ git diff -U0 --diff-filter=M 630df21~1 20956d9 -- '*.cpp' | grep '^-[^-/ {}#	]'
   directory for it first. `4638a6c` switched it to
   `Shell::showInFolder()`, and the commit that adds this entry removed
   the class.
+- **`ToolBar::create()`**, a second way of creating the toolbar window,
+  which nothing called: the viewer uses `attachToolBar()`. It was found
+  through its 64-bit cast warning (C4312), and removing it was simpler
+  than fixing the cast.

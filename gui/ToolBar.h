@@ -67,12 +67,6 @@ public:
   // Manual mode procedures
   /////////////////////////////////////////////////////////
 
-  // create() creates a windows toolbar. dwStyle is a combination of 
-  // the toolbar control and button styles. It returns true if successful,
-  // or false otherwise.
-  bool create(int tbID, HWND parentHwnd, 
-       DWORD dwStyle = WS_CHILD | WS_VISIBLE | TBSTYLE_FLAT);
-
   // checkButton() checks or unchecks a given button in a toolbar control.
   bool checkButton(int idButton, bool check);
 

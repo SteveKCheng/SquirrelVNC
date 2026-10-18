@@ -47,28 +47,6 @@ ToolBar::~ToolBar()
   }
 }
 
-bool ToolBar::create(int _tbID, HWND _parentHwnd, DWORD dwStyle)
-{
-  dwStyle |= WS_CHILD;
-
-  _ASSERT(m_hWndToolbar == 0);
-  // Create the ToolBar window
-  m_hWndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, 0, dwStyle,
-                                 0, 0, 0, 0,
-                                 _parentHwnd,
-                                 reinterpret_cast<HMENU>(_tbID),
-                                 GetModuleHandle(0),
-                                 0);
-  if (m_hWndToolbar) {
-    // It's required for backward compatibility
-    SendMessage(m_hWndToolbar,
-                TB_BUTTONSTRUCTSIZE,
-                static_cast<WPARAM>(sizeof(TBBUTTON)),
-                0);
-  }
-  return !!m_hWndToolbar;
-};
-
 void ToolBar::setViewAutoButtons(int iButton, int style)
 {
   m_autoButtons[iButton] = style;
