@@ -82,7 +82,13 @@ int KeySymTest::run()
                          m_fromFileName.getString());
           throw Exception(errMess.getString());
         }
-        changeKbdLayout((HKL)hkbdLayout);
+        // Handles have only 32 significant bits, and 64-bit Windows
+        // sign-extends them, as Microsoft documents for handles passed
+        // from 32-bit programs.  So LongToHandle(), not a plain cast,
+        // which would zero-extend layouts with the high bit set, such as
+        // 0xF0020409.
+        changeKbdLayout(static_cast<HKL>(
+          LongToHandle(static_cast<LONG>(hkbdLayout))));
         Sleep(500);
       } else {
         unsigned int virtKeyInt, downInt;
