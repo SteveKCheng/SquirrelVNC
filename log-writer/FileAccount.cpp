@@ -153,7 +153,7 @@ void FileAccount::format(unsigned int processId,
 
   // Format the final string prefixed with all the service information.
   StringStorage resultLine;
-  resultLine.format(_T("[%5d/%5d] %s %c %s"),
+  resultLine.format(_T("[%5u/%5u] %s %c %s"),
                     processId,
                     threadId,
                     timeString.getString(),

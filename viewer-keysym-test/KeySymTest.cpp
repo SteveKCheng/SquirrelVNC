@@ -77,7 +77,7 @@ int KeySymTest::run()
         unsigned int hkbdLayout = 0;
         if (!StringParser::parseHex(word2.getString(), &hkbdLayout)) {
           StringStorage errMess;
-          errMess.format(_T("Wrong \"kbdlayout\" argument at %u line (%s)"),
+          errMess.format(_T("Wrong \"kbdlayout\" argument at %zu line (%s)"),
                          m_lineNumber,
                          m_fromFileName.getString());
           throw Exception(errMess.getString());
@@ -97,7 +97,7 @@ int KeySymTest::run()
           m_rfbKeySym->processKeyEvent(virtKey, addKeyData);
         } else {
           StringStorage errMess;
-          errMess.format(_T("Wrong value(s) at %u line (%s)"),
+          errMess.format(_T("Wrong value(s) at %zu line (%s)"),
                          m_lineNumber,
                          m_fromFileName.getString());
           throw Exception(errMess.getString());
@@ -114,7 +114,7 @@ void KeySymTest::changeKbdLayout(HKL hkl)
 {
   if (ActivateKeyboardLayout(hkl, 0) == 0) {
     StringStorage errMess;
-    errMess.format(_T("Can't apply a keyboard layout requested at the %u line (%s)"),
+    errMess.format(_T("Can't apply a keyboard layout requested at the %zu line (%s)"),
                    m_lineNumber,
                    m_fromFileName.getString());
     throw Exception(errMess.getString());

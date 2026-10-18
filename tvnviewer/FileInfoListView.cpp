@@ -88,7 +88,7 @@ void FileInfoListView::addItem(int index, FileInfo *fileInfo)
     UINT64 fileSize = fileInfo->getSize();
 
     if (fileSize <= 1024) {
-      sizeString.format(_T("%ld B"), fileSize);
+      sizeString.format(_T("%llu B"), fileSize);
     } else if ((fileSize > 1024) && (fileSize <= 1024 * 1024)) {
       sizeString.format(_T("%4.2f KB"), static_cast<double>(fileSize) / 1024.0);
     } else if (fileSize > 1024 * 1024) {

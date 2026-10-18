@@ -99,7 +99,7 @@ void TcpConnection::connect()
 
         StringStorage ipAddressString;
         ipAddress.toString(&ipAddressString);
-        m_logWriter->detail(_T("Connecting to the host \"%s:%hd\" (%s:%hd)..."),
+        m_logWriter->detail(_T("Connecting to the host \"%s:%hu\" (%s:%hu)..."),
                             m_host.getString(), m_port,
                             ipAddressString.getString(), m_port);
 

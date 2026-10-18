@@ -56,7 +56,7 @@ void ConnectionHistory::load()
   StringStorage value;
 
   for (size_t i = 0; i < m_limit; i++) {
-    valueName.format(_T("%d"), i);
+    valueName.format(_T("%zu"), i);
     if (!m_key->getValueAsString(valueName.getString(), &value)) {
       break;
     }
@@ -71,7 +71,7 @@ void ConnectionHistory::save()
   size_t count = m_hosts.size();
 
   for (size_t i = 0; i < min(count, m_limit); i++) {
-    valueName.format(_T("%u"), i);
+    valueName.format(_T("%zu"), i);
     const TCHAR *value = m_hosts.at(i).getString();
 
     m_key->setValueAsString(valueName.getString(), value);
@@ -90,7 +90,7 @@ void ConnectionHistory::truncate()
   size_t i = (size_t)m_limit;
 
   while (true) {
-    valueName.format(_T("%u"), i);
+    valueName.format(_T("%zu"), i);
 
     if (i >= getHostCount()) {
       return ;
@@ -116,7 +116,7 @@ void ConnectionHistory::clear()
   StringStorage valueName;
 
   for (size_t i = 0; i < m_hosts.size(); i++) {
-    valueName.format(_T("%u"), i);
+    valueName.format(_T("%zu"), i);
 
     m_key->deleteSubKey(m_hosts.at(i).getString());
     m_key->deleteValue(valueName.getString());

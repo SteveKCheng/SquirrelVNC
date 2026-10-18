@@ -354,10 +354,10 @@ void RemoteViewerCore::sendKeyboardEvent(bool downFlag, UINT32 key)
     return;
   }
 
-  m_logWriter.detail(_T("Sending key event: %d, %d..."), downFlag, key);
+  m_logWriter.detail(_T("Sending key event: %d, %u..."), downFlag, key);
   RfbKeyEventClientMessage keyMessage(downFlag, key);
   keyMessage.send(m_output);
-  m_logWriter.debug(_T("Key event: %d, %d is sent"), downFlag, key);
+  m_logWriter.debug(_T("Key event: %d, %u is sent"), downFlag, key);
 }
 
 void RemoteViewerCore::sendPointerEvent(UINT8 buttonMask,
@@ -573,7 +573,7 @@ void RemoteViewerCore::authenticate()
     UINT32 authResult = 0;
     if (authenticationType) {
       authResult = m_input->readUInt32();
-      m_logWriter.detail(_T("Auth result is %d"), authResult);
+      m_logWriter.detail(_T("Auth result is %u"), authResult);
     }
     static const UINT32 AUTH_RESULT_OK = 0;
     if (!authenticationType || authResult != AUTH_RESULT_OK) {
@@ -611,10 +611,10 @@ int RemoteViewerCore::negotiateSecurityType()
     if(i != secTypes.begin())
       secTypeString.appendString(_T(", "));
     StringStorage nameType;
-    nameType.format(_T("%s (%d)"), getSecurityTypeName(*i).getString(), *i);
+    nameType.format(_T("%s (%u)"), getSecurityTypeName(*i).getString(), *i);
     secTypeString.appendString(nameType.getString());
   }
-  m_logWriter.detail(_T("Security Types received (%d): %s"),
+  m_logWriter.detail(_T("Security Types received (%zu): %s"),
                    secTypes.size(), secTypeString.getString()); 
 
   // select type security
@@ -742,7 +742,7 @@ int RemoteViewerCore::initAuthentication()
   m_logWriter.detail(_T("Initialization of tight-authentication..."));
   UINT32 authTypesNumber = m_input->readUInt32();
 
-  m_logWriter.info(_T("Number of auth-types is %d"), authTypesNumber);
+  m_logWriter.info(_T("Number of auth-types is %u"), authTypesNumber);
   if (authTypesNumber == 0) {
     return AuthDefs::NONE;
   }
@@ -927,7 +927,7 @@ void RemoteViewerCore::execute()
 
       default:
         if (m_serverMsgHandlers.find(msgType) != m_serverMsgHandlers.end()) {
-          m_logWriter.detail(_T("Received message (%d) transmit to capability handler"), msgType);
+          m_logWriter.detail(_T("Received message (%u) transmit to capability handler"), msgType);
           try {
             m_serverMsgHandlers[msgType]->onServerMessage(msgType, m_input);
           } catch (const Exception &ex) {
@@ -936,7 +936,7 @@ void RemoteViewerCore::execute()
             m_logWriter.error(_T("Unknown error in onServerMessage()"));
           }
         } else {
-          m_logWriter.error(_T("Server to client message: %d is not supported"), msgType);
+          m_logWriter.error(_T("Server to client message: %u is not supported"), msgType);
         }
       }
     }
@@ -1423,7 +1423,7 @@ RfbCapabilityInfo RemoteViewerCore::readCapability()
   StringStorage nameSignatureString;
   nameSignatureAnsiString.toStringStorage(&nameSignatureString);
 
-  m_logWriter.detail(_T("code: %d, vendor: %s, signature: %s"),
+  m_logWriter.detail(_T("code: %u, vendor: %s, signature: %s"),
                      cap.code, vendorSignatureString.getString(), nameSignatureString.getString());
 
   // return capability info

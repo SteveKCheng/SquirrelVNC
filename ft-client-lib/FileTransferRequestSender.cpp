@@ -67,7 +67,7 @@ void FileTransferRequestSender::sendDownloadRequest(const TCHAR *fullPathName,
 
   m_logWriter->info(_T("Sending download request with parameters:\n")
                     _T("\tpath = %s\n")
-                    _T("\toffset = %ld\n"),
+                    _T("\toffset = %llu\n"),
                     fullPathName, offset);
 
   m_output->writeUInt32(FTMessage::DOWNLOAD_START_REQUEST);
@@ -84,7 +84,7 @@ void FileTransferRequestSender::sendDownloadDataRequest(UINT32 size,
   UINT8 compressionLevel = useCompression ? (UINT8)1 : (UINT8)0;
 
   m_logWriter->info(_T("Sending download data request with parameters:\n")
-                    _T("\tsize = %d\n")
+                    _T("\tsize = %u\n")
                     _T("\tuse compression = %d\n"),
                     size,
                     compressionLevel);
@@ -150,7 +150,7 @@ void FileTransferRequestSender::sendUploadRequest(const TCHAR *fullPathName,
   m_logWriter->info(_T("Sending upload request with parameters:\n")
                     _T("\tpath = %s\n")
                     _T("\toverwrite flag = %d\n")
-                    _T("\toffset = %ld\n"),
+                    _T("\toffset = %llu\n"),
                     fullPathName,
                     overwrite ? 1 : 0,
                     offset);
@@ -182,7 +182,7 @@ void FileTransferRequestSender::sendUploadDataRequest(const char *buffer,
   UINT8 compressionLevel = useCompression ? (short)1 : (short)0;
 
   m_logWriter->info(_T("Sending upload data request with parameters:\n")
-                    _T("\tsize = %d\n")
+                    _T("\tsize = %u\n")
                     _T("\tuse compression = %d\n"),
                     size,
                     compressionLevel);
@@ -201,7 +201,7 @@ void FileTransferRequestSender::sendUploadEndRequest(UINT8 fileFlags,
 
   m_logWriter->info(_T("Sending upload end request with parameters:\n")
                     _T("\tflags = %d\n")
-                    _T("\tmodification time = %ld\n"),
+                    _T("\tmodification time = %llu\n"),
                     fileFlags,
                     modificationTime);
 

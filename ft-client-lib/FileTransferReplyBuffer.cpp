@@ -141,7 +141,7 @@ void FileTransferReplyBuffer::onFileListReply(DataInputStream *input)
     } // for all newly created file's info
 
     m_logWriter->info(_T("Received file list reply: \n")
-                      _T("\t files count = %d\n")
+                      _T("\t files count = %u\n")
                       _T("\t use compression = %d\n"),
                       m_filesInfoCount, compressionLevel);
   } else {
@@ -185,8 +185,8 @@ void FileTransferReplyBuffer::onDownloadDataReply(DataInputStream *input)
   m_downloadBufferSize = uncoBufferSize;
 
   m_logWriter->info(_T("Received download data reply:\n")
-                    _T("\tcompressed size: %d\n")
-                    _T("\tuncompressed size: %d\n")
+                    _T("\tcompressed size: %u\n")
+                    _T("\tuncompressed size: %u\n")
                     _T("\tuse compression: %d\n"),
                     coBufferSize, uncoBufferSize, coLevel);
 }
@@ -198,7 +198,7 @@ void FileTransferReplyBuffer::onDownloadEndReply(DataInputStream *input)
 
   m_logWriter->info(_T("Received download end reply:\n")
                     _T("\tfile flags: %d\n")
-                    _T("\tmodification time: %ld\n"),
+                    _T("\tmodification time: %llu\n"),
                     m_downloadFileFlags, m_downloadLastModified);
 }
 

@@ -135,7 +135,7 @@ void FbUpdateNotifier::execute()
 
       vector<Rect> updateList;
       update.getRectVector(&updateList);
-      m_logWriter->detail(_T("FbUpdateNotifier (event): %u updates"), updateList.size());
+      m_logWriter->detail(_T("FbUpdateNotifier (event): %zu updates"), updateList.size());
 
       try {
         for (vector<Rect>::iterator i = updateList.begin(); i != updateList.end(); ++i) {
