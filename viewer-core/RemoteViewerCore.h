@@ -43,7 +43,6 @@
 #include "WatermarksController.h"
 
 #include <map>
-#include "UpdateRequestSender.h"
 
 //
 // RemoteViewerCore implements a local representation of a live remote screen
@@ -628,10 +627,6 @@ private:
   bool m_isUtf8ClipboardEnabled;
 
   bool m_forceFullUpdate;
-  
-  int m_updateTimeout;
-
-  UpdateRequestSender m_updateRequestSender;
 
 private:
   // Do not allow copying objects.

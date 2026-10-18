@@ -65,7 +65,6 @@ RemoteViewerCore::RemoteViewerCore(Logger *logger)
   m_tcpConnection(&m_logWriter),
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
   m_decoderStore(&m_logWriter),
-  m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter),
   m_isTightEnabled(true),
   m_isUtf8ClipboardEnabled(false)
 {
@@ -80,7 +79,6 @@ RemoteViewerCore::RemoteViewerCore(const TCHAR *host, UINT16 port,
   m_tcpConnection(&m_logWriter),
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
   m_decoderStore(&m_logWriter),
-  m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter),
   m_isTightEnabled(true),
   m_isUtf8ClipboardEnabled(false)
 {
@@ -97,7 +95,6 @@ RemoteViewerCore::RemoteViewerCore(SocketIPv4 *socket,
   m_tcpConnection(&m_logWriter),
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
   m_decoderStore(&m_logWriter),
-  m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter),
   m_isTightEnabled(true),
   m_isUtf8ClipboardEnabled(false)
 {
@@ -114,7 +111,6 @@ RemoteViewerCore::RemoteViewerCore(RfbInputGate *input, RfbOutputGate *output,
   m_tcpConnection(&m_logWriter),
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
   m_decoderStore(&m_logWriter),
-  m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter),
   m_isTightEnabled(true),
   m_isUtf8ClipboardEnabled(false)
 {
@@ -146,8 +142,6 @@ void RemoteViewerCore::init()
   m_isNeedRequestUpdate = true;
   m_forceFullUpdate = false;
 
-  m_updateTimeout = 0;
-
   addClientMsgCapability(ClientMsgDefs::CLIENT_CUT_TEXT_UTF8,
     VendorDefs::TIGHTVNC,
     Utf8CutTextDefs::CLIENT_CUT_TEXT_UTF8_SIG, 
@@ -171,7 +165,6 @@ RemoteViewerCore::~RemoteViewerCore()
       waitTermination();
     } else {
       m_fbUpdateNotifier.wait();
-	  m_updateRequestSender.wait();
     }
   } catch (...) {
   }
@@ -244,8 +237,6 @@ bool RemoteViewerCore::wasConnected() const
 
 void RemoteViewerCore::stop()
 {
-  m_updateRequestSender.terminate();
-
   m_tcpConnection.close();
   m_fbUpdateNotifier.terminate();
   terminate();
@@ -254,7 +245,6 @@ void RemoteViewerCore::stop()
 void RemoteViewerCore::waitTermination()
 {
   m_fbUpdateNotifier.wait();
-  m_updateRequestSender.wait();
   wait();
 }
 
@@ -331,31 +321,24 @@ void RemoteViewerCore::sendFbUpdateRequest(bool incremental)
     }
   }
 
-  if (isRefresh || isUpdateFbProperties || m_updateRequestSender.getTimeout() <= 0)
+  bool isIncremental = incremental && !isRefresh && !isUpdateFbProperties;
+  Rect updateRect;
   {
-	bool isIncremental = incremental && !isRefresh && !isUpdateFbProperties;
-	Rect updateRect;
-	{
-	  AutoLock al(&m_fbLock);
-	  updateRect = m_frameBuffer.getDimension().getRect();
-	}
-
-	if (isIncremental) {
-	  m_logWriter.debug(_T("Sending frame buffer incremental update request [%dx%d]..."),
-	                    updateRect.getWidth(), updateRect.getHeight());
-	} else {
-	  m_logWriter.debug(_T("Sending frame buffer full update request [%dx%d]..."),
-	                    updateRect.getWidth(), updateRect.getHeight());
+    AutoLock al(&m_fbLock);
+    updateRect = m_frameBuffer.getDimension().getRect();
   }
 
-	RfbFramebufferUpdateRequestClientMessage fbUpdReq(isIncremental, updateRect);
-	fbUpdReq.send(m_output);
-	m_logWriter.debug(_T("Frame buffer update request is sent"));
+  if (isIncremental) {
+    m_logWriter.debug(_T("Sending frame buffer incremental update request [%dx%d]..."),
+                      updateRect.getWidth(), updateRect.getHeight());
+  } else {
+    m_logWriter.debug(_T("Sending frame buffer full update request [%dx%d]..."),
+                      updateRect.getWidth(), updateRect.getHeight());
   }
-  else
-  {
-	  m_updateRequestSender.setWasUpdated();
-  }
+
+  RfbFramebufferUpdateRequestClientMessage fbUpdReq(isIncremental, updateRect);
+  fbUpdReq.send(m_output);
+  m_logWriter.debug(_T("Frame buffer update request is sent"));
 }
 
 void RemoteViewerCore::sendKeyboardEvent(bool downFlag, UINT32 key)
@@ -546,8 +529,6 @@ void RemoteViewerCore::connectToHost()
   m_tcpConnection.connect();
   m_input = m_tcpConnection.getInput();
   m_output = m_tcpConnection.getOutput();
-
-  m_updateRequestSender.setOutput(m_output);
 
   m_logWriter.detail(_T("Connection is established"));
   try {
