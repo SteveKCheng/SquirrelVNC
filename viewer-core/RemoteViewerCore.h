@@ -482,6 +482,9 @@ private:
   // code 0xfc000200
   void receiveServerCutTextUtf8();
 
+  // Read and discard length bytes from the input.
+  void skipBytes(size_t length);
+
   //
   // Receive SetColourMapEntries server message (code 1) and forget it:
   // for now, color maps are not supported.

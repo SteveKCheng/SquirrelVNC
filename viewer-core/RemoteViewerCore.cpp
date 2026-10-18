@@ -60,6 +60,11 @@
 
 #include <algorithm>
 
+// Limits on lengths sent by the server, so that a malicious or broken server
+// cannot make the viewer allocate an arbitrary amount of memory.
+static const UINT32 MAX_CUT_TEXT_LENGTH = 64 * 1024 * 1024;
+static const UINT32 MAX_DESKTOP_NAME_LENGTH = 64 * 1024;
+
 RemoteViewerCore::RemoteViewerCore(Logger *logger)
 : m_logWriter(logger),
   m_tcpConnection(&m_logWriter),
@@ -1171,9 +1176,11 @@ void RemoteViewerCore::receiveServerCutText()
   m_input->readUInt16();
   m_input->readUInt8();
 
-  size_t length = m_input->readUInt32();
-  if (length > SIZE_MAX - 1) {
-    throw Exception(_T("Integer overflow in clipboard allocation"));
+  UINT32 length = m_input->readUInt32();
+  if (length > MAX_CUT_TEXT_LENGTH) {
+    m_logWriter.warning(_T("Cut text is too long (%u bytes), ignoring it"), length);
+    skipBytes(length);
+    return;
   }
   std::vector<char> buffer(length + 1);
   m_input->readFully(&buffer.front(), length);
@@ -1197,8 +1204,10 @@ void RemoteViewerCore::receiveServerCutTextUtf8()
   UINT32 length = m_input->readUInt32();
   if (length == 0)
     return;
-  if (length > SIZE_MAX - 1) {
-    throw Exception(_T("Integer overflow in clipboard allocation"));
+  if (length > MAX_CUT_TEXT_LENGTH) {
+    m_logWriter.warning(_T("Cut text is too long (%u bytes), ignoring it"), length);
+    skipBytes(length);
+    return;
   }
 
   std::vector<char> buffer(length + 1);
@@ -1217,6 +1226,16 @@ void RemoteViewerCore::receiveServerCutTextUtf8()
   }
   catch (...) {
     m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onCutText()"));
+  }
+}
+
+void RemoteViewerCore::skipBytes(size_t length)
+{
+  char buffer[4096];
+  while (length > 0) {
+    size_t chunk = length < sizeof(buffer) ? length : sizeof(buffer);
+    m_input->readFully(buffer, chunk);
+    length -= chunk;
   }
 }
 
@@ -1322,6 +1341,9 @@ void RemoteViewerCore::clientAndServerInit()
   }
 
   UINT32 sizeInBytes = m_input->readUInt32();
+  if (sizeInBytes > MAX_DESKTOP_NAME_LENGTH) {
+    throw Exception(_T("Desktop name is too long"));
+  }
   std::vector<char> buffer(sizeInBytes + 1);
   m_input->read(&buffer.front(), sizeInBytes);
   buffer[sizeInBytes] = '\0';
