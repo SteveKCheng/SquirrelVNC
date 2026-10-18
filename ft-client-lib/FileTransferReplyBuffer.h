@@ -81,6 +81,20 @@ public:
 
 private:
 
+  /**
+   * Reads a block of compressedSize bytes from input, and inflates it with
+   * m_inflater unless compressionLevel is 0.
+   *
+   * The sizes come from the server.  The result always holds exactly
+   * uncompressedSize bytes, so callers may use its size as the size of the
+   * data.
+   *
+   * @throws IOException if the sizes are inconsistent: when the block is
+   *   not compressed and the sizes differ, when it is empty but the
+   *   uncompressed size is not 0, or when it does not inflate to exactly
+   *   uncompressedSize bytes; or on errors reading input.
+   * @throws ZLibException if the data cannot be inflated.
+   */
   vector<UINT8> readCompressedDataBlock(DataInputStream *input,
                                         UINT32 compressedSize,
                                         UINT32 uncompressedSize,

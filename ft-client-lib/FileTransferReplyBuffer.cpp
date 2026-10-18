@@ -114,7 +114,7 @@ void FileTransferReplyBuffer::onFileListReply(DataInputStream *input)
   if (!buffer.empty()) {
     // FIXME: type conversion in C-style
     ByteArrayInputStream memoryInputStream(reinterpret_cast<char *>(&buffer.front()),
-                                           uncompressedSize);
+                                           buffer.size());
     DataInputStream filesInfoReader(&memoryInputStream);
 
     if (m_filesInfo != 0) {
@@ -182,7 +182,9 @@ void FileTransferReplyBuffer::onDownloadDataReply(DataInputStream *input)
   UINT32 uncoBufferSize = input->readUInt32();
 
   m_downloadBuffer = readCompressedDataBlock(input, coBufferSize, uncoBufferSize, coLevel);
-  m_downloadBufferSize = uncoBufferSize;
+  // readCompressedDataBlock() guarantees this is uncoBufferSize, but the
+  // buffer's own size is what bounds the reads made with it.
+  m_downloadBufferSize = (UINT32)m_downloadBuffer.size();
 
   m_logWriter->info(_T("Received download data reply:\n")
                     _T("\tcompressed size: %u\n")
@@ -246,6 +248,12 @@ vector<UINT8> FileTransferReplyBuffer::readCompressedDataBlock(DataInputStream *
   UINT32 coSize = compressedSize;
   UINT32 uncoSize = uncompressedSize;
 
+  // Callers use the size of the result as the size of the data, so it must
+  // not differ from what the server says it is.
+  if (compressionLevel == 0 && coSize != uncoSize) {
+    throw IOException(_T("Sizes of an uncompressed data block differ"));
+  }
+
   vector<UINT8> coBuffer(coSize);
 
   //
@@ -253,6 +261,9 @@ vector<UINT8> FileTransferReplyBuffer::readCompressedDataBlock(DataInputStream *
   //
 
   if (coSize == 0) {
+    if (uncoSize != 0) {
+      throw IOException(_T("Compressed data block is empty"));
+    }
     return coBuffer;
   }
 
@@ -270,7 +281,11 @@ vector<UINT8> FileTransferReplyBuffer::readCompressedDataBlock(DataInputStream *
 
   m_inflater.inflate();
 
-  _ASSERT(m_inflater.getOutputSize() == uncoSize);
+  // The inflater's output buffer holds at least uncoSize bytes, but only
+  // getOutputSize() of them are data.
+  if (m_inflater.getOutputSize() != uncoSize) {
+    throw IOException(_T("Data block does not inflate to its stated size"));
+  }
 
   if (uncoSize != 0) {
     memcpy(&uncoBuffer.front(), m_inflater.getOutput(), uncoSize);
