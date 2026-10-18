@@ -29,11 +29,6 @@
 #include "SocketAddressIPv4.h"
 #include "SocketAddressIPv4.h"
 #include "SocketException.h"
-#include "util/AnsiStringStorage.h"
-
-#include "thread/AutoLock.h"
-
-LocalMutex SocketAddressIPv4::s_resolveMutex;
 
 SocketAddressIPv4::SocketAddressIPv4()
 : m_wsaStartup(1, 2)
@@ -116,22 +111,30 @@ unsigned short SocketAddressIPv4::getPort() const
 
 SocketAddressIPv4 SocketAddressIPv4::resolve(const TCHAR *host, unsigned short m_port)
 {
+  // Constructed first, as its WsaStartup member initializes Winsock for
+  // GetAddrInfo().
   SocketAddressIPv4 resolvedAddress;
 
-  StringStorage hostStorage(host);
+  // Only IPv4 addresses are asked for, since the sockets are IPv4 only.
+  // GetAddrInfo() is thread-safe, unlike gethostbyname(), which it replaces,
+  // and takes the name as TCHARs, so no conversion to ANSI is needed.
+  ADDRINFOT hints;
+  ZeroMemory(&hints, sizeof(hints));
+  hints.ai_family = AF_INET;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_protocol = IPPROTO_TCP;
 
-  {
-    AutoLock l(&s_resolveMutex);
-
-    AnsiStringStorage hostAnsi(&hostStorage);
-
-    hostent *hent = gethostbyname(hostAnsi.getString());
-    if (hent == 0) {
-      throw SocketException();
-    }
-
-    resolvedAddress.m_addr.S_un.S_addr = ntohl(*(u_long *)hent->h_addr_list[0]);
+  ADDRINFOT *addresses = 0;
+  int error = GetAddrInfo(host, 0, &hints, &addresses);
+  if (error != 0) {
+    throw SocketException(error);
   }
+
+  // On success there is at least one address, and with ai_family AF_INET
+  // each is a sockaddr_in.
+  const sockaddr_in *first = reinterpret_cast<const sockaddr_in *>(addresses->ai_addr);
+  resolvedAddress.m_addr.S_un.S_addr = ntohl(first->sin_addr.S_un.S_addr);
+  FreeAddrInfo(addresses);
 
   resolvedAddress.m_port = m_port;
 

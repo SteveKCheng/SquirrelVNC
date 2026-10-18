@@ -25,7 +25,6 @@
 #define SOCKET_ADDRESS_IPV4_H
 
 #include "util/CommonHeader.h"
-#include "thread/LocalMutex.h"
 #include "SocketException.h"
 #include "sockdefs.h"
 #include "win-system/WsaStartup.h"
@@ -50,16 +49,15 @@ public:
   unsigned short SocketAddressIPv4::getPort() const;
 
   // Resolves host, a name or a dotted IPv4 address, to its first IPv4
-  // address.  Throws SocketException if it cannot be resolved, and
-  // Exception if it cannot be converted to the ANSI code page.
+  // address, with GetAddrInfo(); IPv6 addresses are not looked up.
+  // host must not be null.  Throws SocketException, carrying
+  // GetAddrInfo()'s error code, if host cannot be resolved.
   static SocketAddressIPv4 resolve(const TCHAR *host, unsigned short port);
 
 protected:
   WsaStartup m_wsaStartup;
   unsigned short m_port;
   struct in_addr m_addr;
-
-  static LocalMutex s_resolveMutex;
 };
 
 #endif
