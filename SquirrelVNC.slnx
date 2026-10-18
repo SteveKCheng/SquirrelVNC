@@ -1,24 +1,22 @@
 <Solution>
   <Configurations>
-    <BuildType Name="Debug" />
-    <BuildType Name="Release" />
     <Platform Name="Win32" />
     <Platform Name="x64" />
   </Configurations>
-  <Project Path="client-config-lib/client-config-lib.vcxproj" />
-  <Project Path="config-lib/config-lib.vcxproj" />
-  <Project Path="file-lib/file-lib.vcxproj" />
-  <Project Path="ft-client-lib/ft-client-lib.vcxproj" />
-  <Project Path="ft-common/ft-common.vcxproj" />
-  <Project Path="gui/gui.vcxproj" />
-  <Project Path="io-lib/io-lib.vcxproj" />
-  <Project Path="log-writer/log-writer.vcxproj" />
-  <Project Path="network/network.vcxproj" />
-  <Project Path="region/region.vcxproj" />
-  <Project Path="rfb/rfb.vcxproj" />
-  <Project Path="thread/thread.vcxproj" />
-  <Project Path="tools/svg2ico/svg2ico.vcxproj" />
-  <Project Path="tvnviewer/tvnviewer.vcxproj">
+  <Project Path="client-config-lib/client-config-lib.vcxproj" Id="97b29c1c-a911-41ab-9c88-019d9d827bfe" />
+  <Project Path="config-lib/config-lib.vcxproj" Id="879bd0d5-a4c5-40a3-8dc5-0a1bb6e616c7" />
+  <Project Path="file-lib/file-lib.vcxproj" Id="615b5b2e-792e-4883-ba75-763aec249f8a" />
+  <Project Path="ft-client-lib/ft-client-lib.vcxproj" Id="de53a4a7-a76f-4b7f-8104-8c5ecb836bd1" />
+  <Project Path="ft-common/ft-common.vcxproj" Id="469c12d6-1a5a-42ee-a30b-47b6bb2f49ef" />
+  <Project Path="gui/gui.vcxproj" Id="97d4f12a-916c-4cb2-b4d9-f0d35128065a" />
+  <Project Path="io-lib/io-lib.vcxproj" Id="bbbc0986-6499-483d-a608-905d6930c55a" />
+  <Project Path="log-writer/log-writer.vcxproj" Id="f9a69a98-b750-4242-b6af-de87e4201216" />
+  <Project Path="network/network.vcxproj" Id="9d22d911-02a4-4497-8c15-0ba34c6ca1fb" />
+  <Project Path="region/region.vcxproj" Id="14a47432-7ab8-4ca1-a36e-81117aabfd2c" />
+  <Project Path="rfb/rfb.vcxproj" Id="cea92b3a-5467-4cc7-80a6-227891f96c05" />
+  <Project Path="thread/thread.vcxproj" Id="5f629934-ed68-4d38-9ba5-cf3a139a44a1" />
+  <Project Path="tools/svg2ico/svg2ico.vcxproj" Id="c8a85bf1-5e04-4c6c-a4c4-0b78f90b9631" />
+  <Project Path="tvnviewer/tvnviewer.vcxproj" Id="082f71ad-cdf6-44de-84f7-9d2d16784b23">
     <BuildDependency Project="client-config-lib/client-config-lib.vcxproj" />
     <BuildDependency Project="ft-client-lib/ft-client-lib.vcxproj" />
     <BuildDependency Project="ft-common/ft-common.vcxproj" />
@@ -29,13 +27,13 @@
     <BuildDependency Project="viewer-core/viewer-core.vcxproj" />
     <BuildDependency Project="win-system/win-system.vcxproj" />
   </Project>
-  <Project Path="util/util.vcxproj" />
-  <Project Path="viewer-core/viewer-core.vcxproj" />
-  <Project Path="viewer-keysym-test/viewer-keysym-test.vcxproj">
+  <Project Path="util/util.vcxproj" Id="e45bf60d-c8fd-4f07-a307-25596be1d256" />
+  <Project Path="viewer-core/viewer-core.vcxproj" Id="3ea91983-d9eb-4369-8167-130122bfdf07" />
+  <Project Path="viewer-keysym-test/viewer-keysym-test.vcxproj" Id="10b3f744-b1b4-41fa-90d5-bc630cb19b6b">
     <BuildDependency Project="log-writer/log-writer.vcxproj" />
     <BuildDependency Project="rfb/rfb.vcxproj" />
     <BuildDependency Project="viewer-core/viewer-core.vcxproj" />
     <BuildDependency Project="win-system/win-system.vcxproj" />
   </Project>
-  <Project Path="win-system/win-system.vcxproj" />
+  <Project Path="win-system/win-system.vcxproj" Id="56eadc5b-9c2c-431c-9275-98fe9088518b" />
 </Solution>
