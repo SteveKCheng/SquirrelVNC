@@ -38,19 +38,22 @@ KeySymTest::KeySymTest(const TCHAR *fileFrom, const TCHAR *fileTo)
   m_isNextEventInSeries(false),
   m_log(0)
 {
+  // The destructor does not run if this throws, so whatever has been
+  // opened or allocated is released before each throw.
+  errno_t error = _tfopen_s(&m_fFrom, m_fromFileName.getString(), _T("rt,ccs=UNICODE"));
+  if (error != 0) {
+    StringStorage errMess;
+    errMess.format(_T("Cannot open the %s file (error %d)"), m_fromFileName.getString(), error);
+    throw Exception(errMess.getString());
+  }
+  error = _tfopen_s(&m_fTo, m_toFileName.getString(), _T("wt,ccs=UNICODE"));
+  if (error != 0) {
+    fclose(m_fFrom);
+    StringStorage errMess;
+    errMess.format(_T("Cannot open the %s file (error %d)"), m_toFileName.getString(), error);
+    throw Exception(errMess.getString());
+  }
   m_rfbKeySym = new RfbKeySym(this, &m_log);
-  m_fFrom = _tfopen(m_fromFileName.getString(), _T("rt,ccs=UNICODE"));
-  if (m_fFrom == 0) {
-    StringStorage errMess;
-    errMess.format(_T("Cannot open the %s file"), m_fromFileName.getString());
-    throw Exception(errMess.getString());
-  }
-  m_fTo = _tfopen(m_toFileName.getString(), _T("wt,ccs=UNICODE"));
-  if (m_fTo == 0) {
-    StringStorage errMess;
-    errMess.format(_T("Cannot open the %s file"), m_toFileName.getString());
-    throw Exception(errMess.getString());
-  }
 }
 
 KeySymTest::~KeySymTest()

@@ -29,6 +29,11 @@
 class KeySymTest : public RfbKeySymListener
 {
 public:
+  // Opens fileFrom, a test script of key events, for reading, and creates
+  // or truncates fileTo for the keysyms that run() writes, both as
+  // Unicode text (the CRT's "ccs=UNICODE" mode).  While the test runs, fileTo cannot be opened by anything
+  // else (_tfopen_s() opens files for writing without sharing).  Throws
+  // Exception, with the CRT's errno value, if either cannot be opened.
   KeySymTest(const TCHAR *fileFrom, const TCHAR *fileTo);
   virtual ~KeySymTest();
 
