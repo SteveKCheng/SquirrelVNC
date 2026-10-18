@@ -188,11 +188,10 @@ bool ViewerWindow::viewerCoreSettings()
   // set -1, if jpeg-compression is disabled
   m_viewerCore->setJpegQualityLevel(m_conConf->getJpegCompressionLevel());
 
-  if (m_conConf->isUsing8BitColor()) {
-    m_viewerCore->setPixelFormat(&StandardPixelFormatFactory::create8bppPixelFormat());
-  } else {
-    m_viewerCore->setPixelFormat(&StandardPixelFormatFactory::create32bppPixelFormat());
-  }
+  PixelFormat pixelFormat = m_conConf->isUsing8BitColor()
+                            ? StandardPixelFormatFactory::create8bppPixelFormat()
+                            : StandardPixelFormatFactory::create32bppPixelFormat();
+  m_viewerCore->setPixelFormat(&pixelFormat);
   return true;
 }
 

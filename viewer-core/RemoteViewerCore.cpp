@@ -281,11 +281,14 @@ bool RemoteViewerCore::updatePixelFormat()
     AutoLock al(&m_fbLock);
     // FIXME: here isn't accept true-colour flag.
     // PixelFormats may be equal, if isn't.
-    if (pxFormat.isEqualTo(&m_frameBuffer.getPixelFormat())) {
+    PixelFormat fbPixelFormat = m_frameBuffer.getPixelFormat();
+    if (pxFormat.isEqualTo(&fbPixelFormat)) {
       return false;
     }
-    if (m_frameBuffer.getBuffer() != 0)
-      setFbProperties(&m_frameBuffer.getDimension(), &pxFormat);
+    if (m_frameBuffer.getBuffer() != 0) {
+      Dimension fbDimension = m_frameBuffer.getDimension();
+      setFbProperties(&fbDimension, &pxFormat);
+    }
   }
 
   RfbSetPixelFormatClientMessage pixelFormatMessage(&pxFormat);
@@ -1080,7 +1083,9 @@ void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
     m_logWriter.info(_T("Changed size of desktop"));
     {
       AutoLock al(&m_fbLock);
-      setFbProperties(&Dimension(rect), &m_frameBuffer.getPixelFormat());
+      Dimension dimension(rect);
+      PixelFormat pixelFormat = m_frameBuffer.getPixelFormat();
+      setFbProperties(&dimension, &pixelFormat);
     }
     break;
     
@@ -1298,7 +1303,8 @@ void RemoteViewerCore::handshake()
   m_logWriter.info(_T("Send to server protocol version: %s"), getProtocolString().getString());
 
   AnsiStringStorage clientProtocolAnsi;
-  clientProtocolAnsi.fromStringStorage(&getProtocolString());
+  StringStorage protocolString = getProtocolString();
+  clientProtocolAnsi.fromStringStorage(&protocolString);
   m_output->writeFully(clientProtocolAnsi.getString(), 12);
   m_output->flush();
 }
@@ -1503,7 +1509,8 @@ void RemoteViewerCore::sendEncodings()
     return;
   }
 
-  RfbSetEncodingsClientMessage encodingsMessage(&m_decoderStore.getDecoderIds());
+  std::vector<INT32> decoderIds = m_decoderStore.getDecoderIds();
+  RfbSetEncodingsClientMessage encodingsMessage(&decoderIds);
   encodingsMessage.send(m_output);
 }
 

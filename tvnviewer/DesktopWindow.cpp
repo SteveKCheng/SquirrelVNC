@@ -359,11 +359,14 @@ void DesktopWindow::doDraw(DeviceContext *dc)
   int iWidth = m_clientArea.getWidth() - dst.getWidth();
   int iHeight = m_clientArea.getHeight() - dst.getHeight();
 
+  RECT rcSrc = src.toWindowsRect();
+  RECT rcDst = dst.toWindowsRect();
   if (iWidth || iHeight) {
-    drawBackground(dc, &m_clientArea.toWindowsRect(), &dst.toWindowsRect());
+    RECT rcClient = m_clientArea.toWindowsRect();
+    drawBackground(dc, &rcClient, &rcDst);
   }
 
-  drawImage(&src.toWindowsRect(), &dst.toWindowsRect());
+  drawImage(&rcSrc, &rcDst);
 }
 
 void DesktopWindow::applyScrollbarChanges(bool isChanged, bool isVert, bool isHorz, int wndWidth, int wndHeight)
@@ -381,7 +384,8 @@ void DesktopWindow::applyScrollbarChanges(bool isChanged, bool isVert, bool isHo
   }
 
   if (isChanged) {
-    m_scManager.setWindow(&Rect(0, 0, wndWidth, wndHeight));
+    Rect rcWindow(0, 0, wndWidth, wndHeight);
+    m_scManager.setWindow(&rcWindow);
     if (m_showVert) {
       m_sbar.setVertRange(0, m_scManager.getVertPoints(), wndHeight);
     }
@@ -542,9 +546,8 @@ void DesktopWindow::setNewFramebuffer(const FrameBuffer *framebuffer)
       dimension.width = alignWidth * 4;
       int alignHeight = (dimension.height + 3) / 4;
       dimension.height = alignHeight * 4;
-      m_framebuffer.setProperties(&dimension, 
-                                  &framebuffer->getPixelFormat(), 
-                                  getHWnd());
+      PixelFormat pixelFormat = framebuffer->getPixelFormat();
+      m_framebuffer.setProperties(&dimension, &pixelFormat, getHWnd());
       m_framebuffer.setColor(0, 0, 0);
       m_scManager.setScreenResolution(dimension.width, dimension.height);
     } else {
@@ -554,7 +557,8 @@ void DesktopWindow::setNewFramebuffer(const FrameBuffer *framebuffer)
     }
   }
   if (dimension.isEmpty()) {
-    repaint(&dimension.getRect());
+    Rect rect = dimension.getRect();
+    repaint(&rect);
   } else {
     m_isBackgroundDirty = isBackgroundDirty;
   }
@@ -589,7 +593,8 @@ void DesktopWindow::repaint(const Rect *repaintRect)
     ++wnd.bottom;
   }
   wnd.intersection(&rect);
-  redraw(&wnd.toWindowsRect());
+  RECT rcWnd = wnd.toWindowsRect();
+  redraw(&rcWnd);
 }
 
 void DesktopWindow::setScale(int scale)
