@@ -25,6 +25,27 @@
 
 #include <stdio.h>
 
+// Turn off the MSVC warning about "unsafe functions" in the CRT.
+// 
+// The below 2 usages are safe _stscanf is not writing to any variable-length
+// string buffer, but only to scalar variables, whose widths are fixed at 
+// compile-time, and are passed in correctly.
+#pragma warning(push)
+#pragma warning(disable:4996)   
+
+bool StringParser::parseHex(const TCHAR* str, unsigned int* out)
+{
+    TCHAR c;
+    unsigned int val;
+    if (_stscanf(str, _T("%x%c"), &val, &c) != 1) {
+        return false;
+    }
+    if (out != NULL) {
+        *out = val;
+    }
+    return true;
+}
+
 bool StringParser::parseInt(const TCHAR *str, int *out)
 {
   int value = 0;
@@ -38,6 +59,8 @@ bool StringParser::parseInt(const TCHAR *str, int *out)
 
   return true;
 }
+
+#pragma warning(pop)    // disable:4996
 
 bool StringParser::parseUInt(const TCHAR *str, unsigned int *out)
 {
@@ -68,17 +91,4 @@ bool StringParser::parseUInt(const TCHAR *str, unsigned int *out)
 bool StringParser::tryParseInt(const TCHAR *str)
 {
   return parseInt(str, NULL);
-}
-
-bool StringParser::parseHex(const TCHAR *str, unsigned int *out)
-{
-  TCHAR c;
-  unsigned int val;
-  if (_stscanf(str, _T("%x%c"), &val, &c) != 1) {
-    return false;
-  }
-  if (out != NULL) {
-    *out = val;
-  }
-  return true;
 }
