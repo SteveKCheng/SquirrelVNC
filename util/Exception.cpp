@@ -28,13 +28,9 @@ Exception::Exception()
   m_message.setString(_T(""));
 }
 
-Exception::Exception(const TCHAR *format, ...)
+Exception::Exception(const TCHAR *message)
 {
-  va_list vl;
-
-  va_start(vl, format);
-  m_message.format(format, vl);
-  va_end(vl);
+  m_message.setString(message);
 }
 
 Exception::~Exception()

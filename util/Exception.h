@@ -40,9 +40,9 @@ public:
   Exception();
   /**
    * Creates exception with specified description.
-   * @param format description string in printf-like notation.
+   * @param message description string, used as is.
    */
-  Exception(const TCHAR *format, ...);
+  Exception(const TCHAR *message);
   /**
    * Destructor.
    */
