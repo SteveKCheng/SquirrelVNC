@@ -31,6 +31,10 @@ SquirrelVNC is a fork of TightVNC's viewer with some improvements in aesthetics,
   - Supporting every VNC extension under the sun
   - For the author to sell proprietary versions of this software
 
+## Documentation
+
+  - [Command-line arguments](docs/command-line.md)
+
 ## Status
 
 Originally the author only needed a small fix to TightVNC, but figured others might be interested, 
