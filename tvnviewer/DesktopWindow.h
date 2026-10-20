@@ -24,6 +24,8 @@
 #ifndef _DESKTOP_WINDOW_H_
 #define _DESKTOP_WINDOW_H_
 
+#include <memory>
+
 #include "win-system/WinClipboard.h"
 #include "gui/DibFrameBuffer.h"
 #include "region/Rect.h"
@@ -121,8 +123,8 @@ protected:
   // This variable is true after call CoreEventsAdapter::onConnected().
   bool m_isConnected;
 
-  // keyboard support
-  std::auto_ptr<RfbKeySym> m_rfbKeySym;
+  // Keyboard support.  Created in the constructor and never null.
+  std::unique_ptr<RfbKeySym> m_rfbKeySym;
 
   // This variable contained previously state of mouse-button and position of cursor.
   unsigned char m_previousMouseState;

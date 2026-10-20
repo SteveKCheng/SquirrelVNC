@@ -40,7 +40,9 @@ DesktopWindow::DesktopWindow(LogWriter *logWriter, ConnectionConfig *conConf)
   m_previousMouseState(0),
   m_isBackgroundDirty(false)
 {
-  m_rfbKeySym = std::auto_ptr<RfbKeySym>(new RfbKeySym(this, m_logWriter));
+  // Not make_unique(): RfbKeySymListener is a protected base, so only this
+  // class can convert this to it.
+  m_rfbKeySym.reset(new RfbKeySym(this, m_logWriter));
 }
 
 DesktopWindow::~DesktopWindow()
