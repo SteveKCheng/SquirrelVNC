@@ -21,6 +21,7 @@
 //-------------------------------------------------------------------------
 //
 
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
 
@@ -132,7 +133,8 @@ void ConnectionData::setPlainPassword(const StringStorage *password)
   memset(plainPassword, 0, VncAuthentication::VNC_PASSWORD_SIZE);
   memcpy(plainPassword,
          ansiPlainPassword.getString(),
-         min(VncAuthentication::VNC_PASSWORD_SIZE, ansiPlainPassword.getSize()));
+         std::min<size_t>(VncAuthentication::VNC_PASSWORD_SIZE,
+                          ansiPlainPassword.getSize()));
   VncPassCrypt::getEncryptedPass(encryptedPassword, plainPassword);
   UINT8 hidePasswordChars[VncAuthentication::VNC_PASSWORD_SIZE * 2 + 1];
   hidePasswordChars[VncAuthentication::VNC_PASSWORD_SIZE * 2] = 0;
