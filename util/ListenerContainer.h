@@ -46,13 +46,15 @@ template<class T> class ListenerContainer {
 public:
 
   //
-  // Adds listener to class listeners list
+  // Adds listener to class listeners list, unless it is already there
+  // (compared with ==), so each listener appears at most once.
+  // Holds the list's lock, so it may be called from any thread.
   //
 
   void addListener(T listener) {
     AutoLock l(&m_listeners);
 
-    vector<T>::iterator it;
+    typename vector<T>::iterator it;
     for (it = m_listeners.begin(); it != m_listeners.end(); it++) {
       T current = *it;
       if (current == listener) {
@@ -69,13 +71,14 @@ public:
   }
 
   //
-  // Removes listener from class listeners list
+  // Removes listener from class listeners list; does nothing if it is not
+  // there.  Holds the list's lock, so it may be called from any thread.
   //
 
   void removeListener(T listener) {
     AutoLock l(&m_listeners);
 
-    vector<T>::iterator it;
+    typename vector<T>::iterator it;
     for (it = m_listeners.begin(); it != m_listeners.end(); it++) {
       T current = *it;
       if (current == listener) {
