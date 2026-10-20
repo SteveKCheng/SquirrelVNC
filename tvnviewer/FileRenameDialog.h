@@ -29,7 +29,12 @@
 class FileRenameDialog : public NewFolderDialog
 {
 public:
+  // Creates the dialog with no owner window.
   FileRenameDialog();
+
+  // Creates the dialog owned by parent, which showModal() disables while
+  // the dialog is open.  parent must outlive the dialog; null means no
+  // owner, as for the default constructor.
   FileRenameDialog(Control *parent);
   ~FileRenameDialog();
 
