@@ -240,21 +240,27 @@ and VeNCrypt are all absent.
   against messages sent from the GUI and core threads. Changing pixel
   format needs a Fence, then SetPixelFormat, then switching decoders
   exactly at the Fence reply. With one loop all of this is natural.
-- **TLS** (VeNCrypt, with AnonTLS as a fallback). **The current
-  threading conflicts with TLS.** The core thread reads while the GUI
-  thread writes, concurrently on one connection; an OpenSSL `SSL` object
-  is not safe for concurrent `SSL_read` and `SSL_write`, nor is a
-  Schannel context, and reads can need to write (TLS 1.3 key updates and
-  other post-handshake messages). A lock around both would not work,
-  because a blocked read would hold it and starve writes. The
+- **TLS** (VeNCrypt with the X509 subtypes; Schannel has no anonymous
+  cipher suites, see `other-clients.md`). **The current threading
+  conflicts with TLS.** The core thread reads while the GUI thread
+  writes, concurrently on one connection. An OpenSSL `SSL` object is
+  not safe for concurrent `SSL_read` and `SSL_write`. A Schannel
+  context does tolerate one `EncryptMessage` alongside one
+  `DecryptMessage` (UltraVNC relies on this), but not alongside the
+  handshake, and reads can need to write: renegotiation, and TLS 1.3
+  post-handshake messages such as session tickets and key updates. A
+  lock around both directions would not work, because a blocked read
+  would hold it and starve writes; UltraVNC leaves the handshake path
+  unprotected instead. The
   negotiation is also a chain of requests and replies with GUI prompts
   in the middle: VeNCrypt version, subtypes, the TLS handshake partway
   through the RFB handshake, a certificate prompt, then Plain or VNC
   authentication inside the tunnel. As coroutines that is straight-line
   code (`co_await tls.async_handshake(...)`, `co_await
   askUserToTrust(cert)`). Asio provides `ssl::stream` over OpenSSL;
-  OpenSSL's memory BIOs also fit the sans-I/O core. On Windows the
-  alternative is wrapping Schannel, which avoids the OpenSSL dependency.
+  OpenSSL's memory BIOs also fit the sans-I/O core. The chosen
+  implementation is Schannel, which avoids the OpenSSL dependency and
+  also fits the sans-I/O core (`other-clients.md`).
 
 **TLS is the feature that justifies the rewrite**: doing it before the
 event loop means fighting the concurrent reads and writes. Continuous
