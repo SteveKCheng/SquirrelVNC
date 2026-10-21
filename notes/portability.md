@@ -1,5 +1,12 @@
 # Portability: Linux builds, a headless RFB client, CMake
 
+**Status (2026-10-21).** This note describes the code as inherited from
+TightVNC. The plan has since moved on: networking is to be rewritten as
+asynchronous (`async-networking.md`), which removes much of the Win32
+use described here, so its recommendations are provisional. Once that
+rewrite is done, most of this note becomes historical, like
+`old-server.md`; it stays as a record of where SquirrelVNC started.
+
 Investigation (2026-10-20) of how far the code can be built away from
 Windows. The aim is not a GUI client on another platform, but easier
 development:
@@ -207,6 +214,11 @@ triplets, so the exe matches the MSBuild one. llvm-mingw also works,
 but brings a different CRT and headers, and more behaviour differences.
 
 ## Recommendations, in order
+
+**Provisional; the final plan will differ.** In particular, rewriting
+`thread` on the standard library and the socket compatibility header
+(step 3) would be thrown away by the asynchronous rewrite, which replaces
+both with Asio; see `async-networking.md`.
 
 1. **Fuzz on Windows first, at almost no cost.** MSVC supports
    AddressSanitizer (`/fsanitize=address`) and libFuzzer

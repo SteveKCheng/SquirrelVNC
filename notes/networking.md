@@ -1,5 +1,11 @@
 # Networking: IPv6 and host-name lookup
 
+**Historical once replaced.** The layers described here are the
+original design from TightVNC. The asynchronous rewrite
+(`async-networking.md`) replaces them with Asio, which brings IPv6 and
+cancellable lookup and connect; the host-string syntax below still
+applies.
+
 Notes for later work on the connection code. Host names are now looked
 up with `GetAddrInfo()`, asking for IPv4 addresses only; everything
 below is still to do.

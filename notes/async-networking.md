@@ -297,6 +297,12 @@ can go in either order.
 
 ## Order of work
 
+**Provisional; the final plan will differ.** Project-level clean-up
+comes first: the remaining warnings, building as C++20 without
+permissive mode, merging the static libraries, ASan and fuzzer builds,
+and protocol-level tests. The decomposition of the rewrite itself is
+still being planned.
+
 1. **Keepalive**, on the current code.
 2. **Fuzzers and replay tests on the current code.** They work today,
    through `ByteArrayInputStream`. The decoders are the code most

@@ -1,5 +1,10 @@
 # Concurrency: threads, locks and queues
 
+**Historical once replaced.** This is the original design from
+TightVNC. It is to be replaced by one event loop and C++20 coroutines
+(`async-networking.md`), after which this note is kept, like
+`old-server.md`, as a record of the starting point.
+
 How the viewer handles decoding, rendering, network I/O and GUI events
 concurrently, as inherited from TightVNC (investigated 2026-10-20). No
 changes have been made from this yet; it is input for deciding what to
