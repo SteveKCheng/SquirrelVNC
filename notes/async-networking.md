@@ -304,7 +304,7 @@ can go in either order.
 ## Order of work
 
 **Provisional; the final plan will differ.** Project-level clean-up
-comes first: the remaining warnings, building as C++20 without
+comes first: the remaining warnings, building as C\+\+20 without
 permissive mode, merging the static libraries, ASan and fuzzer builds,
 and protocol-level tests. The rewrite itself is decomposed in "Plan for
 the rewrite" below, which supersedes this list.
@@ -324,8 +324,8 @@ the rewrite" below, which supersedes this list.
 ## Plan for the rewrite
 
 Agreed 2026-10-21. It comes after the project-level clean-up: the
-remaining warnings, C++20 without permissive mode (a prerequisite:
-coroutines need C++20), merging the static libraries, ASan and fuzzer
+remaining warnings, C\+\+20 without permissive mode (a prerequisite:
+coroutines need C\+\+20), merging the static libraries, ASan and fuzzer
 builds, and protocol-level tests.
 
 ### Why the rewrite need not be one commit
