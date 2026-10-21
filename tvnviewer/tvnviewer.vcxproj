@@ -305,7 +305,7 @@
   </ItemGroup>
   <ItemDefinitionGroup>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>$(IntResDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)res;$(IntResDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <Target Name="RenderIcons" BeforeTargets="ResourceCompile"
@@ -321,14 +321,15 @@
   </Target>
 
   <!-- Generate dialog resources from XML via WinDlgGen -->
-  <ItemGroup>
-    <WinDlgGen Include="res\options-dialog.xml" />
-  </ItemGroup>
   <PropertyGroup>
     <WinDlgGenDir>..\tools\WinDlgGen\</WinDlgGenDir>
     <WinDlgGenExe>$(WinDlgGenDir)out\bin\WinDlgGen\release\WinDlgGen.exe</WinDlgGenExe>
     <WinDlgGenOutputFile>$(IntResDir)WinDlgGenOutput.rc</WinDlgGenOutputFile>
   </PropertyGroup>
+  <ItemGroup>
+    <WinDlgGen Include="res\options-dialog.xml" />
+    <ResourceCompile Include="$(IntResDir)WinDlgGenOutput.rc" />
+  </ItemGroup>
   <Target Name="EnsureWinDlgGen">
     <Error Condition="!Exists('$(WinDlgGenDir)src\WinDlgGen\WinDlgGen.csproj')" Text="WinDlgGen submodule is needed to generate Windows resource files, but is not checked out in the source tree" />
     <MSBuild Projects="..\tools\WinDlgGen\src\WinDlgGen\WinDlgGen.csproj" Targets="Build" Properties="Configuration=Release" RemoveProperties="Platform" />
@@ -337,6 +338,7 @@
           Inputs="@(WinDlgGen)"
           Outputs="$(WinDlgGenOutputFile)">
     <MakeDir Directories="$(IntResDir)" />
+    <Message Text="Generating dialog resources from XML" Importance="High" />
     <Exec Command="&quot;$(WinDlgGenExe)&quot; -i res\preamble.h -o &quot;$(WinDlgGenOutputFile)&quot; @(WinDlgGen->'&quot;%(FullPath)&quot;', ' ')" />
   </Target>
 
