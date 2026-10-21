@@ -3,8 +3,7 @@
 What kinds of security problems the inherited TightVNC code has, so that
 later work knows what to look for. The individual fixes are described in
 their commit messages: search the log for `[SECURITY]` and
-`[PORTABILITY]` (the first fixes, `8772626` to `8635999` on the
-`fix-warnings` branch, came before the prefixes were adopted).
+`[PORTABILITY]`.
 
 ## Threat model and priority
 
