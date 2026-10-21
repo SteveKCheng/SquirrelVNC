@@ -23,7 +23,7 @@
 
 #include "FileInfoListView.h"
 #include "util/DateTime.h"
-#include "tvnviewer/resource.h"
+#include "tvnviewer/res/resource.h"
 #include "util/ResourceLoader.h"
 #include <crtdbg.h>
 #include <stdio.h>

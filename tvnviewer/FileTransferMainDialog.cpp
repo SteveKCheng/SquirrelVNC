@@ -30,7 +30,7 @@
 
 #include "file-lib/File.h"
 
-#include "resource.h"
+#include "res/resource.h"
 #include <stdio.h>
 
 FileTransferMainDialog::FileTransferMainDialog(FileTransferCore *core)

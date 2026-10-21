@@ -240,7 +240,7 @@
     <None Include="res\smalldot.cur" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="tvnviewer.rc" />
+    <ResourceCompile Include="res/tvnviewer.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\client-config-lib\client-config-lib.vcxproj">

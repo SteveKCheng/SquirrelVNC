@@ -25,7 +25,7 @@
 #define _RESOURCE_STRINGS_H_
 
 #include "util/CommonHeader.h"
-#include "resource.h"
+#include "res/resource.h"
 
 class ResourceStrings
 {

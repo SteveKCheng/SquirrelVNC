@@ -34,7 +34,7 @@
 #include "gui/CheckBox.h"
 #include "gui/ComboBox.h"
 #include "gui/TrackBar.h"
-#include "resource.h"
+#include "res/resource.h"
 
 class OptionsDialog : public BaseDialog
 {

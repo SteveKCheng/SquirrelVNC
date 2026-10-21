@@ -23,7 +23,7 @@
 
 #include "FileExistDialog.h"
 #include "util/DateTime.h"
-#include "resource.h"
+#include "res/resource.h"
 #include <crtdbg.h>
 #include <stdio.h>
 

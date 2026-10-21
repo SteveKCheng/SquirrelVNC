@@ -379,9 +379,9 @@ END
 // Cursor
 //
 
-IDI_CDOT                CURSOR                  "res\\dot.cur"
-IDI_CNOCURSOR           CURSOR                  "res\\nocursor.cur"
-IDI_CSMALLDOT           CURSOR                  "res\\smalldot.cur"
+IDI_CDOT                CURSOR                  "dot.cur"
+IDI_CNOCURSOR           CURSOR                  "nocursor.cur"
+IDI_CSMALLDOT           CURSOR                  "smalldot.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -391,9 +391,9 @@ IDI_CSMALLDOT           CURSOR                  "res\\smalldot.cur"
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_APPICON             ICON                    "SquirrelVNC.ico"
-IDI_FILE_ICON           ICON                    "res\\ftfile.ico"
-IDI_FILEUP              ICON                    "res\\fileup.ico"
-IDI_FOLDER_ICON         ICON                    "res\\ftdir.ico"
+IDI_FILE_ICON           ICON                    "ftfile.ico"
+IDI_FILEUP              ICON                    "fileup.ico"
+IDI_FOLDER_ICON         ICON                    "ftdir.ico"
 IDI_TB_NEWCONNECTION    ICON                    "toolbar-new.ico"
 IDI_TB_SAVESESSION      ICON                    "toolbar-save.ico"
 IDI_TB_CONNOPTIONS      ICON                    "toolbar-options.ico"

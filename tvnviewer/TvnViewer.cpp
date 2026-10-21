@@ -24,7 +24,7 @@
 #include "TvnViewer.h"
 #include "network/socket/WindowsSocket.h"
 #include "util/ResourceLoader.h"
-#include "resource.h"
+#include "res/resource.h"
 
 TvnViewer::TvnViewer(HINSTANCE appInstance, const TCHAR *windowClassName,
                      const TCHAR *viewerWindowClassName)

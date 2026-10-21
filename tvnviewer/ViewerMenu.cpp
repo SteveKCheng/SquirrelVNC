@@ -22,7 +22,7 @@
 //
 
 #include "ViewerMenu.h"
-#include "resource.h"
+#include "res/resource.h"
 
 #include "util/ResourceLoader.h"
 

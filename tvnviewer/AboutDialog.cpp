@@ -28,7 +28,7 @@
 #include "gui/Control.h"
 #include "gui/ScaledIcons.h"
 #include "BuildTime.h"
-#include "resource.h"
+#include "res/resource.h"
 
 AboutDialog::AboutDialog()
 : BaseDialog(IDD_ABOUT_DIALOG)

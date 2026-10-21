@@ -36,7 +36,7 @@
 #include "gui/TrackBar.h"
 
 #include "TvnViewer.h"
-#include "resource.h"
+#include "res/resource.h"
 
 class TvnViewer;
 

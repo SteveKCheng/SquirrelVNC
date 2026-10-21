@@ -24,7 +24,7 @@
 #include "ConfigurationDialog.h"
 #include "NamingDefs.h"
 #include "TvnViewer.h"
-#include "resource.h"
+#include "res/resource.h"
 
 #include "file-lib/File.h"
 #include "win-system/Shell.h"

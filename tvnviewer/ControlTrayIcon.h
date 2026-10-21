@@ -28,7 +28,7 @@
 #include "gui/Menu.h"
 #include "TvnViewer.h"
 
-#include "resource.h"
+#include "res/resource.h"
 
 class TvnViewer;
 

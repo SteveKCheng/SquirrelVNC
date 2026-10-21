@@ -22,7 +22,7 @@
 //
 
 #include "NewFolderDialog.h"
-#include "resource.h"
+#include "res/resource.h"
 
 NewFolderDialog::NewFolderDialog()
 {
