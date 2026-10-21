@@ -1,0 +1,3 @@
+[submodule "tools/WinDlgGen"]
+	path = tools/WinDlgGen
+	url = https://github.com/SteveKCheng/WinDlgGen.git
