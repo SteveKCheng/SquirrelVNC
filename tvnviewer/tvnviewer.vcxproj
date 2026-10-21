@@ -295,7 +295,7 @@
     are those of small icons from 100% to 400% scaling.
   -->
   <PropertyGroup>
-    <SvgIconDir>$(IntDir)icons\</SvgIconDir>
+    <IntResDir>$(IntDir)res\</IntResDir>
     <Svg2IcoExe>$(OutDir)svg2ico.exe</Svg2IcoExe>
     <AppIconSvg>$(MSBuildProjectDirectory)\..\art\logo-publish.svg</AppIconSvg>
     <ToolbarIconSizes>16,20,24,28,32,40,48,56,64</ToolbarIconSizes>
@@ -305,20 +305,41 @@
   </ItemGroup>
   <ItemDefinitionGroup>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>$(SvgIconDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IntResDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <Target Name="RenderIcons" BeforeTargets="ResourceCompile"
-          Inputs="$(AppIconSvg);$(Svg2IcoExe)" Outputs="$(SvgIconDir)SquirrelVNC.ico">
-    <MakeDir Directories="$(SvgIconDir)" />
-    <Exec Command="&quot;$(Svg2IcoExe)&quot; --ico &quot;$(SvgIconDir)SquirrelVNC.ico&quot; &quot;$(AppIconSvg)&quot;" />
+          Inputs="$(AppIconSvg);$(Svg2IcoExe)" Outputs="$(IntResDir)SquirrelVNC.ico">
+    <MakeDir Directories="$(IntResDir)" />
+    <Exec Command="&quot;$(Svg2IcoExe)&quot; --ico &quot;$(IntResDir)SquirrelVNC.ico&quot; &quot;$(AppIconSvg)&quot;" />
   </Target>
   <Target Name="RenderToolbarIcons" BeforeTargets="ResourceCompile"
           Inputs="@(ToolbarIconSvg);$(Svg2IcoExe)"
-          Outputs="@(ToolbarIconSvg->'$(SvgIconDir)%(Filename).ico')">
-    <MakeDir Directories="$(SvgIconDir)" />
-    <Exec Command="&quot;$(Svg2IcoExe)&quot; --sizes $(ToolbarIconSizes) --extent 16 --ico &quot;$(SvgIconDir)%(ToolbarIconSvg.Filename).ico&quot; &quot;%(ToolbarIconSvg.FullPath)&quot;" />
+          Outputs="@(ToolbarIconSvg->'$(IntResDir)%(Filename).ico')">
+    <MakeDir Directories="$(IntResDir)" />
+    <Exec Command="&quot;$(Svg2IcoExe)&quot; --sizes $(ToolbarIconSizes) --extent 16 --ico &quot;$(IntResDir)%(ToolbarIconSvg.Filename).ico&quot; &quot;%(ToolbarIconSvg.FullPath)&quot;" />
   </Target>
+
+  <!-- Generate dialog resources from XML via WinDlgGen -->
+  <ItemGroup>
+    <WinDlgGen Include="res\options-dialog.xml" />
+  </ItemGroup>
+  <PropertyGroup>
+    <WinDlgGenDir>..\tools\WinDlgGen\</WinDlgGenDir>
+    <WinDlgGenExe>$(WinDlgGenDir)out\bin\WinDlgGen\release\WinDlgGen.exe</WinDlgGenExe>
+    <WinDlgGenOutputFile>$(IntResDir)WinDlgGenOutput.rc</WinDlgGenOutputFile>
+  </PropertyGroup>
+  <Target Name="EnsureWinDlgGen">
+    <Error Condition="!Exists('$(WinDlgGenDir)src\WinDlgGen\WinDlgGen.csproj')" Text="WinDlgGen submodule is needed to generate Windows resource files, but is not checked out in the source tree" />
+    <MSBuild Projects="..\tools\WinDlgGen\src\WinDlgGen\WinDlgGen.csproj" Targets="Build" Properties="Configuration=Release" RemoveProperties="Platform" />
+  </Target>
+  <Target Name="GenerateDialogResources" BeforeTargets="ResourceCompile" DependsOnTargets="EnsureWinDlgGen"
+          Inputs="@(WinDlgGen)"
+          Outputs="$(WinDlgGenOutputFile)">
+    <MakeDir Directories="$(IntResDir)" />
+    <Exec Command="&quot;$(WinDlgGenExe)&quot; -i res\preamble.h -o &quot;$(WinDlgGenOutputFile)&quot; @(WinDlgGen->'&quot;%(FullPath)&quot;', ' ')" />
+  </Target>
+
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

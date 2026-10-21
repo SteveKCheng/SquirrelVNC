@@ -1,0 +1,2 @@
+#include "resource.h"
+#include "winres.h"

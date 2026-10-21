@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SquirrelVNC's Connection Options dialog (IDD_OPTIONS), as an example.
+  The controls and identifiers are those of the hand-made dialog in
+  tvnviewer.rc; the positions are left to the layout.
+-->
+<dialog id="IDD_OPTIONS" caption="Connection Options">
+  <hstack align="stretch" spacing="7">
+    <vstack width="140" spacing="7">
+      <group text="Format and Encodings">
+        <hstack>
+          <label text="Preferred encoding:" width="66"/>
+          <combobox id="IDC_CUSEENC" grow="1"/>
+        </hstack>
+        <checkbox id="IDC_CEIGHTBIT" text="256 colors (less traffic)"/>
+        <checkbox id="IDC_CCOMPRLVL" text="Set custom compression level:"/>
+        <hstack>
+          <label id="IDC_SFAST" text="fast" textAlign="right" width="18"/>
+          <trackbar id="IDC_SCOMP" ticks="true" height="19" grow="1"/>
+          <label id="IDC_SBEST" text="best" width="18"/>
+        </hstack>
+        <hstack>
+          <spacer grow="1"/>
+          <label id="IDC_STQUALITY" text="level:" textAlign="right" width="24"/>
+          <label id="IDC_SQUALITY" text="6" width="8"/>
+          <spacer grow="1"/>
+        </hstack>
+        <checkbox id="IDC_CJPEG" text="Allow JPEG, set image quality:"/>
+        <hstack>
+          <label id="IDC_SPOOR" text="poor" textAlign="right" width="18"/>
+          <trackbar id="IDC_SJPEG" ticks="true" height="19" grow="1"/>
+          <label id="IDC_SBEST2" text="best" width="18"/>
+        </hstack>
+        <hstack>
+          <spacer grow="1"/>
+          <label id="IDC_STQUALITY2" text="quality:" textAlign="right" width="24"/>
+          <label id="IDC_SQUALITY2" text="6" width="8"/>
+          <spacer grow="1"/>
+        </hstack>
+        <checkbox id="IDC_CCOPYRECT" text="Allow CopyRect encoding"/>
+      </group>
+      <group text="Restrictions" grow="1">
+        <checkbox id="IDC_CVIEWONLY" text="View only (inputs ignored)"/>
+        <checkbox id="IDC_CDISCLIP" text="Disable clipboard transfer"/>
+      </group>
+    </vstack>
+
+    <vstack width="140" spacing="7">
+      <group text="Display">
+        <hstack>
+          <label text="Scale by:" width="30"/>
+          <combobox id="IDC_CSCALE" editable="true" width="38"/>
+          <label text="%" width="8"/>
+        </hstack>
+        <checkbox id="IDC_CFULLSCR" text="Full-screen mode"/>
+        <checkbox id="IDC_CDEICONFY" text="Deiconify on remote Bell event"/>
+      </group>
+      <group text="Mouse">
+        <checkbox id="IDC_CSWAPMOUSE" text="Swap right and middle buttons"/>
+      </group>
+      <group text="Mouse Cursor">
+        <radio id="IDC_RTRACK" text="Track remote cursor locally"/>
+        <radio id="IDC_RCURSOR" text="Let remote server deal with cursor"/>
+        <radio id="IDC_RNCURSOR" text="Don't show remote cursor"/>
+      </group>
+      <group text="Local Cursor Shape" grow="1">
+        <hstack align="start">
+          <vstack grow="1">
+            <radio id="IDC_RDOT" text="Normal dot"/>
+            <radio id="IDC_RSMALLDOT" text="Small dot"/>
+          </vstack>
+          <vstack grow="1">
+            <radio id="IDC_RARROW" text="Arrow"/>
+            <radio id="IDC_RNLOCAL" text="Do not show"/>
+          </vstack>
+        </hstack>
+      </group>
+    </vstack>
+  </hstack>
+
+  <group text="Connecting">
+    <checkbox id="IDC_CSHAREDSES"
+              text="Request shared session (keep clients already connected to the same server)"/>
+  </group>
+
+  <hstack>
+    <spacer grow="1"/>
+    <button id="IDOK" text="OK" default="true"/>
+    <button id="IDCANCEL" text="Cancel"/>
+    <spacer grow="1"/>
+  </hstack>
+</dialog>
