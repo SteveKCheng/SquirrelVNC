@@ -295,7 +295,9 @@
     are those of small icons from 100% to 400% scaling.
   -->
   <PropertyGroup>
-    <IntResDir>$(IntDir)res\</IntResDir>
+	<!-- Outputs are independent of the Configuration and Platform,
+		 so they can be included as Items in the Visual Studio IDE. -->
+    <IntResDir>$(MSBuildThisFileDirectory)..\obj\res\</IntResDir>
     <Svg2IcoExe>$(OutDir)svg2ico.exe</Svg2IcoExe>
     <AppIconSvg>$(MSBuildProjectDirectory)\..\art\logo-publish.svg</AppIconSvg>
     <ToolbarIconSizes>16,20,24,28,32,40,48,56,64</ToolbarIconSizes>

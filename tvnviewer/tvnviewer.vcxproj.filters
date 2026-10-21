@@ -216,5 +216,8 @@
     <ResourceCompile Include="res\tvnviewer.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+    <ResourceCompile Include="..\obj\res\WinDlgGenOutput.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
