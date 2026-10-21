@@ -334,6 +334,11 @@
   </ItemGroup>
   <Target Name="EnsureWinDlgGen">
     <Error Condition="!Exists('$(WinDlgGenDir)src\WinDlgGen\WinDlgGen.csproj')" Text="WinDlgGen submodule is needed to generate Windows resource files, but is not checked out in the source tree" />
+    <!-- Restore the tool's NuGet packages first, as the IDE would; a build
+         from the command line does not.  Restore runs in an evaluation of its
+         own, distinguished by a unique global property as NuGet recommends,
+         so that the build which follows sees the restored package references. -->
+    <MSBuild Projects="..\tools\WinDlgGen\src\WinDlgGen\WinDlgGen.csproj" Targets="Restore" Properties="Configuration=Release;MSBuildRestoreSessionId=$([System.Guid]::NewGuid())" RemoveProperties="Platform" />
     <MSBuild Projects="..\tools\WinDlgGen\src\WinDlgGen\WinDlgGen.csproj" Targets="Build" Properties="Configuration=Release" RemoveProperties="Platform" />
   </Target>
   <Target Name="GenerateDialogResources" BeforeTargets="ResourceCompile" DependsOnTargets="EnsureWinDlgGen"
