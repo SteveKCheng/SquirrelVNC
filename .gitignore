@@ -2,13 +2,8 @@
 /vcpkg_installed/
 
 # Build output
-/Debug/
-/Release/
-/x64/
-/ARM64/
-*/Debug/
-*/Release/
-*/x64/
+bin/
+obj/
 
 # Visual Studio
 .vs/

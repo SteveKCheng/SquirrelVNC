@@ -11,6 +11,18 @@
     <VcpkgUseStatic>true</VcpkgUseStatic>
     <TvnVcpkgMSBuildDir Condition="'$(VCPKG_ROOT)' != ''">$(VCPKG_ROOT)\scripts\buildsystems\msbuild\</TvnVcpkgMSBuildDir>
     <TvnVcpkgMSBuildDir Condition="'$(VCPKG_ROOT)' == ''">$(VsInstallRoot)\VC\vcpkg\scripts\buildsystems\msbuild\</TvnVcpkgMSBuildDir>
+
+    <!-- These variables need defaults for OutDir, IntDir below, when
+	 running on the command line where the user did not supply any setting.
+	 The defaulting normally happens in Microsoft.Cpp.Default.props but that
+	 occurs too late. -->
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+
+    <!-- Make sure output directories are consistent no matter whether
+	 projects are built from the solution or the .vcxproj files directly. -->
+    <OutDir>$(MSBuildThisFileDirectory)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(MSBuildThisFileDirectory)obj\$(Platform)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
   </PropertyGroup>
   <Import Project="$(TvnVcpkgMSBuildDir)vcpkg.props" />
 </Project>
