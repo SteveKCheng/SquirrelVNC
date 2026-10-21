@@ -330,6 +330,7 @@
   </PropertyGroup>
   <ItemGroup>
     <WinDlgGen Include="res\options-dialog.xml" />
+    <WinDlgGen Include="res\authentication-dialog.xml" />
     <ResourceCompile Include="$(IntResDir)WinDlgGenOutput.rc" />
   </ItemGroup>
   <Target Name="EnsureWinDlgGen">

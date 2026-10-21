@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The dialog asking for the password of a server that uses VNC
+  authentication (IDD_DAUTH), shown by AuthenticationDialog.
+-->
+<dialog id="IDD_DAUTH" caption="Vnc Authentication">
+  <vstack>
+    <hstack>
+      <label text="Connected to:" width="51"/>
+      <edit id="IDC_EHOST" readOnly="true" width="101"/>
+    </hstack>
+    <hstack>
+      <label text="Password:" width="51"/>
+      <edit id="IDC_EPASSW" password="true" width="101"/>
+    </hstack>
+  </vstack>
+
+  <hstack>
+    <spacer grow="1"/>
+    <button id="IDOK" text="OK" default="true"/>
+    <button id="IDCANCEL" text="Cancel"/>
+    <spacer grow="1"/>
+  </hstack>
+</dialog>
