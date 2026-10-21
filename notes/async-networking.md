@@ -300,8 +300,8 @@ can go in either order.
 **Provisional; the final plan will differ.** Project-level clean-up
 comes first: the remaining warnings, building as C++20 without
 permissive mode, merging the static libraries, ASan and fuzzer builds,
-and protocol-level tests. The decomposition of the rewrite itself is
-still being planned.
+and protocol-level tests. The rewrite itself is decomposed in "Plan for
+the rewrite" below, which supersedes this list.
 
 1. **Keepalive**, on the current code.
 2. **Fuzzers and replay tests on the current code.** They work today,
@@ -314,3 +314,140 @@ still being planned.
 4. **The event loop and coroutine read path**, with Asio.
 5. **TLS**, then **Continuous Updates and Fence**. Desktop resizing and
    H.264 in either order.
+
+## Plan for the rewrite
+
+Agreed 2026-10-21. It comes after the project-level clean-up: the
+remaining warnings, C++20 without permissive mode (a prerequisite:
+coroutines need C++20), merging the static libraries, ASan and fuzzer
+builds, and protocol-level tests.
+
+### Why the rewrite need not be one commit
+
+1. **An awaitable whose `await_ready()` always returns true never
+   suspends.** If each read does its blocking read inside the awaitable
+   and reports "ready", a coroutine runs exactly like an ordinary call:
+   same thread, same order, same exceptions.
+2. **So a `syncWait(task)` bridge is safe.** It starts the coroutine and
+   checks that it finished; anything else is a logic error. With it, the
+   colouring can go bottom-up, one layer per commit: convert the
+   decoders, and their caller wraps them in `syncWait(...)`; the next
+   commit converts the caller and pushes `syncWait` one level up. Each
+   commit compiles and changes nothing.
+
+The read path to colour:
+
+- **19 functions in `RemoteViewerCore`**: `handshake`,
+  `negotiateSecurityType`, `readSecurityTypeList`, `initTunnelling`,
+  `initAuthentication`, `authenticate`, `readCapabilities`,
+  `readCapability`, `clientAndServerInit`, `readPixelFormat`, `execute`,
+  `receiveServerMessageType`, `receiveFbUpdate`,
+  `receiveFbUpdateRectangle`, `processPseudoEncoding`,
+  `receiveSetColorMapEntries`, `receiveServerCutText`,
+  `receiveServerCutTextUtf8`, `skipBytes`.
+- **The decoders**, through the virtual `DecoderOfRectangle::process` /
+  `decode`, plus the pseudo-encodings.
+- **`VncAuthenticationHandler`**, through the virtual
+  `AuthHandler::authenticate`.
+- **`FileTransferReplyBuffer`**. Of the file-transfer reply handlers it
+  is the only one that reads; the operations receive the stream but
+  never touch it.
+
+No read happens inside a `catch` block, where `co_await` is not
+allowed.
+
+### Phase 1: preparation, all synchronous
+
+Each step is useful on its own.
+
+1. **Adapter callbacks only post to the GUI.** `onConnected`, `onBell`
+   and `onCutText` stop calling window functions from the core thread.
+   This fixes the shutdown deadlock in `concurrency.md`.
+2. **The password dialog moves to the GUI thread.** The core posts a
+   request and waits on a `std::future`: still blocking, but the wait
+   later becomes a `co_await`.
+3. **File transfer parses first, then notifies.**
+   `FileTransferMessageProcessor` calls the reply parser explicitly,
+   then notifies the operations without passing the stream, so the
+   coroutine colour stops at the parser instead of spreading through
+   every handler interface.
+4. **Coroutine infrastructure, unused:** a small lazy `Task<T>` of our
+   own, `syncWait`, and a reader awaitable over today's blocking
+   stream, with unit tests. Asio stays out of the protocol core
+   entirely, so the fuzzers drive it without Asio.
+5. **Keepalive.** Independent; this is just a convenient place for it.
+
+The writing side needs no preparation: every write already goes through
+`RfbOutputGate` under its lock, so the gate can be re-implemented later
+without touching its callers.
+
+### Phase 2: mechanical colouring, each commit a no-op
+
+- Order: decoders → pseudo-encodings and cursor → file-transfer reply
+  parser → authentication handler → `RemoteViewerCore`. The last commit
+  leaves one `syncWait(run())` in `execute()`.
+- Conventions: `[[nodiscard]]` on `Task`; every `Task` is awaited
+  immediately and never stored, which keeps borrowed pointers safe;
+  `return` becomes `co_return`.
+- Checked against the protocol tests and the fuzz corpus: identical
+  output.
+
+### Phase 3: really resumable, still on the core thread
+
+- The reader suspends when its buffer runs short. A small driver on the
+  existing core thread does a blocking `recv`, appends the bytes and
+  resumes the coroutine.
+- This is the first change in behaviour, and it does not touch threads.
+- **Test:** the same streams delivered one byte at a time, and at
+  random split points, must give identical results. That exercises
+  every point where the parser can stop. Fuzzers can split their input
+  the same way.
+- **Audit:** no lock may be held across a `co_await`. It is harmless on
+  one thread, but becomes wrong in Phase 4.
+
+### Phase 4: the event loop
+
+The risky part, split up:
+
+1. **Asio from vcpkg**, and a network-thread object
+   (`asio::thread_pool(1)`), unused.
+2. **Connections move onto the loop.**
+   - The driver becomes `async_read_some`; connecting uses Asio's
+     resolve and connect, still IPv4 only, to keep this to one change.
+   - `RfbOutputGate`'s callers stay as they are. Its `flush()` now hands
+     the buffered bytes to the loop to write.
+   - Listening mode keeps `TcpServer` for now:
+     `asio::ip::tcp::socket::assign()` takes over its native `SOCKET`.
+   - `RemoteViewerCore` stops being a `Thread`. `stop()` posts a
+     cancellation to the loop, and `waitTermination()` waits for the
+     connection's coroutine to finish.
+3. **The password wait** becomes a `co_await` on a GUI-completed
+   operation (`asio::async_initiate`), which resumes on the loop and is
+   always completed, with `operation_aborted` on teardown, so no
+   coroutine is left suspended forever. Objects passed through
+   `LPARAM` are deleted by the receiver, or by the sender if
+   `PostMessage` fails.
+4. **`FbUpdateNotifier` goes.** The loop copies into the DIB under one
+   `std::mutex` and calls `InvalidateRect`.
+5. **File transfer moves onto the loop**: operations the GUI starts are
+   posted to the loop, local deletion becomes a task on a pool, and the
+   file-transfer locks go.
+6. **Listening mode moves to an Asio acceptor.**
+7. **Deletion**: the `thread` library (the logging and framebuffer locks
+   become plain `std::mutex`), the `network` library, `TcpConnection`,
+   `WindowsEvent`, `WsaStartup`, and the locks in the gates.
+
+Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
+the parser stop mid-message, and 4.2 changes which thread owns the
+connection. They are kept apart so that a regression points to one or
+the other. The largest diff is Phase 2, but it is mechanical.
+
+### Afterwards, as features
+
+- IPv6: resolve with `AF_UNSPEC`, and the bracketed host syntax in
+  `networking.md`.
+- Timeouts, and pointer coalescing in the post-to-loop path.
+- TLS, then Continuous Updates with Fence.
+- Independent of all this, on the configuration side: settings in
+  `.ini` files only, and saved passwords in Windows Credential Manager
+  keyed by `user@host`, separately from the `.ini` files.
