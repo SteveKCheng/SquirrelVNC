@@ -3,7 +3,7 @@
   The dialog asking for the password of a server that uses VNC
   authentication (IDD_DAUTH), shown by AuthenticationDialog.
 -->
-<dialog id="IDD_DAUTH" caption="Vnc Authentication">
+<dialog id="IDD_DAUTH" caption="Authentication to VNC Server">
   <vstack>
     <hstack>
       <label text="Connected to:" width="51"/>
