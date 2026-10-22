@@ -32,6 +32,16 @@ struct PixelFormat
 
   bool isEqualTo(const PixelFormat *pf) const;
 
+  // Returns true if this is a true-colour format the viewer can use:
+  // - bitsPerPixel is 8, 16 or 32, and colorDepth is from 1 to bitsPerPixel;
+  // - each colour maximum is 2^n - 1 for some n >= 1, and its shift plus n
+  //   is at most bitsPerPixel, so each colour mask lies within the pixel;
+  // - the three colour masks do not overlap.
+  // Code that converts colours divides by the maxima and shifts by the
+  // shifts, so every format must pass this check before it is used.
+  // Formats from the network are checked where they are read.
+  bool isValid() const;
+
   unsigned short bitsPerPixel;
   unsigned short colorDepth;
 

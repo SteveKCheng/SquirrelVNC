@@ -23,6 +23,8 @@
 
 #include "StandardPixelFormatFactory.h"
 
+#include <crtdbg.h>
+
 
 PixelFormat StandardPixelFormatFactory::create32bppPixelFormat()
 {
@@ -39,6 +41,21 @@ PixelFormat StandardPixelFormatFactory::create32bppPixelFormat()
   return pixelFormat;
 }
 
+PixelFormat StandardPixelFormatFactory::create16bppPixelFormat()
+{
+  PixelFormat pixelFormat;
+  pixelFormat.initBigEndianByNative();
+  pixelFormat.bitsPerPixel = 16;
+  pixelFormat.blueMax = 31;
+  pixelFormat.blueShift = 0;
+  pixelFormat.greenMax = 63;
+  pixelFormat.greenShift = 5;
+  pixelFormat.redMax = 31;
+  pixelFormat.redShift = 11;
+  pixelFormat.colorDepth = 16;
+  return pixelFormat;
+}
+
 PixelFormat StandardPixelFormatFactory::create8bppPixelFormat()
 {
   PixelFormat pixelFormat;
@@ -52,4 +69,17 @@ PixelFormat StandardPixelFormatFactory::create8bppPixelFormat()
   pixelFormat.blueShift = 6;
   pixelFormat.colorDepth = 8;
   return pixelFormat;
+}
+
+PixelFormat StandardPixelFormatFactory::createPixelFormat(unsigned short bitsPerPixel)
+{
+  switch (bitsPerPixel) {
+  case 8:
+    return create8bppPixelFormat();
+  case 16:
+    return create16bppPixelFormat();
+  default:
+    _ASSERT(bitsPerPixel == 32);
+    return create32bppPixelFormat();
+  }
 }

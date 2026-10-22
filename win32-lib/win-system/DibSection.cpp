@@ -134,9 +134,11 @@ void DibSection::setupBitFieldsBMI(Screen::BMI *bmi, const PixelFormat *pf,
 {
   *bmi = {};
   bmi->bmiHeader.biCompression = BI_BITFIELDS;
-  bmi->red   = pf->redMax   << pf->redShift;
-  bmi->green = pf->greenMax << pf->greenShift;
-  bmi->blue  = pf->blueMax  << pf->blueShift;
+  // In UINT32, since a mask in the top bits of a 32-bit pixel does not fit
+  // in an int.
+  bmi->red   = static_cast<UINT32>(pf->redMax)   << pf->redShift;
+  bmi->green = static_cast<UINT32>(pf->greenMax) << pf->greenShift;
+  bmi->blue  = static_cast<UINT32>(pf->blueMax)  << pf->blueShift;
   setupBMIHeader(&bmi->bmiHeader, pf, dim);
 }
 

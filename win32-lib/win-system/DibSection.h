@@ -76,6 +76,8 @@ public:
 private:
   // Opens a new DIB section.
   // If targetDC == 0 the function will use a current desktop DC.
+  // Pre-conditions: pf->isValid(). The format may come from the server
+  // and is checked where it is read (RemoteViewerCore::readPixelFormat()).
   void openDIBSection(const PixelFormat *pf, const Dimension *dim, HWND compatibleWin);
   void closeDIBSection();
   void releaseTargetDC();
@@ -89,14 +91,14 @@ private:
 
   // Fills *bmi to describe an 8-bit DIB section of the given format and
   // size, with a colour table that maps each pixel value to its colour.
-  // Pre-conditions: pf->bitsPerPixel == 8; the colour maxima are non-zero.
+  // Pre-conditions: pf->bitsPerPixel == 8; pf->isValid().
   // Post-conditions: every field of *bmi is set; no other state changes.
   void setupPaletteBMI(Screen::Palette8bitBMI *bmi, const PixelFormat *pf,
                        const Dimension *dim);
 
   // Fills *bmi to describe a BI_BITFIELDS DIB section of the given format
   // and size, with the colour masks of the format.
-  // Pre-conditions: pf->bitsPerPixel is 16 or 32.
+  // Pre-conditions: pf->bitsPerPixel is 16 or 32; pf->isValid().
   // Post-conditions: every field of *bmi is set; no other state changes.
   void setupBitFieldsBMI(Screen::BMI *bmi, const PixelFormat *pf,
                          const Dimension *dim);

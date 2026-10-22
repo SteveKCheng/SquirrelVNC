@@ -438,6 +438,14 @@ private:
   //
   // Read pixel format from the data connection and return it.
   //
+  // Pre-conditions: the next bytes of the input are a PIXEL_FORMAT.
+  // Post-conditions: the PIXEL_FORMAT has been consumed, and the result is
+  // valid (PixelFormat::isValid()). A true-colour format is returned as
+  // read. A format without true colour is replaced by the standard format
+  // with the same bits per pixel, because its colour fields mean nothing.
+  // Throws Exception if the bits per pixel are not 8, 16 or 32, or if a
+  // true-colour format is not valid.
+  //
   PixelFormat readPixelFormat();
 
   //
@@ -524,6 +532,13 @@ private:
   //
   // Update properties (Dimension and PixelfFormat) of m_frameBuffer.
   //
+  // Pre-conditions: m_fbLock is held.
+  // Post-conditions: m_frameBuffer and m_rectangleFb have the given size
+  // and format, filled with black.
+  // Throws Exception before changing either frame buffer if the size is
+  // negative or too large or the format is not valid
+  // (PixelFormat::isValid()), and Exception if a buffer cannot be set up.
+  //
   void setFbProperties(const Dimension *fbDimension,
                        const PixelFormat *fbPixelFormat);
 
@@ -535,6 +550,12 @@ private:
   // is possible on the protocol level.
   //
   // Returns true if pixel format was actually changed.
+  //
+  // The first SetPixelFormat of the connection is sent even if the format
+  // equals that of the frame buffer, because that may be a stand-in for a
+  // server format without true colour (see readPixelFormat()).
+  // Throws Exception if m_viewerPixelFormat is not valid
+  // (PixelFormat::isValid()); nothing is sent then.
   //
   bool updatePixelFormat();
 
@@ -615,6 +636,8 @@ private:
   LocalMutex m_pixelFormatLock;
   bool m_isNewPixelFormat;
   PixelFormat m_viewerPixelFormat;
+  // True once SetPixelFormat has been sent. Protected by m_fbLock.
+  bool m_isPixelFormatSent;
 
   LocalMutex m_refreshingLock;
   bool m_isRefreshing;

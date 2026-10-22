@@ -40,6 +40,42 @@ void PixelFormat::initBigEndianByNative()
   bigEndian = (testBigEndian.test == 0);
 }
 
+// Returns the mask of a colour component with the given maximum and shift
+// in a pixel of bitsPerPixel bits, or 0 if the maximum is not 2^n - 1 for
+// some n >= 1 or the component does not fit in the pixel.
+// Pre-conditions: bitsPerPixel <= 32.
+static unsigned int getColorMask(unsigned int max, unsigned int shift,
+                                 unsigned int bitsPerPixel)
+{
+  if (max == 0 || (max & (max + 1)) != 0) {
+    return 0;
+  }
+  unsigned int width = 0;
+  while ((max >> width) != 0) {
+    width++;
+  }
+  if (shift + width > bitsPerPixel) {
+    return 0;
+  }
+  return max << shift;
+}
+
+bool PixelFormat::isValid() const
+{
+  if (bitsPerPixel != 8 && bitsPerPixel != 16 && bitsPerPixel != 32) {
+    return false;
+  }
+  if (colorDepth == 0 || colorDepth > bitsPerPixel) {
+    return false;
+  }
+  unsigned int redMask = getColorMask(redMax, redShift, bitsPerPixel);
+  unsigned int greenMask = getColorMask(greenMax, greenShift, bitsPerPixel);
+  unsigned int blueMask = getColorMask(blueMax, blueShift, bitsPerPixel);
+  return redMask != 0 && greenMask != 0 && blueMask != 0 &&
+         (redMask & greenMask) == 0 && (redMask & blueMask) == 0 &&
+         (greenMask & blueMask) == 0;
+}
+
 bool PixelFormat::isEqualTo(const PixelFormat *pf) const {
   return bitsPerPixel == pf->bitsPerPixel &&
          colorDepth   == pf->colorDepth &&

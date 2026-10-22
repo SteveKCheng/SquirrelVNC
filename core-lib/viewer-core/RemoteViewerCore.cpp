@@ -28,6 +28,7 @@
 #include "rfb/TunnelDefs.h"
 #include "rfb/MsgDefs.h"
 #include "rfb/EncodingDefs.h"
+#include "rfb/StandardPixelFormatFactory.h"
 #include "rfb/VendorDefs.h"
 #include "util/AnsiStringStorage.h"
 #include "util/Utf8StringStorage.h"
@@ -142,6 +143,7 @@ void RemoteViewerCore::init()
   m_wasStarted = false;
   m_wasConnected = false;
   m_isNewPixelFormat = false;
+  m_isPixelFormatSent = false;
   m_isFreeze = false;
   m_isNeedRequestUpdate = true;
   m_forceFullUpdate = false;
@@ -272,23 +274,25 @@ bool RemoteViewerCore::updatePixelFormat()
     pxFormat = m_viewerPixelFormat;
   }
 
-  int bitsPerPixel = m_viewerPixelFormat.bitsPerPixel;
-  if (bitsPerPixel != 8 && bitsPerPixel != 16 && bitsPerPixel != 32) {
-    throw Exception(_T("Only 8, 16 or 32 bits per pixel supported!"));
+  if (!pxFormat.isValid()) {
+    throw Exception(_T("Invalid pixel format"));
   }
 
   {
     AutoLock al(&m_fbLock);
-    // FIXME: here isn't accept true-colour flag.
-    // PixelFormats may be equal, if isn't.
     PixelFormat fbPixelFormat = m_frameBuffer.getPixelFormat();
-    if (pxFormat.isEqualTo(&fbPixelFormat)) {
+    bool isEqual = pxFormat.isEqualTo(&fbPixelFormat);
+    // Until the first SetPixelFormat, the frame buffer format may be a
+    // stand-in for a server format that is not true colour (see
+    // readPixelFormat()), so that one is sent even if the formats are equal.
+    if (isEqual && m_isPixelFormatSent) {
       return false;
     }
-    if (m_frameBuffer.getBuffer() != 0) {
+    if (!isEqual && m_frameBuffer.getBuffer() != 0) {
       Dimension fbDimension = m_frameBuffer.getDimension();
       setFbProperties(&fbDimension, &pxFormat);
     }
+    m_isPixelFormatSent = true;
   }
 
   RfbSetPixelFormatClientMessage pixelFormatMessage(&pxFormat);
@@ -514,11 +518,7 @@ PixelFormat RemoteViewerCore::readPixelFormat()
   pixelFormat.bitsPerPixel = m_input->readUInt8();
   pixelFormat.colorDepth = m_input->readUInt8();
   pixelFormat.bigEndian = !!m_input->readUInt8();
-  // now, supported only true color
-  int trueColour = m_input->readUInt8();
-  if (trueColour == false) {
-    m_logWriter.error(_T("Not supported palette. Flag \"True colour\" is not set."));
-  }
+  bool isTrueColour = m_input->readUInt8() != 0;
   pixelFormat.redMax = m_input->readUInt16();
   pixelFormat.greenMax = m_input->readUInt16();
   pixelFormat.blueMax = m_input->readUInt16();
@@ -528,6 +528,29 @@ PixelFormat RemoteViewerCore::readPixelFormat()
   m_input->readUInt8(); // padding bytes (3)
   m_input->readUInt8();
   m_input->readUInt8();
+
+  const unsigned short bitsPerPixel = pixelFormat.bitsPerPixel;
+  if (bitsPerPixel != 8 && bitsPerPixel != 16 && bitsPerPixel != 32) {
+    throw Exception(_T("Only 8, 16 or 32 bits per pixel supported!"));
+  }
+  if (!isTrueColour) {
+    // Colour maps are not supported, and the colour fields of a format
+    // without true colour mean nothing. The viewer sets a true-colour format
+    // of its own before it requests any update, so until then a standard
+    // format with the same bits per pixel stands in.
+    m_logWriter.info(_T("The server's pixel format uses a colour map; ")
+                     _T("a true-colour format will be requested."));
+    return StandardPixelFormatFactory::createPixelFormat(bitsPerPixel);
+  }
+  if (!pixelFormat.isValid()) {
+    m_logWriter.error(_T("Invalid pixel format: bits-per-pixel: %d, depth: %d, ")
+                      _T("red-max: %d, green-max: %d, blue-max: %d, ")
+                      _T("red-shift: %d, green-shift: %d, blue-shift: %d"),
+                      pixelFormat.bitsPerPixel, pixelFormat.colorDepth,
+                      pixelFormat.redMax, pixelFormat.greenMax, pixelFormat.blueMax,
+                      pixelFormat.redShift, pixelFormat.greenShift, pixelFormat.blueShift);
+    throw Exception(_T("The server's pixel format is invalid"));
+  }
   return pixelFormat;
 }
 
@@ -795,8 +818,7 @@ void RemoteViewerCore::setFbProperties(const Dimension *fbDimension,
   const int width = fbDimension->width;
   const int height = fbDimension->height;
   const int bitsPerPixel = fbPixelFormat->bitsPerPixel;
-  if (width < 0 || height < 0 ||
-      (bitsPerPixel != 8 && bitsPerPixel != 16 && bitsPerPixel != 32)) {
+  if (width < 0 || height < 0 || !fbPixelFormat->isValid()) {
     throw Exception(_T("Invalid framebuffer properties"));
   }
 

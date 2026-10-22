@@ -32,8 +32,16 @@ public:
   // specifies 16777216 colors, 8bit per Red, 8bit per Green, 8bit per Blue
   static PixelFormat create32bppPixelFormat();
   
+  // specifies 65536 colors, 5bit per Red & Blue, 6bit per Green
+  static PixelFormat create16bppPixelFormat();
+
   // specifies 256 colors, 2bit per Blue, 3bit per Green & Red
   static PixelFormat create8bppPixelFormat();
+
+  // Returns the format above with the given bits per pixel.
+  // Pre-conditions: bitsPerPixel is 8, 16 or 32.
+  // Post-conditions: the result is valid (PixelFormat::isValid()).
+  static PixelFormat createPixelFormat(unsigned short bitsPerPixel);
 };
 
 #endif
