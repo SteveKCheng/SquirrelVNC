@@ -45,7 +45,8 @@ public:
 
   // Deserializes client configuration from settings storage.
   // Returns true if was no errors during deserialization,
-  // false, otherwise.
+  // false, otherwise.  The log level, listen port and history limit are
+  // brought into range as their setters do.
   bool loadFromStorage(SettingsManager *storage);
 
   // Serializes client configuration from settings storage.
@@ -53,7 +54,8 @@ public:
   // false, otherwise.
   bool saveToStorage(SettingsManager *storage) const;
 
-  // Sets port for incoming connection when client runs in daemoon mode
+  // Sets port for incoming connection when client runs in daemoon mode.
+  // Values outside 0 to 65535 are clamped to that range.
   void setListenPort(int listenPort);
   // Returns listen port value
   int getListenPort() const;

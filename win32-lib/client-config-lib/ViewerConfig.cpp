@@ -62,6 +62,7 @@ bool ViewerConfig::loadFromStorage(SettingsManager *storage)
   TEST_FAIL(storage->getInt(_T("LogLevel"), &m_logLevel), loadAllOk);
   setLogLevel(m_logLevel);
   TEST_FAIL(storage->getInt(_T("ListenPort"), &m_listenPort), loadAllOk);
+  setListenPort(m_listenPort);
   TEST_FAIL(storage->getInt(_T("HistoryLimit"), &m_historyLimit), loadAllOk);
   setHistoryLimit(m_historyLimit);
   //

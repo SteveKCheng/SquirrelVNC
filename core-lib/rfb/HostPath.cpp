@@ -30,6 +30,7 @@ const size_t HostPath::m_SSH_HOST_MAX_CHARS = 255;
 const size_t HostPath::m_SSH_PORT_MAX_CHARS = 5;
 const size_t HostPath::m_VNC_HOST_MAX_CHARS = 255;
 const size_t HostPath::m_VNC_PORT_MAX_CHARS = 5;
+const int HostPath::m_MAX_PORT = 65535;
 // Compute the maximal length of a valid path. Note that there can be no
 // more than five delimiter characters: "user@sshhost:port/vnchost::port".
 const size_t HostPath::m_MAX_PATH_LEN =
@@ -114,6 +115,10 @@ HostPath::set(const char *path)
         return false;
       }
       m_sshPort = atoi(tokenStart + 1);
+      if (m_sshPort > m_MAX_PORT) {
+        clear();
+        return false;
+      }
       tokenStart += tokens[1];
     }
 
@@ -161,6 +166,10 @@ HostPath::set(const char *path)
     m_vncPort = atoi(portStart);
     if (!twoColons && m_vncPort >= 0 && m_vncPort <= 99) {
       m_vncPort += m_defaultPort;
+    }
+    if (m_vncPort > m_MAX_PORT) {
+      clear();
+      return false;
     }
   }
 

@@ -32,6 +32,19 @@ public:
   HostPath(const char *path, int defaultPort = 5900);
   virtual ~HostPath();
 
+  //
+  // Parses path, which names a VNC server and optionally an SSH host to
+  // tunnel through, as "[[user@]sshhost[:sshport]/][vnchost][:display]"
+  // or with "::port" in place of ":display", and keeps its parts.
+  // vnchost defaults to "localhost", the SSH port to 22, and the VNC port
+  // to the default port.  A display number from 0 to 99 is added to the
+  // default port; a larger number after one colon, or any number after
+  // two, is the port itself.
+  //
+  // Returns true on success.  Returns false, and leaves the object empty
+  // (isValid() is false), if path is null, empty or too long, is not of
+  // the form above, names an invalid host, or gives a port above 65535.
+  //
   bool set(const char *path);
 
   bool isValid() const               { return (m_path != 0); }
@@ -49,6 +62,7 @@ private:
   static const size_t m_SSH_PORT_MAX_CHARS;
   static const size_t m_VNC_HOST_MAX_CHARS;
   static const size_t m_VNC_PORT_MAX_CHARS;
+  static const int m_MAX_PORT;
   static const size_t m_MAX_PATH_LEN;
 
   char* m_path;
