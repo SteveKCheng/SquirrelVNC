@@ -37,7 +37,7 @@ Screen::~Screen()
 void Screen::update()
 {
   BMI bmi;
-  getBMI(&bmi, 0);
+  getBMI(&bmi);
 
   fillPixelFormat(&bmi);
   fillScreenRect();
@@ -53,44 +53,34 @@ Rect Screen::getDesktopRect()
   return m_virtDesktopRect;
 }
 
-void Screen::getBMI(BMI *bmi, HDC dc)
+void Screen::getBMI(BMI *bmi)
 {
-  HDC bitmapDC = dc;
-  if (bitmapDC == 0) {
-    bitmapDC = GetDC(0);
-    if (bitmapDC == NULL) {
-      throw Exception(_T("Can't get a bitmap dc"));
-    }
+  HDC screenDC = GetDC(0);
+  if (screenDC == NULL) {
+    throw Exception(_T("Can't get a screen DC"));
   }
+  // The bitmap belongs to the DC, so it is not deleted.
+  HBITMAP hbm = (HBITMAP)GetCurrentObject(screenDC, OBJ_BITMAP);
 
-  memset(bmi, 0, sizeof(BMI));
-  bmi->bmiHeader.biBitCount = 0;
+  *bmi = {};
   bmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 
-  HBITMAP hbm;
-  hbm = (HBITMAP)GetCurrentObject(bitmapDC, OBJ_BITMAP);
-  if (GetDIBits(bitmapDC, hbm, 0, 0, NULL, (LPBITMAPINFO)bmi, DIB_RGB_COLORS) == 0) {
-    StringStorage errMess;
+  // With biBitCount == 0, GetDIBits() fills only the header. Called again
+  // for BI_BITFIELDS, it fills the three colour masks after it; for other
+  // formats it would write a colour table, which BMI has no room for.
+  bool isOk = GetDIBits(screenDC, hbm, 0, 0, NULL, (LPBITMAPINFO)bmi, DIB_RGB_COLORS) != 0;
+  if (isOk && bmi->bmiHeader.biCompression == BI_BITFIELDS) {
+    isOk = GetDIBits(screenDC, hbm, 0, 0, NULL, (LPBITMAPINFO)bmi, DIB_RGB_COLORS) != 0;
+  }
+  // The error is read before ReleaseDC() can change it.
+  StringStorage errMess;
+  if (!isOk) {
     Environment::getErrStr(_T("Can't get a DIBits"), &errMess);
-    DeleteObject(hbm);
-    DeleteDC(bitmapDC);
+  }
+
+  ReleaseDC(0, screenDC);
+  if (!isOk) {
     throw Exception(errMess.getString());
-  }
-
-  // The color table is filled only if it is used BI_BITFIELDS
-  if (bmi->bmiHeader.biCompression == BI_BITFIELDS) {
-    if (GetDIBits(bitmapDC, hbm, 0, 0, NULL, (LPBITMAPINFO)bmi, DIB_RGB_COLORS) == 0) {
-      StringStorage errMess;
-      Environment::getErrStr(_T("Can't get a DIBits"), &errMess);
-      DeleteObject(hbm);
-      DeleteDC(bitmapDC);
-      throw Exception(errMess.getString());
-    }
-  }
-
-  DeleteObject(hbm);
-  if (dc == 0) {
-    DeleteDC(bitmapDC);
   }
 }
 

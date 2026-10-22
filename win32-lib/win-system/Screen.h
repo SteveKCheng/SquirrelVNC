@@ -63,9 +63,15 @@ public:
     RGBQUAD rgbQuad[256];
   };
 
-  // Fills the BMI structure. If dc == 0 the getBMI() function will
-  // use a current desktop dc.
-  void getBMI(BMI *bmi, HDC dc);
+  // Fills *bmi with the format of the screen, from the bitmap of the
+  // screen DC (GetDC(0)), which covers the whole virtual desktop. With
+  // several monitors this assumes they share one format, as they do on
+  // current Windows.
+  // Post-conditions: bmi->bmiHeader describes the screen bitmap; if its
+  // biCompression is BI_BITFIELDS, red, green and blue hold the colour
+  // masks; the screen DC has been released.
+  // Throws Exception if the DC or the format cannot be obtained.
+  void getBMI(BMI *bmi);
 
 private:
   void fillPixelFormat(const BMI *bmi);
