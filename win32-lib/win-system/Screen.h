@@ -69,7 +69,9 @@ public:
 
 private:
   void fillPixelFormat(const BMI *bmi);
-  // Find position of first true bit
+  // Returns the position of the lowest set bit in bits, from 0 to 31,
+  // or 0 if no bit is set, so that the result is always a valid shift
+  // count for a UINT32.
   static inline int findFirstBit(const UINT32 bits);
 
   void fillScreenRect();
