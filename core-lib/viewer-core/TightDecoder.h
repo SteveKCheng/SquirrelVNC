@@ -98,7 +98,7 @@ private:
                          const std::vector<UINT8> &pixels,
                          size_t pixelOffset);
 
-  std::vector<UINT8> TightDecoder::transformArray(const std::vector<UINT8> &buffer);
+  std::vector<UINT8> transformArray(const std::vector<UINT8> &buffer);
 
   std::vector<Inflater *> m_inflater;
   JpegDecompressor m_jpeg;

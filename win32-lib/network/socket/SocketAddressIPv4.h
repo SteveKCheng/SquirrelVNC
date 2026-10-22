@@ -46,7 +46,7 @@ public:
   void toString(StringStorage *address) const;
 
   // Returns socket port number 
-  unsigned short SocketAddressIPv4::getPort() const;
+  unsigned short getPort() const;
 
   // Resolves host, a name or a dotted IPv4 address, to its first IPv4
   // address, with GetAddrInfo(); IPv6 addresses are not looked up.
