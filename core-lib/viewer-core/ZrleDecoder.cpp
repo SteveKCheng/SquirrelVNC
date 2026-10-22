@@ -68,9 +68,9 @@ void ZrleDecoder::decode(RfbInputGate *input,
   } else if (pxFormat.bitsPerPixel == 16) {
     m_bytesPerPixel = 2;
   } else if (pxFormat.bitsPerPixel == 32) {
-    UINT32 colorMaxValue =  pxFormat.blueMax  << pxFormat.blueShift  |
-                            pxFormat.greenMax << pxFormat.greenShift |
-                            pxFormat.redMax   << pxFormat.redShift;
+    UINT32 colorMaxValue = static_cast<UINT32>(pxFormat.blueMax)  << pxFormat.blueShift  |
+                           static_cast<UINT32>(pxFormat.greenMax) << pxFormat.greenShift |
+                           static_cast<UINT32>(pxFormat.redMax)   << pxFormat.redShift;
     // ZRLE sends 3-byte CPIXELs when the colours fit in the low 3 bytes or
     // in the high 3 bytes.  Only the first is decoded: the viewer always
     // sets a frame buffer format of its own before any update, and none

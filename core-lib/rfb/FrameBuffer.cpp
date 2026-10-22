@@ -69,11 +69,11 @@ bool FrameBuffer::clone(const FrameBuffer *srcFrameBuffer)
 void FrameBuffer::setColor(UINT8 red, UINT8 green, UINT8 blue)
 {
   int pixelSize = m_pixelFormat.bitsPerPixel / 8;
-  UINT32 redPix = (red * m_pixelFormat.redMax / 255) <<
+  UINT32 redPix = static_cast<UINT32>(red * m_pixelFormat.redMax / 255) <<
                   m_pixelFormat.redShift;
-  UINT32 greenPix = (green * m_pixelFormat.greenMax / 255) <<
+  UINT32 greenPix = static_cast<UINT32>(green * m_pixelFormat.greenMax / 255) <<
                     m_pixelFormat.greenShift;
-  UINT32 bluePix = (blue * m_pixelFormat.blueMax / 255) <<
+  UINT32 bluePix = static_cast<UINT32>(blue * m_pixelFormat.blueMax / 255) <<
                    m_pixelFormat.blueShift;
   UINT32 color = redPix | greenPix | bluePix;
 

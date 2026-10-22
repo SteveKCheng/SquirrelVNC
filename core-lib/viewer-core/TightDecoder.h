@@ -69,6 +69,10 @@ private:
                    const std::vector<UINT32> &palette,
                    const std::vector<UINT8> &pixels,
                    const Rect *dstRect);
+  // Draws the pixels of a rectangle sent with the gradient filter.
+  // Pre: the pixel format of fb is valid (PixelFormat::isValid()), and
+  // pixels holds a whole pixel for each pixel of dstRect.
+  // Post: dstRect in fb holds the decoded pixels.
   void drawGradient(FrameBuffer *fb,
                     const std::vector<UINT8> &pixels,
                     const Rect *dstRect);
@@ -89,6 +93,7 @@ private:
   // Pre: the maximum of each colour in pxFormat is at most 255, so that
   // each component fits in 8 bits; a larger component would be truncated.
   // This holds for the pixel formats the viewer requests.
+  // Pre: pxFormat is valid (PixelFormat::isValid()).
   // Pre: components has 3 elements, and pixels holds a whole pixel at
   // pixelOffset (3 bytes for a compact 24-bit pixel, otherwise the pixel
   // size of pxFormat).

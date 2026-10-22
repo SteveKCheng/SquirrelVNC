@@ -43,6 +43,8 @@ protected:
   // format.  Throws Exception for data that does not fit dstRect or the
   // frame buffer, and for a 32-bit pixel format whose colours are in the
   // high 3 bytes, which is not supported.
+  // Pre-condition: the frame buffer's pixel format is valid
+  // (PixelFormat::isValid()).
   virtual void decode(RfbInputGate *input,
                       FrameBuffer *frameBuffer,
                       const Rect *dstRect);

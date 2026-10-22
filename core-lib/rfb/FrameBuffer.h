@@ -37,6 +37,10 @@ public:
 
   virtual bool assignProperties(const FrameBuffer *srcFrameBuffer);
   virtual bool clone(const FrameBuffer *srcFrameBuffer);
+  // Fills the whole frame buffer with the given colour, scaled from 0-255
+  // to the colour maxima of the pixel format.
+  // Pre-conditions: the pixel format is valid (PixelFormat::isValid()).
+  // Post-conditions: every pixel holds the colour.
   virtual void setColor(UINT8 red, UINT8 green, UINT8 blue);
   virtual void fillRect(const Rect *dstRect, UINT32 color);
 

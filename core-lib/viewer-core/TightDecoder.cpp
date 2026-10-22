@@ -437,7 +437,7 @@ void TightDecoder::drawGradient(FrameBuffer *fb,
                   prevRow[j + index - 3];   // "diagonal" prev pixel
         UINT16 converted = static_cast<UINT16>(d < 0 ? 0 : d > max[index] ? max[index] : d);
         thisRow[j + index] = (converted + rawColor[index]) & max[index];
-        color |= (thisRow[j + index] & max[index]) << shift[index];
+        color |= static_cast<UINT32>(thisRow[j + index] & max[index]) << shift[index];
       }
       void *pixelPtr = fb->getBufferPtr(static_cast<int>(dstRect->left + j/3 - 1),
                                         dstRect->top + i);
@@ -465,7 +465,7 @@ void TightDecoder::fillRawComponents(const PixelFormat *pxFormat,
                                      const std::vector<UINT8> &pixels,
                                      const size_t pixelOffset)
 {
-  int rawColor = getRawTightColor(pxFormat, pixels, pixelOffset);
+  UINT32 rawColor = getRawTightColor(pxFormat, pixels, pixelOffset);
   components[0] = static_cast<UINT8>(rawColor >> pxFormat->redShift & pxFormat->redMax);
   components[1] = static_cast<UINT8>(rawColor >> pxFormat->greenShift & pxFormat->greenMax);
   components[2] = static_cast<UINT8>(rawColor >> pxFormat->blueShift & pxFormat->blueMax);
