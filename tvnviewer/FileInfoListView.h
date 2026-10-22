@@ -42,7 +42,12 @@ public:
   void addItem(int index, FileInfo *fileInfo);
 
   //
-  // Adds files info array to the end of list view
+  // Adds the count entries of the array *filesInfo to the list view,
+  // folders first, then sorts the view again.
+  //
+  // Pre: *filesInfo points to an array of at least count entries.  They
+  // must stay valid while the items are in the list view: each item keeps
+  // a pointer to its entry, which getSelectedFileInfo() returns.
   //
 
   void addRange(FileInfo **filesInfo, size_t count);

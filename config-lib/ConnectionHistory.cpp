@@ -25,6 +25,7 @@
 
 #include "win-system/Registry.h"
 
+#include <algorithm>
 #include <crtdbg.h>
 
 ConnectionHistory::ConnectionHistory(RegistryKey *key, size_t limit)
@@ -70,7 +71,7 @@ void ConnectionHistory::save()
 
   size_t count = m_hosts.size();
 
-  for (size_t i = 0; i < min(count, m_limit); i++) {
+  for (size_t i = 0; i < std::min(count, m_limit); i++) {
     valueName.format(_T("%zu"), i);
     const TCHAR *value = m_hosts.at(i).getString();
 

@@ -25,6 +25,7 @@
 #include "util/DateTime.h"
 #include "tvnviewer/res/resource.h"
 #include "util/ResourceLoader.h"
+#include <algorithm>
 #include <crtdbg.h>
 #include <stdio.h>
 
@@ -110,7 +111,7 @@ void FileInfoListView::addItem(int index, FileInfo *fileInfo)
 
 void FileInfoListView::addRange(FileInfo **filesInfo, size_t count)
 {
-  int index = max(0, (getCount() - 1));
+  int index = std::max(0, getCount() - 1);
   size_t i = 0;
   FileInfo *arr = *filesInfo;
 

@@ -64,6 +64,11 @@ public:
 
   /**
    * Saves connection history to registry.
+   *
+   * Writes the first min(getHostCount(), limit) hosts, most recent first,
+   * to the values named "0", "1" and so on of the registry key.  If there
+   * are more hosts than the limit, truncate() then drops the rest.
+   * Failures to write to the registry are not reported.
    */
   void save();
 
