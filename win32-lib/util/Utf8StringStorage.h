@@ -55,7 +55,17 @@ public:
   // Returns the number of bytes (not characters), not including the
   // terminating null character.
   size_t getLength() const;
+
+  // Sets this string to src, with its terminator, converted to UTF-8.
+  // @throw Exception if src has INT_MAX characters or more, which the Win32
+  // conversion cannot take, or cannot be converted.  This string is then
+  // unchanged.
   void fromStringStorage(const StringStorage *src);
+
+  // Converts this string from UTF-8 and stores it in *dst.  The result ends
+  // at the first null byte.  Invalid UTF-8 sequences become U+FFFD.
+  // @throw Exception if this string is more than INT_MAX bytes, with its
+  // terminator, or cannot be converted.  *dst is then unchanged.
   void toStringStorage(StringStorage *dst);
 
 private:

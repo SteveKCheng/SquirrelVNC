@@ -26,6 +26,7 @@
 #include "util/Exception.h"
 #include "UnicodeStringStorage.h"
 #include <crtdbg.h>
+#include <climits>
 
 Utf8StringStorage::Utf8StringStorage()
 {
@@ -88,8 +89,11 @@ void Utf8StringStorage::fromStringStorage(const StringStorage *src)
   const WCHAR *uniString = src->getString();
   size_t uniLength = src->getLength();
 #endif
-  int constrSrcSize = (int)uniLength + 1;
-  _ASSERT(constrSrcSize == uniLength + 1);
+  // The Win32 conversion takes the size, with the terminator, as an int.
+  if (uniLength >= INT_MAX) {
+    throw Exception(_T("Cannot convert a string to the UTF8 format: it is too long"));
+  }
+  int constrSrcSize = static_cast<int>(uniLength + 1);
 
   // From UNICODE to UTF8
   int dstRequiredSize = WideCharToMultiByte(CP_UTF8, 0, uniString,
@@ -108,8 +112,11 @@ void Utf8StringStorage::fromStringStorage(const StringStorage *src)
 void Utf8StringStorage::toStringStorage(StringStorage *dst)
 {
   // 1) From UTF8 to UNICODE
-  int constrSize = (int)getSize();
-  _ASSERT(constrSize == getSize());
+  // The Win32 conversion takes the size, with the terminator, as an int.
+  if (getSize() > INT_MAX) {
+    throw Exception(_T("Cannot convert a string from the UTF8 format: it is too long"));
+  }
+  int constrSize = static_cast<int>(getSize());
   int dstReqSizeInSym = MultiByteToWideChar(CP_UTF8, 0, m_buffer.data(),
                                             constrSize, 0, 0);
   if (dstReqSizeInSym == 0) {
