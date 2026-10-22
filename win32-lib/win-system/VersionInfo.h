@@ -35,6 +35,12 @@ class VersionInfo
 public:
   /**
    * Creates version info of specified file.
+   *
+   * The product version a.b.c.d in the file's version resource is kept as
+   * a string: "a.b" if c and d are 0, "a.b.c" if only d is 0, and
+   * "a.b.c.d" otherwise.  A third number above 100 marks a beta of the
+   * next minor version: 2.0.105.0 becomes "2.1beta5".
+   *
    * @param pathToFile path to executable file to get version info from.
    * @throws SystemException on fail.
    */

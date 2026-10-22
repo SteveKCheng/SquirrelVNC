@@ -48,10 +48,10 @@ VersionInfo::VersionInfo(const TCHAR *pathToFile)
     throw SystemException();
   }
 
-  unsigned short a = ((unsigned short *)&fixedInfo->dwProductVersionMS)[1];
-  unsigned short b = ((unsigned short *)&fixedInfo->dwProductVersionMS)[0];
-  unsigned short c = ((unsigned short *)&fixedInfo->dwProductVersionLS)[1];
-  unsigned short d = ((unsigned short *)&fixedInfo->dwProductVersionLS)[0];
+  unsigned short a = HIWORD(fixedInfo->dwProductVersionMS);
+  unsigned short b = LOWORD(fixedInfo->dwProductVersionMS);
+  unsigned short c = HIWORD(fixedInfo->dwProductVersionLS);
+  unsigned short d = LOWORD(fixedInfo->dwProductVersionLS);
 
   // Convert special numbers used for beta versions (third number > 100).
   // 2.0.105.0 should be considered a beta version and convert to 2.1beta5,
