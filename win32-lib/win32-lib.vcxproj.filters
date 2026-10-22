@@ -36,571 +36,573 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\thread\AutoLock.cpp">
+    <ClCompile Include="thread\AutoLock.cpp">
       <Filter>thread</Filter>
     </ClCompile>
-    <ClCompile Include="..\thread\LocalMutex.cpp">
+    <ClCompile Include="thread\LocalMutex.cpp">
       <Filter>thread</Filter>
     </ClCompile>
-    <ClCompile Include="..\thread\Thread.cpp">
+    <ClCompile Include="thread\Thread.cpp">
       <Filter>thread</Filter>
     </ClCompile>
-    <ClCompile Include="..\network\RfbInputGate.cpp">
+    <ClCompile Include="network\RfbInputGate.cpp">
       <Filter>network</Filter>
     </ClCompile>
-    <ClCompile Include="..\network\RfbOutputGate.cpp">
+    <ClCompile Include="network\RfbOutputGate.cpp">
       <Filter>network</Filter>
     </ClCompile>
-    <ClCompile Include="..\network\TcpServer.cpp">
+    <ClCompile Include="network\TcpServer.cpp">
       <Filter>network</Filter>
     </ClCompile>
-    <ClCompile Include="..\network\socket\SocketAddressIPv4.cpp">
+    <ClCompile Include="network\socket\SocketAddressIPv4.cpp">
       <Filter>network\socket</Filter>
     </ClCompile>
-    <ClCompile Include="..\network\socket\SocketException.cpp">
+    <ClCompile Include="network\socket\SocketException.cpp">
       <Filter>network\socket</Filter>
     </ClCompile>
-    <ClCompile Include="..\network\socket\SocketIPv4.cpp">
+    <ClCompile Include="network\socket\SocketIPv4.cpp">
       <Filter>network\socket</Filter>
     </ClCompile>
-    <ClCompile Include="..\network\socket\SocketStream.cpp">
+    <ClCompile Include="network\socket\SocketStream.cpp">
       <Filter>network\socket</Filter>
     </ClCompile>
-    <ClCompile Include="..\network\socket\WindowsSocket.cpp">
+    <ClCompile Include="network\socket\WindowsSocket.cpp">
       <Filter>network\socket</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\AnsiStringStorage.cpp">
+    <ClCompile Include="util\AnsiStringStorage.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\CommandLineArgs.cpp">
+    <ClCompile Include="util\CommandLineArgs.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\CommandLineFormatException.cpp">
+    <ClCompile Include="util\CommandLineFormatException.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\CommandLineFormatHelp.cpp">
+    <ClCompile Include="util\CommandLineFormatHelp.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\DateTime.cpp">
+    <ClCompile Include="util\DateTime.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\DesCrypt.cpp">
+    <ClCompile Include="util\DesCrypt.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\Exception.cpp">
+    <ClCompile Include="util\Exception.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\GetCPUtime.cpp">
+    <ClCompile Include="util\GetCPUtime.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\Inflater.cpp">
+    <ClCompile Include="util\Inflater.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\Keymap.cpp">
+    <ClCompile Include="util\Keymap.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\ResourceLoader.cpp">
+    <ClCompile Include="util\ResourceLoader.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\StringParser.cpp">
+    <ClCompile Include="util\StringParser.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\StringStorage.cpp">
+    <ClCompile Include="util\StringStorage.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\StringTable.cpp">
+    <ClCompile Include="util\StringTable.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\Unicode.cpp">
+    <ClCompile Include="util\Unicode.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\UnicodeStringStorage.cpp">
+    <ClCompile Include="util\UnicodeStringStorage.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\Utf8StringStorage.cpp">
+    <ClCompile Include="util\Utf8StringStorage.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\VncPassCrypt.cpp">
+    <ClCompile Include="util\VncPassCrypt.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\ZLibBase.cpp">
+    <ClCompile Include="util\ZLibBase.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\ZLibException.cpp">
+    <ClCompile Include="util\ZLibException.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\log-writer\FileAccount.cpp">
+    <ClCompile Include="log-writer\FileAccount.cpp">
       <Filter>log-writer</Filter>
     </ClCompile>
-    <ClCompile Include="..\log-writer\FileLogger.cpp">
+    <ClCompile Include="log-writer\FileLogger.cpp">
       <Filter>log-writer</Filter>
     </ClCompile>
-    <ClCompile Include="..\log-writer\LogDump.cpp">
+    <ClCompile Include="log-writer\LogDump.cpp">
       <Filter>log-writer</Filter>
     </ClCompile>
-    <ClCompile Include="..\log-writer\LogWriter.cpp">
+    <ClCompile Include="log-writer\LogWriter.cpp">
       <Filter>log-writer</Filter>
     </ClCompile>
-    <ClCompile Include="..\file-lib\EOFException.cpp">
+    <ClCompile Include="file-lib\EOFException.cpp">
       <Filter>file-lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\file-lib\File.cpp">
+    <ClCompile Include="file-lib\File.cpp">
       <Filter>file-lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\file-lib\WinFile.cpp">
+    <ClCompile Include="file-lib\WinFile.cpp">
       <Filter>file-lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\file-lib\WinFileChannel.cpp">
+    <ClCompile Include="file-lib\WinFileChannel.cpp">
       <Filter>file-lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\DibSection.cpp">
+    <ClCompile Include="win-system\DibSection.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\DisplayRequest.cpp">
+    <ClCompile Include="win-system\DisplayRequest.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\Environment.cpp">
+    <ClCompile Include="win-system\Environment.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\Registry.cpp">
+    <ClCompile Include="win-system\Registry.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\RegistryKey.cpp">
+    <ClCompile Include="win-system\RegistryKey.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\Screen.cpp">
+    <ClCompile Include="win-system\Screen.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\Shell.cpp">
+    <ClCompile Include="win-system\Shell.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\SystemException.cpp">
+    <ClCompile Include="win-system\SystemException.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\SystemInformation.cpp">
+    <ClCompile Include="win-system\SystemInformation.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\VersionInfo.cpp">
+    <ClCompile Include="win-system\VersionInfo.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\WinClipboard.cpp">
+    <ClCompile Include="win-system\WinClipboard.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\WinCommandLineArgs.cpp">
+    <ClCompile Include="win-system\WinCommandLineArgs.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\WindowsApplication.cpp">
+    <ClCompile Include="win-system\WindowsApplication.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\WindowsEvent.cpp">
+    <ClCompile Include="win-system\WindowsEvent.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\WinHooks.cpp">
+    <ClCompile Include="win-system\WinHooks.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\WinProcessCommandLine.cpp">
+    <ClCompile Include="win-system\WinProcessCommandLine.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\win-system\WsaStartup.cpp">
+    <ClCompile Include="win-system\WsaStartup.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\BaseDialog.cpp">
+    <ClCompile Include="gui\BaseDialog.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\BaseWindow.cpp">
+    <ClCompile Include="gui\BaseWindow.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\CheckBox.cpp">
+    <ClCompile Include="gui\CheckBox.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\ComboBox.cpp">
+    <ClCompile Include="gui\ComboBox.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\Control.cpp">
+    <ClCompile Include="gui\Control.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\DibFrameBuffer.cpp">
+    <ClCompile Include="gui\DibFrameBuffer.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\ListView.cpp">
+    <ClCompile Include="gui\ListView.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\Menu.cpp">
+    <ClCompile Include="gui\Menu.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\NotifyIcon.cpp">
+    <ClCompile Include="gui\NotifyIcon.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\NotifyIconWindow.cpp">
+    <ClCompile Include="gui\NotifyIconWindow.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\PaintWindow.cpp">
+    <ClCompile Include="gui\PaintWindow.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\ProgressBar.cpp">
+    <ClCompile Include="gui\ProgressBar.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\ScaledIcons.cpp">
+    <ClCompile Include="gui\ScaledIcons.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\ScrollBar.cpp">
+    <ClCompile Include="gui\ScrollBar.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\SpinControl.cpp">
+    <ClCompile Include="gui\SpinControl.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\TextBox.cpp">
+    <ClCompile Include="gui\TextBox.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\ToolBar.cpp">
+    <ClCompile Include="gui\ToolBar.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\Trackbar.cpp">
+    <ClCompile Include="gui\Trackbar.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\WindowProcHolder.cpp">
+    <ClCompile Include="gui\WindowProcHolder.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\drawing\Bitmap.cpp">
+    <ClCompile Include="gui\drawing\Bitmap.cpp">
       <Filter>gui\drawing</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\drawing\Brush.cpp">
+    <ClCompile Include="gui\drawing\Brush.cpp">
       <Filter>gui\drawing</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\drawing\DeviceContext.cpp">
+    <ClCompile Include="gui\drawing\DeviceContext.cpp">
       <Filter>gui\drawing</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\drawing\Graphics.cpp">
+    <ClCompile Include="gui\drawing\Graphics.cpp">
       <Filter>gui\drawing</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\drawing\Icon.cpp">
+    <ClCompile Include="gui\drawing\Icon.cpp">
       <Filter>gui\drawing</Filter>
     </ClCompile>
-    <ClCompile Include="..\gui\drawing\SolidBrush.cpp">
+    <ClCompile Include="gui\drawing\SolidBrush.cpp">
       <Filter>gui\drawing</Filter>
     </ClCompile>
-    <ClCompile Include="..\config-lib\ConnectionHistory.cpp">
+    <ClCompile Include="config-lib\ConnectionHistory.cpp">
       <Filter>config-lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\config-lib\IniFileSettingsManager.cpp">
+    <ClCompile Include="config-lib\IniFileSettingsManager.cpp">
       <Filter>config-lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\config-lib\RegistrySettingsManager.cpp">
+    <ClCompile Include="config-lib\RegistrySettingsManager.cpp">
       <Filter>config-lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\config-lib\SettingsManager.cpp">
+    <ClCompile Include="config-lib\SettingsManager.cpp">
       <Filter>config-lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\client-config-lib\ConnectionConfig.cpp">
+    <ClCompile Include="client-config-lib\ConnectionConfig.cpp">
       <Filter>client-config-lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\client-config-lib\ConnectionConfigSM.cpp">
+    <ClCompile Include="client-config-lib\ConnectionConfigSM.cpp">
       <Filter>client-config-lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\client-config-lib\ViewerConfig.cpp">
+    <ClCompile Include="client-config-lib\ViewerConfig.cpp">
       <Filter>client-config-lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\client-config-lib\ViewerSettingsManager.cpp">
+    <ClCompile Include="client-config-lib\ViewerSettingsManager.cpp">
       <Filter>client-config-lib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\thread\AutoLock.h">
+    <ClInclude Include="thread\AutoLock.h">
       <Filter>thread</Filter>
     </ClInclude>
-    <ClInclude Include="..\thread\LocalMutex.h">
+    <ClInclude Include="thread\LocalMutex.h">
       <Filter>thread</Filter>
     </ClInclude>
-    <ClInclude Include="..\thread\Lockable.h">
+    <ClInclude Include="thread\Lockable.h">
       <Filter>thread</Filter>
     </ClInclude>
-    <ClInclude Include="..\thread\Thread.h">
+    <ClInclude Include="thread\Thread.h">
       <Filter>thread</Filter>
     </ClInclude>
-    </ClInclude>
-    <ClInclude Include="..\network\RfbOutputGate.h">
+    <ClInclude Include="network\RfbInputGate.h">
       <Filter>network</Filter>
     </ClInclude>
-    <ClInclude Include="..\network\TcpServer.h">
+    <ClInclude Include="network\RfbOutputGate.h">
       <Filter>network</Filter>
     </ClInclude>
-    <ClInclude Include="..\network\socket\sockdefs.h">
+    <ClInclude Include="network\TcpServer.h">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="network\socket\sockdefs.h">
       <Filter>network\socket</Filter>
     </ClInclude>
-    <ClInclude Include="..\network\socket\SocketAddressIPv4.h">
+    <ClInclude Include="network\socket\SocketAddressIPv4.h">
       <Filter>network\socket</Filter>
     </ClInclude>
-    <ClInclude Include="..\network\socket\SocketException.h">
+    <ClInclude Include="network\socket\SocketException.h">
       <Filter>network\socket</Filter>
     </ClInclude>
-    <ClInclude Include="..\network\socket\SocketIPv4.h">
+    <ClInclude Include="network\socket\SocketIPv4.h">
       <Filter>network\socket</Filter>
     </ClInclude>
-    <ClInclude Include="..\network\socket\SocketStream.h">
+    <ClInclude Include="network\socket\SocketStream.h">
       <Filter>network\socket</Filter>
     </ClInclude>
-    <ClInclude Include="..\network\socket\WindowsSocket.h">
+    <ClInclude Include="network\socket\WindowsSocket.h">
       <Filter>network\socket</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\AnsiStringStorage.h">
+    <ClInclude Include="util\AnsiStringStorage.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\CharDefs.h">
+    <ClInclude Include="util\CharDefs.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\CommandLineArgs.h">
+    <ClInclude Include="util\CommandLineArgs.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\CommandLineFormatException.h">
+    <ClInclude Include="util\CommandLineFormatException.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\CommandLineFormatHelp.h">
+    <ClInclude Include="util\CommandLineFormatHelp.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\CommonHeader.h">
+    <ClInclude Include="util\CommonHeader.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\DateTime.h">
+    <ClInclude Include="util\DateTime.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\DesCrypt.h">
+    <ClInclude Include="util\DesCrypt.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\Exception.h">
+    <ClInclude Include="util\Exception.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\GetCPUtime.h">
+    <ClInclude Include="util\GetCPUtime.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\Inflater.h">
+    <ClInclude Include="util\Inflater.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\inttypes.h">
+    <ClInclude Include="util\inttypes.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\Keymap.h">
+    <ClInclude Include="util\Keymap.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\ListenerContainer.h">
+    <ClInclude Include="util\ListenerContainer.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\ResourceLoader.h">
+    <ClInclude Include="util\ResourceLoader.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\Singleton.h">
+    <ClInclude Include="util\Singleton.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\StringParser.h">
+    <ClInclude Include="util\StringParser.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\StringStorage.h">
+    <ClInclude Include="util\StringStorage.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\StringTable.h">
+    <ClInclude Include="util\StringTable.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\Unicode.h">
+    <ClInclude Include="util\Unicode.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\UnicodeStringStorage.h">
+    <ClInclude Include="util\UnicodeStringStorage.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\Utf8StringStorage.h">
+    <ClInclude Include="util\Utf8StringStorage.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\VncPassCrypt.h">
+    <ClInclude Include="util\VncPassCrypt.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\winhdr.h">
+    <ClInclude Include="util\winhdr.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\ZLibBase.h">
+    <ClInclude Include="util\ZLibBase.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\ZLibException.h">
+    <ClInclude Include="util\ZLibException.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\log-writer\FileAccount.h">
+    <ClInclude Include="log-writer\FileAccount.h">
       <Filter>log-writer</Filter>
     </ClInclude>
-    <ClInclude Include="..\log-writer\FileLogger.h">
+    <ClInclude Include="log-writer\FileLogger.h">
       <Filter>log-writer</Filter>
     </ClInclude>
-    <ClInclude Include="..\log-writer\LogDump.h">
+    <ClInclude Include="log-writer\LogDump.h">
       <Filter>log-writer</Filter>
     </ClInclude>
-    <ClInclude Include="..\log-writer\Logger.h">
+    <ClInclude Include="log-writer\Logger.h">
       <Filter>log-writer</Filter>
     </ClInclude>
-    <ClInclude Include="..\log-writer\LogWriter.h">
+    <ClInclude Include="log-writer\LogWriter.h">
       <Filter>log-writer</Filter>
     </ClInclude>
-    <ClInclude Include="..\file-lib\EOFException.h">
+    <ClInclude Include="file-lib\EOFException.h">
       <Filter>file-lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\file-lib\File.h">
+    <ClInclude Include="file-lib\File.h">
       <Filter>file-lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\file-lib\FileChannel.h">
+    <ClInclude Include="file-lib\FileChannel.h">
       <Filter>file-lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\file-lib\WinFile.h">
+    <ClInclude Include="file-lib\WinFile.h">
       <Filter>file-lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\file-lib\WinFileChannel.h">
+    <ClInclude Include="file-lib\WinFileChannel.h">
       <Filter>file-lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\DibSection.h">
+    <ClInclude Include="win-system\DibSection.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\DisplayRequest.h">
+    <ClInclude Include="win-system\DisplayRequest.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\Environment.h">
+    <ClInclude Include="win-system\Environment.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\HookEventListener.h">
+    <ClInclude Include="win-system\HookEventListener.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\Registry.h">
+    <ClInclude Include="win-system\Registry.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\RegistryKey.h">
+    <ClInclude Include="win-system\RegistryKey.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\Screen.h">
+    <ClInclude Include="win-system\Screen.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\Shell.h">
+    <ClInclude Include="win-system\Shell.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\SystemException.h">
+    <ClInclude Include="win-system\SystemException.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\SystemInformation.h">
+    <ClInclude Include="win-system\SystemInformation.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\VersionInfo.h">
+    <ClInclude Include="win-system\VersionInfo.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\WinClipboard.h">
+    <ClInclude Include="win-system\WinClipboard.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\WinCommandLineArgs.h">
+    <ClInclude Include="win-system\WinCommandLineArgs.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\WindowsApplication.h">
+    <ClInclude Include="win-system\WindowsApplication.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\WindowsEvent.h">
+    <ClInclude Include="win-system\WindowsEvent.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\WinHooks.h">
+    <ClInclude Include="win-system\WinHooks.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\WinProcessCommandLine.h">
+    <ClInclude Include="win-system\WinProcessCommandLine.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\win-system\WsaStartup.h">
+    <ClInclude Include="win-system\WsaStartup.h">
       <Filter>win-system</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\BaseDialog.h">
+    <ClInclude Include="gui\BaseDialog.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\BaseWindow.h">
+    <ClInclude Include="gui\BaseWindow.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\CheckBox.h">
+    <ClInclude Include="gui\CheckBox.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\ComboBox.h">
+    <ClInclude Include="gui\ComboBox.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\Control.h">
+    <ClInclude Include="gui\Control.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\DibFrameBuffer.h">
+    <ClInclude Include="gui\DibFrameBuffer.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\ListView.h">
+    <ClInclude Include="gui\ListView.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\Menu.h">
+    <ClInclude Include="gui\Menu.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\NotifyIcon.h">
+    <ClInclude Include="gui\NotifyIcon.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\NotifyIconWindow.h">
+    <ClInclude Include="gui\NotifyIconWindow.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\PaintWindow.h">
+    <ClInclude Include="gui\PaintWindow.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\ProgressBar.h">
+    <ClInclude Include="gui\ProgressBar.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\ScaledIcons.h">
+    <ClInclude Include="gui\ScaledIcons.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\ScrollBar.h">
+    <ClInclude Include="gui\ScrollBar.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\SpinControl.h">
+    <ClInclude Include="gui\SpinControl.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\TextBox.h">
+    <ClInclude Include="gui\TextBox.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\ToolBar.h">
+    <ClInclude Include="gui\ToolBar.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\Trackbar.h">
+    <ClInclude Include="gui\Trackbar.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\WindowProcHolder.h">
+    <ClInclude Include="gui\WindowProcHolder.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\drawing\Bitmap.h">
+    <ClInclude Include="gui\drawing\Bitmap.h">
       <Filter>gui\drawing</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\drawing\Brush.h">
+    <ClInclude Include="gui\drawing\Brush.h">
       <Filter>gui\drawing</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\drawing\DeviceContext.h">
+    <ClInclude Include="gui\drawing\DeviceContext.h">
       <Filter>gui\drawing</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\drawing\Graphics.h">
+    <ClInclude Include="gui\drawing\Graphics.h">
       <Filter>gui\drawing</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\drawing\Icon.h">
+    <ClInclude Include="gui\drawing\Icon.h">
       <Filter>gui\drawing</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\drawing\SolidBrush.h">
+    <ClInclude Include="gui\drawing\SolidBrush.h">
       <Filter>gui\drawing</Filter>
     </ClInclude>
-    <ClInclude Include="..\config-lib\ConnectionHistory.h">
+    <ClInclude Include="config-lib\ConnectionHistory.h">
       <Filter>config-lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\config-lib\IniFileSettingsManager.h">
+    <ClInclude Include="config-lib\IniFileSettingsManager.h">
       <Filter>config-lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\config-lib\RegistrySettingsManager.h">
+    <ClInclude Include="config-lib\RegistrySettingsManager.h">
       <Filter>config-lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\config-lib\SettingsManager.h">
+    <ClInclude Include="config-lib\SettingsManager.h">
       <Filter>config-lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\client-config-lib\ConnectionConfig.h">
+    <ClInclude Include="client-config-lib\ConnectionConfig.h">
       <Filter>client-config-lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\client-config-lib\ConnectionConfigSM.h">
+    <ClInclude Include="client-config-lib\ConnectionConfigSM.h">
       <Filter>client-config-lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\client-config-lib\ViewerConfig.h">
+    <ClInclude Include="client-config-lib\ViewerConfig.h">
       <Filter>client-config-lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\client-config-lib\ViewerSettingsManager.h">
+    <ClInclude Include="client-config-lib\ViewerSettingsManager.h">
       <Filter>client-config-lib</Filter>
     </ClInclude>
   </ItemGroup>
