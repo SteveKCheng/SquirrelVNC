@@ -106,3 +106,9 @@ because a dialog or message box would wait forever for input. Instead:
   A size of 0 means the dialog is missing.
 - How the dialog looks has to be checked by a person, in the resource
   editor or by running the program.
+
+## Previewing the dialogs in Visual Studio
+
+Currently, WinDlgGen is not able to show the generated dialogs visually. 
+But they can be readily be seen in the Visual Studio IDE.  After building,
+simply open `WinDlgGenOutput.rc` in the Solution Explorer pane in the IDE.
