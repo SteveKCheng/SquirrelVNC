@@ -83,6 +83,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
+      <AdditionalDependencies>Ws2_32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -105,6 +106,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
+      <AdditionalDependencies>Ws2_32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
@@ -124,6 +126,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
+      <AdditionalDependencies>Ws2_32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -148,6 +151,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
+      <AdditionalDependencies>Ws2_32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -163,26 +167,11 @@
     <ClInclude Include="KeySymTest.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\file-lib\file-lib.vcxproj">
-      <Project>{615b5b2e-792e-4883-ba75-763aec249f8a}</Project>
+    <ProjectReference Include="..\core-lib\core-lib.vcxproj">
+      <Project>{8b4d2c61-7f3a-4e0b-9c15-2a6e5d7b3f01}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\io-lib\io-lib.vcxproj">
-      <Project>{bbbc0986-6499-483d-a608-905d6930c55a}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\log-writer\log-writer.vcxproj">
-      <Project>{f9a69a98-b750-4242-b6af-de87e4201216}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\rfb\rfb.vcxproj">
-      <Project>{cea92b3a-5467-4cc7-80a6-227891f96c05}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\thread\thread.vcxproj">
-      <Project>{5f629934-ed68-4d38-9ba5-cf3a139a44a1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\util\util.vcxproj">
-      <Project>{e45bf60d-c8fd-4f07-a307-25596be1d256}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\win-system\win-system.vcxproj">
-      <Project>{56eadc5b-9c2c-431c-9275-98fe9088518b}</Project>
+    <ProjectReference Include="..\win32-lib\win32-lib.vcxproj">
+      <Project>{3e9f7a12-5c4b-4d8e-a6f0-91b2c3d4e5f6}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

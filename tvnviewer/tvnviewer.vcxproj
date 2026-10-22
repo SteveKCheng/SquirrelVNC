@@ -80,7 +80,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comctl32.lib;Ws2_32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalManifestDependencies>type=%27win32%27 name=%27Microsoft.Windows.Common-Controls%27 version=%276.0.0.0%27 processorArchitecture=%27X86%27 publicKeyToken=%276595b64144ccf1df%27 language=%27*%27;%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -102,7 +102,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comctl32.lib;Ws2_32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalManifestDependencies>type=%27win32%27 name=%27Microsoft.Windows.Common-Controls%27 version=%276.0.0.0%27 processorArchitecture=%27amd64%27 publicKeyToken=%276595b64144ccf1df%27 language=%27*%27;%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -124,7 +124,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comctl32.lib;Ws2_32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalManifestDependencies>type=%27win32%27 name=%27Microsoft.Windows.Common-Controls%27 version=%276.0.0.0%27 processorArchitecture=%27X86%27 publicKeyToken=%276595b64144ccf1df%27 language=%27*%27;%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OptimizeReferences>true</OptimizeReferences>
@@ -149,7 +149,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comctl32.lib;Ws2_32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalManifestDependencies>type=%27win32%27 name=%27Microsoft.Windows.Common-Controls%27 version=%276.0.0.0%27 processorArchitecture=%27amd64%27 publicKeyToken=%276595b64144ccf1df%27 language=%27*%27;%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OptimizeReferences>true</OptimizeReferences>
@@ -234,50 +234,11 @@
     <ResourceCompile Include="res/tvnviewer.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\client-config-lib\client-config-lib.vcxproj">
-      <Project>{97b29c1c-a911-41ab-9c88-019d9d827bfe}</Project>
+    <ProjectReference Include="..\core-lib\core-lib.vcxproj">
+      <Project>{8b4d2c61-7f3a-4e0b-9c15-2a6e5d7b3f01}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\config-lib\config-lib.vcxproj">
-      <Project>{879bd0d5-a4c5-40a3-8dc5-0a1bb6e616c7}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\file-lib\file-lib.vcxproj">
-      <Project>{615b5b2e-792e-4883-ba75-763aec249f8a}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\ft-client-lib\ft-client-lib.vcxproj">
-      <Project>{de53a4a7-a76f-4b7f-8104-8c5ecb836bd1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\ft-common\ft-common.vcxproj">
-      <Project>{469c12d6-1a5a-42ee-a30b-47b6bb2f49ef}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\gui\gui.vcxproj">
-      <Project>{97d4f12a-916c-4cb2-b4d9-f0d35128065a}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\io-lib\io-lib.vcxproj">
-      <Project>{bbbc0986-6499-483d-a608-905d6930c55a}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\log-writer\log-writer.vcxproj">
-      <Project>{f9a69a98-b750-4242-b6af-de87e4201216}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\network\network.vcxproj">
-      <Project>{9d22d911-02a4-4497-8c15-0ba34c6ca1fb}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\region\region.vcxproj">
-      <Project>{14a47432-7ab8-4ca1-a36e-81117aabfd2c}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\rfb\rfb.vcxproj">
-      <Project>{cea92b3a-5467-4cc7-80a6-227891f96c05}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\thread\thread.vcxproj">
-      <Project>{5f629934-ed68-4d38-9ba5-cf3a139a44a1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\util\util.vcxproj">
-      <Project>{e45bf60d-c8fd-4f07-a307-25596be1d256}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\viewer-core\viewer-core.vcxproj">
-      <Project>{3ea91983-d9eb-4369-8167-130122bfdf07}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\win-system\win-system.vcxproj">
-      <Project>{56eadc5b-9c2c-431c-9275-98fe9088518b}</Project>
+    <ProjectReference Include="..\win32-lib\win32-lib.vcxproj">
+      <Project>{3e9f7a12-5c4b-4d8e-a6f0-91b2c3d4e5f6}</Project>
     </ProjectReference>
     <ProjectReference Include="..\tools\svg2ico\svg2ico.vcxproj">
       <Project>{c8a85bf1-5e04-4c6c-a4c4-0b78f90b9631}</Project>

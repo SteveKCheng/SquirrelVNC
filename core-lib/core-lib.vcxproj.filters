@@ -1,0 +1,543 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ft-client-lib">
+      <UniqueIdentifier>{288a7675-0413-5e45-ba8d-567e47c2f2e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ft-common">
+      <UniqueIdentifier>{76eee2f1-e77e-5af9-b4c0-2bae22f5afa9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="io-lib">
+      <UniqueIdentifier>{5605b1f6-6e18-5002-8296-5348145c5eaf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="region">
+      <UniqueIdentifier>{9e0c666a-4a16-5059-a2ec-0d1c23f5ca8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="rfb">
+      <UniqueIdentifier>{2847e0f9-9d30-50f9-ac82-9df3923ce2fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="viewer-core">
+      <UniqueIdentifier>{efef4d93-652d-5fae-bb4e-cd6a7cbe593f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\region\Region.cpp">
+      <Filter>region</Filter>
+    </ClCompile>
+    <ClCompile Include="..\region\x11region.c">
+      <Filter>region</Filter>
+    </ClCompile>
+    <ClCompile Include="..\io-lib\BufferedInputStream.cpp">
+      <Filter>io-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\io-lib\BufferedOutputStream.cpp">
+      <Filter>io-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\io-lib\ByteArrayInputStream.cpp">
+      <Filter>io-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\io-lib\Channel.cpp">
+      <Filter>io-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\io-lib\DataInputStream.cpp">
+      <Filter>io-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\io-lib\DataOutputStream.cpp">
+      <Filter>io-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\io-lib\InputStream.cpp">
+      <Filter>io-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\io-lib\IOException.cpp">
+      <Filter>io-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\io-lib\OutputStream.cpp">
+      <Filter>io-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfb\AuthDefs.cpp">
+      <Filter>rfb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfb\CursorShape.cpp">
+      <Filter>rfb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfb\EncodingDefs.cpp">
+      <Filter>rfb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfb\FrameBuffer.cpp">
+      <Filter>rfb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfb\HostPath.cpp">
+      <Filter>rfb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfb\MsgDefs.cpp">
+      <Filter>rfb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfb\PixelConverter.cpp">
+      <Filter>rfb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfb\PixelFormat.cpp">
+      <Filter>rfb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfb\RfbKeySym.cpp">
+      <Filter>rfb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfb\StandardPixelFormatFactory.cpp">
+      <Filter>rfb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfb\TunnelDefs.cpp">
+      <Filter>rfb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfb\VendorDefs.cpp">
+      <Filter>rfb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\AuthHandler.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\CapabilitiesManager.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\CapsContainer.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\CompressionLevel.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\CopyRectDecoder.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\CoreEventsAdapter.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\CursorPainter.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\Decoder.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\DecoderOfRectangle.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\DecoderStore.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\DesktopSizeDecoder.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\FbUpdateNotifier.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\FileTransferCapability.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\HexTileDecoder.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\JpegDecompressor.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\JpegQualityLevel.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\LastRectDecoder.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\PointerPosDecoder.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\PseudoDecoder.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\RawDecoder.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\RemoteViewerCore.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\RfbClientToServerMessage.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\RfbCutTextEventClientMessage.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\RfbFramebufferUpdateRequestClientMessage.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\RfbKeyEventClientMessage.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\RfbPointerEventClientMessage.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\RfbSetEncodingsClientMessage.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\RfbSetPixelFormatClientMessage.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\RichCursorDecoder.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\RreDecoder.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\TcpConnection.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\TightDecoder.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\VncAuthentication.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\VncAuthenticationHandler.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\viewer-core\ZrleDecoder.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-common\FileInfo.cpp">
+      <Filter>ft-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-common\FolderListener.cpp">
+      <Filter>ft-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-common\FTMessage.cpp">
+      <Filter>ft-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-common\OperationNotSupportedException.cpp">
+      <Filter>ft-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\CopyOperation.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\DownloadOperation.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\FileInfoList.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\FileTransferCore.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\FileTransferEventAdapter.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\FileTransferEventHandler.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\FileTransferInterface.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\FileTransferMessageProcessor.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\FileTransferOperation.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\FileTransferReplyBuffer.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\FileTransferRequestSender.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\LocalFilesDeleteOperation.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\OperationEventListener.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\OperationNotPermittedException.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\OperationSupport.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\RemoteFileListOperation.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\RemoteFileRenameOperation.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\RemoteFilesDeleteOperation.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\RemoteFolderCreateOperation.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ft-client-lib\UploadOperation.cpp">
+      <Filter>ft-client-lib</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\region\Dimension.h">
+      <Filter>region</Filter>
+    </ClInclude>
+    <ClInclude Include="..\region\Point.h">
+      <Filter>region</Filter>
+    </ClInclude>
+    <ClInclude Include="..\region\Rect.h">
+      <Filter>region</Filter>
+    </ClInclude>
+    <ClInclude Include="..\region\Region.h">
+      <Filter>region</Filter>
+    </ClInclude>
+    <ClInclude Include="..\region\x11region.h">
+      <Filter>region</Filter>
+    </ClInclude>
+    <ClInclude Include="..\io-lib\BufferedInputStream.h">
+      <Filter>io-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\io-lib\BufferedOutputStream.h">
+      <Filter>io-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\io-lib\ByteArrayInputStream.h">
+      <Filter>io-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\io-lib\Channel.h">
+      <Filter>io-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\io-lib\DataInputStream.h">
+      <Filter>io-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\io-lib\DataOutputStream.h">
+      <Filter>io-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\io-lib\InputStream.h">
+      <Filter>io-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\io-lib\IOException.h">
+      <Filter>io-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\io-lib\OutputStream.h">
+      <Filter>io-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfb\AuthDefs.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfb\CursorShape.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfb\EncodingDefs.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfb\FrameBuffer.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfb\HostPath.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfb\keysymdef.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfb\MsgDefs.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfb\PixelConverter.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfb\PixelFormat.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfb\RfbKeySym.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfb\RfbKeySymListener.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfb\StandardPixelFormatFactory.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfb\TunnelDefs.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfb\VendorDefs.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\AuthHandler.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\CapabilitiesManager.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\CapsContainer.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\CompressionLevel.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\CopyRectDecoder.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\CoreEventsAdapter.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\CursorPainter.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\Decoder.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\DecoderOfRectangle.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\DecoderStore.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\DesktopSizeDecoder.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\FbUpdateNotifier.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\FileTransferCapability.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\HexTileDecoder.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\JpegDecompressor.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\JpegQualityLevel.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\LastRectDecoder.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\PointerPosDecoder.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\PseudoDecoder.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\RawDecoder.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\RemoteViewerCore.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\RfbClientToServerMessage.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\RfbCutTextEventClientMessage.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\RfbFramebufferUpdateRequestClientMessage.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\RfbKeyEventClientMessage.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\RfbPointerEventClientMessage.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\RfbSetEncodingsClientMessage.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\RfbSetPixelFormatClientMessage.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\RichCursorDecoder.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\RreDecoder.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\ServerMessageListener.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\TcpConnection.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\TightDecoder.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\ViewerBufferSize.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\VncAuthentication.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\VncAuthenticationHandler.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\viewer-core\ZrleDecoder.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-common\FileInfo.h">
+      <Filter>ft-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-common\FolderListener.h">
+      <Filter>ft-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-common\FTMessage.h">
+      <Filter>ft-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-common\OperationNotSupportedException.h">
+      <Filter>ft-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\CopyFileEventListener.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\CopyOperation.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\DownloadOperation.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\FileInfoList.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\FileTransferCore.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\FileTransferEventAdapter.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\FileTransferEventHandler.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\FileTransferInterface.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\FileTransferMessageProcessor.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\FileTransferOperation.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\FileTransferReplyBuffer.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\FileTransferRequestSender.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\LocalFilesDeleteOperation.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\OperationEventListener.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\OperationNotPermittedException.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\OperationSupport.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\RemoteFileListOperation.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\RemoteFileRenameOperation.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\RemoteFilesDeleteOperation.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\RemoteFolderCreateOperation.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ft-client-lib\UploadOperation.h">
+      <Filter>ft-client-lib</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
