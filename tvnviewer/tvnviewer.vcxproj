@@ -304,6 +304,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ToolbarIconSvg Include="..\art\toolbar\*.svg" />
+    <UpToDateCheckInput Include="@(ToolbarIconSvg);$(Svg2IcoExe)" />
   </ItemGroup>
   <ItemDefinitionGroup>
     <ResourceCompile>
@@ -331,6 +332,7 @@
   <ItemGroup>
     <WinDlgGen Include="res\options-dialog.xml" />
     <WinDlgGen Include="res\authentication-dialog.xml" />
+    <UpToDateCheckInput Include="@(WinDlgGen);res\preamble.h;$(WinDlgGenExe)" />
     <ResourceCompile Include="$(IntResDir)WinDlgGenOutput.rc" />
   </ItemGroup>
   <Target Name="EnsureWinDlgGen">
