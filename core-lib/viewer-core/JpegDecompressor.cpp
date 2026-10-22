@@ -64,9 +64,9 @@ void JpegDecompressor::outputMessage(j_common_ptr /* cinfo */)
   return;
 }
 
-void JpegDecompressor::decompress(vector<UINT8> &buffer,
+void JpegDecompressor::decompress(std::vector<UINT8> &buffer,
                                   size_t jpegBufLen,
-                                  vector<UINT8> &pixels,
+                                  std::vector<UINT8> &pixels,
                                   const Rect *dstRect)
 {
   if (!dstRect->isValid())

@@ -24,7 +24,7 @@
 #include "StringTable.h"
 #include "ResourceLoader.h"
 
-map<UINT, StringStorage> StringTable::_cache;
+std::map<UINT, StringStorage> StringTable::_cache;
 
 StringTable::StringTable()
 {

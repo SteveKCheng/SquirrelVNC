@@ -54,7 +54,7 @@ void ZrleDecoder::decode(RfbInputGate *input,
     return;
   }
 
-  vector<unsigned char> unpackedData;
+  std::vector<unsigned char> unpackedData;
   unpackedData.resize(unpackedDataSize);
   unpackedData.assign(m_inflater.getOutput(), m_inflater.getOutput() + unpackedDataSize);
   ByteArrayInputStream unpackedByteArrayStream(reinterpret_cast<char *>(&unpackedData.front()),
@@ -103,7 +103,7 @@ void ZrleDecoder::decode(RfbInputGate *input,
       }
       size_t tileLength = tileRect.area();
       size_t tileBytesLength = tileLength * m_bytesPerPixel;
-      vector<char> pixels;
+      std::vector<char> pixels;
       pixels.resize(tileBytesLength);
 
       int type = readType(&unpackedDataStream);
@@ -189,7 +189,7 @@ void ZrleDecoder::readPalette(DataInputStream *input,
 }
 
 void ZrleDecoder::readRawTile(DataInputStream *input,
-                              vector<char> &pixels,
+                              std::vector<char> &pixels,
                               const Rect *tileRect)
 {
   size_t tileBytesLength = tileRect->area() * m_bytesPerPixel;
@@ -197,7 +197,7 @@ void ZrleDecoder::readRawTile(DataInputStream *input,
 }
 
 void ZrleDecoder::readSolidTile(DataInputStream *input,
-                                vector<char> &pixels,
+                                std::vector<char> &pixels,
                                 const Rect *tileRect)
 {
   size_t tileLength = tileRect->area();
@@ -214,7 +214,7 @@ void ZrleDecoder::readSolidTile(DataInputStream *input,
 }
 
 void ZrleDecoder::readPackedPaletteTile(DataInputStream *input,
-                                        vector<char> &pixels,
+                                        std::vector<char> &pixels,
                                         const Rect *tileRect,
                                         const int type)
 {
@@ -267,7 +267,7 @@ void ZrleDecoder::readPackedPaletteTile(DataInputStream *input,
 }
 
 void ZrleDecoder::readPlainRleTile(DataInputStream *input,
-                                   vector<char> &pixels,
+                                   std::vector<char> &pixels,
                                    const Rect *tileRect)
 {
   size_t tileLength = tileRect->area();
@@ -288,7 +288,7 @@ void ZrleDecoder::readPlainRleTile(DataInputStream *input,
 }
 
 void ZrleDecoder::readPaletteRleTile(DataInputStream *input,
-                                     vector<char> &pixels,
+                                     std::vector<char> &pixels,
                                      const Rect *tileRect,
                                      const int type)
 {
@@ -324,7 +324,7 @@ void ZrleDecoder::readPaletteRleTile(DataInputStream *input,
 
 void ZrleDecoder::drawTile(FrameBuffer *fb,
                            const Rect *tileRect,
-                           const vector<char> *pixels)
+                           const std::vector<char> *pixels)
 {
   int width = tileRect->getWidth();
   size_t fbBytesPerPixel = m_bytesPerPixel;

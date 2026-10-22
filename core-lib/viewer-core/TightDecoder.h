@@ -47,7 +47,7 @@ private:
   void resetDecoders(UINT8 compControl);
   UINT32 readTightPixel(RfbInputGate *input, int bytesPerCPixel);
   int readCompactSize(RfbInputGate *input);
-  vector<UINT32> readPalette(RfbInputGate *input,
+  std::vector<UINT32> readPalette(RfbInputGate *input,
                           int paletteSize,
                           int bytesPerCPixel);
   void processJpeg(RfbInputGate *input,
@@ -58,38 +58,38 @@ private:
                          const Rect *dstRect,
                          UINT8 compControl);
   void readTightData(RfbInputGate *input,
-                     vector<UINT8> &buffer,
+                     std::vector<UINT8> &buffer,
                      size_t expectedLength,
                      const int decoderId);
   void readCompressedData(RfbInputGate *input,
-                          vector<UINT8> &buffer,
+                          std::vector<UINT8> &buffer,
                           size_t expectedLength,
                           const int decoderId);
   void drawPalette(FrameBuffer *fb,
-                   const vector<UINT32> &palette,
-                   const vector<UINT8> &pixels,
+                   const std::vector<UINT32> &palette,
+                   const std::vector<UINT8> &pixels,
                    const Rect *dstRect);
   void drawGradient(FrameBuffer *fb,
-                    const vector<UINT8> &pixels,
+                    const std::vector<UINT8> &pixels,
                     const Rect *dstRect);
   void drawTightBytes(FrameBuffer *fb,
-                     const vector<UINT8> *pixels,
+                     const std::vector<UINT8> *pixels,
                      const Rect *dstRect);
   void drawJpegBytes(FrameBuffer *fb,
-                     const vector<UINT8> *pixels,
+                     const std::vector<UINT8> *pixels,
                      const Rect *dstRect);
 
   UINT32 getRawTightColor(const PixelFormat *pxFormat,
-                          const vector<UINT8> &pixels,
+                          const std::vector<UINT8> &pixels,
                           size_t offset);
   void fillRawComponents(const PixelFormat *pxFormat,
                          UINT8 components[],
-                         const vector<UINT8> &pixels,
+                         const std::vector<UINT8> &pixels,
                          size_t pixelOffset);
 
-  vector<UINT8> TightDecoder::transformArray(const vector<UINT8> &buffer);
+  std::vector<UINT8> TightDecoder::transformArray(const std::vector<UINT8> &buffer);
 
-  vector<Inflater *> m_inflater;
+  std::vector<Inflater *> m_inflater;
   JpegDecompressor m_jpeg;
 
   bool m_isCPixel;

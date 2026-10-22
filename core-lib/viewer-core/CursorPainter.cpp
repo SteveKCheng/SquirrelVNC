@@ -49,8 +49,8 @@ void CursorPainter::updatePointerPos(const Point *position)
 
 void CursorPainter::setNewCursor(const Point *hotSpot,
                                  UINT16 width, UINT16 height,
-                                 const vector<UINT8> *cursor,
-                                 const vector<UINT8> *bitmask)
+                                 const std::vector<UINT8> *cursor,
+                                 const std::vector<UINT8> *bitmask)
 {
   AutoLock al(&m_lock);
   m_logWriter->debug(_T("Cursor hot-spot is (%d, %d)"), hotSpot->x, hotSpot->y);

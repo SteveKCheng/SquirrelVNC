@@ -38,7 +38,7 @@ public:
   ~DecoderStore();
 
   Decoder *getDecoder(INT32 decoderId);
-  vector<INT32> getDecoderIds();
+  std::vector<INT32> getDecoderIds();
   
   // return true, if adding is complete
   // return false, if decoder already exist
@@ -53,7 +53,7 @@ public:
 private:
   LogWriter *m_logWriter;
 
-  map<INT32, pair<int, Decoder*> > m_decoders;
+  std::map<INT32, std::pair<int, Decoder*> > m_decoders;
   INT32 m_preferredEncoding;
   bool m_allowCopyRect;
 };

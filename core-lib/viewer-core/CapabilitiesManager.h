@@ -82,17 +82,17 @@ public:
   //
   // This function return vector of enabled capabilities "client-to-server message".
   //
-  virtual void getEnabledClientMsgCapabilities(vector<UINT32> *codes) const = 0;
+  virtual void getEnabledClientMsgCapabilities(std::vector<UINT32> *codes) const = 0;
 
   //
   // This function return vector of enabled capabilities "server-to-client message".
   //
-  virtual void getEnabledServerMsgCapabilities(vector<UINT32> *codes) const = 0;
+  virtual void getEnabledServerMsgCapabilities(std::vector<UINT32> *codes) const = 0;
 
   //
   // This function return vector of enabled capabilities "encoding".
   //
-  virtual void getEnabledEncodingCapabilities(vector<UINT32> *codes) const = 0;
+  virtual void getEnabledEncodingCapabilities(std::vector<UINT32> *codes) const = 0;
 };
 
 #endif

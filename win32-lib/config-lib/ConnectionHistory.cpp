@@ -130,7 +130,7 @@ void ConnectionHistory::addHost(const TCHAR *host)
 {
   StringStorage hostS(host);
 
-  for (vector<StringStorage>::iterator it = m_hosts.begin(); it != m_hosts.end(); it++) {
+  for (std::vector<StringStorage>::iterator it = m_hosts.begin(); it != m_hosts.end(); it++) {
     if (it->isEqualTo(&hostS)) {
       m_hosts.erase(it);
       break;
@@ -159,7 +159,7 @@ void ConnectionHistory::removeHost(const TCHAR *host)
 {
   StringStorage hostS(host);
 
-  for (vector<StringStorage>::iterator it = m_hosts.begin(); it != m_hosts.end(); it++) {
+  for (std::vector<StringStorage>::iterator it = m_hosts.begin(); it != m_hosts.end(); it++) {
     if (it->isEqualTo(&hostS)) {
       m_hosts.erase(it);
       break;

@@ -40,7 +40,7 @@ WinProcessCommandLine::WinProcessCommandLine()
 
 void WinProcessCommandLine::optionParser(StringStorage *out)
 {
-  pair<StringStorage, StringStorage> strPair;
+  std::pair<StringStorage, StringStorage> strPair;
   
   out->remove(0, 1); 
   size_t ipos = out->findChar(_T('='));

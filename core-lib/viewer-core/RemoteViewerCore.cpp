@@ -599,7 +599,7 @@ int RemoteViewerCore::negotiateSecurityType()
 {
   m_logWriter.detail(_T("Reading list of security types..."));
   // read list of security types
-  vector<UINT32> secTypes;
+  std::vector<UINT32> secTypes;
   readSecurityTypeList(&secTypes);
   m_logWriter.debug(_T("List of security type is read"));
   if (secTypes.size() == 0) {
@@ -609,7 +609,7 @@ int RemoteViewerCore::negotiateSecurityType()
 
   // log information about security list
   StringStorage secTypeString;
-  for (vector<UINT32>::iterator i = secTypes.begin(); i != secTypes.end(); i++) {
+  for (std::vector<UINT32>::iterator i = secTypes.begin(); i != secTypes.end(); i++) {
     if(i != secTypes.begin())
       secTypeString.appendString(_T(", "));
     StringStorage nameType;
@@ -642,7 +642,7 @@ int RemoteViewerCore::negotiateSecurityType()
   return typeSelected;
 }
 
-void RemoteViewerCore::readSecurityTypeList(vector<UINT32> *secTypes)
+void RemoteViewerCore::readSecurityTypeList(std::vector<UINT32> *secTypes)
 {
   if (m_minor < 7) {
     UINT32 type = m_input->readUInt32();
@@ -652,7 +652,7 @@ void RemoteViewerCore::readSecurityTypeList(vector<UINT32> *secTypes)
     int secTypesNumber = m_input->readUInt8();
     if (secTypesNumber != 0) {
       secTypes->resize(secTypesNumber);
-      for (vector<UINT32>::iterator i = secTypes->begin(); i != secTypes->end(); i++)
+      for (std::vector<UINT32>::iterator i = secTypes->begin(); i != secTypes->end(); i++)
         *i = m_input->readUInt8();
     }
   }
@@ -682,12 +682,12 @@ StringStorage RemoteViewerCore::getAuthenticationTypeName(UINT32 authenticationT
   return _T("Unknown type");
 }
 
-int RemoteViewerCore::selectSecurityType(const vector<UINT32> *secTypes,
-                                         const map<UINT32, AuthHandler *> *authHandlers,
+int RemoteViewerCore::selectSecurityType(const std::vector<UINT32> *secTypes,
+                                         const std::map<UINT32, AuthHandler *> *authHandlers,
 										 const bool isTightEnabled) const
 {
   // Typedef const iterator.
-  typedef vector<UINT32>::const_iterator SecTypesIterator;
+  typedef std::vector<UINT32>::const_iterator SecTypesIterator;
 
   if (isTightEnabled) {
     // If server supports security type "Tight", select it.
@@ -760,7 +760,7 @@ int RemoteViewerCore::initAuthentication()
     newerViewerAuthCaps.enable(&cap);
   }
   size_t numEnabled = m_authCaps.numEnabled();
-  vector<UINT32> authTypes(numEnabled);
+  std::vector<UINT32> authTypes(numEnabled);
   for (size_t i = 0; i < numEnabled; ++i) {
     authTypes[i] = m_authCaps.getByOrder(i);
   }
@@ -1102,8 +1102,8 @@ void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
         throw Exception(_T("Rich cursor is too large"));
       }
 
-      vector<UINT8> cursor;
-      vector<UINT8> bitmask;
+      std::vector<UINT8> cursor;
+      std::vector<UINT8> bitmask;
 
       size_t cursorLen = width * height * bytesPerPixel;
       if (cursorLen != 0) {
@@ -1471,17 +1471,17 @@ void RemoteViewerCore::addEncodingCapability(Decoder *decoder,
   registerDecoderHandler(code, decoder, priorityEncoding);
 }
 
-void RemoteViewerCore::getEnabledClientMsgCapabilities(vector<UINT32> *codes) const
+void RemoteViewerCore::getEnabledClientMsgCapabilities(std::vector<UINT32> *codes) const
 {
   m_clientMsgCaps.getEnabledCapabilities(*codes);
 }
 
-void RemoteViewerCore::getEnabledServerMsgCapabilities(vector<UINT32> *codes) const
+void RemoteViewerCore::getEnabledServerMsgCapabilities(std::vector<UINT32> *codes) const
 {
   m_serverMsgCaps.getEnabledCapabilities(*codes);
 }
 
-void RemoteViewerCore::getEnabledEncodingCapabilities(vector<UINT32> *codes) const
+void RemoteViewerCore::getEnabledEncodingCapabilities(std::vector<UINT32> *codes) const
 {
   m_encodingCaps.getEnabledCapabilities(*codes);
 }

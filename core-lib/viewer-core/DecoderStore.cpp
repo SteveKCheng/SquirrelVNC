@@ -36,7 +36,7 @@ DecoderStore::DecoderStore(LogWriter *logWriter)
 DecoderStore::~DecoderStore()
 {
   try {
-    for (map<INT32, pair<int, Decoder *> >::iterator i = m_decoders.begin();
+    for (std::map<INT32, std::pair<int, Decoder *> >::iterator i = m_decoders.begin();
          i != m_decoders.end();
          i++) {
       m_logWriter->detail(_T("Decoder '%d' destroyed"), i->second.second->getCode());
@@ -57,28 +57,28 @@ Decoder *DecoderStore::getDecoder(INT32 decoderId)
     return 0;
 }
 
-vector<INT32> DecoderStore::getDecoderIds()
+std::vector<INT32> DecoderStore::getDecoderIds()
 {
   // this method returned list of decoders, sorted by priority.
   // in first position is preffered encoding.
-  vector<pair<int, INT32> > decoders;
+  std::vector<std::pair<int, INT32> > decoders;
 
-  for (map<INT32, pair <int, Decoder *> >::iterator i = m_decoders.begin();
+  for (std::map<INT32, std::pair <int, Decoder *> >::iterator i = m_decoders.begin();
        i != m_decoders.end();
        i++) {
     // preferred encoding is skipping
     if (i->first != m_preferredEncoding) {
       // copy rect is allowed?
       if (i->first != EncodingDefs::COPYRECT || m_allowCopyRect)
-        decoders.push_back(make_pair(i->second.first, i->first));
+        decoders.push_back(std::make_pair(i->second.first, i->first));
     }
   }
-  sort(decoders.begin(), decoders.end(), greater<pair<int,INT32> >());
-  vector<INT32> sortedDecoders;
-  map<INT32, pair<int, Decoder *> >::iterator priorityEnc = m_decoders.find(m_preferredEncoding);
+  std::sort(decoders.begin(), decoders.end(), std::greater<std::pair<int,INT32> >());
+  std::vector<INT32> sortedDecoders;
+  std::map<INT32, std::pair<int, Decoder *> >::iterator priorityEnc = m_decoders.find(m_preferredEncoding);
   if (priorityEnc != m_decoders.end())
     sortedDecoders.push_back(priorityEnc->first);
-  for (vector<pair<INT32, int> >::iterator i = decoders.begin();
+  for (std::vector<std::pair<INT32, int> >::iterator i = decoders.begin();
        i != decoders.end();
        i++) {
     sortedDecoders.push_back(i->second);
@@ -92,7 +92,7 @@ bool DecoderStore::addDecoder(Decoder *decoder, int priority)
 {
   m_logWriter->detail(_T("Decoder %d added"), decoder->getCode());
   if (m_decoders.count(decoder->getCode()) == 0) {
-    m_decoders[decoder->getCode()] = make_pair(priority, decoder);
+    m_decoders[decoder->getCode()] = std::make_pair(priority, decoder);
     return true;
   }
   delete[] decoder;

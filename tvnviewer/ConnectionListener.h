@@ -48,7 +48,7 @@ protected:
   void onAcceptConnection(SocketIPv4 *socket);
 
   WindowsApplication *m_application;
-  list<SocketIPv4 *> m_connections;
+  std::list<SocketIPv4 *> m_connections;
   LocalMutex m_connectionsLock;
 };
 

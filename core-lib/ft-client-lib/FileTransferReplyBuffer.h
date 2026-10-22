@@ -50,7 +50,7 @@ public:
   FileInfo *getFilesInfo();
 
   UINT32 getDownloadBufferSize();
-  vector<UINT8> getDownloadBuffer();
+  std::vector<UINT8> getDownloadBuffer();
 
   UINT64 getDownloadLastModified();
 
@@ -108,7 +108,7 @@ private:
   // are the largest blocks expected.
   static const UINT32 MAX_DATA_BLOCK_SIZE = 64 * 1024 * 1024;
 
-  vector<UINT8> readCompressedDataBlock(DataInputStream *input,
+  std::vector<UINT8> readCompressedDataBlock(DataInputStream *input,
                                         UINT32 compressedSize,
                                         UINT32 uncompressedSize,
                                         UINT8 compressionLevel);
@@ -140,7 +140,7 @@ protected:
   StringStorage m_lastErrorMessage;
 
   // Download data reply
-  vector<UINT8> m_downloadBuffer;
+  std::vector<UINT8> m_downloadBuffer;
   UINT32 m_downloadBufferSize;
 
   // Download end reply

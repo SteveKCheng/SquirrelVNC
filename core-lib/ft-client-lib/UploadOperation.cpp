@@ -407,7 +407,7 @@ void UploadOperation::sendFileDataChunk()
   }
   m_lastRequestTime = DateTime::now();
 
-  vector<char> buffer(m_bufferSize);
+  std::vector<char> buffer(m_bufferSize);
   UINT32 read = 0;
   try {
     size_t portion = m_fis->read(&buffer.front(), m_bufferSize);

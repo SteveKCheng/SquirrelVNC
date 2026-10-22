@@ -29,9 +29,7 @@
 #include "thread/LocalMutex.h"
 #include "thread/AutoLock.h"
 
-using namespace std;
-
-template<class T> class SafeVector : public vector<T>,
+template<class T> class SafeVector : public std::vector<T>,
                                      public LocalMutex {
 public:
   virtual ~SafeVector() { };
@@ -54,7 +52,7 @@ public:
   void addListener(T listener) {
     AutoLock l(&m_listeners);
 
-    typename vector<T>::iterator it;
+    typename std::vector<T>::iterator it;
     for (it = m_listeners.begin(); it != m_listeners.end(); it++) {
       T current = *it;
       if (current == listener) {
@@ -78,7 +76,7 @@ public:
   void removeListener(T listener) {
     AutoLock l(&m_listeners);
 
-    typename vector<T>::iterator it;
+    typename std::vector<T>::iterator it;
     for (it = m_listeners.begin(); it != m_listeners.end(); it++) {
       T current = *it;
       if (current == listener) {

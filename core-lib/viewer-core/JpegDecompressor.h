@@ -48,9 +48,9 @@ public:
    * format is an array of bytes where each pixel is represented by three bytes
    * for red, green and blue components, in that order.
    */
-  void decompress(vector<UINT8> &buffer,
+  void decompress(std::vector<UINT8> &buffer,
                   size_t jpegBufLen,
-                  vector<UINT8> &pixels,
+                  std::vector<UINT8> &pixels,
                   const Rect *dstRect);
 
 private:

@@ -29,8 +29,6 @@
 
 #include <list>
 
-using namespace std;
-
 /**
  * Base Windows Application class.
  * Have hidden main window and main message loop.
@@ -103,7 +101,7 @@ protected:
   static bool processDialogMessage(MSG *msg);
 private:
   static LocalMutex m_MDLMutex; // Modeless dialog list mutex.
-  static list<HWND> m_modelessDialogList;
+  static std::list<HWND> m_modelessDialogList;
 };
 
 #endif // __WINDOWSAPPLICATION_H__

@@ -28,8 +28,6 @@
 
 #include <vector>
 
-using namespace std;
-
 /**
  * History of tcp connections.
  *
@@ -111,7 +109,7 @@ protected:
   /**
    * Array of history enries.
    */
-  vector<StringStorage> m_hosts;
+  std::vector<StringStorage> m_hosts;
 
   /**
    * Maximum count of history entries.

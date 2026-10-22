@@ -30,13 +30,13 @@
 class RfbSetEncodingsClientMessage : public RfbClientToServerMessage
 {
 public:
-  RfbSetEncodingsClientMessage(vector<int> *encodings);
+  RfbSetEncodingsClientMessage(std::vector<int> *encodings);
   ~RfbSetEncodingsClientMessage();
 
   void send(RfbOutputGate *output);
 
 private:
-  vector<int> m_encodings;
+  std::vector<int> m_encodings;
 };
 
 #endif

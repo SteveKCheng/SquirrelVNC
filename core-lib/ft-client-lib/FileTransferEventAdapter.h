@@ -30,8 +30,6 @@
 
 #include <vector>
 
-using namespace std;
-
 //
 // Class is used as helper for checking valid (file transfer client point of view)
 // file transfer protocol extension messages.

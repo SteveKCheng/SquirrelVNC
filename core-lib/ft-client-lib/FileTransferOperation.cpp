@@ -60,7 +60,7 @@ void FileTransferOperation::notifyStart()
 {
   AutoLock al(&m_listeners);
 
-  vector<OperationEventListener *>::iterator it;
+  std::vector<OperationEventListener *>::iterator it;
   for (it = m_listeners.begin(); it != m_listeners.end(); it++) {
     OperationEventListener *l = *it;
     l->ftOpStarted(this);
@@ -71,7 +71,7 @@ void FileTransferOperation::notifyFinish()
 {
   AutoLock al(&m_listeners);
 
-  vector<OperationEventListener *>::iterator it;
+  std::vector<OperationEventListener *>::iterator it;
   for (it = m_listeners.begin(); it != m_listeners.end(); it++) {
     OperationEventListener *l = *it;
     l->ftOpFinished(this);
@@ -84,7 +84,7 @@ void FileTransferOperation::notifyError(const TCHAR *message)
 
   AutoLock al(&m_listeners);
 
-  vector<OperationEventListener *>::iterator it;
+  std::vector<OperationEventListener *>::iterator it;
   for (it = m_listeners.begin(); it != m_listeners.end(); it++) {
     OperationEventListener *l = *it;
     l->ftOpErrorMessage(this, message);
@@ -97,7 +97,7 @@ void FileTransferOperation::notifyInformation(const TCHAR *message)
 
   AutoLock al(&m_listeners);
 
-  vector<OperationEventListener *>::iterator it;
+  std::vector<OperationEventListener *>::iterator it;
   for (it = m_listeners.begin(); it != m_listeners.end(); it++) {
     OperationEventListener *l = *it;
     l->ftOpInfoMessage(this, message);

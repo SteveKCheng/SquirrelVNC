@@ -51,8 +51,8 @@ public:
   void updatePointerPos(const Point *position);
   void setNewCursor(const Point *hotSpot,
                     UINT16 width, UINT16 height,
-                    const vector<UINT8> *cursor, 
-                    const vector<UINT8> *bitmask);
+                    const std::vector<UINT8> *cursor, 
+                    const std::vector<UINT8> *bitmask);
 
   void setIgnoreShapeUpdates(bool ignore);
 protected:

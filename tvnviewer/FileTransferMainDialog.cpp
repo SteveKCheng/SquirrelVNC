@@ -810,7 +810,7 @@ void FileTransferMainDialog::refreshLocalFileList()
 void FileTransferMainDialog::tryListLocalFolder(const TCHAR *pathToFile)
 {
   try {
-    vector <FileInfo> *localFileList = m_ftCore->getListLocalFolder(pathToFile);
+    std::vector <FileInfo> *localFileList = m_ftCore->getListLocalFolder(pathToFile);
 
 
     // Add to list view
@@ -928,7 +928,7 @@ void FileTransferMainDialog::setNothingState()
   m_remoteCurFolderTextBox.setText(m_lastReceivedFileListPath.getString());
 
   m_remoteFileListView.clear();
-  vector<FileInfo> *fileRemoteList = m_ftCore->getListRemoteFolder();
+  std::vector<FileInfo> *fileRemoteList = m_ftCore->getListRemoteFolder();
   if (!fileRemoteList->empty()) {
     FileInfo *filesInfo = &fileRemoteList->front();
     m_remoteFileListView.addRange(&filesInfo, fileRemoteList->size());

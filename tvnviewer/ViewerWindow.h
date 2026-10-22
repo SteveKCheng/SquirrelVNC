@@ -176,7 +176,7 @@ protected:
   // Destructor of ViewerWindow may be called, if this flag is true.
   bool m_stopped;
 private:
-  vector<int> m_standardScale;
+  std::vector<int> m_standardScale;
   void changeCursor(int type);
   void applySettings();
   void setSizeFullScreenWindow();

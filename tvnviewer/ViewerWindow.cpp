@@ -542,7 +542,7 @@ void ViewerWindow::commandSaveSession()
   TCHAR allMask[] = _T("*.*");
 
 
-  vector<TCHAR> filter;
+  std::vector<TCHAR> filter;
   filter.insert(filter.end(), filterVncFiles.getString(), filterVncFiles.getString() + filterVncFiles.getLength() + 1);
   filter.insert(filter.end(), vncMask, vncMask + sizeof(vncMask) / sizeof(TCHAR) - 1);
   filter.push_back(_T(';'));
@@ -688,13 +688,13 @@ void ViewerWindow::commandScaleAuto()
 int ViewerWindow::translateAccelToTB(int val) 
 {
   static const std::pair<int, int> accelerators[] = {
-    make_pair(ID_CONN_OPTIONS,    IDS_TB_CONNOPTIONS),
-    make_pair(ID_CONN_INFO,       IDS_TB_CONNINFO), 
-    make_pair(ID_SHOW_TOOLBAR,    IDS_TB_TOOLBAR),
-    make_pair(ID_FULL_SCR,        IDS_TB_FULLSCREEN), 
-    make_pair(ID_REQ_SCR_REFRESH, IDS_TB_REFRESH),
-    make_pair(ID_CTRL_ALT_DEL,    IDS_TB_CTRLALTDEL),
-    make_pair(ID_TRANSF_FILES,    IDS_TB_TRANSFER)
+    std::make_pair(ID_CONN_OPTIONS,    IDS_TB_CONNOPTIONS),
+    std::make_pair(ID_CONN_INFO,       IDS_TB_CONNINFO), 
+    std::make_pair(ID_SHOW_TOOLBAR,    IDS_TB_TOOLBAR),
+    std::make_pair(ID_FULL_SCR,        IDS_TB_FULLSCREEN), 
+    std::make_pair(ID_REQ_SCR_REFRESH, IDS_TB_REFRESH),
+    std::make_pair(ID_CTRL_ALT_DEL,    IDS_TB_CTRLALTDEL),
+    std::make_pair(ID_TRANSF_FILES,    IDS_TB_TRANSFER)
   };
 
   for (int i = 0; i < sizeof(accelerators) / sizeof(std::pair<int, int>); i++) {
@@ -1131,10 +1131,10 @@ void ViewerWindow::onConnected(RfbOutputGate *output)
   m_fileTransfer->setOutput(output);
 
   // Update list of supported operation for file transfer.
-  vector<UINT32> clientMsgCodes;
+  std::vector<UINT32> clientMsgCodes;
   m_viewerCore->getEnabledClientMsgCapabilities(&clientMsgCodes);
 
-  vector<UINT32> serverMsgCodes;
+  std::vector<UINT32> serverMsgCodes;
   m_viewerCore->getEnabledServerMsgCapabilities(&serverMsgCodes);
 
   m_fileTransfer->getCore()->updateSupportedOperations(&clientMsgCodes, &serverMsgCodes);

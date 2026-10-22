@@ -28,7 +28,7 @@
 
 LocalMutex WindowsApplication::m_MDLMutex;
 
-list<HWND> WindowsApplication::m_modelessDialogList;
+std::list<HWND> WindowsApplication::m_modelessDialogList;
 
 WindowsApplication::WindowsApplication(HINSTANCE appInstance,
                                        const TCHAR *windowClassName)
@@ -113,7 +113,7 @@ void WindowsApplication::addModelessDialog(HWND dialogWindow)
 bool WindowsApplication::processDialogMessage(MSG *msg)
 {
   AutoLock l(&m_MDLMutex);
-  for (list<HWND>::iterator iter = m_modelessDialogList.begin();
+  for (std::list<HWND>::iterator iter = m_modelessDialogList.begin();
        iter != m_modelessDialogList.end(); iter++) {
     if (IsDialogMessage(*iter, msg)) {
       return true;

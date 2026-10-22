@@ -86,7 +86,7 @@ const OperationSupport &FileTransferCore::getSupportedOps()
   return m_supportedOps;
 }
 
-vector<FileInfo> *FileTransferCore::getListLocalFolder(const TCHAR *pathToFile)
+std::vector<FileInfo> *FileTransferCore::getListLocalFolder(const TCHAR *pathToFile)
 {
   FolderListener fl(pathToFile);
   if (!fl.list()) {
@@ -98,13 +98,13 @@ vector<FileInfo> *FileTransferCore::getListLocalFolder(const TCHAR *pathToFile)
   return &m_localFilesInfo;
 }
 
-vector<FileInfo> *FileTransferCore::getListRemoteFolder()
+std::vector<FileInfo> *FileTransferCore::getListRemoteFolder()
 {
   return &m_remoteFilesInfo;
 }
 
-void FileTransferCore::updateSupportedOperations(const vector<UINT32> *clientCaps,
-                                                 const vector<UINT32> *serverCaps)
+void FileTransferCore::updateSupportedOperations(const std::vector<UINT32> *clientCaps,
+                                                 const std::vector<UINT32> *serverCaps)
 {
   m_supportedOps = OperationSupport(*clientCaps, *serverCaps);
 }

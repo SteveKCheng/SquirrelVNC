@@ -105,8 +105,8 @@ StringStorage WinClipboard::addCR(const StringStorage *str)
 {
   const TCHAR *beginString = str->getString();
   const TCHAR *endString = beginString + str->getLength() + 1; // start + lenght + '\0'
-  vector<TCHAR> chars(beginString, endString);
-  vector<TCHAR> newChars(str->getLength() * 2 + 1);
+  std::vector<TCHAR> chars(beginString, endString);
+  std::vector<TCHAR> newChars(str->getLength() * 2 + 1);
   size_t countLF = 0;
   for (size_t i = 0; i < chars.size(); i++) {
     // if is first byte or previous byte not CR, then add CR
@@ -124,8 +124,8 @@ StringStorage WinClipboard::removeCR(const StringStorage *str)
 {
   const TCHAR *beginString = str->getString();
   const TCHAR *endString = beginString + str->getLength() + 1; // start + lenght + '\0'
-  vector<TCHAR> chars(beginString, endString);
-  vector<TCHAR> newChars;
+  std::vector<TCHAR> chars(beginString, endString);
+  std::vector<TCHAR> newChars;
   for (size_t i = 0; i < chars.size(); i++) {
     if (chars[i] != CR || i + 1 == chars.size() || chars[i+1] != LF) {
       newChars.push_back(chars[i]);

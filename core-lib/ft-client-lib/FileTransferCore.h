@@ -62,8 +62,8 @@ public:
 
   const OperationSupport &getSupportedOps();
 
-  vector<FileInfo> *getListLocalFolder(const TCHAR *pathToFile);
-  vector<FileInfo> *getListRemoteFolder();
+  std::vector<FileInfo> *getListLocalFolder(const TCHAR *pathToFile);
+  std::vector<FileInfo> *getListRemoteFolder();
 
   void downloadOperation(const FileInfo *filesToDownload,
                          size_t filesCount,
@@ -93,8 +93,8 @@ public:
   void onUpdateState(int state, int result);
 
   // FIXME: Debug.
-  void updateSupportedOperations(const vector<UINT32> *clientCaps,
-                                 const vector<UINT32> *serverCaps);
+  void updateSupportedOperations(const std::vector<UINT32> *clientCaps,
+                                 const std::vector<UINT32> *serverCaps);
 
 protected:
   //
@@ -164,13 +164,13 @@ protected:
   // File list request variables
   //
 
-  vector <FileInfo> m_remoteFilesInfo;
+  std::vector <FileInfo> m_remoteFilesInfo;
 
   //
   // Local file list variables
   //
 
-  vector <FileInfo> m_localFilesInfo;
+  std::vector <FileInfo> m_localFilesInfo;
 
   //
   // file transfer interface

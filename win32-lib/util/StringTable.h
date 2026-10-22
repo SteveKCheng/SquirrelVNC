@@ -28,8 +28,6 @@
 
 #include <map>
 
-using namespace std;
-
 /**
  * Helper class with only static methods to get strings from resources.
  */
@@ -50,7 +48,7 @@ public:
 private:
   StringTable();
 
-  static map<UINT, StringStorage> _cache;
+  static std::map<UINT, StringStorage> _cache;
 };
 
 #endif

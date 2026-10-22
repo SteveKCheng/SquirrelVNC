@@ -121,12 +121,12 @@ void FbUpdateNotifier::execute()
 	  update.addRect(&cursor);
 	  update.addRect(&m_oldPosition);
 
-      vector<Rect> updateList;
+      std::vector<Rect> updateList;
       update.getRectVector(&updateList);
       m_logWriter->detail(_T("FbUpdateNotifier (event): %zu updates"), updateList.size());
 
       try {
-        for (vector<Rect>::iterator i = updateList.begin(); i != updateList.end(); ++i) {
+        for (std::vector<Rect>::iterator i = updateList.begin(); i != updateList.end(); ++i) {
 			m_adapter->onFrameBufferUpdate(m_frameBuffer, &*i);
         }
       } catch (...) {
@@ -182,8 +182,8 @@ void FbUpdateNotifier::updatePointerPos(const Point *position)
 
 void FbUpdateNotifier::setNewCursor(const Point *hotSpot,
                                     UINT16 width, UINT16 height,
-                                    const vector<UINT8> *cursor, 
-                                    const vector<UINT8> *bitmask)
+                                    const std::vector<UINT8> *cursor, 
+                                    const std::vector<UINT8> *bitmask)
 {
   {
     AutoLock al(m_fbLock);

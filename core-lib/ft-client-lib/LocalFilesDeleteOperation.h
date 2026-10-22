@@ -48,7 +48,7 @@ private:
 
 protected:
   StringStorage m_pathToTargetRoot;
-  vector<FileInfo> m_filesToDelete;
+  std::vector<FileInfo> m_filesToDelete;
   UINT32 m_filesCount;
 };
 

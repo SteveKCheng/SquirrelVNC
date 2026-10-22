@@ -41,8 +41,6 @@
 
 #include <vector>
 
-using namespace std;
-
 class FileTransferMainDialog : public BaseDialog,
                                public FileTransferInterface
 {
