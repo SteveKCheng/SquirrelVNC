@@ -197,6 +197,66 @@ clang-tidy needs at least one check enabled, or it exits without
 parsing; `cert-dcl58-cpp` is a cheap one that never fires here. The
 compiler errors are reported as `clang-diagnostic-error`.
 
+### Strict aliasing
+
+Scan (2026-10-22) for code that breaks C++'s type-aliasing rules: an
+object read or written through an lvalue of another type, other than a
+character type or the signed/unsigned variant of its own type. MSVC
+never optimizes on these rules, and neither does clang-cl by default
+(it implies `-fno-strict-aliasing`, as MSVC does). GCC and Clang on
+Linux do from `-O2`, so this matters for a Linux build of `core-lib`
+for fuzzing or Valgrind. Until it is fixed, such a build can use
+`-fno-strict-aliasing`.
+
+Fixed: `win-system/VersionInfo.cpp` read the halves of a `DWORD`
+through `unsigned short *`. (`fb322ec`)
+
+Remaining, all on pixel buffers in `core-lib/rfb`:
+
+- `PixelConverter::convert()`: 11 accesses, reading source pixels and
+  writing destination pixels through `*(UINT16 *)` and `*(UINT32 *)`
+  casts of `UINT8 *` pointers into frame buffers.
+- `FrameBuffer::overlayT<PIXEL_T>()`: both buffers cast to `PIXEL_T *`.
+- `FrameBuffer::copyFromRotated90/180/270()`: rows copied through
+  `UINT32 *`. These are 32 bpp only, and nothing outside `FrameBuffer`
+  calls them, so they are candidates for `dead-code.md` instead.
+
+The buffers are `new UINT8[]` (`FrameBuffer::resizeBuffer()`) or DIB
+section memory (`DibFrameBuffer`). In C++20 an `unsigned char` array
+implicitly creates objects such as `UINT32` in its storage as needed
+(P0593), so a buffer accessed consistently as one pixel type is then
+defined. A buffer always is: changing the pixel format reallocates it,
+and decoders write pixels with `memcpy`, which is always allowed.
+Before C++20 the casts are undefined in any case, and alignment is
+only right because pixel offsets are multiples of the pixel size.
+
+The robust fix is a pair of helpers, `loadPixel<T>(const void *)` and
+`storePixel<T>(void *, T)`, built on `memcpy` of `sizeof(T)` bytes.
+Compilers turn these into single loads and stores, so the pixel loops
+lose no speed, and alignment stops mattering.
+
+Lesser cases:
+
+- `win-system/DibSection.cpp`: `setupBMIStruct()` writes
+  `Screen::BMI` and `Screen::Palette8bitBMI` partly through their own
+  types and partly through `BITMAPINFO *` (`pBmi->bmiHeader`). The
+  structures start with the same `BITMAPINFOHEADER`, so this works,
+  but strictly it accesses one structure type as another. Setting the
+  header through the concrete structure, and converting to
+  `BITMAPINFO *` only to call GDI, avoids it. Windows-only, so it
+  matters only if clang-cl is ever run with `-fstrict-aliasing`.
+- `rfb/PixelFormat.cpp`: `initBigEndianByNative()` tests the byte order
+  by reading the inactive member of a union, which C++ (unlike C) does
+  not define. `std::endian::native` replaces it in C++20.
+
+Checked and not a problem: pointers from `LPARAM`, `WPARAM`,
+`GWLP_USERDATA`, `GlobalLock()` and `LockResource()`, which point to
+objects of the type they are cast to; structures passed to Win32 as
+`LPBITMAPINFO` and the like, which our code does not access through
+the cast; `RegistrySettingsManager` reading a `UINT` through `int *`
+(a signed/unsigned variant); and accesses through `char *` or
+`UINT8 *`.
+
 ## Build system
 
 **CMake is worth it, but not first.** The build quirks to carry over:
