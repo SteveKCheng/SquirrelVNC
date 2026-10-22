@@ -60,8 +60,8 @@ void HexTileDecoder::decode(RfbInputGate *input,
       UINT8 flags = input->readUInt8();
       // If tile-coding is RAW.
       if (flags & 0x1) {
-        for (int y = tileRect.top; y < tileRect.bottom; y++)
-          input->readFully(framebuffer->getBufferPtr(tileRect.left, y),
+        for (int row = tileRect.top; row < tileRect.bottom; row++)
+          input->readFully(framebuffer->getBufferPtr(tileRect.left, row),
                            tileRect.getWidth() * bytesPerPixel);
       } else {
         if (flags & 0x2) {
@@ -85,11 +85,11 @@ void HexTileDecoder::decode(RfbInputGate *input,
 
             UINT8 xy = input->readUInt8();
             UINT8 wh = input->readUInt8();
-            int x = (xy >> 4) & 0xF;
-            int y = xy & 0xF;
+            int subX = (xy >> 4) & 0xF;
+            int subY = xy & 0xF;
             int w = ((wh >> 4) & 0xF) + 1;
             int h = (wh & 0xF) + 1;
-            Rect subRect(x, y, x + w, y + h);
+            Rect subRect(subX, subY, subX + w, subY + h);
 
             subRect.move(tileRect.left, tileRect.top);
             framebuffer->fillRect(&subRect, foreground);

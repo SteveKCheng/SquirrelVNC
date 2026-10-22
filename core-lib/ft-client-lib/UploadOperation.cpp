@@ -292,8 +292,6 @@ void UploadOperation::startUpload()
 
 void UploadOperation::processFolder()
 {
-  StringStorage message;
-
   // Try list files from folder
   FolderListener listener(m_pathToSourceFile.getString());
   if (listener.list()) {

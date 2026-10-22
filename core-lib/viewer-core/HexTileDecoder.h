@@ -33,6 +33,20 @@ public:
   virtual ~HexTileDecoder();
 
 protected:
+  //
+  // Reads a Hextile-encoded rectangle from input and draws it into
+  // framebuffer at dstRect, tile by tile.
+  //
+  // dstRect comes from the server, so it is not trusted: each 16x16 tile
+  // must lie inside framebuffer, or an Exception is thrown.  An Exception
+  // is also thrown for a tile that has no subrectangles before any
+  // background colour was sent.  Subrectangles are clipped to framebuffer
+  // by FrameBuffer::fillRect().  On an exception, the tiles before the bad
+  // one have already been drawn.
+  //
+  // Pre: framebuffer has the pixel format the server sends, so that each
+  // colour read is framebuffer->getBytesPerPixel() bytes.
+  //
   virtual void decode(RfbInputGate *input,
                       FrameBuffer *framebuffer,
                       const Rect *dstRect);
