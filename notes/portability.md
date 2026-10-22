@@ -1,11 +1,20 @@
 # Portability: Linux builds, a headless RFB client, CMake
 
+## Updates since this note was first written
+
 **Status (2026-10-21).** This note describes the code as inherited from
 TightVNC. The plan has since moved on: networking is to be rewritten as
 asynchronous (`async-networking.md`), which removes much of the Win32
 use described here, so its recommendations are provisional. Once that
 rewrite is done, most of this note becomes historical, like
 `old-server.md`; it stays as a record of where SquirrelVNC started.
+
+**Status (2026-10-22).** The libraries have been consolidated to 
+`core-lib` and `win32-lib`, and each of TightVNC's former libraries
+are now just sub-directories of `core-lib` or `win32-lib`.
+No Win32-specific code has been ported, yet.
+
+## Introduction
 
 Investigation (2026-10-20) of how far the code can be built away from
 Windows. The aim is not a GUI client on another platform, but easier
@@ -190,15 +199,14 @@ compiler errors are reported as `clang-diagnostic-error`.
 
 ## Build system
 
-**CMake is worth it, but not first.** The 18 `.vcxproj` files are
-uniform: almost all are static libraries with `.;..` include paths and
-a few defines. The build quirks to carry over:
+**CMake is worth it, but not first.** The build quirks to carry over:
 
 - vcpkg manifest mode with overlay triplets;
 - static CRT;
 - `.rc` resources with a UTF-8 code page;
 - the embedded manifest;
-- the `svg2ico` custom targets (`RenderIcons`, `RenderToolbarIcons`).
+- the custom targets for `svg2ico` (`RenderIcons`, `RenderToolbarIcons`)
+- the custom targets for WinDlgGen
 
 `svg2ico` is the one problem for cross-compiling: it renders with
 Direct2D at build time and cannot run on Linux. The options are Wine
@@ -206,6 +214,10 @@ Direct2D at build time and cannot run on Linux. The options are Wine
 as lunasvg or resvg for cross builds, or icons built on Windows and
 fetched as an artifact. That reopens the Direct2D decision in
 `branding-and-icons.md`.
+
+[WinDlgGen](dialog-resources.md) is a .NET program, which may introduce 
+complications for CMake as it does not have MSBuild's easy integration 
+with .NET projects.
 
 **Cross-compiling from Linux:** clang-cl + lld-link + llvm-rc, with
 xwin to fetch the MSVC CRT and Windows SDK, and a CMake toolchain file.
