@@ -68,7 +68,22 @@ public:
 
   virtual ~WinFile();
 
-  // Call this function after this object creation by the default constructor.
+  // Opens or creates pathToFile, as fMode says, for the access dAcc.  The
+  // file is shared with other openers for reading only if shareToRead is
+  // true, and never for writing.  The constructor taking the same
+  // arguments calls this.
+  //
+  // Pre: no file is open: isValid() is false, as after the default
+  // constructor or close().  Otherwise the open handle leaks.
+  // Pre: dAcc and fMode are values of their enumerations; otherwise
+  // SystemException is thrown with ERROR_INVALID_PARAMETER (after an
+  // assertion failure in Debug builds).
+  //
+  // Post: isValid() is true, and the file pointer is at the start of the
+  // file, or at its end for FM_APPEND.
+  // @throw SystemException if the file cannot be opened, in which case
+  // isValid() is false; or if FM_APPEND cannot move to the end of the
+  // file, in which case the file is left open.
   void open(const TCHAR *pathToFile, DesiredAccess dAcc, FileMode fMode,
             bool shareToRead = false);
 

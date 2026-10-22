@@ -65,6 +65,7 @@ void WinFile::open(const TCHAR *pathToFile,
     break;
   default:
     _ASSERT(0);
+    throw SystemException(ERROR_INVALID_PARAMETER);
   }
 
   DWORD creationDisposition;
@@ -90,6 +91,7 @@ void WinFile::open(const TCHAR *pathToFile,
     break;
   default:
     _ASSERT(0);
+    throw SystemException(ERROR_INVALID_PARAMETER);
   }
 
   DWORD shareMode = 0;
