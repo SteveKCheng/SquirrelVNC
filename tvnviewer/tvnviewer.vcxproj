@@ -343,7 +343,7 @@
     <MSBuild Projects="..\tools\WinDlgGen\src\WinDlgGen\WinDlgGen.csproj" Targets="Build" Properties="Configuration=Release" RemoveProperties="Platform" />
   </Target>
   <Target Name="GenerateDialogResources" BeforeTargets="ResourceCompile" DependsOnTargets="EnsureWinDlgGen"
-          Inputs="@(WinDlgGen)"
+          Inputs="@(WinDlgGen);res\preamble.h;$(WinDlgGenExe)"
           Outputs="$(WinDlgGenOutputFile)">
     <MakeDir Directories="$(IntResDir)" />
     <Message Text="Generating dialog resources from XML" Importance="High" />
