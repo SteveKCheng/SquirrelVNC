@@ -34,6 +34,30 @@ SquirrelVNC is a fork of TightVNC's viewer with some improvements in aesthetics,
 ## Documentation
 
   - [Command-line arguments](docs/command-line.md)
+  
+## Building
+
+This software currently only builds on Windows.  You need Visual Studio 2026 installed (any version is fine).
+Make sure you have the following components installed:
+
+  - C++
+  - .NET 10 [needed for the [WinDlgGen](notes/dialog-resources.md) tool]
+
+To build on the command line, run:
+
+```
+msbuild SquirrelVNC.slnx
+```
+
+The following options are available:
+
+  - `/p:Configuration=‹CONFIG›`, where `‹CONFIG›` is either `Debug` or `Release` [default].
+  - `/p:Platform=‹PLATFORM›`, where `‹PLATFORM›` is either `Win32` (meaning x86) or `x64` [default].
+
+The built outputs will be deposited in the following directories:
+
+  - Object files and other intermediate files: `obj\‹PLATFORM›\‹CONFIG›\‹sub-project name›`
+  - Final executables: `bin\\‹PLATFORM›\‹CONFIG›`
 
 ## Status
 
