@@ -56,8 +56,9 @@ The following options are available:
 
 The built outputs will be deposited in the following directories:
 
+  - Generated files for Windows resources: `obj\res`
   - Object files and other intermediate files: `obj\‹PLATFORM›\‹CONFIG›\‹sub-project name›`
-  - Final executables: `bin\\‹PLATFORM›\‹CONFIG›`
+  - Final executables: `bin\‹PLATFORM›\‹CONFIG›`
 
 ## Status
 
