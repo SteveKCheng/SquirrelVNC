@@ -35,7 +35,7 @@
 #include "gui/CheckBox.h"
 #include "gui/SpinControl.h"
 #include "gui/ComboBox.h"
-#include "gui/TrackBar.h"
+#include "gui/Trackbar.h"
 #include "res/resource.h"
 
 #include "win-system/WindowsApplication.h"

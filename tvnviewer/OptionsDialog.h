@@ -33,7 +33,7 @@
 #include "gui/TextBox.h"
 #include "gui/CheckBox.h"
 #include "gui/ComboBox.h"
-#include "gui/TrackBar.h"
+#include "gui/Trackbar.h"
 #include "res/resource.h"
 
 class OptionsDialog : public BaseDialog

@@ -126,7 +126,7 @@
     <ClCompile Include="..\util\ZLibBase.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\ZlibException.cpp">
+    <ClCompile Include="..\util\ZLibException.cpp">
       <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="..\log-writer\FileAccount.cpp">
@@ -317,8 +317,6 @@
     <ClInclude Include="..\thread\Thread.h">
       <Filter>thread</Filter>
     </ClInclude>
-    <ClInclude Include="..\network\RfbInputGate.h">
-      <Filter>network</Filter>
     </ClInclude>
     <ClInclude Include="..\network\RfbOutputGate.h">
       <Filter>network</Filter>
@@ -419,7 +417,7 @@
     <ClInclude Include="..\util\ZLibBase.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\util\ZlibException.h">
+    <ClInclude Include="..\util\ZLibException.h">
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="..\log-writer\FileAccount.h">

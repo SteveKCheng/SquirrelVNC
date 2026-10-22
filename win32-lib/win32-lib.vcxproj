@@ -112,7 +112,7 @@
     <ClCompile Include="..\util\Utf8StringStorage.cpp" />
     <ClCompile Include="..\util\VncPassCrypt.cpp" />
     <ClCompile Include="..\util\ZLibBase.cpp" />
-    <ClCompile Include="..\util\ZlibException.cpp" />
+    <ClCompile Include="..\util\ZLibException.cpp" />
     <ClCompile Include="..\log-writer\FileAccount.cpp" />
     <ClCompile Include="..\log-writer\FileLogger.cpp" />
     <ClCompile Include="..\log-writer\LogDump.cpp" />
@@ -211,7 +211,7 @@
     <ClInclude Include="..\util\VncPassCrypt.h" />
     <ClInclude Include="..\util\winhdr.h" />
     <ClInclude Include="..\util\ZLibBase.h" />
-    <ClInclude Include="..\util\ZlibException.h" />
+    <ClInclude Include="..\util\ZLibException.h" />
     <ClInclude Include="..\log-writer\FileAccount.h" />
     <ClInclude Include="..\log-writer\FileLogger.h" />
     <ClInclude Include="..\log-writer\LogDump.h" />

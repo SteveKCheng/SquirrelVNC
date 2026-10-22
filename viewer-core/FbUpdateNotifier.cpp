@@ -21,7 +21,7 @@
 //-------------------------------------------------------------------------
 //
 
-#include "FbupdateNotifier.h"
+#include "FbUpdateNotifier.h"
 
 #include "thread/AutoLock.h"
 

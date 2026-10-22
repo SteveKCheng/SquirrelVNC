@@ -22,7 +22,7 @@
 //
 
 #include "VersionInfo.h"
-#include "vector"
+#include <vector>
 
 VersionInfo::VersionInfo(const TCHAR *pathToFile)
 {
