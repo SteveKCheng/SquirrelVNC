@@ -77,7 +77,7 @@ ViewerCmdLine::ViewerCmdLine(ConnectionData *conData,
 bool ViewerCmdLine::processCmdLine(const CmdLineOption *cmdLines, size_t lenCmdLineOption)
 {
   if (m_wpcl.getOptionsCount()) {
-    int countRecog = 0;
+    size_t countRecog = 0;
 
     for (size_t i = 0; i < lenCmdLineOption; i++) {
        StringStorage strOut;

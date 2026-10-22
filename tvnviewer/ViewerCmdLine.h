@@ -104,6 +104,17 @@ private:
     const TCHAR *keyName;
   };
 
+  //
+  // Checks the options given on the command line (m_wpcl) against the
+  // lenCmdLineOption option names in cmdLines, and copies the value of
+  // each option given into m_options, under its name.
+  //
+  // Returns false if an option given is not in cmdLines, and true
+  // otherwise, including when no options are given.  On false, m_options
+  // may already hold some of the values.
+  //
+  // Pre: cmdLines points to lenCmdLineOption entries.
+  //
   bool processCmdLine(const CmdLineOption * cmdLines, 
                       size_t lenCmdLineOption);
 
