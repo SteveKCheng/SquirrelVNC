@@ -55,9 +55,11 @@ The commits for `IDD_OPTIONS` and `IDD_DAUTH` show the pattern:
    WinDlgGen does not define identifiers; they stay in `res/resource.h`.
 2. Add it as a `<WinDlgGen Include="res\<name>-dialog.xml" />` item in
    `tvnviewer.vcxproj`.
-3. Delete the dialog's `DIALOGEX` block from `res/tvnviewer.rc`. Its entry
-   in the `DESIGNINFO` block has been left in place so far. It is harmless:
-   only the resource editor's guide lines use it.
+3. Delete the dialog's `DIALOGEX` block from `res/tvnviewer.rc`. 
+4. Delete the dialog's entry in the `DESIGNINFO` block too, which is used
+   only by Visual Studio's resource editor to place visual guide lines.  
+   Those guide lines would be inconsistent with the WinDlgGen-created 
+   output, anyway.
 
 Things to expect and check:
 
