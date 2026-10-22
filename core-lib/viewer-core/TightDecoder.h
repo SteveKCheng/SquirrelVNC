@@ -82,6 +82,17 @@ private:
   UINT32 getRawTightColor(const PixelFormat *pxFormat,
                           const std::vector<UINT8> &pixels,
                           size_t offset);
+  //
+  // Splits the pixel at pixelOffset in pixels into its red, green and blue
+  // components, in components[0] to [2].
+  //
+  // Pre: the maximum of each colour in pxFormat is at most 255, so that
+  // each component fits in 8 bits; a larger component would be truncated.
+  // This holds for the pixel formats the viewer requests.
+  // Pre: components has 3 elements, and pixels holds a whole pixel at
+  // pixelOffset (3 bytes for a compact 24-bit pixel, otherwise the pixel
+  // size of pxFormat).
+  //
   void fillRawComponents(const PixelFormat *pxFormat,
                          UINT8 components[],
                          const std::vector<UINT8> &pixels,

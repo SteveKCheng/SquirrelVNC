@@ -111,7 +111,8 @@ void ViewerInstance::start()
   } else {
     StringStorage strHost;
     m_condata.getReducedHost(&strHost);
-    UINT16 portVal = m_condata.getPort();
+    // HostPath only accepts ports from 0 to 65535.
+    UINT16 portVal = static_cast<UINT16>(m_condata.getPort());
     m_viewerCore.start(strHost.getString(), portVal,
                        &m_viewerWnd, m_conConf.getSharedFlag());
   }

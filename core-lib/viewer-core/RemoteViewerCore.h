@@ -499,6 +499,13 @@ private:
   void readSecurityTypeList(std::vector<UINT32> *secTypes);
   StringStorage getSecurityTypeName(UINT32 securityType) const;
   StringStorage getAuthenticationTypeName(UINT32 authenticationType) const;
+  //
+  // Returns the security type to use, from those the server offers in
+  // secTypes: TIGHT if isTightEnabled and it is offered, or else the first
+  // type that has a handler in authHandlers or is NONE.  The result is
+  // therefore one of the types this program knows.
+  // @throw Exception if no type in secTypes qualifies.
+  //
   int selectSecurityType(const std::vector<UINT32> *secTypes,
                          const std::map<UINT32, AuthHandler *> *authHandlers,
                          const bool isTightEnabled) const;

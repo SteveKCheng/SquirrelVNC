@@ -129,7 +129,7 @@ bool ConnectionConfig::isCopyRectAllowed()
 void ConnectionConfig::setPreferredEncoding(int encoding)
 {
   AutoLock l(&m_cs);
-  m_preferredEncoding = encoding;
+  m_preferredEncoding = static_cast<unsigned char>(encoding);
 }
 
 int ConnectionConfig::getPreferredEncoding()

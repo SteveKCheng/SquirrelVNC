@@ -60,7 +60,8 @@ public:
   // Returns listen port value
   int getListenPort() const;
 
-  // Changes log level in 0 - 9 range
+  // Changes log level, clamped to the range 0 to 10.  The log level is
+  // always in that range, so it fits the unsigned char that loggers take.
   void setLogLevel(int logLevel);
   // Returns log level
   int getLogLevel() const;

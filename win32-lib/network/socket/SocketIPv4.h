@@ -81,7 +81,7 @@ public:
    * @param bindPort port to bind.
    * @throws SocketException on fail.
    */
-  void bind(const TCHAR *bindHost, unsigned int bindPort);
+  void bind(const TCHAR *bindHost, unsigned short bindPort);
   /**
    * Binds socket to socket address.
    * @throws SocketException on fail.

@@ -54,7 +54,9 @@ public:
   // Returns true if encoding "copy rect" is allowed to use
   bool isCopyRectAllowed();
 
-  // Sets prefered encoding
+  // Sets prefered encoding.
+  // Pre: encoding is a number from 0 to 255, as all the encodings the
+  // viewer can prefer are.  It is stored, also in the settings, as a byte.
   void setPreferredEncoding(int encoding);
 
   // Returns prefered encoding

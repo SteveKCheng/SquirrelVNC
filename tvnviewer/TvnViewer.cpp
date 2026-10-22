@@ -69,7 +69,7 @@ void TvnViewer::startListeningServer(const int listeningPort)
     if (m_conListener != 0) {
       throw Exception(_T("Listening Server already started"));
     }
-    m_conListener = new ConnectionListener(this, listeningPort);
+    m_conListener = new ConnectionListener(this, static_cast<UINT16>(listeningPort));
   } catch (const Exception &ex) {
     m_isListening = false;
     m_logWriter.error(_T("Error in start listening: %s"), ex.getMessage());
@@ -95,7 +95,8 @@ void TvnViewer::stopListeningServer()
 void TvnViewer::restartListeningServer()
 {
   if (m_isListening) {
-    UINT16 newListenPort = ViewerConfig::getInstance()->getListenPort();
+    // ViewerConfig keeps the port within 0 to 65535.
+    UINT16 newListenPort = static_cast<UINT16>(ViewerConfig::getInstance()->getListenPort());
     if (m_conListener->getBindPort() != newListenPort) {
       stopListeningServer();
       // FIXME: remove this parameter.

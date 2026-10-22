@@ -103,13 +103,15 @@ void Screen::fillPixelFormat(const BMI *bmi)
   m_pixelFormat.bitsPerPixel = bmi->bmiHeader.biBitCount;
 
   if (bmi->bmiHeader.biCompression == BI_BITFIELDS) {
-    m_pixelFormat.redShift   = findFirstBit(bmi->red);
-    m_pixelFormat.greenShift = findFirstBit(bmi->green);
-    m_pixelFormat.blueShift  = findFirstBit(bmi->blue);
+    // The shifts are at most 32.  The colour masks of a display are at
+    // most 10 bits wide (in 30-bit colour), so the maximums fit 16 bits.
+    m_pixelFormat.redShift   = static_cast<unsigned short>(findFirstBit(bmi->red));
+    m_pixelFormat.greenShift = static_cast<unsigned short>(findFirstBit(bmi->green));
+    m_pixelFormat.blueShift  = static_cast<unsigned short>(findFirstBit(bmi->blue));
 
-    m_pixelFormat.redMax   = bmi->red    >> m_pixelFormat.redShift;
-    m_pixelFormat.greenMax = bmi->green  >> m_pixelFormat.greenShift;
-    m_pixelFormat.blueMax  = bmi->blue   >> m_pixelFormat.blueShift;
+    m_pixelFormat.redMax   = static_cast<unsigned short>(bmi->red    >> m_pixelFormat.redShift);
+    m_pixelFormat.greenMax = static_cast<unsigned short>(bmi->green  >> m_pixelFormat.greenShift);
+    m_pixelFormat.blueMax  = static_cast<unsigned short>(bmi->blue   >> m_pixelFormat.blueShift);
 
   } else {
     m_pixelFormat.bitsPerPixel = 32;

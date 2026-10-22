@@ -627,7 +627,7 @@ int RemoteViewerCore::negotiateSecurityType()
     m_logWriter.info(_T("Tight capabilities is enable"));
     m_isTight = true;
 
-    m_output->writeUInt8(typeSelected);
+    m_output->writeUInt8(static_cast<UINT8>(typeSelected));
     m_output->flush();
 
     initTunnelling();
@@ -635,7 +635,8 @@ int RemoteViewerCore::negotiateSecurityType()
   }
 
   if (m_minor >= 7) {
-    m_output->writeUInt8(typeSelected);
+    // In RFB 3.7 and later, security types are 8 bits.
+    m_output->writeUInt8(static_cast<UINT8>(typeSelected));
     m_output->flush();
   }
 
@@ -1093,8 +1094,9 @@ void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
     {
       m_logWriter.detail(_T("New rich cursor"));
 
-      UINT16 width = rect->getWidth();
-      UINT16 height = rect->getHeight();
+      // The width and height were read as 16-bit values.
+      UINT16 width = static_cast<UINT16>(rect->getWidth());
+      UINT16 height = static_cast<UINT16>(rect->getHeight());
       UINT8 bytesPerPixel = m_frameBuffer.getBytesPerPixel();
 
       // CursorShape may resize once with its previous pixel format (up to 32 bpp).

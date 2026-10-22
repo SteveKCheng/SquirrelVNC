@@ -126,7 +126,7 @@ void ViewerConfig::setLogLevel(int logLevel)
 
   m_logLevel = logLevel;
   if (m_logger != 0) {
-    m_logger->changeLogProps(m_pathToLogFile.getString(), m_logLevel);
+    m_logger->changeLogProps(m_pathToLogFile.getString(), static_cast<unsigned char>(m_logLevel));
   }
 }
 
@@ -147,7 +147,7 @@ void ViewerConfig::setLogDir(StringStorage &logDir)
   AutoLock l(&m_cs);
   m_pathToLogFile = logDir;
   if (m_logger != 0) {
-    m_logger->changeLogProps(m_pathToLogFile.getString(), m_logLevel);
+    m_logger->changeLogProps(m_pathToLogFile.getString(), static_cast<unsigned char>(m_logLevel));
   }
 }
 
@@ -235,7 +235,8 @@ Logger *ViewerConfig::initLog(const TCHAR logDir[], const TCHAR logName[], bool 
   if (m_logger != 0) {
     delete m_logger;
   }
-  m_logger = new FileLogger(m_pathToLogFile.getString(), logName, m_logLevel, false);
+  m_logger = new FileLogger(m_pathToLogFile.getString(), logName,
+                            static_cast<unsigned char>(m_logLevel), false);
   return m_logger;
 }
 

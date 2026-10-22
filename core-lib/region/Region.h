@@ -41,6 +41,10 @@ extern "C" {
  * rectangle will not necessarily increment the number of rectangles by one.
  * On such addition, the underlying list of rectangles may change dramatically
  * and its length may increase, decrease or remain the same.
+ *
+ * Coordinates are kept in 16 bits, as in the X server code this is built
+ * on: a rectangle added is first clamped to the range -32767 to 32767, so
+ * a region cannot describe any area beyond that.
  */
 class Region {
 public:
@@ -49,8 +53,10 @@ public:
    */
   Region();
   /**
-   * Creates a region from the given rectangle.
-   * @param rect a pointer to the source rectangle.
+   * Creates a region from the given rectangle, clamped to the coordinate
+   * range described for the class. The region is empty if the rectangle
+   * is empty or lies wholly outside that range.
+   * @param rect the source rectangle.
    */
   Region(const Rect &rect);
   /**

@@ -77,6 +77,7 @@ public:
   void newListeningConnection();
   void newConnection(const StringStorage *hostName, const ConnectionConfig *connectionConfig);
   void newConnection(const ConnectionData *conData, const ConnectionConfig *connectionConfig);
+  // Pre: listeningPort is from 0 to 65535.
   void startListening(int listeningPort);
   void stopListening();
 
@@ -111,6 +112,9 @@ public:
   static const int TIMER_DELETE_DEAD_INSTANCE_DELAY = 50;
 
 protected:
+  // Starts accepting connections from servers on listeningPort.  On
+  // failure, shows an error message and clears m_isListening.
+  // Pre: listeningPort is from 0 to 65535.
   void startListeningServer(const int listeningPort);
   void stopListeningServer();
   void restartListeningServer();

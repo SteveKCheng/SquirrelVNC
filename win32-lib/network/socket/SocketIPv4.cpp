@@ -108,7 +108,7 @@ void SocketIPv4::shutdown(int how)
   }
 }
 
-void SocketIPv4::bind(const TCHAR *bindHost, unsigned int bindPort)
+void SocketIPv4::bind(const TCHAR *bindHost, unsigned short bindPort)
 {
   SocketAddressIPv4 address(bindHost, bindPort);
 

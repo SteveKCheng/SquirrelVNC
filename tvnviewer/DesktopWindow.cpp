@@ -267,7 +267,8 @@ bool DesktopWindow::onKey(WPARAM wParam, LPARAM lParam)
       if (extended) {
         scancode += 0xE000;
       }
-      virtualKey = MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX);
+      // Virtual-key codes are 8 bits.
+      virtualKey = static_cast<unsigned short>(MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX));
     }
 
     if (virtualKey == VK_CONTROL) {

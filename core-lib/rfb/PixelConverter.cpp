@@ -97,13 +97,13 @@ void PixelConverter::convert(const Rect *rect, FrameBuffer *dstFb,
               *(UINT32 *)dstPixP = rotateUint32(*(UINT32 *)dstPixP);
             }
           } else if (dstPixelSize == 2) {
-            *(UINT16 *)dstPixP = dstPixel;
+            *(UINT16 *)dstPixP = static_cast<UINT16>(dstPixel);
             if (bigEndianDiffs) {
               *(UINT16 *)dstPixP = *(UINT16 *)dstPixP << 8 |
                                    *(UINT16 *)dstPixP >> 8;
             }
           } else if (dstPixelSize == 1) {
-            *(UINT8 *)dstPixP = dstPixel;
+            *(UINT8 *)dstPixP = static_cast<UINT8>(dstPixel);
           }
         }
       } 

@@ -23,6 +23,24 @@
 
 #include "Region.h"
 
+#include <algorithm>
+
+// The coordinate range of the X region code (MINSHORT to MAXSHORT in
+// x11region.h). The macros are not used here: <windows.h> defines macros
+// of the same names first, with MINSHORT as 0x8000, which is the int
+// 32768, so x11region.h keeps those in C++ code.
+static const int MIN_BOX_COORDINATE = -32767;
+static const int MAX_BOX_COORDINATE = 32767;
+
+// Converts a coordinate to the 16-bit type of BoxRec, clamping it to the
+// range the region code supports.
+// Post-conditions: the result is value if it is in the range, or else the
+// nearer end of the range.
+static short toBoxCoordinate(int value)
+{
+  return static_cast<short>(std::clamp(value, MIN_BOX_COORDINATE, MAX_BOX_COORDINATE));
+}
+
 Region::Region()
 {
   miRegionInit(&m_reg, NullBox, 0);
@@ -31,12 +49,13 @@ Region::Region()
 // FIXME: Make BoxRec and Rect identical to get rid of conversions.
 Region::Region(const Rect &rect)
 {
-  if (!rect.isEmpty()) {
-    BoxRec box;
-    box.x1 = rect.left;
-    box.x2 = rect.right;
-    box.y1 = rect.top;
-    box.y2 = rect.bottom;
+  BoxRec box;
+  box.x1 = toBoxCoordinate(rect.left);
+  box.x2 = toBoxCoordinate(rect.right);
+  box.y1 = toBoxCoordinate(rect.top);
+  box.y2 = toBoxCoordinate(rect.bottom);
+  // A rectangle wholly outside the range is empty once clamped.
+  if (box.x1 < box.x2 && box.y1 < box.y2) {
     miRegionInit(&m_reg, &box, 0);
   } else {
     miRegionInit(&m_reg, NullBox, 0);
