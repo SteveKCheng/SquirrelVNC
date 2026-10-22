@@ -111,37 +111,43 @@ void DibSection::stretchFromDibSection(const Rect *srcRect, const Rect *dstRect,
   }
 }
 
-void DibSection::setupBMIStruct(BITMAPINFO *pBmi, const PixelFormat *pf, const Dimension *dim)
+void DibSection::setupPaletteBMI(Screen::Palette8bitBMI *bmi, const PixelFormat *pf,
+                                 const Dimension *dim)
 {
-  if (pf->bitsPerPixel == 8) {
-    Screen::Palette8bitBMI *paletteBMI = reinterpret_cast<Screen::Palette8bitBMI *>(pBmi);
-    memset(paletteBMI, 0, sizeof(Screen::Palette8bitBMI));
-    pBmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    unsigned char index = 0;
-    for (int i = 0; i < 256; i++, index++) {
-      unsigned int red = (index >> pf->redShift) & pf->redMax;
-      red = red * 0xFF / pf->redMax;
-      paletteBMI->rgbQuad[index].rgbRed = (BYTE)red;
-      unsigned int green = (index >> pf->greenShift) & pf->greenMax;
-      green = green * 0xFF / pf->greenMax;
-      paletteBMI->rgbQuad[index].rgbGreen = (BYTE)(green);
-      unsigned int blue = (index >> pf->blueShift) & pf->blueMax;
-      blue = blue * 0xFF / pf->blueMax;
-      paletteBMI->rgbQuad[index].rgbBlue  = (BYTE)blue;
-    }
-  } else {
-    Screen::BMI *bitFieldBmi = reinterpret_cast<Screen::BMI *>(pBmi);
-    memset(bitFieldBmi, 0, sizeof(Screen::BMI));
-    bitFieldBmi->bmiHeader.biCompression = BI_BITFIELDS;
-    bitFieldBmi->red   = pf->redMax   << pf->redShift;
-    bitFieldBmi->green = pf->greenMax << pf->greenShift;
-    bitFieldBmi->blue  = pf->blueMax  << pf->blueShift;
+  *bmi = {};
+  for (unsigned int index = 0; index < 256; index++) {
+    unsigned int red = (index >> pf->redShift) & pf->redMax;
+    red = red * 0xFF / pf->redMax;
+    bmi->rgbQuad[index].rgbRed = (BYTE)red;
+    unsigned int green = (index >> pf->greenShift) & pf->greenMax;
+    green = green * 0xFF / pf->greenMax;
+    bmi->rgbQuad[index].rgbGreen = (BYTE)green;
+    unsigned int blue = (index >> pf->blueShift) & pf->blueMax;
+    blue = blue * 0xFF / pf->blueMax;
+    bmi->rgbQuad[index].rgbBlue = (BYTE)blue;
   }
-  pBmi->bmiHeader.biPlanes = 1;
-  pBmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-  pBmi->bmiHeader.biBitCount = pf->bitsPerPixel;
-  pBmi->bmiHeader.biWidth = dim->width;
-  pBmi->bmiHeader.biHeight = -dim->height;
+  setupBMIHeader(&bmi->bmiHeader, pf, dim);
+}
+
+void DibSection::setupBitFieldsBMI(Screen::BMI *bmi, const PixelFormat *pf,
+                                   const Dimension *dim)
+{
+  *bmi = {};
+  bmi->bmiHeader.biCompression = BI_BITFIELDS;
+  bmi->red   = pf->redMax   << pf->redShift;
+  bmi->green = pf->greenMax << pf->greenShift;
+  bmi->blue  = pf->blueMax  << pf->blueShift;
+  setupBMIHeader(&bmi->bmiHeader, pf, dim);
+}
+
+void DibSection::setupBMIHeader(BITMAPINFOHEADER *header, const PixelFormat *pf,
+                                const Dimension *dim)
+{
+  header->biSize = sizeof(BITMAPINFOHEADER);
+  header->biPlanes = 1;
+  header->biBitCount = pf->bitsPerPixel;
+  header->biWidth = dim->width;
+  header->biHeight = -dim->height;
 }
 
 void DibSection::openDIBSection(const PixelFormat *pf, const Dimension *dim, HWND compatibleWin)
@@ -160,23 +166,28 @@ void DibSection::openDIBSection(const PixelFormat *pf, const Dimension *dim, HWN
     m_srcOffsetY = deskRect.top;
   }
 
+  // CreateDIBSection() takes a BITMAPINFO, which declares a colour table of
+  // one entry. Each structure here is a BITMAPINFO with the colour table or
+  // the masks its kind of DIB section needs, so it is converted to
+  // BITMAPINFO only to be passed to GDI.
   Screen::BMI bitFieldBmi;
-  Screen::Palette8bitBMI paletteBMI;
-  BITMAPINFO *pBmi = 0;
+  Screen::Palette8bitBMI paletteBmi;
+  const BITMAPINFO *pBmi;
 
   if (pf->bitsPerPixel == 8) {
-    pBmi = reinterpret_cast<BITMAPINFO *>(&paletteBMI);
+    setupPaletteBMI(&paletteBmi, pf, dim);
+    pBmi = reinterpret_cast<const BITMAPINFO *>(&paletteBmi);
   } else {
-    pBmi = reinterpret_cast<BITMAPINFO *>(&bitFieldBmi);
+    setupBitFieldsBMI(&bitFieldBmi, pf, dim);
+    pBmi = reinterpret_cast<const BITMAPINFO *>(&bitFieldBmi);
   }
-  setupBMIStruct(pBmi, pf, dim);
 
   m_memDC = CreateCompatibleDC(m_targetDC);
   if (m_memDC == NULL) {
     throw SystemException(_T("Can't create a compatible DC to open a dib section"));
   }
 
-  m_hbmDIB = CreateDIBSection(m_memDC, (BITMAPINFO *)pBmi, DIB_RGB_COLORS, &m_buffer, NULL, NULL);
+  m_hbmDIB = CreateDIBSection(m_memDC, pBmi, DIB_RGB_COLORS, &m_buffer, NULL, NULL);
   if (m_hbmDIB == 0) {
     throw SystemException(_T("Can't create a dib section"));
   }

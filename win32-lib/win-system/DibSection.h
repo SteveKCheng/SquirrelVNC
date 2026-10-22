@@ -87,7 +87,27 @@ private:
   void blitFromDibSection(const Rect *rect, DWORD flags);
   void stretchFromDibSection(const Rect *srcRect, const Rect *dstRect, DWORD flags);
 
-  void setupBMIStruct(BITMAPINFO *pBmi, const PixelFormat *pf, const Dimension *dim);
+  // Fills *bmi to describe an 8-bit DIB section of the given format and
+  // size, with a colour table that maps each pixel value to its colour.
+  // Pre-conditions: pf->bitsPerPixel == 8; the colour maxima are non-zero.
+  // Post-conditions: every field of *bmi is set; no other state changes.
+  void setupPaletteBMI(Screen::Palette8bitBMI *bmi, const PixelFormat *pf,
+                       const Dimension *dim);
+
+  // Fills *bmi to describe a BI_BITFIELDS DIB section of the given format
+  // and size, with the colour masks of the format.
+  // Pre-conditions: pf->bitsPerPixel is 16 or 32.
+  // Post-conditions: every field of *bmi is set; no other state changes.
+  void setupBitFieldsBMI(Screen::BMI *bmi, const PixelFormat *pf,
+                         const Dimension *dim);
+
+  // Sets the header fields that do not depend on the kind of DIB section:
+  // the size, planes, bit count and dimensions (top-down rows).
+  // Pre-conditions: the other fields of *header are already set.
+  // Post-conditions: biSize, biPlanes, biBitCount, biWidth and biHeight
+  // are set.
+  void setupBMIHeader(BITMAPINFOHEADER *header, const PixelFormat *pf,
+                      const Dimension *dim);
 
   bool m_isOwnTargetDC;
   HDC m_targetDC;

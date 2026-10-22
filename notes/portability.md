@@ -235,19 +235,9 @@ The robust fix is a pair of helpers, `loadPixel<T>(const void *)` and
 Compilers turn these into single loads and stores, so the pixel loops
 lose no speed, and alignment stops mattering.
 
-Lesser cases:
-
-- `win-system/DibSection.cpp`: `setupBMIStruct()` writes
-  `Screen::BMI` and `Screen::Palette8bitBMI` partly through their own
-  types and partly through `BITMAPINFO *` (`pBmi->bmiHeader`). The
-  structures start with the same `BITMAPINFOHEADER`, so this works,
-  but strictly it accesses one structure type as another. Setting the
-  header through the concrete structure, and converting to
-  `BITMAPINFO *` only to call GDI, avoids it. Windows-only, so it
-  matters only if clang-cl is ever run with `-fstrict-aliasing`.
-- `rfb/PixelFormat.cpp`: `initBigEndianByNative()` tests the byte order
-  by reading the inactive member of a union, which C++ (unlike C) does
-  not define. `std::endian::native` replaces it in C++20.
+A lesser case: `rfb/PixelFormat.cpp`: `initBigEndianByNative()` tests
+the byte order by reading the inactive member of a union, which C++
+(unlike C) does not define. `std::endian::native` replaces it in C++20.
 
 Checked and not a problem: pointers from `LPARAM`, `WPARAM`,
 `GWLP_USERDATA`, `GlobalLock()` and `LockResource()`, which point to
