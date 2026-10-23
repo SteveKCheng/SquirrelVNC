@@ -111,6 +111,9 @@
     <ClCompile Include="util\StringTable.cpp">
       <Filter>util</Filter>
     </ClCompile>
+    <ClCompile Include="util\TextEncoding.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
     <ClCompile Include="util\Unicode.cpp">
       <Filter>util</Filter>
     </ClCompile>
@@ -399,6 +402,9 @@
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="util\StringTable.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\TextEncoding.h">
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="util\Unicode.h">

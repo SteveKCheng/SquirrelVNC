@@ -127,6 +127,7 @@
     <ClCompile Include="util\StringParser.cpp" />
     <ClCompile Include="util\StringStorage.cpp" />
     <ClCompile Include="util\StringTable.cpp" />
+    <ClCompile Include="util\TextEncoding.cpp" />
     <ClCompile Include="util\Unicode.cpp" />
     <ClCompile Include="util\UnicodeStringStorage.cpp" />
     <ClCompile Include="util\Utf8StringStorage.cpp" />
@@ -225,6 +226,7 @@
     <ClInclude Include="util\StringParser.h" />
     <ClInclude Include="util\StringStorage.h" />
     <ClInclude Include="util\StringTable.h" />
+    <ClInclude Include="util\TextEncoding.h" />
     <ClInclude Include="util\Unicode.h" />
     <ClInclude Include="util\UnicodeStringStorage.h" />
     <ClInclude Include="util\Utf8StringStorage.h" />
