@@ -74,6 +74,7 @@ void WinFile::open(const TCHAR *pathToFile,
   case FM_APPEND:
     // creationDisposition is such as FM_OPEN_OR_CREATE
     append = true;
+    [[fallthrough]];
   case FM_OPEN_OR_CREATE:
     creationDisposition = OPEN_ALWAYS;
     break;
