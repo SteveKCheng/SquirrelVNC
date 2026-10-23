@@ -35,7 +35,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from rfbgen import (RGB565, Case, HextileRect, HextileTile, Image,   # noqa: E402
-                    RawRect, RreRect, TightRect)
+                    RawRect, RreRect, TightRect, load_ppm)
 
 CASES = []
 
@@ -388,6 +388,70 @@ def tight_short_data():
     z = c.tight_streams()
     image = Image.pattern(32, 24, seed=7)
     c.update([TightRect(0, 0, 16, 8, ('copy', image), z, shorten=3)])
+    return c
+
+
+JPEG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'jpeg')
+
+
+def quadrants_jpeg():
+    """The test JPEG, and the image the viewer's decoder makes of it.
+
+    quadrants-16x16.jpg is four solid 8 x 8 quadrants, (200, 40, 40),
+    (40, 160, 60), (50, 70, 190) and (230, 210, 60) in reading order,
+    written once by libjpeg-turbo 3.2.0's tj3Compress8() at quality 95
+    without chroma subsampling. Solid blocks leave little room for
+    decoders to differ. quadrants-16x16.ppm is what rfb-replay decoded,
+    reviewed by eye; the generator has no JPEG codec of its own.
+    """
+    data = open(os.path.join(JPEG_DIR, 'quadrants-16x16.jpg'), 'rb').read()
+    decoded_path = os.path.join(JPEG_DIR, 'quadrants-16x16.ppm')
+    if os.path.exists(decoded_path):
+        decoded = load_ppm(decoded_path)
+    else:
+        # Before the first run: the colours as encoded.
+        colours = [(200, 40, 40), (40, 160, 60), (50, 70, 190), (230, 210, 60)]
+        decoded = Image(16, 16)
+        for y in range(16):
+            for x in range(16):
+                decoded.put(x, y, colours[(y // 8) * 2 + x // 8])
+    return data, decoded
+
+
+@case
+def tight_jpeg():
+    """Tight JPEG: two rectangles, the second overlapping the first."""
+    data, decoded = quadrants_jpeg()
+    c = tight_session('tight-jpeg')
+    z = c.tight_streams()
+    c.update([TightRect(4, 4, 16, 16, ('jpeg', data, decoded), z),
+              TightRect(14, 6, 16, 16, ('jpeg', data, decoded), z)])
+    c.end_of_input()
+    return c
+
+
+@case
+def tight_jpeg_rgb565():
+    """Tight JPEG at 16 bits per pixel, converted to RGB565 by the viewer."""
+    data, decoded = quadrants_jpeg()
+    c = tight_session('tight-jpeg-rgb565', pf=RGB565)
+    z = c.tight_streams()
+    c.update([TightRect(8, 4, 16, 16, ('jpeg', data, decoded), z)])
+    c.end_of_input()
+    return c
+
+
+@case
+def tight_jpeg_wrong_size():
+    """A JPEG whose size differs from its rectangle's is ignored: the
+    viewer logs it, leaves the rectangle as it was, and goes on.
+    """
+    data, _ = quadrants_jpeg()
+    c = tight_session('tight-jpeg-wrong-size')
+    z = c.tight_streams()
+    c.update([TightRect(0, 0, 16, 8, ('jpeg', data, None), z)])
+    c.update([TightRect(16, 8, 8, 8, ('fill', RED), z)])
+    c.end_of_input()
     return c
 
 

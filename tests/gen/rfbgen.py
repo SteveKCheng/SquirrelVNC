@@ -169,6 +169,22 @@ class Image:
         return image
 
 
+def load_ppm(path):
+    """An Image from a binary PPM (P6, maximum 255), such as rfb-replay's."""
+    data = open(path, 'rb').read()
+    parts = data.split(b'\n', 3)
+    assert parts[0] == b'P6' and parts[2] == b'255', path
+    width, height = (int(v) for v in parts[1].split())
+    pixels = parts[3]
+    assert len(pixels) == width * height * 3, path
+    image = Image(width, height)
+    for y in range(height):
+        for x in range(width):
+            i = (y * width + x) * 3
+            image.put(x, y, tuple(pixels[i:i + 3]))
+    return image
+
+
 class FrameBuffer:
     """The model of the client's framebuffer: components per pixel."""
 
@@ -413,6 +429,10 @@ class TightRect:
       ('copy', image)              pixels from the image at the rectangle
       ('palette', colours, rows)   rows[y][x] indexes colours (2 to 256)
       ('gradient', image)          the gradient filter
+      ('jpeg', data, decoded)      JPEG data, and the image the viewer's
+                                   decoder makes of it (an Image of the
+                                   rectangle's size), or None if the
+                                   viewer must ignore it (see below)
     stream (0 to 3) is the zlib stream for data of 12 bytes or more, and
     reset a mask of streams to reset first. shorten makes the compressed
     data inflate to that many bytes fewer than the rectangle needs, which
@@ -421,6 +441,11 @@ class TightRect:
 
     As for RreRect, a rectangle the viewer rejects (error) leaves nothing
     in the frame buffer.
+
+    A JPEG the viewer cannot decode is not an error: TightDecoder::
+    processJpeg() logs it and goes on, and the rectangle keeps what the
+    rectangle buffer held there, which in these sessions is what the
+    frame buffer showed. The model leaves the frame buffer unchanged.
     """
 
     BAD_TYPE = 'Sub-encoding in Tight-encoder are not valid'
@@ -450,7 +475,15 @@ class TightRect:
             self.error = self.BAD_TYPE
             return bytes(out)
 
-        if what == 'fill':
+        if what == 'jpeg':
+            data, decoded = self.kind[1], self.kind[2]
+            out += u8(0x90 | self.reset) + tight_compact_length(len(data)) + data
+            if decoded is not None:
+                assert (decoded.width, decoded.height) == (self.w, self.h)
+                for y in range(self.h):
+                    for x in range(self.w):
+                        pixels[(x, y)] = pf.from_rgb8(decoded.get(x, y))
+        elif what == 'fill':
             comps = pf.from_rgb8(self.kind[1])
             out += u8(0x80 | self.reset) + tight_pixel(pf, comps)
             for y in range(self.h):
