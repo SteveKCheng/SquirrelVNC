@@ -534,8 +534,8 @@ would.
 
 ### Rectangle classes
 
-Each encoding is a class (`RawRect`, `RreRect`, `HextileRect`,
-`TightRect`, `ZrleRect`) whose `encode(fb)` returns the rectangle's bytes, header
+Each encoding is a class (`RawRect`, `CopyRect`, `RreRect`,
+`HextileRect`, `TightRect`, `ZrleRect`) whose `encode(fb)` returns the rectangle's bytes, header
 included, and draws the result into the model. To add an encoding:
 
 1. Read the viewer's decoder first, and model what it does, not what
