@@ -538,7 +538,18 @@ private:
   // adapter.
   //
   void receiveServerCutText();
-  // code 0xfc000200
+
+  //
+  // Receive TightVNC's ServerCutTextUtf8 message (code 0xfc000200) and
+  // send its text, decoded as UTF-8, to the adapter.
+  //
+  // Pre-conditions: the message type has been read.
+  // Post-conditions: the message has been read whole. Empty text is
+  // ignored; text longer than MAX_CUT_TEXT_LENGTH is skipped with a
+  // warning. Invalid UTF-8 becomes U+FFFD, and the text ends at the first
+  // zero byte. Exceptions from the adapter are logged, not passed on.
+  // Throws whatever reading the input throws.
+  //
   void receiveServerCutTextUtf8();
 
   // Read and discard length bytes from the input.

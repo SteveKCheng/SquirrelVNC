@@ -22,7 +22,10 @@
 //
 
 #include "util/AnsiStringStorage.h"
-#include "util/Utf8StringStorage.h"
+#include "util/Exception.h"
+#include "util/TextEncoding.h"
+
+#include <cstdint>
 
 
 #include "RfbCutTextEventClientMessage.h"
@@ -54,13 +57,15 @@ void RfbCutTextEventClientMessage::send(RfbOutputGate *output)
 
 void RfbCutTextEventClientMessage::sendUtf8(RfbOutputGate *output)
 {
-  Utf8StringStorage cutTextUtf;
-  cutTextUtf.fromStringStorage(&m_cutText);
-  UINT32 length = static_cast<UINT32>(cutTextUtf.getLength());
+  std::vector<std::byte> cutTextUtf8 = TextEncoding::toUtf8(m_cutText);
+  if (cutTextUtf8.size() > UINT32_MAX) {
+    throw Exception(_T("Cut text is too long to send"));
+  }
+  UINT32 length = static_cast<UINT32>(cutTextUtf8.size());
 
   AutoLock al(output);
   output->writeUInt32(ClientMsgDefs::CLIENT_CUT_TEXT_UTF8);
   output->writeUInt32(length);
-  output->writeFully(cutTextUtf.getString(), length);
+  output->writeFully(cutTextUtf8.data(), length);
   output->flush();
 }

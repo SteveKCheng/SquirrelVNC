@@ -23,7 +23,7 @@
 #include "ReplayEventsAdapter.h"
 
 #include "thread/AutoLock.h"
-#include "util/Utf8StringStorage.h"
+#include "util/TextEncoding.h"
 #include "viewer-core/RemoteViewerCore.h"
 
 ReplayEventsAdapter::ReplayEventsAdapter()
@@ -124,11 +124,12 @@ void ReplayEventsAdapter::addEvent(const char *name)
 
 void ReplayEventsAdapter::addEvent(const char *name, const StringStorage *text)
 {
-  Utf8StringStorage utf8(text);
+  std::vector<std::byte> utf8 = TextEncoding::toUtf8(*text);
   std::string line(name);
   line += " \"";
-  for (const char *p = utf8.getString(); *p != '\0'; p++) {
-    switch (*p) {
+  for (std::byte b : utf8) {
+    char c = static_cast<char>(b);
+    switch (c) {
     case '\\':
       line += "\\\\";
       break;
@@ -139,7 +140,7 @@ void ReplayEventsAdapter::addEvent(const char *name, const StringStorage *text)
       line += "\\n";
       break;
     default:
-      line += *p;
+      line += c;
     }
   }
   line += '"';

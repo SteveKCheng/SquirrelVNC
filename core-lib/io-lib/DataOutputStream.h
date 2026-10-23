@@ -70,6 +70,16 @@ public:
   void writeInt32(INT32 x);
   void writeInt64(INT64 x);
 
+  /**
+   * Writes a string as a 32-bit size in bytes followed by that many bytes of
+   * UTF-8, the last of which is a terminating zero byte, as TightVNC's file
+   * transfer expects.  Unpaired surrogates become U+FFFD.
+   *
+   * @param string null-terminated; must not be null.
+   * @throws Exception if the string is too long for the conversion or the
+   *   32-bit size, before anything is written.
+   * @throws whatever writeFully() throws.
+   */
   void writeUTF8(const TCHAR *string);
 
   /**

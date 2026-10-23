@@ -84,7 +84,8 @@ public:
   /**
    * Reads a string as a 32-bit size in bytes followed by that many bytes of
    * UTF-8, and converts it into storage.  Invalid UTF-8 sequences become
-   * U+FFFD, as MultiByteToWideChar() converts them.
+   * U+FFFD, and the string ends at the first zero byte, such as the
+   * terminator that TightVNC counts in the size (TextEncoding::fromUtf8()).
    *
    * @param storage receives the string; must not be null.
    * @throws IOException if the size is over MAX_UTF8_SIZE, leaving the

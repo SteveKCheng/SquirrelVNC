@@ -23,7 +23,7 @@
 
 #include "DataInputStream.h"
 #include <vector>
-#include "util/Utf8StringStorage.h"
+#include "util/TextEncoding.h"
 
 #define SETBYTE(y, n) (((y) & 0xFF) << ((n) * 8))
 
@@ -132,10 +132,9 @@ void DataInputStream::readUTF8(StringStorage *storage)
     throw IOException(_T("String in the stream is too long"));
   }
   if (sizeInBytes > 0) {
-    std::vector<char> buffer(sizeInBytes);
-    readFully(&buffer.front(), sizeInBytes);
-    Utf8StringStorage utf8String(&buffer);
-    utf8String.toStringStorage(storage);
+    std::vector<std::byte> buffer(sizeInBytes);
+    readFully(buffer.data(), sizeInBytes);
+    *storage = TextEncoding::fromUtf8(buffer);
   } else {
     storage->setString(_T(""));
   }

@@ -86,7 +86,17 @@ public:
   std::string getEventLog();
 
 private:
+  //
+  // Post-conditions: name, as a line of its own, is added to the events.
+  //
   void addEvent(const char *name);
+
+  //
+  // Pre-conditions: text is not null.
+  // Post-conditions: a line of name and text is added to the events, the
+  // text in UTF-8, quoted, with backslash, double quote and newline
+  // escaped. Unpaired surrogates become U+FFFD.
+  //
   void addEvent(const char *name, const StringStorage *text);
 
   RemoteViewerCore *m_core;

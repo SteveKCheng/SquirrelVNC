@@ -31,7 +31,7 @@
 #include "rfb/StandardPixelFormatFactory.h"
 #include "rfb/VendorDefs.h"
 #include "util/AnsiStringStorage.h"
-#include "util/Utf8StringStorage.h"
+#include "util/TextEncoding.h"
 
 #include "AuthHandler.h"
 #include "RichCursorDecoder.h"
@@ -1246,12 +1246,9 @@ void RemoteViewerCore::receiveServerCutTextUtf8()
     return;
   }
 
-  std::vector<char> buffer(length + 1);
-  m_input->readFully(&buffer.front(), length);
-  buffer[length] = '\0';
-  StringStorage cutText;
-  Utf8StringStorage cutTextUtf8(&buffer);
-  cutTextUtf8.toStringStorage(&cutText);
+  std::vector<std::byte> buffer(length);
+  m_input->readFully(buffer.data(), length);
+  StringStorage cutText = TextEncoding::fromUtf8(buffer);
 
   m_logWriter.debug(_T("Cut text: %s"), cutText.getString());
   try {

@@ -22,7 +22,9 @@
 //
 
 #include "DataOutputStream.h"
-#include "util/Utf8StringStorage.h"
+#include "util/Exception.h"
+#include "util/TextEncoding.h"
+#include <cstdint>
 #include <vector>
 
 #define GETBYTE(x, n) (((x) >> ((n) * 8)) & 0xFF)
@@ -118,19 +120,14 @@ void DataOutputStream::writeInt64(INT64 x)
 
 void DataOutputStream::writeUTF8(const TCHAR *string)
 {
-  // to UTF8 string convertion
-  StringStorage stringStorage(string);
-  Utf8StringStorage utf8String(&stringStorage);
-
-  // FIXME: Why try/catch() is used?
-  try {
-    unsigned int sizeInBytes = (unsigned int)utf8String.getSize();
-    _ASSERT(sizeInBytes == utf8String.getSize());
-    writeUInt32(sizeInBytes);
-    writeFully(utf8String.getString(), sizeInBytes);
-  } catch (...) {
-    throw;
+  std::vector<std::byte> utf8 = TextEncoding::toUtf8(StringStorage(string));
+  // The terminator is sent and counted in the size, as TightVNC does.
+  utf8.push_back(std::byte{0});
+  if (utf8.size() > UINT32_MAX) {
+    throw Exception(_T("String is too long to send"));
   }
+  writeUInt32(static_cast<UINT32>(utf8.size()));
+  writeFully(utf8.data(), utf8.size());
 }
 
 void DataOutputStream::flush()

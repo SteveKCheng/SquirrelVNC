@@ -33,6 +33,18 @@ public:
   ~RfbCutTextEventClientMessage();
 
   void send(RfbOutputGate *output);
+
+  //
+  // Sends the text as TightVNC's ClientCutTextUtf8 message: its size in
+  // bytes, then the text in UTF-8, without a terminator. Unpaired
+  // surrogates become U+FFFD.
+  //
+  // Pre-conditions: the server has announced the message.
+  // Post-conditions: the whole message is written and flushed.
+  // Throws Exception if the text is too long for the conversion or the
+  // 32-bit size, before anything is written; otherwise whatever writing
+  // throws.
+  //
   void sendUtf8(RfbOutputGate *output);
 
 private:
