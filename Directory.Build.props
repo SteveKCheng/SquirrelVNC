@@ -33,5 +33,13 @@
   <PropertyGroup Condition="'$(Configuration)' == 'ReleaseAsan'">
     <EnableASAN>true</EnableASAN>
   </PropertyGroup>
+  <!--
+    ReleaseFuzz: ReleaseAsan plus coverage instrumentation for libFuzzer
+    (see Directory.Build.targets), for the libraries and rfb-fuzz only:
+    code built this way links only into a program that has libFuzzer.
+  -->
+  <PropertyGroup Condition="'$(Configuration)' == 'ReleaseFuzz'">
+    <EnableASAN>true</EnableASAN>
+  </PropertyGroup>
   <Import Project="$(TvnVcpkgMSBuildDir)vcpkg.props" />
 </Project>

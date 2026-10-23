@@ -345,9 +345,34 @@ goes away then, and other message types come along with it.
   capability lists follow ServerInit.
 - Each input that triggers a finding is minimised and checked in under
   `tests/fuzz/regressions/`, and becomes a replay case as above.
-  `run-tests.ps1` runs the fuzz binary on those files (libFuzzer runs
-  given files once and exits, failing on a crash), so a fix stays
-  fixed.
+  `run-tests.ps1` runs the fuzz binary on those files and on the
+  corpus, so a fix stays fixed: libFuzzer runs given files once and
+  exits, failing on a crash, and in the other configurations `rfb-fuzz`
+  has a `main()` of its own that does the same, so the inputs are
+  checked in every build, under ASan in `ReleaseAsan`.
+
+### Running the fuzzer
+
+Build `ReleaseFuzz`, copy the corpus to a working directory outside the
+source tree (libFuzzer adds the inputs it finds to the first directory
+it is given) and run, for example:
+
+```
+bin\x64\ReleaseFuzz\rfb-fuzz.exe -max_total_time=600 -timeout=10
+    -artifact_prefix=C:\fuzz\ C:\fuzz\corpus
+```
+
+On the sandbox it runs about 2,700 inputs a second. In its first run it
+found a heap buffer overflow in RRE decoding within minutes.
+
+Memory use in a long run grows past libFuzzer's default limit of
+2 GB (`-rss_limit_mb`) within seconds, with no single input to blame.
+Without ASan, 2,000 runs of each of 125 corpus inputs used no more
+memory than one, so it is not an ordinary leak in the decoders; it may
+be ASan's quarantine and caches, or inputs that make the decoders
+allocate a lot. Until that is understood, run with `-rss_limit_mb=0`
+and, to catch single large allocations, `-malloc_limit_mb=512`. See
+"Later".
 
 ### The `ReleaseAsan` and `ReleaseFuzz` configurations
 
@@ -367,13 +392,17 @@ VS 2022, and neither needs a desktop.
   sets ASan's exit code to 4 (`__asan_default_options()`), so that a
   report is not read as a mismatch; `run-tests.ps1 -Configuration
   ReleaseAsan` runs the cases under it.
-- **`ReleaseFuzz`** (with `rfb-fuzz`, step 6): ASan plus coverage
-  instrumentation (`/fsanitize-coverage=...`) for the libraries, and
-  `/fsanitize=fuzzer` for `rfb-fuzz`. It is separate from `ReleaseAsan`
-  so that the replay tests run on libraries without coverage hooks,
-  which libFuzzer's runtime is there to serve (whether a program without
-  libFuzzer could link them at all is to be checked then). The exact
-  flags will be settled when it is built.
+- **`ReleaseFuzz`** (done, step 6): ASan plus coverage instrumentation
+  (`/fsanitize-coverage=inline-8bit-counters`, `edge`, `trace-cmp` and
+  `trace-div`, added in `Directory.Build.targets`) for `core-lib`,
+  `win32-lib` and `rfb-fuzz`, on both platforms, and `EnableFuzzer`
+  (`/fsanitize=fuzzer`, which links libFuzzer and its `main()`) for
+  `rfb-fuzz`. `SquirrelVNC.slnx` leaves the other projects out of it.
+  It has to be separate from `ReleaseAsan`: libraries built with
+  coverage do not link into a program without libFuzzer (a throwaway
+  test failed on the unresolved `_Sancov8bitUsed`). MSBuild links with
+  `/INFERASANLIBS`, which libFuzzer needs; linking by hand without it
+  gives a program that stops at once with "Function ... not defined".
 - The vcpkg libraries (zlib-ng, libjpeg-turbo) stay uninstrumented.
   They are C, so the STL annotation mismatch checks do not apply.
 - LeakSanitizer does not exist on Windows; leak checking waits for the
@@ -418,9 +447,8 @@ Each step is a commit, or a few.
    that finds a bug goes in with the fix, or just before it.
 5. **The `ReleaseAsan` configuration**, with `rfb-replay` running the
    cases under ASan. Done: the nine cases pass on both platforms.
-6. **`ReleaseFuzz` and `rfb-fuzz`**, seeded at first with the Hextile cases as the proof
-   of concept (Hextile is small and has the most branching per byte);
-   then the whole corpus.
+6. **`ReleaseFuzz` and `rfb-fuzz`**, seeded with the whole corpus.
+   Done; the proof of concept found a real bug at once.
 7. **`rfb.ksy`**, whenever it is useful.
 
 ## Later
@@ -428,6 +456,9 @@ Each step is a commit, or a few.
 - **Unit tests** of the pure classes, starting with `Region` (whose
   clamp bug the replay tests could not have caught, as explained at the
   top), as another program in `harnesses/` run by `run-tests.ps1`.
+- **Memory growth while fuzzing** (see "Running the fuzzer"). Finding
+  out whether decoders allocate without enough limits needs our
+  allocations instrumented; a larger job, deferred.
 
 Known issues the tests may run into, already recorded elsewhere:
 

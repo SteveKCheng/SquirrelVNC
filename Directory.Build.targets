@@ -8,6 +8,17 @@
     the DLL version even with the static CRT. Copy it next to them, so
     they run outside Visual Studio as well.
   -->
+  <!--
+    ReleaseFuzz: the coverage that libFuzzer steers by, the same as
+    /fsanitize=fuzzer gives rfb-fuzz's own code (its EnableFuzzer), but
+    without linking libFuzzer into the libraries.
+  -->
+  <ItemDefinitionGroup Condition="'$(Configuration)' == 'ReleaseFuzz'">
+    <ClCompile>
+      <AdditionalOptions>%(AdditionalOptions) /fsanitize-coverage=inline-8bit-counters /fsanitize-coverage=edge /fsanitize-coverage=trace-cmp /fsanitize-coverage=trace-div</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+
   <PropertyGroup Condition="'$(EnableASAN)' == 'true'">
     <TvnAsanDll Condition="'$(Platform)' == 'x64'">$(VCToolsInstallDir)bin\Hostx64\x64\clang_rt.asan_dynamic-x86_64.dll</TvnAsanDll>
     <TvnAsanDll Condition="'$(Platform)' == 'Win32'">$(VCToolsInstallDir)bin\Hostx64\x86\clang_rt.asan_dynamic-i386.dll</TvnAsanDll>
