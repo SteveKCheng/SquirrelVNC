@@ -67,10 +67,11 @@ replacements:
 - **`util`.**
   - `DateTime` is built on `FILETIME`/`SYSTEMTIME`; it could move to
     `std::chrono`.
-  - The three string classes (`AnsiStringStorage`,
-    `UnicodeStringStorage`, `Utf8StringStorage`) convert text with
-    `MultiByteToWideChar`/`WideCharToMultiByte`.
-    `string-encoding.md` plans to replace them with free functions.
+  - `TextEncoding` (which replaced `AnsiStringStorage`,
+    `UnicodeStringStorage` and `Utf8StringStorage`; see
+    `string-encoding.md`) converts UTF-8 with
+    `MultiByteToWideChar`/`WideCharToMultiByte`; Latin-1 needs no Win32
+    call.
   - `GetCPUtime` uses `GetProcessTimes`.
   - `ResourceLoader`/`StringTable` read Win32 resources, but only
     `tvnviewer` uses them.
@@ -96,9 +97,9 @@ Recommendation: the Linux build uses `TCHAR = char`, holding UTF-8.
 - `_T(x)` becomes `x`, `_tcs*` becomes `str*`, and
   `StringStorage::format()` uses `vsnprintf`.
 - `%s` then means the same as on Windows.
-- The `#ifndef _UNICODE` branches in the three string classes still
-  exist (from the old NoUnicode configurations), so only their
-  code-page calls need a UTF-8 replacement.
+- The string classes with `#ifndef _UNICODE` branches are gone; only
+  the UTF-8 functions of `TextEncoding` need a second implementation (a
+  validating copy), which its `static_assert` on `TCHAR` points to.
 
 The long-term clean version would be UTF-8 `std::string` in the core on
 both platforms, converting at the Win32 boundary. That is much bigger

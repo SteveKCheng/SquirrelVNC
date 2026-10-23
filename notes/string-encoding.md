@@ -3,16 +3,17 @@
 A plan (2026-10-23) to reduce the string classes inherited from TightVNC
 to one, `StringStorage`, and to decode the text that RFB carries
 according to the protocol rather than the Windows ANSI code page.
-Nothing here is implemented yet. It is meant to follow the protocol
-tests in `testing.md`, so that the replay cases give a base to compare
-against.
+
+Status (2026-10-23): the string classes are done (see "Order of
+work"); `StringStorage` is the only one left. The `.ini` files are not
+started.
 
 See also `portability.md` ("TCHAR"), which is the larger, separate
 question of what `TCHAR` and `StringStorage` hold on Linux.
 
-## Current state
+## Starting point
 
-`win32-lib/util` has four string classes:
+`win32-lib/util` had four string classes:
 
 - `StringStorage`: the `TCHAR` string used everywhere (about 650 uses).
 - `AnsiStringStorage`: `char`, converted with `CP_ACP`.
@@ -21,7 +22,7 @@ question of what `TCHAR` and `StringStorage` hold on Linux.
   a copy of `StringStorage`; it only mattered for the old non-Unicode
   configurations, whose `#ifndef _UNICODE` branches are dead code.
 
-The other three have few users:
+The other three had few users:
 
 | Class | Users |
 |---|---|
@@ -87,14 +88,23 @@ Encoded text is typed as bytes, so it cannot be mixed up with the
 `TCHAR` strings by accident:
 
 ```cpp
-using ByteSpan = std::span<const std::byte>;
+namespace TextEncoding {
+  typedef std::span<const std::byte> ByteSpan;
 
-StringStorage fromUtf8(ByteSpan bytes);
-StringStorage fromLatin1(ByteSpan bytes);
-StringStorage fromRfbText(ByteSpan bytes);   // UTF-8 if valid, else Latin-1
-std::vector<std::byte> toUtf8(const StringStorage &text);
-std::vector<std::byte> toLatin1(const StringStorage &text);
+  StringStorage fromUtf8(ByteSpan bytes);
+  StringStorage fromLatin1(ByteSpan bytes);
+  StringStorage fromRfbText(ByteSpan bytes);   // UTF-8 if valid, else Latin-1
+  bool isValidUtf8(ByteSpan bytes);
+  std::vector<std::byte> toUtf8(const StringStorage &text);
+  std::vector<std::byte> toLatin1(const StringStorage &text);
+}
 ```
+
+They are in a namespace because names such as `fromUtf8` are too
+general to be global. Windows' `MB_ERR_INVALID_CHARS` and Python's
+strict UTF-8 decoder, which the test generator uses as its oracle,
+agreed on 20,000 byte strings, overlong forms, surrogates and codes
+above U+10FFFF included (a throwaway check).
 
 - **Why `std::byte`.** Neither `char *` nor `unsigned char *` (`UINT8`,
   used for pixels and keys) converts implicitly to
@@ -262,29 +272,42 @@ after them.
 
 ## Logging
 
-`RemoteViewerCore::sendCutTextEvent` logs the clipboard text at detail
-level, and both `receiveServerCutText` functions log it at debug level,
-so copied passwords can end up in log files. These lines should log the
-length only. That is a `[SECURITY]` change of its own, and can go in at
-any time.
+`RemoteViewerCore::sendCutTextEvent` logged the clipboard text at
+detail level, and both `receiveServerCutText` functions logged it at
+debug level, so copied passwords could end up in log files. These lines
+now log the length only, in a `[SECURITY]` commit of its own
+(2026-10-23).
 
 ## Order of work
 
 Each step builds in all four configurations and runs the replay tests.
+All done (2026-10-23); each class's files left the projects in the step
+that removed its last user, so step 6 needed no commit of its own.
 
-1. Add `TextEncoding.h`/`.cpp` with the functions above.
+1. Add `TextEncoding.h`/`.cpp` with the functions above. Done.
 2. Move `DataInputStream::readUTF8`/`DataOutputStream::writeUTF8` and
    the UTF-8 cut-text functions to them; remove `Utf8StringStorage`.
+   Done; the bytes on the wire are unchanged.
 3. Move the remaining `RemoteViewerCore`, `RfbCutTextEventClientMessage`,
    `VncAuthentication` and `JpegDecompressor` sites, with the decisions
-   above; this is the commit that changes behaviour.
+   above; this is the commit that changes behaviour. Done, with the
+   cases below, after a commit that lets a case give `rfb-replay` a
+   password of its own.
 4. Move `ConnectionData` (host and passwords); remove
-   `AnsiStringStorage`.
+   `AnsiStringStorage`. Done. `ConnectionData` now keeps a password given
+   in plain text as it is: its saved form holds only the first 8 bytes,
+   and decoding those again would turn a character cut at the 8th byte
+   into U+FFFD, giving the wrong key. A password loaded from a `.vnc`
+   file still has that limit, until the saved passwords go.
 5. Replace `UnicodeStringStorage` in `ResourceLoader` and
-   `WinCommandLineArgs` with `StringStorage`; remove it.
+   `WinCommandLineArgs` with `StringStorage`; remove it. Done.
 6. Remove the files from the projects and the tracked filters files.
+   Done within steps 2, 4 and 5.
 
-The work is small: about ten source files besides the six removed.
+Also done: the clipboard text is no longer logged (see "Logging").
+
+Not done: a libFuzzer target for the `TextEncoding` functions; the
+replay cases and the throwaway check cover them for now.
 
 ### Tests to add
 
