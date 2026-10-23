@@ -1,0 +1,10 @@
+established
+desktop-name "test"
+connected
+cut-text "café £ ÿ "
+cut-text "Grüße 日本"
+cut-text "before"
+cut-text ""
+cut-text "x�y"
+cut-text "Grüße"
+disconnect "End of stream reached"

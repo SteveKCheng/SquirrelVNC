@@ -30,7 +30,6 @@
 #include "rfb/EncodingDefs.h"
 #include "rfb/StandardPixelFormatFactory.h"
 #include "rfb/VendorDefs.h"
-#include "util/AnsiStringStorage.h"
 #include "util/TextEncoding.h"
 
 #include "AuthHandler.h"
@@ -64,6 +63,8 @@
 // cannot make the viewer allocate an arbitrary amount of memory.
 static const UINT32 MAX_CUT_TEXT_LENGTH = 64 * 1024 * 1024;
 static const UINT32 MAX_DESKTOP_NAME_LENGTH = 64 * 1024;
+// As DataInputStream::readUTF8() allowed, which used to read the reason.
+static const UINT32 MAX_REASON_LENGTH = 1024 * 1024;
 
 RemoteViewerCore::RemoteViewerCore(Logger *logger)
 : m_logWriter(logger),
@@ -618,8 +619,7 @@ void RemoteViewerCore::authenticate()
         throw AuthException(_T("Authentication failure"));
       }
       // if version 3.8 then try read reasonAuth.
-      StringStorage reasonAuth;
-      m_input->readUTF8(&reasonAuth);
+      StringStorage reasonAuth = readReason();
       StringStorage errorMessage = _T("Authentication reason: ");
       errorMessage.appendString(reasonAuth.getString());
       m_logWriter.message(_T("%s"), errorMessage.getString());
@@ -1204,6 +1204,17 @@ void RemoteViewerCore::receiveBell()
   }
 }
 
+StringStorage RemoteViewerCore::readReason()
+{
+  UINT32 length = m_input->readUInt32();
+  if (length > MAX_REASON_LENGTH) {
+    throw IOException(_T("String in the stream is too long"));
+  }
+  std::vector<std::byte> buffer(length);
+  m_input->readFully(buffer.data(), length);
+  return TextEncoding::fromRfbText(buffer);
+}
+
 void RemoteViewerCore::receiveServerCutText()
 {
   // message type is already known: 3
@@ -1218,12 +1229,10 @@ void RemoteViewerCore::receiveServerCutText()
     skipBytes(length);
     return;
   }
-  std::vector<char> buffer(length + 1);
-  m_input->readFully(&buffer.front(), length);
-  buffer[length] = '\0';
-  StringStorage cutText;
-  AnsiStringStorage cutTextAnsi(&buffer.front());
-  cutTextAnsi.toStringStorage(&cutText);
+  std::vector<std::byte> buffer(length);
+  m_input->readFully(buffer.data(), length);
+  // Latin-1 by the specification, but some servers send UTF-8.
+  StringStorage cutText = TextEncoding::fromRfbText(buffer);
 
   m_logWriter.debug(_T("Cut text: %s"), cutText.getString());
   try {
@@ -1311,9 +1320,8 @@ void RemoteViewerCore::handshake()
       m_major < 3 ||
       (m_major == 3 && m_minor < 3)) {
     StringStorage error;
-    AnsiStringStorage protocolAnsi(serverProtocol);
-    StringStorage protocol;
-    protocolAnsi.toStringStorage(&protocol);
+    StringStorage protocol =
+      TextEncoding::fromLatin1(std::as_bytes(std::span(serverProtocol, 12)));
     error.format(_T("Unsupported protocol: %s"), protocol.getString());
     m_logWriter.error(_T("%s"), error.getString());
     throw Exception(error.getString());
@@ -1335,10 +1343,9 @@ void RemoteViewerCore::handshake()
 
   m_logWriter.info(_T("Send to server protocol version: %s"), getProtocolString().getString());
 
-  AnsiStringStorage clientProtocolAnsi;
-  StringStorage protocolString = getProtocolString();
-  clientProtocolAnsi.fromStringStorage(&protocolString);
-  m_output->writeFully(clientProtocolAnsi.getString(), 12);
+  // ASCII, and 12 bytes, since m_major and m_minor are 3 and 3, 7 or 8.
+  std::vector<std::byte> clientProtocol = TextEncoding::toLatin1(getProtocolString());
+  m_output->writeFully(clientProtocol.data(), clientProtocol.size());
   m_output->flush();
 }
 
@@ -1378,12 +1385,9 @@ void RemoteViewerCore::clientAndServerInit()
   if (sizeInBytes > MAX_DESKTOP_NAME_LENGTH) {
     throw Exception(_T("Desktop name is too long"));
   }
-  std::vector<char> buffer(sizeInBytes + 1);
-  m_input->readFully(&buffer.front(), sizeInBytes);
-  buffer[sizeInBytes] = '\0';
-  AnsiStringStorage ansiStr;
-  ansiStr.setString(&buffer[0]);
-  ansiStr.toStringStorage(&m_remoteDesktopName);
+  std::vector<std::byte> buffer(sizeInBytes);
+  m_input->readFully(buffer.data(), sizeInBytes);
+  m_remoteDesktopName = TextEncoding::fromRfbText(buffer);
   m_logWriter.info(_T("Server remote name: %s"), m_remoteDesktopName.getString());
 
   if (m_isTight) {
@@ -1442,20 +1446,12 @@ RfbCapabilityInfo RemoteViewerCore::readCapability()
   m_input->readFully(cap.vendorSignature, RfbCapabilityInfo::vendorSigSize);
   m_input->readFully(cap.nameSignature, RfbCapabilityInfo::nameSigSize);
 
-  // transform information for the log and log him
-  char vendorSignature[RfbCapabilityInfo::vendorSigSize + 1];
-  memcpy(vendorSignature, cap.vendorSignature, RfbCapabilityInfo::vendorSigSize);
-  vendorSignature[RfbCapabilityInfo::vendorSigSize] = 0;
-  AnsiStringStorage vendorSignatureAnsiString(vendorSignature);
-  StringStorage vendorSignatureString;
-  vendorSignatureAnsiString.toStringStorage(&vendorSignatureString);
-
-  char nameSignature[RfbCapabilityInfo::nameSigSize + 1];
-  memcpy(nameSignature, cap.nameSignature, RfbCapabilityInfo::nameSigSize);
-  nameSignature[RfbCapabilityInfo::nameSigSize] = 0;
-  AnsiStringStorage nameSignatureAnsiString(nameSignature);
-  StringStorage nameSignatureString;
-  nameSignatureAnsiString.toStringStorage(&nameSignatureString);
+  // transform information for the log and log him; the signatures are
+  // ASCII, and not null-terminated when they fill their arrays.
+  StringStorage vendorSignatureString = TextEncoding::fromLatin1(
+    std::as_bytes(std::span(cap.vendorSignature, RfbCapabilityInfo::vendorSigSize)));
+  StringStorage nameSignatureString = TextEncoding::fromLatin1(
+    std::as_bytes(std::span(cap.nameSignature, RfbCapabilityInfo::nameSigSize)));
 
   m_logWriter.detail(_T("code: %u, vendor: %s, signature: %s"),
                      cap.code, vendorSignatureString.getString(), nameSignatureString.getString());

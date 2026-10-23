@@ -574,10 +574,17 @@ Text the server sends (`server_init(name=...)`, `server_cut_text()`,
 `server_cut_text_utf8()`, failure reasons) can be `bytes`, sent as
 given, or `str`, encoded as the protocol says. The expected event text
 comes from `rfb_text()`, which applies the decision in
-`string-encoding.md` (UTF-8 if valid, otherwise Latin-1). Today's
-viewer decodes desktop names and plain cut text with the Windows ANSI
-code page instead, so cases with non-ASCII text there wait for that
-work (see its "Tests to add").
+`string-encoding.md` (UTF-8 if valid, otherwise Latin-1), or from
+`utf8_text()` for TightVNC's UTF-8 cut text, which is UTF-8 with
+invalid sequences replaced; both stop at the first zero byte, as the
+viewer does. Python's and Windows' replacement of invalid UTF-8 may
+differ in how many U+FFFD they produce for longer invalid sequences, so
+cases use single invalid bytes there.
+
+`security_vnc()` takes the password; one other than `HARNESS_PASSWORD`
+is written to `NAME.password`, which `rfb-replay --check` gives the
+viewer. The key is the password's first 8 bytes in UTF-8, as in
+`VncAuthentication`.
 
 ### What the generator cannot do itself
 

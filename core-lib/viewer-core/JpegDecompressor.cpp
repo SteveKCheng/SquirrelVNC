@@ -23,8 +23,10 @@
 
 #include "JpegDecompressor.h"
 
-#include "util/AnsiStringStorage.h"
 #include "util/Exception.h"
+#include "util/TextEncoding.h"
+
+#include <cstring>
 
 JpegDecompressor::JpegDecompressor()
 {
@@ -45,10 +47,8 @@ StringStorage JpegDecompressor::getMessage(j_common_ptr cinfo)
   // Create the message
   (*cinfo->err->format_message) (cinfo, buffer);
 
-  AnsiStringStorage errorAnsi(buffer);
-  StringStorage error;
-  errorAnsi.toStringStorage(&error);
-  return error;
+  // libjpeg's messages are ASCII.
+  return TextEncoding::fromLatin1(std::as_bytes(std::span(buffer, strlen(buffer))));
 }
 
 void JpegDecompressor::errorExit(j_common_ptr cinfo)

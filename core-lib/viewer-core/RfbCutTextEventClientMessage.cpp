@@ -21,7 +21,6 @@
 //-------------------------------------------------------------------------
 //
 
-#include "util/AnsiStringStorage.h"
 #include "util/Exception.h"
 #include "util/TextEncoding.h"
 
@@ -41,9 +40,12 @@ RfbCutTextEventClientMessage::~RfbCutTextEventClientMessage()
 
 void RfbCutTextEventClientMessage::send(RfbOutputGate *output)
 {
-  AnsiStringStorage cutTextAnsi;
-  cutTextAnsi.fromStringStorage(&m_cutText);
-  UINT32 length = static_cast<UINT32>(cutTextAnsi.getLength());
+  // Latin-1, as the specification says.
+  std::vector<std::byte> cutTextLatin1 = TextEncoding::toLatin1(m_cutText);
+  if (cutTextLatin1.size() > UINT32_MAX) {
+    throw Exception(_T("Cut text is too long to send"));
+  }
+  UINT32 length = static_cast<UINT32>(cutTextLatin1.size());
 
   AutoLock al(output);
   output->writeUInt8(ClientMsgDefs::CLIENT_CUT_TEXT);
@@ -51,7 +53,7 @@ void RfbCutTextEventClientMessage::send(RfbOutputGate *output)
   output->writeUInt8(0);
   output->writeUInt8(0);
   output->writeUInt32(length);
-  output->writeFully(cutTextAnsi.getString(), length);
+  output->writeFully(cutTextLatin1.data(), length);
   output->flush();
 }
 

@@ -32,6 +32,14 @@ public:
   RfbCutTextEventClientMessage(const StringStorage *cutText);
   ~RfbCutTextEventClientMessage();
 
+  //
+  // Sends the text as a plain ClientCutText message, in Latin-1 as the
+  // specification says: each character above U+00FF becomes '?'.
+  //
+  // Post-conditions: the whole message is written and flushed.
+  // Throws Exception if the text is too long for the 32-bit size, before
+  // anything is written; otherwise whatever writing throws.
+  //
   void send(RfbOutputGate *output);
 
   //

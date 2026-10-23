@@ -534,8 +534,26 @@ private:
   void receiveBell();
 
   //
+  // Reads a reason string: a 32-bit length, then that many bytes of text.
+  //
+  // Post-conditions: returns the text decoded by
+  // TextEncoding::fromRfbText(): UTF-8 if valid, otherwise Latin-1.
+  // Throws IOException if the length is over MAX_REASON_LENGTH, leaving
+  // the text unread; otherwise whatever reading the input throws.
+  //
+  StringStorage readReason();
+
+  //
   // Receive ServerCutText server message (code 3) and send event to the
   // adapter.
+  //
+  // Pre-conditions: the message type has been read.
+  // Post-conditions: the message has been read whole, and its text sent
+  // to the adapter, decoded by TextEncoding::fromRfbText(): Latin-1 as
+  // the specification says, or UTF-8 if it is valid UTF-8. The text ends
+  // at the first zero byte; text longer than MAX_CUT_TEXT_LENGTH is
+  // skipped with a warning. Exceptions from the adapter are logged, not
+  // passed on. Throws whatever reading the input throws.
   //
   void receiveServerCutText();
 

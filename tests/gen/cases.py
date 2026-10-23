@@ -486,6 +486,102 @@ def vnc_auth_failed_utf8_reason():
     return c
 
 
+@case
+def text_desktop_name_utf8():
+    """A desktop name in UTF-8, beyond the Basic Multilingual Plane too."""
+    c = Case('text-desktop-name-utf8')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    c.server_init(8, 8, name='Gr\u00fc\u00dfe \u65e5\u672c \U0001f43f')
+    c.end_of_input()
+    return c
+
+
+@case
+def text_desktop_name_latin1():
+    """A desktop name in Latin-1, which is not valid UTF-8, so it is
+    decoded as Latin-1; 0x80 to 0x9F included, where Windows-1252 differs.
+    """
+    c = Case('text-desktop-name-latin1')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    c.server_init(8, 8, name='caf\u00e9 \u00a3 \u00ff \x80\x9f'.encode('latin-1'))
+    c.end_of_input()
+    return c
+
+
+@case
+def text_desktop_name_invalid_utf8():
+    """A desktop name that is almost UTF-8: a lead byte without its
+    continuation. Being invalid, the whole name is decoded as Latin-1.
+    """
+    c = Case('text-desktop-name-invalid-utf8')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    c.server_init(8, 8, name='Gr\u00fc\u00dfe '.encode('utf-8') + b'\xc3(')
+    c.end_of_input()
+    return c
+
+
+@case
+def text_desktop_name_nul():
+    """A desktop name with a zero byte in it: the viewer keeps what comes
+    before it.
+    """
+    c = Case('text-desktop-name-nul')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    c.server_init(8, 8, name=b'before\0after')
+    c.end_of_input()
+    return c
+
+
+@case
+def text_cut_text_encodings():
+    """Plain cut text in Latin-1 (decoded as Latin-1), in UTF-8 against
+    the specification (decoded as UTF-8), and with a zero byte; then
+    TightVNC UTF-8 cut text with an invalid byte (U+FFFD) and with a zero
+    byte.
+    """
+    c = Case('text-cut-text-encodings')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    c.server_init(8, 8)
+    c.server_cut_text('caf\u00e9 \u00a3 \u00ff \x80\x9f')
+    c.server_cut_text('Gr\u00fc\u00dfe \u65e5\u672c'.encode('utf-8'))
+    c.server_cut_text(b'before\0after')
+    c.server_cut_text(b'\0after')
+    c.server_cut_text_utf8(b'x\xffy')
+    c.server_cut_text_utf8('Gr\u00fc\u00dfe\0after')
+    c.end_of_input()
+    return c
+
+
+@case
+def vnc_auth_failed_latin1_reason():
+    """A 3.8 authentication failure whose reason is Latin-1, which is not
+    valid UTF-8, so it is decoded as Latin-1.
+    """
+    c = Case('vnc-auth-failed-latin1-reason')
+    c.version(b'RFB 003.008\n')
+    c.security_vnc(HARNESS_PASSWORD, CHALLENGE, ok=False,
+                   reason='Mot de passe refus\u00e9'.encode('latin-1'))
+    return c
+
+
+@case
+def vnc_auth_non_ascii_password():
+    """VNC authentication with a password outside ASCII. The key is its
+    first 8 bytes in UTF-8, which here end in the middle of the euro sign.
+    """
+    c = Case('vnc-auth-non-ascii-password')
+    c.version(b'RFB 003.008\n')
+    c.security_vnc('Gr\u00fc\u00dfe\u20ac\u20ac', CHALLENGE)
+    raw_session(c, 8, 8)
+    c.end_of_input()
+    return c
+
+
 def zrle_tiles(image):
     """Tiles of each kind for an 80 x 70 rectangle, whose four tiles are
     64 x 64, 16 x 64 (right edge), 64 x 6 (bottom edge) and 16 x 6.

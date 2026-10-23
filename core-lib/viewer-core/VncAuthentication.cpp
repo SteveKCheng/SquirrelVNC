@@ -23,8 +23,8 @@
 
 #include "VncAuthentication.h"
 
-#include "util/AnsiStringStorage.h"
 #include "util/DesCrypt.h"
+#include "util/TextEncoding.h"
 
 #include <algorithm>
 
@@ -34,16 +34,15 @@ void VncAuthentication::vncAuthenticate(DataInputStream *input,
 {
   // TODO: removed duplicate code: ControlAuth.cpp
 
-  // Prepare data for authentication.
-  StringStorage truncatedPass;
-  password->getSubstring(&truncatedPass, 0, VNC_PASSWORD_SIZE - 1);
-
-  AnsiStringStorage passwordAnsi(&truncatedPass);
+  // Prepare data for authentication: the key is the first 8 bytes of the
+  // password in UTF-8, as TigerVNC's vncpasswd stores it, padded with
+  // zeros. Cutting may split a character; the key is only bytes.
+  std::vector<std::byte> passwordUtf8 = TextEncoding::toUtf8(*password);
 
   UINT8 m_password[VNC_PASSWORD_SIZE];
   memset(m_password, 0, sizeof(m_password));
-  memcpy(m_password, passwordAnsi.getString(),
-         std::min(passwordAnsi.getLength(), sizeof(m_password)));
+  memcpy(m_password, passwordUtf8.data(),
+         std::min(passwordUtf8.size(), sizeof(m_password)));
 
   UINT8 challenge[16];
   UINT8 response[16];

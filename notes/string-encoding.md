@@ -299,14 +299,15 @@ shows up as an intended difference in `.events`:
   response in `.out`;
 - an embedded NUL in each of these.
 
-Status (2026-10-23): `rfb-replay` logs the desktop name
-(`desktop-name`), and the generator sends each kind of text and expects
-the decisions above (`rfbgen.rfb_text()`). Cases exist only where
-today's viewer already decodes that way: an ASCII desktop name, ASCII
-plain cut text, UTF-8 cut text through the TightVNC message, and a UTF-8
-failure reason (`text-ascii-and-utf8`, `vnc-auth-failed-utf8-reason`).
-The rest go in with step 3. Seen on the sandbox (ANSI code page 1252) in
-a throwaway run: a UTF-8 desktop name "Grüße 日本" came out as
-"GrÃ¼ÃŸe æ—¥æœ¬", while Latin-1 plain cut text "café £ ÿ" came out right,
-only because those characters are the same in Windows-1252; bytes
-0x80 to 0x9F, or another code page, would differ.
+Status (2026-10-23): done with step 3, except two that the harness
+cannot drive: plain `ClientCutText`, which only the GUI sends, and the
+password from `ConnectionData`, which `rfb-replay` bypasses. The cases
+are `text-desktop-name-utf8`, `-latin1`, `-invalid-utf8` and `-nul`,
+`text-cut-text-encodings`, `vnc-auth-failed-latin1-reason` and
+`vnc-auth-non-ascii-password`, besides the earlier `text-ascii-and-utf8`
+and `vnc-auth-failed-utf8-reason`. A case's password other than the
+default is in `NAME.password`. Before the change, six of the seven new
+cases failed as expected (the ANSI code page turned 0x80 and 0x9F into
+"€" and "Ÿ", UTF-8 names into mojibake, a Latin-1 reason into U+FFFD,
+and the password into other key bytes); `text-desktop-name-nul` passed,
+since the old code also stopped at a zero byte.

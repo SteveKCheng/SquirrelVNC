@@ -29,6 +29,16 @@
 class VncAuthentication
 {
 public:
+  //
+  // Answers the server's challenge in VNC authentication.
+  //
+  // Pre-conditions: password is not null; the security type has been
+  // chosen.
+  // Post-conditions: the 16-byte challenge has been read, and the response
+  // written and flushed: the challenge encrypted with DES, keyed with the
+  // first 8 bytes of the password in UTF-8, padded with zeros.
+  // Throws whatever reading or writing throws.
+  //
   static void vncAuthenticate(DataInputStream *input, DataOutputStream *output,
                     const StringStorage *password);
 
