@@ -52,6 +52,13 @@ void RreDecoder::decode(RfbInputGate *input,
     UINT32 w = input->readUInt16();
     UINT32 h = input->readUInt16();
 
+    // Subrectangles are positioned relative to the rectangle, and must lie
+    // within it.
+    if (x + w > static_cast<UINT32>(dstRect->getWidth()) ||
+        y + h > static_cast<UINT32>(dstRect->getHeight())) {
+      throw Exception(_T("Error in protocol: RRE subrectangle outside its rectangle"));
+    }
+
     Rect rect(x, y, x + w, y + h);
     rect.move(dstRect->left, dstRect->top);
     frameBuffer->fillRect(&rect, color);

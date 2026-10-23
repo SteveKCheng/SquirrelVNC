@@ -33,6 +33,16 @@ public:
   virtual ~RreDecoder();
 
 protected:
+  //
+  // Decodes an RRE rectangle: a background colour, then subrectangles
+  // whose positions are relative to dstRect.
+  //
+  // Pre-conditions: dstRect lies within framebuffer.
+  // Post-conditions: dstRect holds the decoded image.
+  // Throws Exception, after drawing the subrectangles before it, if a
+  // subrectangle does not lie within dstRect; IOException if the input
+  // fails.
+  //
   virtual void decode(RfbInputGate *input,
                       FrameBuffer *framebuffer,
                       const Rect *dstRect);
