@@ -143,6 +143,8 @@ Caveats:
 
 ### Fuzzing
 
+The current plan is in `testing.md`.
+
 Test below `RemoteViewerCore`. Its threads and blocking reads make it a
 poor libFuzzer target.
 `DecoderOfRectangle::process(RfbInputGate *, FrameBuffer *, FrameBuffer *, const Rect *, LocalMutex *, FbUpdateNotifier *)`
