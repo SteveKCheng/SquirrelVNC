@@ -148,13 +148,17 @@ first. The generator (`tests/gen/rfbgen.py`) needs the Tight encoding:
 Cases for the errors the viewer must reject (an unknown compression
 type, a JPEG whose size differs from the rectangle's) belong with them.
 
-Status: everything but JPEG is done (`rfbgen.TightRect`, cases
-`tight-*`), including the unknown compression type and data that
-inflates short. JPEG remains.
+Status: done (`rfbgen.TightRect`, cases `tight-*`), including the
+unknown compression type and data that inflates short. The JPEG cases
+use `tests/gen/jpeg/quadrants-16x16.jpg`, made by
+`make-quadrants-jpeg.c` beside it, and the decoded image
+`quadrants-16x16.ppm`, taken from rfb-replay and reviewed. A JPEG the
+viewer cannot decode is not an error: `processJpeg()` logs it and the
+rectangle keeps its old contents (`tight-jpeg-wrong-size`).
 
 ## The rewrite, when it comes
 
-1. Tight replay cases pass on the current code.
+1. Tight replay cases pass on the current code. Done.
 2. Rewrite `JpegDecompressor` on the TurboJPEG API, keeping its
    interface; then, separately, let `TightDecoder` decode into the frame
    buffer's layout where it can.
