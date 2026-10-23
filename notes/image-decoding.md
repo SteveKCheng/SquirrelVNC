@@ -148,6 +148,10 @@ first. The generator (`tests/gen/rfbgen.py`) needs the Tight encoding:
 Cases for the errors the viewer must reject (an unknown compression
 type, a JPEG whose size differs from the rectangle's) belong with them.
 
+Status: everything but JPEG is done (`rfbgen.TightRect`, cases
+`tight-*`), including the unknown compression type and data that
+inflates short. JPEG remains.
+
 ## The rewrite, when it comes
 
 1. Tight replay cases pass on the current code.

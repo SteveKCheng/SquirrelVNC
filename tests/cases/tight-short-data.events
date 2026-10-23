@@ -1,0 +1,3 @@
+established
+connected
+error "Error in protocol: incorrect decompressed data size (tight-decoder)"

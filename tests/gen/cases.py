@@ -34,8 +34,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from rfbgen import (Case, HextileRect, HextileTile, Image, RawRect,   # noqa: E402
-                    RreRect)
+from rfbgen import (RGB565, Case, HextileRect, HextileTile, Image,   # noqa: E402
+                    RawRect, RreRect, TightRect)
 
 CASES = []
 
@@ -264,6 +264,130 @@ def hextile_subrect_outside_tile():
         HextileTile(background=GREY),
         HextileTile(foreground=RED, subrects=[(2, 0, 3, 1, None)]),
     ])])
+    return c
+
+
+def checker(w, h, n=2, size=1):
+    """Palette indices for a w x h rectangle: n colours in squares."""
+    return [[((x // size) + (y // size)) % n for x in range(w)] for y in range(h)]
+
+
+def tight_session(name, width=32, height=24, pf=None):
+    c = Case(name)
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    if pf is None:
+        raw_session(c, width, height)
+    else:
+        c.server_init(width, height, pf)
+        c.update([RawRect(0, 0, width, height, Image.pattern(width, height))])
+    return c
+
+
+@case
+def tight_fill_and_copy():
+    """Tight fill, and the copy filter: below 12 bytes (sent as is) and
+    compressed, with two rectangles in turn on one zlib stream, whose
+    state must carry on, and one on another stream.
+    """
+    c = tight_session('tight-fill-and-copy')
+    z = c.tight_streams()
+    image = Image.pattern(32, 24, seed=3)
+    c.update([TightRect(0, 0, 32, 4, ('fill', GREY), z),
+              TightRect(1, 5, 3, 1, ('copy', image), z),
+              TightRect(2, 7, 16, 8, ('copy', image), z, stream=0),
+              TightRect(18, 7, 12, 8, ('copy', image), z, stream=0)])
+    c.update([TightRect(4, 16, 20, 6, ('copy', image), z, stream=1),
+              TightRect(24, 0, 8, 4, ('fill', BLUE), z)])
+    c.end_of_input()
+    return c
+
+
+@case
+def tight_palette():
+    """Tight palette filter: two colours, packed one bit per pixel in
+    rows of whole bytes (13 is not a multiple of 8), and five colours,
+    one byte per pixel; each small enough to be sent as is, and large
+    enough to be compressed.
+    """
+    c = tight_session('tight-palette')
+    z = c.tight_streams()
+    two = [RED, BLUE]
+    five = [RED, GREEN, BLUE, GREY, (255, 255, 255)]
+    c.update([TightRect(0, 0, 13, 2, ('palette', two, checker(13, 2)), z),
+              TightRect(0, 3, 13, 9, ('palette', two, checker(13, 9, 2, 2)), z,
+                        stream=2),
+              TightRect(14, 0, 3, 3, ('palette', five, checker(3, 3, 5)), z),
+              TightRect(14, 4, 18, 18, ('palette', five, checker(18, 18, 5, 3)), z,
+                        stream=2)])
+    c.end_of_input()
+    return c
+
+
+@case
+def tight_gradient():
+    """Tight gradient filter, which sends each colour component as its
+    difference from a prediction from the neighbouring pixels.
+    """
+    c = tight_session('tight-gradient')
+    z = c.tight_streams()
+    image = Image.pattern(32, 24, seed=4)
+    c.update([TightRect(3, 2, 25, 19, ('gradient', image), z, stream=3),
+              TightRect(0, 22, 2, 1, ('gradient', image), z)])
+    c.end_of_input()
+    return c
+
+
+@case
+def tight_stream_reset():
+    """A Tight rectangle that resets its zlib stream: the viewer must
+    start a new inflater, or the new stream's header would not decode.
+    """
+    c = tight_session('tight-stream-reset')
+    z = c.tight_streams()
+    image = Image.pattern(32, 24, seed=5)
+    c.update([TightRect(0, 0, 16, 12, ('copy', image), z, stream=1)])
+    c.update([TightRect(16, 0, 16, 12, ('copy', image), z, stream=1, reset=0b0010),
+              TightRect(0, 12, 32, 12, ('copy', image), z, stream=1)])
+    c.end_of_input()
+    return c
+
+
+@case
+def tight_rgb565():
+    """Tight at 16 bits per pixel, where pixels are sent whole rather
+    than as 3 bytes: fill, copy, palette and gradient.
+    """
+    c = tight_session('tight-rgb565', pf=RGB565)
+    z = c.tight_streams()
+    image = Image.pattern(32, 24, seed=6)
+    c.update([TightRect(0, 0, 8, 8, ('fill', GREEN), z),
+              TightRect(8, 0, 16, 8, ('copy', image), z),
+              TightRect(0, 8, 16, 16, ('palette', [RED, BLUE, GREY],
+                                       checker(16, 16, 3, 4)), z, stream=1),
+              TightRect(16, 8, 16, 16, ('gradient', image), z, stream=2)])
+    c.end_of_input()
+    return c
+
+
+@case
+def tight_bad_compression_type():
+    """A Tight compression type above 9 ends the session with an error."""
+    c = tight_session('tight-bad-compression-type')
+    z = c.tight_streams()
+    c.update([TightRect(0, 0, 8, 8, ('fill', RED), z, compression=0xA)])
+    return c
+
+
+@case
+def tight_short_data():
+    """Tight data that inflates to fewer bytes than the rectangle needs
+    ends the session with an error, and draws nothing.
+    """
+    c = tight_session('tight-short-data')
+    z = c.tight_streams()
+    image = Image.pattern(32, 24, seed=7)
+    c.update([TightRect(0, 0, 16, 8, ('copy', image), z, shorten=3)])
     return c
 
 

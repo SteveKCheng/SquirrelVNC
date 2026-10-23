@@ -42,6 +42,7 @@ Only the Python 3 standard library is used.
 
 import os
 import struct
+import zlib
 
 # Encoding numbers (rfb/EncodingDefs.h).
 RAW = 0
@@ -135,6 +136,7 @@ class PixelFormat:
 
 # Standard formats, as the servers in common use send them.
 RGB888 = PixelFormat(32, 24, False, (255, 255, 255), (16, 8, 0))
+RGB565 = PixelFormat(16, 16, False, (31, 63, 31), (11, 5, 0))
 
 
 class Image:
@@ -349,6 +351,188 @@ class HextileRect:
         return bytes(out)
 
 
+class TightStreams:
+    """The four zlib streams of a Tight session, as the server keeps them.
+
+    Each stream's state carries on across rectangles, as the viewer's
+    inflaters do, until a rectangle's control byte resets it. One object
+    serves every TightRect of a session (Case.tight_streams()).
+
+    The compressed bytes depend on the zlib build: with another one,
+    cases.py --check may report Tight cases as differing although they
+    decode the same.
+    """
+
+    def __init__(self):
+        self.streams = [None] * 4
+
+    def reset(self, mask):
+        for i in range(4):
+            if mask & (1 << i):
+                self.streams[i] = None
+
+    def compress(self, stream, data):
+        if self.streams[stream] is None:
+            self.streams[stream] = zlib.compressobj(6)
+        c = self.streams[stream]
+        return c.compress(data) + c.flush(zlib.Z_SYNC_FLUSH)
+
+
+def tight_compact_length(n):
+    """1 to 3 bytes, 7 bits each, low bits first."""
+    assert 0 <= n < 1 << 22
+    if n < 0x80:
+        return u8(n)
+    if n < 0x4000:
+        return u8(0x80 | (n & 0x7f)) + u8(n >> 7)
+    return u8(0x80 | (n & 0x7f)) + u8(0x80 | ((n >> 7) & 0x7f)) + u8(n >> 14)
+
+
+def tight_is_cpixel(pf):
+    """TightDecoder::decode(): 3-byte pixels for 32-bit, depth-24 RGB."""
+    return pf.bpp == 32 and pf.depth == 24 and pf.maxes == (255, 255, 255)
+
+
+def tight_pixel(pf, comps):
+    """A Tight pixel: R, G, B bytes for 3-byte pixels, else the pixel.
+
+    The viewer swaps the 3 bytes into its 32-bit layout, which is right
+    only with red at shift 16 (as in RGB888); the cases use such formats.
+    """
+    if tight_is_cpixel(pf):
+        assert pf.shifts == (16, 8, 0) and not pf.big_endian
+        return bytes(comps)
+    return pf.pixel_bytes(comps)
+
+
+class TightRect:
+    """A rectangle in Tight encoding.
+
+    kind is one of:
+      ('fill', rgb)
+      ('copy', image)              pixels from the image at the rectangle
+      ('palette', colours, rows)   rows[y][x] indexes colours (2 to 256)
+      ('gradient', image)          the gradient filter
+    stream (0 to 3) is the zlib stream for data of 12 bytes or more, and
+    reset a mask of streams to reset first. shorten makes the compressed
+    data inflate to that many bytes fewer than the rectangle needs, which
+    the viewer must reject. compression overrides the control byte's
+    compression type.
+
+    As for RreRect, a rectangle the viewer rejects (error) leaves nothing
+    in the frame buffer.
+    """
+
+    BAD_TYPE = 'Sub-encoding in Tight-encoder are not valid'
+    BAD_SIZE = 'Error in protocol: incorrect decompressed data size (tight-decoder)'
+
+    def __init__(self, x, y, w, h, kind, streams, stream=0, reset=0,
+                 shorten=0, compression=None):
+        self.x, self.y, self.w, self.h = x, y, w, h
+        self.kind = kind
+        self.streams = streams
+        self.stream = stream
+        self.reset = reset
+        self.shorten = shorten
+        self.compression = compression
+        self.error = None
+
+    def encode(self, fb):
+        pf = fb.pf
+        out = bytearray(u16(self.x) + u16(self.y) + u16(self.w) + u16(self.h)
+                        + s32(TIGHT))
+        self.streams.reset(self.reset)
+        what = self.kind[0]
+        pixels = {}   # (x, y) -> components, drawn if accepted
+
+        if self.compression is not None:
+            out += u8((self.compression << 4) | self.reset)
+            self.error = self.BAD_TYPE
+            return bytes(out)
+
+        if what == 'fill':
+            comps = pf.from_rgb8(self.kind[1])
+            out += u8(0x80 | self.reset) + tight_pixel(pf, comps)
+            for y in range(self.h):
+                for x in range(self.w):
+                    pixels[(x, y)] = comps
+        else:
+            if what == 'copy':
+                image = self.kind[1]
+                filter_id = None
+                data = bytearray()
+                for y in range(self.h):
+                    for x in range(self.w):
+                        comps = pf.from_rgb8(image.get(self.x + x, self.y + y))
+                        data += tight_pixel(pf, comps)
+                        pixels[(x, y)] = comps
+            elif what == 'palette':
+                colours, rows = self.kind[1], self.kind[2]
+                assert 2 <= len(colours) <= 256
+                filter_id = 1
+                palette = [pf.from_rgb8(c) for c in colours]
+                data = bytearray()
+                for y in range(self.h):
+                    if len(colours) == 2:
+                        byte, bits = 0, 0
+                        for x in range(self.w):
+                            byte = (byte << 1) | rows[y][x]
+                            bits += 1
+                            if bits == 8:
+                                data.append(byte)
+                                byte, bits = 0, 0
+                        if bits:
+                            data.append(byte << (8 - bits))
+                    else:
+                        data += bytes(rows[y][:self.w])
+                    for x in range(self.w):
+                        pixels[(x, y)] = palette[rows[y][x]]
+            elif what == 'gradient':
+                image = self.kind[1]
+                filter_id = 2
+                values = [[pf.from_rgb8(image.get(self.x + x, self.y + y))
+                           for x in range(self.w)] for y in range(self.h)]
+                data = bytearray()
+                for y in range(self.h):
+                    for x in range(self.w):
+                        diff = []
+                        for i, m in enumerate(pf.maxes):
+                            up = values[y - 1][x][i] if y > 0 else 0
+                            left = values[y][x - 1][i] if x > 0 else 0
+                            diag = values[y - 1][x - 1][i] if x > 0 and y > 0 else 0
+                            predicted = min(max(up + left - diag, 0), m)
+                            diff.append((values[y][x][i] - predicted) & m)
+                        data += tight_pixel(pf, diff)
+                        pixels[(x, y)] = values[y][x]
+            else:
+                raise ValueError(what)
+
+            control = (self.stream << 4) | self.reset
+            if filter_id is not None:
+                control |= 0x40
+            out += u8(control)
+            if filter_id is not None:
+                out += u8(filter_id)
+            if what == 'palette':
+                out += u8(len(colours) - 1)
+                for comps in palette:
+                    out += tight_pixel(pf, comps)
+            if len(data) < 12:
+                assert not self.shorten, 'only compressed data can be shortened'
+                out += data
+            else:
+                if self.shorten:
+                    data = data[:-self.shorten]
+                    self.error = self.BAD_SIZE
+                packed = self.streams.compress(self.stream, bytes(data))
+                out += tight_compact_length(len(packed)) + packed
+
+        if self.error is None:
+            for (x, y), comps in pixels.items():
+                fb.rows[self.y + y][self.x + x] = comps
+        return bytes(out)
+
+
 class Case:
     """One replay case: the server's bytes, and what is expected back."""
 
@@ -361,8 +545,15 @@ class Case:
         self.fb = None
         self.server_init_offset = None
         self.uses_tight_security = False
+        self.tight = None
         # Connecting succeeds at once with the harness's in-memory gates.
         self.event('established')
+
+    def tight_streams(self):
+        """The session's Tight zlib streams (see TightStreams)."""
+        if self.tight is None:
+            self.tight = TightStreams()
+        return self.tight
 
     def event(self, name, text=None):
         if text is None:
