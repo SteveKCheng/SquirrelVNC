@@ -70,6 +70,7 @@ replacements:
   - The three string classes (`AnsiStringStorage`,
     `UnicodeStringStorage`, `Utf8StringStorage`) convert text with
     `MultiByteToWideChar`/`WideCharToMultiByte`.
+    `string-encoding.md` plans to replace them with free functions.
   - `GetCPUtime` uses `GetProcessTimes`.
   - `ResourceLoader`/`StringTable` read Win32 resources, but only
     `tvnviewer` uses them.
