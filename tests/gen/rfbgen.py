@@ -252,6 +252,103 @@ class RreRect:
         return bytes(out)
 
 
+class HextileTile:
+    """One Hextile tile, as a HextileRect sends it.
+
+    Either raw (the tile's pixels, taken from an image at the tile's
+    position), or a background and subrectangles. background and
+    foreground are 8-bit RGB colours, or None to carry on with the
+    previous tile's. Subrectangles are (x, y, width, height, rgb) relative
+    to the tile, with rgb None for the foreground colour; coloured sends a
+    colour with each subrectangle instead.
+    """
+
+    def __init__(self, raw=None, background=None, foreground=None,
+                 subrects=(), coloured=False):
+        assert not (coloured and foreground is not None), \
+            'the viewer reads no subrectangle colours when both are set'
+        self.raw = raw
+        self.background = background
+        self.foreground = foreground
+        self.subrects = list(subrects)
+        self.coloured = coloured
+
+
+class HextileRect:
+    """A rectangle in Hextile encoding: 16 x 16 tiles, left to right then
+    top to bottom, smaller at the right and bottom edges.
+
+    tiles holds one HextileTile per tile. A subrectangle that does not lie
+    within its tile must make the viewer stop (HexTileDecoder::decode());
+    error is then set, and, as for RreRect, nothing of the rectangle
+    reaches the frame buffer.
+    """
+
+    ERROR = 'Error in protocol: Hextile subrectangle outside its tile'
+
+    def __init__(self, x, y, w, h, tiles):
+        self.x, self.y, self.w, self.h = x, y, w, h
+        self.tiles = list(tiles)
+        self.error = None
+
+    def tile_rects(self):
+        for ty in range(self.y, self.y + self.h, 16):
+            for tx in range(self.x, self.x + self.w, 16):
+                yield (tx, ty, min(16, self.x + self.w - tx),
+                       min(16, self.y + self.h - ty))
+
+    def encode(self, fb):
+        pf = fb.pf
+        rects = list(self.tile_rects())
+        assert len(rects) == len(self.tiles), \
+            'expected %d tiles, got %d' % (len(rects), len(self.tiles))
+        out = bytearray(u16(self.x) + u16(self.y) + u16(self.w) + u16(self.h)
+                        + s32(HEXTILE))
+        fills = []
+        background = foreground = None
+        for (tx, ty, tw, th), tile in zip(rects, self.tiles):
+            if tile.raw is not None:
+                out += u8(1)
+                for row in range(ty, ty + th):
+                    for col in range(tx, tx + tw):
+                        comps = pf.from_rgb8(tile.raw.get(col, row))
+                        out += pf.pixel_bytes(comps)
+                        fills.append((col, row, 1, 1, comps))
+                continue
+            flags = ((2 if tile.background is not None else 0)
+                     | (4 if tile.foreground is not None else 0)
+                     | (8 if tile.subrects else 0)
+                     | (16 if tile.coloured else 0))
+            out += u8(flags)
+            if tile.background is not None:
+                background = tile.background
+                out += pf.pixel_bytes(pf.from_rgb8(background))
+            assert background is not None, 'no background colour yet'
+            fills.append((tx, ty, tw, th, pf.from_rgb8(background)))
+            if tile.foreground is not None:
+                foreground = tile.foreground
+                out += pf.pixel_bytes(pf.from_rgb8(foreground))
+            if tile.subrects:
+                out += u8(len(tile.subrects))
+            for sx, sy, sw, sh, rgb in tile.subrects:
+                assert 0 <= sx < 16 and 0 <= sy < 16 and 1 <= sw <= 16 and 1 <= sh <= 16
+                if tile.coloured:
+                    colour = rgb
+                    out += pf.pixel_bytes(pf.from_rgb8(rgb))
+                else:
+                    colour = foreground
+                    assert colour is not None, 'no foreground colour yet'
+                out += u8((sx << 4) | sy) + u8(((sw - 1) << 4) | (sh - 1))
+                if sx + sw > tw or sy + sh > th:
+                    if self.error is None:
+                        self.error = self.ERROR
+                fills.append((tx + sx, ty + sy, sw, sh, pf.from_rgb8(colour)))
+        if self.error is None:
+            for fill in fills:
+                fb.fill(*fill)
+        return bytes(out)
+
+
 class Case:
     """One replay case: the server's bytes, and what is expected back."""
 

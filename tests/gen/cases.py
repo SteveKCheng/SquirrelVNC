@@ -34,7 +34,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from rfbgen import Case, Image, RawRect, RreRect   # noqa: E402
+from rfbgen import (Case, HextileRect, HextileTile, Image, RawRect,   # noqa: E402
+                    RreRect)
 
 CASES = []
 
@@ -215,6 +216,54 @@ def rre_subrect_outside():
     c.update([RreRect(0, 0, 8, 8, GREY,
                       [(1, 1, 2, 2, RED),
                        (0, 8, 8, 1, BLUE)])])
+    return c
+
+
+@case
+def hextile():
+    """Hextile: raw tiles, backgrounds carried over, coloured and
+    foreground subrectangles, and smaller tiles at the right and bottom
+    edges of a 20 x 20 rectangle.
+    """
+    c = Case('hextile')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    raw_session(c, 32, 24)
+    second = Image.pattern(32, 24, seed=2)
+    c.update([HextileRect(2, 2, 20, 20, [
+        # 16 x 16: background, foreground subrectangles.
+        HextileTile(background=GREY, foreground=RED,
+                    subrects=[(0, 0, 16, 1, None), (3, 4, 2, 5, None),
+                              (15, 15, 1, 1, None)]),
+        # 4 x 16, at the right edge: raw.
+        HextileTile(raw=second),
+        # 16 x 4, at the bottom edge: coloured subrectangles.
+        HextileTile(background=BLUE, coloured=True,
+                    subrects=[(0, 0, 4, 4, GREEN), (12, 1, 4, 3, RED)]),
+        # 4 x 4: background carried over, new foreground.
+        HextileTile(foreground=GREEN, subrects=[(1, 1, 3, 3, None)]),
+    ])])
+    c.end_of_input()
+    return c
+
+
+@case
+def hextile_subrect_outside_tile():
+    """A Hextile subrectangle outside its tile ends the session.
+
+    The second tile of a 20 x 8 rectangle is 4 pixels wide, so a
+    subrectangle from x = 2 that is 3 wide does not fit, although it
+    would fit in a full 16 x 16 tile. Nothing of the rectangle reaches
+    the frame buffer.
+    """
+    c = Case('hextile-subrect-outside-tile')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    raw_session(c, 32, 24)
+    c.update([HextileRect(0, 0, 20, 8, [
+        HextileTile(background=GREY),
+        HextileTile(foreground=RED, subrects=[(2, 0, 3, 1, None)]),
+    ])])
     return c
 
 
