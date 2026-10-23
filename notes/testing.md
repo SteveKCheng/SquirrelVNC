@@ -109,9 +109,14 @@ rfb-replay --check CASE
   --ppm FILE         final framebuffer as PPM (default: none)
   --password TEXT    for VNC authentication (default: "password")
   --max-pixels N     framebuffer limit (default: 4096 × 4096)
+  --timeout SECONDS  give up on a session that has not ended (default: 30)
+  --log LEVEL        core log on stderr, 0 to 9 (default: 1, errors)
 ```
 
-Logs go to stderr.
+Exit codes: 0 for success or a match, 1 for a mismatch, 2 for a usage
+or I/O error, 3 for a timeout. On a timeout the program exits without
+destroying the core, since a looping decoder cannot be stopped and the
+destructor would wait for it.
 
 **Defaults.** Besides `start()`, with the shared flag set, the harness
 calls only `setMaxFrameBufferPixels()` and registers a VNC
@@ -385,7 +390,8 @@ Each step is a commit, or a few.
    3.3, 3.5, 3.7 and 4.1, VNC authentication succeeding and failing,
    and refused security. They have not run against the core yet; step 4
    is where they do.
-4. **`harnesses/rfb-replay` and `run-tests.ps1`**, passing the first cases; then
+4. **`harnesses/rfb-replay` and `run-tests.ps1`**, passing the first
+   cases. Done: the nine cases pass in all four configurations. Then
    more cases, in the order above, each batch its own commit. Each case
    that finds a bug goes in with the fix, or just before it.
 5. **The `Fuzz|x64` configuration**, with `rfb-replay` running the
