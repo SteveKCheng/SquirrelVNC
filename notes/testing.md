@@ -94,7 +94,7 @@ last ones before `stop()` ends that thread.
 
 ## ① The replay harness: `rfb-replay`
 
-A console program in `tests/rfb-replay/`, built in all four
+A console program in `harnesses/rfb-replay/`, built in all four
 configurations and in `Fuzz|x64` (below), so the regression tests also
 run under ASan.
 
@@ -158,6 +158,10 @@ deterministic too, as the challenge is in the input.
 
 ### Test cases
 
+The programs that run tests live in `harnesses/` (`rfb-replay`,
+`rfb-fuzz`, and later `viewer-keysym-test`, which moves there whenever
+convenient); the data they run on lives in `tests/`:
+
 ```
 tests/
   gen/rfbgen.py          the generator library
@@ -166,7 +170,8 @@ tests/
   cases/NAME.out         expected client-to-server bytes
   cases/NAME.events      expected event log
   cases/NAME.ppm         expected final framebuffer
-  rfb-fuzz/corpus/NAME   the server stream after the handshake
+  fuzz/corpus/NAME       the server stream after the handshake
+  fuzz/regressions/      fuzz inputs that found bugs
   run-tests.ps1          runs every case and compares the files
 ```
 
@@ -222,7 +227,7 @@ First cases, roughly in order:
 
 ## ② Decoder fuzzing: `rfb-fuzz`
 
-A libFuzzer program in `tests/rfb-fuzz/`, built only in `Fuzz|x64`.
+A libFuzzer program in `harnesses/rfb-fuzz/`, built only in `Fuzz|x64`.
 The aim at this stage is to show that fuzzing works in SquirrelVNC and
 to cover the code that handles the most untrusted input, the decoders;
 whole-session fuzzing waits for the rewrite (see "Scope").
@@ -297,13 +302,13 @@ goes away then, and other message types come along with it.
 ### Corpus and regressions
 
 - The generator writes each case's server stream after the handshake
-  to `tests/rfb-fuzz/corpus/NAME` as well. For cases in which the
+  to `tests/fuzz/corpus/NAME` as well. For cases in which the
   client sets a pixel format of its own, the generator writes a
   ServerInit carrying that format, since the updates are encoded in it.
   Cases using the Tight security type are left out, as their
   capability lists follow ServerInit.
 - Each input that triggers a finding is minimised and checked in under
-  `tests/rfb-fuzz/regressions/`, and becomes a replay case as above.
+  `tests/fuzz/regressions/`, and becomes a replay case as above.
   `run-tests.ps1` runs the fuzz binary on those files (libFuzzer runs
   given files once and exits, failing on a crash), so a fix stays
   fixed.
@@ -351,10 +356,10 @@ Each step is a commit, or a few.
 
 1. **[SECURITY] The framebuffer and cursor limits** (core change 1),
    with the internal setter. Done.
-2. **The framebuffer accessor** (core change 2).
+2. **The framebuffer accessor** (core change 2). Done.
 3. **The generator and the first cases** (`tests/gen`, `tests/cases`),
    with no C++.
-4. **`rfb-replay` and `run-tests.ps1`**, passing the first cases; then
+4. **`harnesses/rfb-replay` and `run-tests.ps1`**, passing the first cases; then
    more cases, in the order above, each batch its own commit. Each case
    that finds a bug goes in with the fix, or just before it.
 5. **The `Fuzz|x64` configuration**, with `rfb-replay` running the
