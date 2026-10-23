@@ -1,6 +1,6 @@
 # SquirrelVNC, a VNC client for Windows
 
-SquirrelVNC is a fork of TightVNC's viewer with some improvements in aesthetics, performance and features.
+SquirrelVNC is a fork of TightVNC's viewer with improvements in aesthetics, performance, features and security.
 
 ![](art/logo-publish.svg)
 
@@ -37,7 +37,7 @@ SquirrelVNC is a fork of TightVNC's viewer with some improvements in aesthetics,
   
 ## Building
 
-This software currently only builds on Windows.  You need Visual Studio 2026 installed (any version is fine).
+This software currently only builds on Windows.  You need Visual Studio 2026 installed — any edition is fine.
 Make sure you have the following components installed:
 
   - C++
@@ -51,14 +51,32 @@ msbuild SquirrelVNC.slnx
 
 The following options are available:
 
-  - `/p:Configuration=‹CONFIG›`, where `‹CONFIG›` is either `Debug` or `Release` [default].
-  - `/p:Platform=‹PLATFORM›`, where `‹PLATFORM›` is either `Win32` (meaning x86) or `x64` [default].
+  - `/p:Configuration=‹CONFIG›`, where `‹CONFIG›` may be:
+    - `Debug`
+    - `Release` [default]
+    - `ReleaseAsan`
+    - `ReleaseFuzz`.
+  - `/p:Platform=‹PLATFORM›`, where `‹PLATFORM›` is either: 
+    - `Win32` (meaning x86)
+    - `x64` [default].
 
 The built outputs will be deposited in the following directories:
 
   - Generated files for Windows resources: `obj\res`
   - Object files and other intermediate files: `obj\‹PLATFORM›\‹CONFIG›\‹sub-project name›`
   - Final executables: `bin\‹PLATFORM›\‹CONFIG›`
+
+## Repository layout
+
+  - `art/`: artwork for logos and icons
+  - `core-lib/`: code factored out of the viewer itself that should be platform-independent
+  - `docs/`: user-level documentation
+  - `notes/`: technical design notes
+  - `harnesses/`: test and fuzz programs
+  - `tests/`: test cases (for the RFB protocol)
+  - `tools/`: tools used at build-time only
+  - `tvnviewer/`: source code for the GUI client itself
+  - `win32-lib/`: Windows-specific code factored out of the viewer itself
 
 ## Status
 
