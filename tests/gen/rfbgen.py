@@ -30,7 +30,7 @@ framebuffer. Case.files() then gives, relative to tests/:
     cases/NAME.out      expected client-to-server bytes
     cases/NAME.events   expected event log
     cases/NAME.ppm      expected final framebuffer
-    fuzz/corpus/NAME    the server bytes from ServerInit on, if any
+    fuzz/corpus/NAME.corpus  the server bytes from ServerInit on, if any
 
 The expected client bytes follow RemoteViewerCore as rfb-replay runs it:
 shared flag set, no SetPixelFormat unless the case sets a client pixel
@@ -703,7 +703,7 @@ class Case:
             base + '.ppm': self.fb.ppm() if self.fb else EMPTY_PPM,
         }
         if self.server_init_offset is not None and not self.uses_tight_security:
-            files[os.path.join('fuzz', 'corpus', self.name)] = \
+            files[os.path.join('fuzz', 'corpus', self.name + '.corpus')] = \
                 bytes(self.server[self.server_init_offset:])
         return files
 

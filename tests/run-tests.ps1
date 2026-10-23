@@ -79,7 +79,7 @@ if (Test-Path $replay) {
 if (Test-Path $fuzz) {
   $inputs = @('corpus', 'regressions') | ForEach-Object {
     $dir = Join-Path $PSScriptRoot "fuzz\$_"
-    if (Test-Path $dir) { Get-ChildItem $dir -File -Filter $Filter | Sort-Object Name }
+    if (Test-Path $dir) { Get-ChildItem $dir -File -Filter "$Filter.corpus" | Sort-Object Name }
   }
   if ($inputs.Count -gt 0) {
     $total++

@@ -198,8 +198,8 @@ tests/
   cases/NAME.out         expected client-to-server bytes
   cases/NAME.events      expected event log
   cases/NAME.ppm         expected final framebuffer
-  fuzz/corpus/NAME       the server stream after the handshake
-  fuzz/regressions/      fuzz inputs that found bugs
+  fuzz/corpus/NAME.corpus       the server stream after the handshake
+  fuzz/regressions/NAME.corpus  fuzz inputs that found bugs
   run-tests.ps1          runs every case and compares the files
 ```
 
@@ -338,13 +338,15 @@ goes away then, and other message types come along with it.
 ### Corpus and regressions
 
 - The generator writes each case's server stream after the handshake
-  to `tests/fuzz/corpus/NAME` as well. For cases in which the
+  to `tests/fuzz/corpus/NAME.corpus` as well. For cases in which the
   client sets a pixel format of its own, the generator writes a
   ServerInit carrying that format, since the updates are encoded in it.
   Cases using the Tight security type are left out, as their
   capability lists follow ServerInit.
 - Each input that triggers a finding is minimised and checked in under
-  `tests/fuzz/regressions/`, and becomes a replay case as above.
+  `tests/fuzz/regressions/`, named with the extension `.corpus` like
+  every fuzz input (so that `tests/.gitattributes` can match them by
+  extension), and becomes a replay case as above.
   `run-tests.ps1` runs the fuzz binary on those files and on the
   corpus, so a fix stays fixed: libFuzzer runs given files once and
   exits, failing on a crash, and in the other configurations `rfb-fuzz`
