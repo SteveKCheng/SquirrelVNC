@@ -178,7 +178,9 @@ causes appeared, all now fixed on the `portability` branch:
    class was default-constructed and `parent` was ignored: the File
    Transfer rename dialog opened without an owner window. (`37e1051`)
 
-After these, all 202 files parse without errors.
+After these, all 202 files parse without errors. The MSVC projects
+now compile as C++20 too (`LanguageStandard` `stdcpp20` in every
+project), which needed no source changes.
 
 ### Checking with Clang
 
