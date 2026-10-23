@@ -34,7 +34,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from rfbgen import (RGB565, Case, HextileRect, HextileTile, Image,   # noqa: E402
+from rfbgen import (RGB565, Case, CopyRect, HextileRect, HextileTile, Image,   # noqa: E402
                     RawRect, RreRect, TightRect, ZrleRect, ZrleTile, load_ppm)
 
 CASES = []
@@ -568,6 +568,49 @@ def zrle_short_data():
     z = c.zrle_stream()
     image = Image.pattern(160, 80, seed=10)
     c.update([ZrleRect(0, 0, 80, 70, zrle_tiles(image), z, shorten=5)])
+    return c
+
+
+@case
+def copyrect():
+    """CopyRect: separate areas, and areas overlapping their source going
+    down, up, left and right, which the viewer copies top-down or
+    bottom-up depending on the direction; and rectangles in one update
+    that copy what the one before them changed.
+    """
+    c = Case('copyrect')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    raw_session(c, 48, 40)
+    # Separate areas, and the same row shifted right and left.
+    c.update([CopyRect(30, 2, 12, 6, 1, 1),
+              CopyRect(4, 10, 20, 3, 0, 10),
+              CopyRect(0, 14, 20, 3, 5, 14)])
+    # Overlapping vertically: down by 3, then up by 4.
+    c.update([CopyRect(2, 22, 16, 10, 2, 19)])
+    c.update([CopyRect(26, 18, 16, 10, 28, 22)])
+    # One update, in order: fill an area, copy it, then copy the copy.
+    c.update([RreRect(36, 30, 6, 6, RED, [(1, 1, 2, 2, BLUE)]),
+              CopyRect(28, 30, 6, 6, 36, 30),
+              CopyRect(20, 30, 14, 6, 28, 30)])
+    c.end_of_input()
+    return c
+
+
+@case
+def copyrect_source_outside():
+    """CopyRect sources that do not lie in the frame buffer, which a
+    server should not send. The viewer copies only where both areas lie
+    in the frame buffer, leaving the rest unchanged, and goes on.
+    """
+    c = Case('copyrect-source-outside')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    raw_session(c, 32, 24)
+    c.update([CopyRect(0, 0, 10, 10, 26, 0),       # 6 columns inside
+              CopyRect(12, 12, 8, 8, 4, 20),       # 4 rows inside
+              CopyRect(22, 4, 6, 6, 100, 100)])    # wholly outside
+    c.end_of_input()
     return c
 
 

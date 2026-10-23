@@ -254,6 +254,37 @@ class RawRect:
         return bytes(out)
 
 
+class CopyRect:
+    """A rectangle in CopyRect encoding: copy (src_x, src_y) of the frame
+    buffer, as it stands after the rectangles before it, to the
+    rectangle's position.
+
+    The viewer copies within the frame buffer as if from a snapshot of
+    it, whichever way the two areas overlap (FrameBuffer::move()), and
+    copies only where both areas lie in the frame buffer. Unlike the
+    other decoders, it copies into the frame buffer directly, not into
+    the rectangle buffer (CopyRectDecoder::copy()).
+    """
+
+    def __init__(self, x, y, w, h, src_x, src_y):
+        self.x, self.y, self.w, self.h = x, y, w, h
+        self.src_x, self.src_y = src_x, src_y
+
+    def encode(self, fb):
+        assert 0 <= self.src_x < 32768 and 0 <= self.src_y < 32768, \
+            'the viewer reads the source position as signed 16-bit'
+        snapshot = [list(row) for row in fb.rows]
+        for dy in range(self.h):
+            for dx in range(self.w):
+                x, y = self.x + dx, self.y + dy
+                sx, sy = self.src_x + dx, self.src_y + dy
+                if (0 <= x < fb.width and 0 <= y < fb.height and
+                        0 <= sx < fb.width and 0 <= sy < fb.height):
+                    fb.rows[y][x] = snapshot[sy][sx]
+        return (u16(self.x) + u16(self.y) + u16(self.w) + u16(self.h)
+                + s32(COPYRECT) + u16(self.src_x) + u16(self.src_y))
+
+
 class RreRect:
     """A rectangle in RRE encoding: a background, then subrectangles.
 
@@ -464,9 +495,11 @@ class TightRect:
     in the frame buffer.
 
     A JPEG the viewer cannot decode is not an error: TightDecoder::
-    processJpeg() logs it and goes on, and the rectangle keeps what the
-    rectangle buffer held there, which in these sessions is what the
-    frame buffer showed. The model leaves the frame buffer unchanged.
+    processJpeg() logs it and goes on, and the rectangle gets what the
+    rectangle buffer held there. That is what the frame buffer showed,
+    unless a CopyRect changed the area since (CopyRect writes to the
+    frame buffer only), so such a case must not follow a CopyRect over
+    the same area. The model leaves the frame buffer unchanged.
     """
 
     BAD_TYPE = 'Sub-encoding in Tight-encoder are not valid'

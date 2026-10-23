@@ -156,6 +156,13 @@ use `tests/gen/jpeg/quadrants-16x16.jpg`, made by
 viewer cannot decode is not an error: `processJpeg()` logs it and the
 rectangle keeps its old contents (`tight-jpeg-wrong-size`).
 
+Strictly, the rectangle gets the rectangle buffer's contents
+(`m_rectangleFb`), which are the frame buffer's except where a CopyRect
+has changed the area since: `CopyRectDecoder::copy()` writes to the
+frame buffer only. So after a CopyRect, an undecodable JPEG over the
+same area shows what was there before the copy. Harmless, but worth
+fixing in the rewrite: draw nothing at all when the JPEG fails.
+
 ## The rewrite, when it comes
 
 1. Tight replay cases pass on the current code. Done.
