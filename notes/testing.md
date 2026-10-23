@@ -535,7 +535,7 @@ would.
 ### Rectangle classes
 
 Each encoding is a class (`RawRect`, `RreRect`, `HextileRect`,
-`TightRect`) whose `encode(fb)` returns the rectangle's bytes, header
+`TightRect`, `ZrleRect`) whose `encode(fb)` returns the rectangle's bytes, header
 included, and draws the result into the model. To add an encoding:
 
 1. Read the viewer's decoder first, and model what it does, not what
@@ -550,14 +550,18 @@ included, and draws the result into the model. To add an encoding:
 3. For input the viewer must reject, set the object's `error` to the
    exact message the viewer throws. `Case.update()` then records an
    `error` event and expects no more client bytes; the case should send
-   nothing after it.
+   nothing after it. Where the viewer fails with an `IOException`
+   instead (reading past data inflated short, in ZRLE), set
+   `disconnect` to its message: that ends the session with a
+   `disconnect` event.
 4. Add the class to the imports in `cases.py`, and write cases for the
    normal forms, the edges (smaller tiles, empty rectangles, rectangles
    on the frame buffer's edges) and each error.
 
 State that lasts across rectangles belongs to the session, not the
 rectangle: Tight's four zlib streams are a `TightStreams` from
-`c.tight_streams()`, given to every `TightRect`. Hextile's background
+`c.tight_streams()`, given to every `TightRect`, and ZRLE's one stream
+a `ZrleStream` from `c.zrle_stream()`. Hextile's background
 and foreground colours last only within one rectangle, as in the
 viewer.
 

@@ -35,7 +35,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from rfbgen import (RGB565, Case, HextileRect, HextileTile, Image,   # noqa: E402
-                    RawRect, RreRect, TightRect, load_ppm)
+                    RawRect, RreRect, TightRect, ZrleRect, ZrleTile, load_ppm)
 
 CASES = []
 
@@ -485,6 +485,89 @@ def vnc_auth_failed_utf8_reason():
     c.version(b'RFB 003.008\n')
     c.security_vnc(HARNESS_PASSWORD, CHALLENGE, ok=False,
                    reason='Mot de passe incorrect \u2014 r\u00e9essayez')
+    return c
+
+
+def zrle_tiles(image):
+    """Tiles of each kind for an 80 x 70 rectangle, whose four tiles are
+    64 x 64, 16 x 64 (right edge), 64 x 6 (bottom edge) and 16 x 6.
+    """
+    five = [RED, GREEN, BLUE, GREY, (255, 255, 255)]
+    return [
+        # 64 x 64: plain RLE, with runs longer than 255 (several
+        # run-length bytes) and runs crossing rows.
+        ZrleTile('plain-rle', [(RED, 1), (GREEN, 300), (BLUE, 2000),
+                               (GREY, 64 * 64 - 2301)]),
+        # 16 x 64: raw.
+        ZrleTile('raw', image),
+        # 64 x 6: palette RLE, single pixels and runs.
+        ZrleTile('palette-rle', five,
+                 [(0, 1), (1, 1), (2, 100), (3, 1), (4, 64 * 6 - 103)]),
+        # 16 x 6: solid.
+        ZrleTile('solid', BLUE),
+    ]
+
+
+def zrle_packed_tiles(w, h):
+    """Packed palette tiles of 2, 4 and 9 colours (1, 2 and 4 bits per
+    pixel), in a 3-tile-wide strip of width w (a multiple of 64 plus a
+    remainder) and height h.
+    """
+    nine = [RED, GREEN, BLUE, GREY, (255, 255, 255), (0, 0, 0),
+            (255, 255, 0), (0, 255, 255), (255, 0, 255)]
+    widths = [min(64, w - 64 * i) for i in range(3)]
+    return [
+        ZrleTile('packed', [RED, BLUE], checker(widths[0], h, 2)),
+        ZrleTile('packed', [RED, GREEN, BLUE, GREY], checker(widths[1], h, 4, 3)),
+        ZrleTile('packed', nine, checker(widths[2], h, 9, 2)),
+    ]
+
+
+@case
+def zrle():
+    """ZRLE at 32 bits per pixel (3-byte pixels): every kind of tile,
+    tiles smaller at the right and bottom edges, and a second update on
+    the same zlib stream, whose state must carry on.
+    """
+    c = Case('zrle')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    raw_session(c, 160, 80)
+    z = c.zrle_stream()
+    image = Image.pattern(160, 80, seed=8)
+    c.update([ZrleRect(0, 0, 80, 70, zrle_tiles(image), z)])
+    c.update([ZrleRect(5, 72, 150, 7, zrle_packed_tiles(150, 7), z)])
+    c.end_of_input()
+    return c
+
+
+@case
+def zrle_rgb565():
+    """ZRLE at 16 bits per pixel, where pixels are sent whole."""
+    c = tight_session('zrle-rgb565', 160, 80, pf=RGB565)
+    z = c.zrle_stream()
+    image = Image.pattern(160, 80, seed=9)
+    c.update([ZrleRect(70, 5, 80, 70, zrle_tiles(image), z)])
+    c.update([ZrleRect(0, 60, 150, 7, zrle_packed_tiles(150, 7), z)])
+    c.end_of_input()
+    return c
+
+
+@case
+def zrle_short_data():
+    """ZRLE data that inflates short of the tiles it describes. The
+    viewer fails reading past the inflated data, which it reports as a
+    disconnect, "End of stream reached", like the end of the input; the
+    missing update request and the unchanged frame buffer tell them
+    apart.
+    """
+    c = Case('zrle-short-data')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    raw_session(c, 160, 80)
+    z = c.zrle_stream()
+    image = Image.pattern(160, 80, seed=10)
+    c.update([ZrleRect(0, 0, 80, 70, zrle_tiles(image), z, shorten=5)])
     return c
 
 

@@ -587,6 +587,174 @@ class TightRect:
         return bytes(out)
 
 
+class ZrleStream:
+    """The one zlib stream of ZRLE, which lasts the whole session, as the
+    viewer's ZrleDecoder keeps one inflater for it (Case.zrle_stream()).
+
+    As for TightStreams, the compressed bytes depend on the zlib build.
+    """
+
+    def __init__(self):
+        self.stream = zlib.compressobj(6)
+
+    def compress(self, data):
+        return self.stream.compress(data) + self.stream.flush(zlib.Z_SYNC_FLUSH)
+
+
+def zrle_cpixel(pf, comps):
+    """A ZRLE pixel: the low 3 bytes of a 32-bit pixel whose colours fit
+    in them (as for RGB888), else the whole pixel (ZrleDecoder::decode())."""
+    data = pf.pixel_bytes(comps)
+    if pf.bpp == 32:
+        assert not pf.big_endian and all(
+            (m << s) < 1 << 24 for m, s in zip(pf.maxes, pf.shifts))
+        return data[:3]
+    return data
+
+
+def zrle_run_length(n):
+    """A run length: bytes of 255 while needed, then the rest, less one."""
+    assert n >= 1
+    n -= 1
+    out = bytearray()
+    while n >= 255:
+        out.append(255)
+        n -= 255
+    out.append(n)
+    return bytes(out)
+
+
+class ZrleTile:
+    """One ZRLE tile, as a ZrleRect sends it.
+
+    kind is one of:
+      ('raw', image)              pixels from the image at the tile
+      ('solid', rgb)
+      ('packed', colours, rows)   packed palette of 2 to 16 colours,
+                                  rows[y][x] indexing them
+      ('plain-rle', runs)         [(rgb, length), ...] in reading order
+      ('palette-rle', colours, runs)
+                                  [(index, length), ...]; a length of 1
+                                  is sent as a single index
+    """
+
+    def __init__(self, *kind):
+        self.kind = kind
+
+
+class ZrleRect:
+    """A rectangle in ZRLE encoding: 64 x 64 tiles, left to right then
+    top to bottom, smaller at the right and bottom edges, all in one
+    block of zlib data on the session's stream (Case.zrle_stream()).
+
+    shorten drops that many bytes from the end of the data before it is
+    compressed, so that it inflates short. The viewer then fails on
+    reading past the inflated data, which raises an IOException, so the
+    session ends with a disconnect event ("End of stream reached"), not
+    an error; disconnect is set to its message. As for the other
+    encodings, a rectangle the viewer does not finish leaves nothing in
+    the frame buffer.
+    """
+
+    def __init__(self, x, y, w, h, tiles, stream, shorten=0):
+        self.x, self.y, self.w, self.h = x, y, w, h
+        self.tiles = list(tiles)
+        self.stream = stream
+        self.shorten = shorten
+        self.error = None
+        self.disconnect = None
+
+    def tile_rects(self):
+        for ty in range(self.y, self.y + self.h, 64):
+            for tx in range(self.x, self.x + self.w, 64):
+                yield (tx, ty, min(64, self.x + self.w - tx),
+                       min(64, self.y + self.h - ty))
+
+    def encode(self, fb):
+        pf = fb.pf
+        rects = list(self.tile_rects())
+        assert len(rects) == len(self.tiles), \
+            'expected %d tiles, got %d' % (len(rects), len(self.tiles))
+        data = bytearray()
+        pixels = {}
+        for (tx, ty, tw, th), tile in zip(rects, self.tiles):
+            kind = tile.kind
+            order = [(tx + i % tw, ty + i // tw) for i in range(tw * th)]
+            if kind[0] == 'raw':
+                data.append(0)
+                for x, y in order:
+                    comps = pf.from_rgb8(kind[1].get(x, y))
+                    data += zrle_cpixel(pf, comps)
+                    pixels[(x, y)] = comps
+            elif kind[0] == 'solid':
+                comps = pf.from_rgb8(kind[1])
+                data.append(1)
+                data += zrle_cpixel(pf, comps)
+                for xy in order:
+                    pixels[xy] = comps
+            elif kind[0] == 'packed':
+                colours, rows = kind[1], kind[2]
+                n = len(colours)
+                assert 2 <= n <= 16
+                bits = 1 if n == 2 else 2 if n <= 4 else 4
+                palette = [pf.from_rgb8(c) for c in colours]
+                data.append(n)
+                for comps in palette:
+                    data += zrle_cpixel(pf, comps)
+                for row in range(th):
+                    byte, used = 0, 0
+                    for col in range(tw):
+                        index = rows[row][col]
+                        byte = (byte << bits) | index
+                        used += bits
+                        if used == 8:
+                            data.append(byte)
+                            byte, used = 0, 0
+                        pixels[(tx + col, ty + row)] = palette[index]
+                    if used:
+                        data.append(byte << (8 - used))
+            elif kind[0] == 'plain-rle':
+                data.append(128)
+                i = 0
+                for rgb, length in kind[1]:
+                    comps = pf.from_rgb8(rgb)
+                    data += zrle_cpixel(pf, comps) + zrle_run_length(length)
+                    for xy in order[i:i + length]:
+                        pixels[xy] = comps
+                    i += length
+                assert i == len(order), 'runs must cover the tile'
+            elif kind[0] == 'palette-rle':
+                colours, runs = kind[1], kind[2]
+                assert 2 <= len(colours) <= 127
+                palette = [pf.from_rgb8(c) for c in colours]
+                data.append(128 + len(colours))
+                for comps in palette:
+                    data += zrle_cpixel(pf, comps)
+                i = 0
+                for index, length in runs:
+                    if length == 1:
+                        data.append(index)
+                    else:
+                        data.append(128 + index)
+                        data += zrle_run_length(length)
+                    for xy in order[i:i + length]:
+                        pixels[xy] = palette[index]
+                    i += length
+                assert i == len(order), 'runs must cover the tile'
+            else:
+                raise ValueError(kind[0])
+        if self.shorten:
+            data = data[:-self.shorten]
+            self.disconnect = END_OF_STREAM
+        packed = self.stream.compress(bytes(data))
+        out = (u16(self.x) + u16(self.y) + u16(self.w) + u16(self.h)
+               + s32(ZRLE) + u32(len(packed)) + packed)
+        if self.disconnect is None:
+            for (x, y), comps in pixels.items():
+                fb.rows[y][x] = comps
+        return out
+
+
 class Case:
     """One replay case: the server's bytes, and what is expected back."""
 
@@ -600,8 +768,15 @@ class Case:
         self.server_init_offset = None
         self.uses_tight_security = False
         self.tight = None
+        self.zrle = None
         # Connecting succeeds at once with the harness's in-memory gates.
         self.event('established')
+
+    def zrle_stream(self):
+        """The session's ZRLE zlib stream (see ZrleStream)."""
+        if self.zrle is None:
+            self.zrle = ZrleStream()
+        return self.zrle
 
     def tight_streams(self):
         """The session's Tight zlib streams (see TightStreams)."""
@@ -707,6 +882,10 @@ class Case:
             error = getattr(rect, 'error', None)
             if error is not None:
                 self.event('error', error)
+                return
+            disconnect = getattr(rect, 'disconnect', None)
+            if disconnect is not None:
+                self.event('disconnect', disconnect)
                 return
         self.client += update_request(True, self.fb.width, self.fb.height)
 
