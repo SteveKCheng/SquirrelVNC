@@ -87,6 +87,13 @@ void FrameBuffer::setColor(UINT8 red, UINT8 green, UINT8 blue)
 void FrameBuffer::fillRect(const Rect *dstRect, UINT32 color)
 {
   Rect clipRect = m_dimension.getRect().intersection(dstRect);
+  // A rectangle with no width or no height may still be valid after
+  // clipping, at the right or bottom edge, where its first pixel would be
+  // past the end of a row or of the buffer: the first row is filled below
+  // before the height is looked at.
+  if (clipRect.isEmpty()) {
+    return;
+  }
 
   int pixelSize = getBytesPerPixel();
   size_t sizeLineFb = getBytesPerRow();

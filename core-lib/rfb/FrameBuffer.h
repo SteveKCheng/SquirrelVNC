@@ -42,6 +42,12 @@ public:
   // Pre-conditions: the pixel format is valid (PixelFormat::isValid()).
   // Post-conditions: every pixel holds the colour.
   virtual void setColor(UINT8 red, UINT8 green, UINT8 blue);
+  // Fills a rectangle with a pixel value, clipped to the frame buffer.
+  // Pre-conditions: dstRect is not 0; color holds a pixel in the frame
+  // buffer's format, in its first getBytesPerPixel() bytes in memory.
+  // Post-conditions: every pixel of dstRect that lies in the frame buffer
+  // holds color; nothing else changes. An empty rectangle, or one wholly
+  // outside the frame buffer, changes nothing.
   virtual void fillRect(const Rect *dstRect, UINT32 color);
 
   // Return value: true - if equal
