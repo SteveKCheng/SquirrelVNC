@@ -1,0 +1,446 @@
+# Copyright (C) 2026 Steve Cheng.
+#
+# -------------------------------------------------------------------------
+# This file is part of SquirrelVNC, a modified version of the TightVNC
+# software (https://www.tightvnc.com/).
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# -------------------------------------------------------------------------
+
+"""Generator library for the RFB replay test cases.
+
+A case is written as a script of what the server sends. For each step,
+the library also records what SquirrelVNC's client must send back, the
+events the replay harness must log, and the effect on a model of the
+framebuffer. Case.files() then gives, relative to tests/:
+
+    cases/NAME.rfb      server-to-client bytes (the harness's input)
+    cases/NAME.out      expected client-to-server bytes
+    cases/NAME.events   expected event log
+    cases/NAME.ppm      expected final framebuffer
+    fuzz/corpus/NAME    the server bytes from ServerInit on, if any
+
+The expected client bytes follow RemoteViewerCore as rfb-replay runs it:
+shared flag set, no SetPixelFormat unless the case sets a client pixel
+format, the default encodings, a full update request after ServerInit
+and an incremental one after each update. See notes/testing.md.
+
+Only the Python 3 standard library is used.
+"""
+
+import os
+import struct
+
+# Encoding numbers (rfb/EncodingDefs.h).
+RAW = 0
+COPYRECT = 1
+RRE = 2
+HEXTILE = 5
+TIGHT = 7
+ZRLE = 16
+RICH_CURSOR = -239
+POINTER_POS = -232
+LAST_RECT = -224
+DESKTOP_SIZE = -223
+
+# Security types (rfb/AuthDefs.h).
+SEC_INVALID = 0
+SEC_NONE = 1
+SEC_VNC = 2
+SEC_TIGHT = 16
+
+# What RemoteViewerCore sends in SetEncodings by default: the preferred
+# encoding (Tight) first, then the other decoders that RemoteViewerCore::init()
+# registers, by descending priority and, for equal priority, descending
+# number (DecoderStore::getDecoderIds()).
+DEFAULT_ENCODINGS = [TIGHT, COPYRECT, ZRLE, HEXTILE, RRE, RAW,
+                     DESKTOP_SIZE, LAST_RECT, POINTER_POS, RICH_CURSOR]
+
+# The message ByteArrayInputStream throws at the end of the input.
+END_OF_STREAM = 'End of stream reached'
+
+
+def u8(v):
+    return struct.pack('>B', v)
+
+
+def u16(v):
+    return struct.pack('>H', v)
+
+
+def u32(v):
+    return struct.pack('>I', v)
+
+
+def s32(v):
+    return struct.pack('>i', v)
+
+
+def rfb_string(text):
+    """A UTF-8 string with a 32-bit length, as in reason strings."""
+    data = text.encode('utf-8')
+    return u32(len(data)) + data
+
+
+class PixelFormat:
+    """An RFB true-colour pixel format."""
+
+    def __init__(self, bpp, depth, big_endian, maxes, shifts):
+        self.bpp = bpp
+        self.depth = depth
+        self.big_endian = big_endian
+        self.maxes = tuple(maxes)
+        self.shifts = tuple(shifts)
+
+    def pack(self, true_colour=True):
+        """The 16-byte PIXEL_FORMAT structure."""
+        return (u8(self.bpp) + u8(self.depth) + u8(1 if self.big_endian else 0)
+                + u8(1 if true_colour else 0)
+                + u16(self.maxes[0]) + u16(self.maxes[1]) + u16(self.maxes[2])
+                + u8(self.shifts[0]) + u8(self.shifts[1]) + u8(self.shifts[2])
+                + b'\0\0\0')
+
+    def from_rgb8(self, rgb):
+        """Components in this format for an 8-bit-per-channel colour."""
+        return tuple((c * m + 127) // 255 for c, m in zip(rgb, self.maxes))
+
+    def to_rgb8(self, comps):
+        """8-bit channels for components in this format.
+
+        This is the conversion rfb-replay uses for its PPM output, and it
+        must stay the same: c * 255 / max, rounded to nearest.
+        """
+        return tuple((c * 255 + m // 2) // m for c, m in zip(comps, self.maxes))
+
+    def pixel_bytes(self, comps):
+        """One pixel, as the server sends it in Raw data."""
+        value = 0
+        for c, s in zip(comps, self.shifts):
+            value |= c << s
+        return value.to_bytes(self.bpp // 8,
+                              'big' if self.big_endian else 'little')
+
+
+# Standard formats, as the servers in common use send them.
+RGB888 = PixelFormat(32, 24, False, (255, 255, 255), (16, 8, 0))
+
+
+class Image:
+    """A width x height array of 8-bit RGB colours, for a case to draw."""
+
+    def __init__(self, width, height, fill=(0, 0, 0)):
+        self.width = width
+        self.height = height
+        self.rows = [[fill] * width for _ in range(height)]
+
+    def put(self, x, y, rgb):
+        self.rows[y][x] = rgb
+
+    def get(self, x, y):
+        return self.rows[y][x]
+
+    @staticmethod
+    def pattern(width, height, seed=0):
+        """An image with a different colour at every pixel.
+
+        Every channel varies, with x, with y and between channels, so that
+        swapped channels, wrong byte order and misplaced rows all show.
+        """
+        image = Image(width, height)
+        for y in range(height):
+            for x in range(width):
+                image.put(x, y, ((x * 7 + seed * 31) % 256,
+                                 (y * 11 + seed * 17) % 256,
+                                 (x * 3 + y * 5 + seed * 13) % 256))
+        return image
+
+
+class FrameBuffer:
+    """The model of the client's framebuffer: components per pixel."""
+
+    def __init__(self, width, height, pf):
+        self.width = width
+        self.height = height
+        self.pf = pf
+        # setFbProperties() fills a new framebuffer with black.
+        self.rows = [[(0, 0, 0)] * width for _ in range(height)]
+
+    def ppm(self):
+        out = bytearray(b'P6\n%d %d\n255\n' % (self.width, self.height))
+        for row in self.rows:
+            for comps in row:
+                out += bytes(self.pf.to_rgb8(comps))
+        return bytes(out)
+
+
+EMPTY_PPM = b'P6\n0 0\n255\n'
+
+
+class RawRect:
+    """A rectangle in Raw encoding, taken from an image."""
+
+    def __init__(self, x, y, w, h, image, src_x=None, src_y=None):
+        self.x, self.y, self.w, self.h = x, y, w, h
+        self.image = image
+        self.src_x = x if src_x is None else src_x
+        self.src_y = y if src_y is None else src_y
+
+    def encode(self, fb):
+        out = bytearray(u16(self.x) + u16(self.y) + u16(self.w) + u16(self.h)
+                        + s32(RAW))
+        for dy in range(self.h):
+            for dx in range(self.w):
+                rgb = self.image.get(self.src_x + dx, self.src_y + dy)
+                comps = fb.pf.from_rgb8(rgb)
+                out += fb.pf.pixel_bytes(comps)
+                fb.rows[self.y + dy][self.x + dx] = comps
+        return bytes(out)
+
+
+class Case:
+    """One replay case: the server's bytes, and what is expected back."""
+
+    def __init__(self, name):
+        self.name = name
+        self.server = bytearray()
+        self.client = bytearray()
+        self.events = []
+        self.minor = None
+        self.fb = None
+        self.server_init_offset = None
+        self.uses_tight_security = False
+        # Connecting succeeds at once with the harness's in-memory gates.
+        self.event('established')
+
+    def event(self, name, text=None):
+        if text is None:
+            self.events.append(name)
+        else:
+            escaped = (text.replace('\\', '\\\\').replace('"', '\\"')
+                       .replace('\n', '\\n'))
+            self.events.append('%s "%s"' % (name, escaped))
+
+    # Handshake
+
+    def version(self, server_version):
+        """The server's ProtocolVersion, and the client's choice."""
+        assert len(server_version) == 12
+        self.server += server_version
+        major = int(server_version[4:7])
+        minor = int(server_version[8:11])
+        # RemoteViewerCore::handshake(): 3.3, 3.7 or 3.8; anything from
+        # 4.0 on is answered with 3.8.
+        if major > 3 or minor >= 8:
+            self.minor = 8
+        elif minor >= 7:
+            self.minor = 7
+        else:
+            self.minor = 3
+        self.client += b'RFB 003.%03d\n' % self.minor
+
+    def _offer(self, sec_type):
+        """The server offers one security type, and the client takes it."""
+        if self.minor >= 7:
+            self.server += u8(1) + u8(sec_type)
+            self.client += u8(sec_type)
+        else:
+            self.server += u32(sec_type)
+
+    def security_none(self):
+        self._offer(SEC_NONE)
+        if self.minor >= 8:
+            self.server += u32(0)   # SecurityResult: OK
+
+    def security_vnc(self, password, challenge, ok=True,
+                     reason='Authentication failed'):
+        """VNC authentication with the harness's password.
+
+        On failure the session ends with an auth-error event; the reason
+        string is sent only in RFB 3.8.
+        """
+        assert len(challenge) == 16
+        self._offer(SEC_VNC)
+        self.server += challenge
+        self.client += vnc_auth_response(password, challenge)
+        self.server += u32(0 if ok else 1)
+        if not ok:
+            if self.minor >= 8:
+                self.server += rfb_string(reason)
+                self.event('auth-error', 'Authentication reason: ' + reason)
+            else:
+                self.event('auth-error', 'Authentication failure')
+
+    def security_refused(self, reason):
+        """RFB 3.8: the server offers no security types, and says why."""
+        assert self.minor >= 8
+        self.server += u8(0) + rfb_string(reason)
+        self.event('auth-error', 'Authentication reason: ' + reason)
+
+    # Initialisation
+
+    def server_init(self, width, height, pf=RGB888, name='test'):
+        """ClientInit and ServerInit, then the client's first requests."""
+        self.client += u8(1)   # ClientInit: shared
+        self.server_init_offset = len(self.server)
+        self.server += u16(width) + u16(height) + pf.pack() + rfb_string(name)
+        self.fb = FrameBuffer(width, height, pf)
+        self.event('connected')
+        self.client += set_encodings(DEFAULT_ENCODINGS)
+        self.client += update_request(False, width, height)
+
+    # Server messages
+
+    def update(self, rects):
+        """A FramebufferUpdate, and the incremental request that follows."""
+        self.server += u8(0) + u8(0) + u16(len(rects))
+        for rect in rects:
+            self.server += rect.encode(self.fb)
+        self.client += update_request(True, self.fb.width, self.fb.height)
+
+    def bell(self):
+        self.server += u8(2)
+        self.event('bell')
+
+    # Output
+
+    def end_of_input(self):
+        """The input ends between messages: a normal disconnect."""
+        self.event('disconnect', END_OF_STREAM)
+
+    def files(self):
+        """The case's files, as {path relative to tests/: contents}."""
+        base = os.path.join('cases', self.name)
+        files = {
+            base + '.rfb': bytes(self.server),
+            base + '.out': bytes(self.client),
+            base + '.events': ''.join(e + '\n' for e in self.events)
+                              .encode('utf-8'),
+            base + '.ppm': self.fb.ppm() if self.fb else EMPTY_PPM,
+        }
+        if self.server_init_offset is not None and not self.uses_tight_security:
+            files[os.path.join('fuzz', 'corpus', self.name)] = \
+                bytes(self.server[self.server_init_offset:])
+        return files
+
+
+def set_encodings(encodings):
+    return (u8(2) + u8(0) + u16(len(encodings))
+            + b''.join(s32(e) for e in encodings))
+
+
+def update_request(incremental, width, height, x=0, y=0):
+    return (u8(3) + u8(1 if incremental else 0)
+            + u16(x) + u16(y) + u16(width) + u16(height))
+
+
+# VNC authentication: DES in ECB mode over the 16-byte challenge, keyed
+# with the password (at most 8 bytes, padded with zeros) with the bits of
+# each key byte reversed, as every VNC implementation does.
+
+def vnc_auth_response(password, challenge):
+    key = password.encode('latin-1')[:8].ljust(8, b'\0')
+    key = bytes(int('{:08b}'.format(b)[::-1], 2) for b in key)
+    subkeys = _des_subkeys(key)
+    return _des_block(challenge[:8], subkeys) + _des_block(challenge[8:], subkeys)
+
+
+_PC1 = [57, 49, 41, 33, 25, 17, 9, 1, 58, 50, 42, 34, 26, 18,
+        10, 2, 59, 51, 43, 35, 27, 19, 11, 3, 60, 52, 44, 36,
+        63, 55, 47, 39, 31, 23, 15, 7, 62, 54, 46, 38, 30, 22,
+        14, 6, 61, 53, 45, 37, 29, 21, 13, 5, 28, 20, 12, 4]
+_PC2 = [14, 17, 11, 24, 1, 5, 3, 28, 15, 6, 21, 10,
+        23, 19, 12, 4, 26, 8, 16, 7, 27, 20, 13, 2,
+        41, 52, 31, 37, 47, 55, 30, 40, 51, 45, 33, 48,
+        44, 49, 39, 56, 34, 53, 46, 42, 50, 36, 29, 32]
+_SHIFTS = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1]
+_IP = [58, 50, 42, 34, 26, 18, 10, 2, 60, 52, 44, 36, 28, 20, 12, 4,
+       62, 54, 46, 38, 30, 22, 14, 6, 64, 56, 48, 40, 32, 24, 16, 8,
+       57, 49, 41, 33, 25, 17, 9, 1, 59, 51, 43, 35, 27, 19, 11, 3,
+       61, 53, 45, 37, 29, 21, 13, 5, 63, 55, 47, 39, 31, 23, 15, 7]
+_FP = [40, 8, 48, 16, 56, 24, 64, 32, 39, 7, 47, 15, 55, 23, 63, 31,
+       38, 6, 46, 14, 54, 22, 62, 30, 37, 5, 45, 13, 53, 21, 61, 29,
+       36, 4, 44, 12, 52, 20, 60, 28, 35, 3, 43, 11, 51, 19, 59, 27,
+       34, 2, 42, 10, 50, 18, 58, 26, 33, 1, 41, 9, 49, 17, 57, 25]
+_E = [32, 1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 9, 8, 9, 10, 11, 12, 13,
+      12, 13, 14, 15, 16, 17, 16, 17, 18, 19, 20, 21, 20, 21, 22, 23, 24, 25,
+      24, 25, 26, 27, 28, 29, 28, 29, 30, 31, 32, 1]
+_P = [16, 7, 20, 21, 29, 12, 28, 17, 1, 15, 23, 26, 5, 18, 31, 10,
+      2, 8, 24, 14, 32, 27, 3, 9, 19, 13, 30, 6, 22, 11, 4, 25]
+_SBOX = [
+    [14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7,
+     0, 15, 7, 4, 14, 2, 13, 1, 10, 6, 12, 11, 9, 5, 3, 8,
+     4, 1, 14, 8, 13, 6, 2, 11, 15, 12, 9, 7, 3, 10, 5, 0,
+     15, 12, 8, 2, 4, 9, 1, 7, 5, 11, 3, 14, 10, 0, 6, 13],
+    [15, 1, 8, 14, 6, 11, 3, 4, 9, 7, 2, 13, 12, 0, 5, 10,
+     3, 13, 4, 7, 15, 2, 8, 14, 12, 0, 1, 10, 6, 9, 11, 5,
+     0, 14, 7, 11, 10, 4, 13, 1, 5, 8, 12, 6, 9, 3, 2, 15,
+     13, 8, 10, 1, 3, 15, 4, 2, 11, 6, 7, 12, 0, 5, 14, 9],
+    [10, 0, 9, 14, 6, 3, 15, 5, 1, 13, 12, 7, 11, 4, 2, 8,
+     13, 7, 0, 9, 3, 4, 6, 10, 2, 8, 5, 14, 12, 11, 15, 1,
+     13, 6, 4, 9, 8, 15, 3, 0, 11, 1, 2, 12, 5, 10, 14, 7,
+     1, 10, 13, 0, 6, 9, 8, 7, 4, 15, 14, 3, 11, 5, 2, 12],
+    [7, 13, 14, 3, 0, 6, 9, 10, 1, 2, 8, 5, 11, 12, 4, 15,
+     13, 8, 11, 5, 6, 15, 0, 3, 4, 7, 2, 12, 1, 10, 14, 9,
+     10, 6, 9, 0, 12, 11, 7, 13, 15, 1, 3, 14, 5, 2, 8, 4,
+     3, 15, 0, 6, 10, 1, 13, 8, 9, 4, 5, 11, 12, 7, 2, 14],
+    [2, 12, 4, 1, 7, 10, 11, 6, 8, 5, 3, 15, 13, 0, 14, 9,
+     14, 11, 2, 12, 4, 7, 13, 1, 5, 0, 15, 10, 3, 9, 8, 6,
+     4, 2, 1, 11, 10, 13, 7, 8, 15, 9, 12, 5, 6, 3, 0, 14,
+     11, 8, 12, 7, 1, 14, 2, 13, 6, 15, 0, 9, 10, 4, 5, 3],
+    [12, 1, 10, 15, 9, 2, 6, 8, 0, 13, 3, 4, 14, 7, 5, 11,
+     10, 15, 4, 2, 7, 12, 9, 5, 6, 1, 13, 14, 0, 11, 3, 8,
+     9, 14, 15, 5, 2, 8, 12, 3, 7, 0, 4, 10, 1, 13, 11, 6,
+     4, 3, 2, 12, 9, 5, 15, 10, 11, 14, 1, 7, 6, 0, 8, 13],
+    [4, 11, 2, 14, 15, 0, 8, 13, 3, 12, 9, 7, 5, 10, 6, 1,
+     13, 0, 11, 7, 4, 9, 1, 10, 14, 3, 5, 12, 2, 15, 8, 6,
+     1, 4, 11, 13, 12, 3, 7, 14, 10, 15, 6, 8, 0, 5, 9, 2,
+     6, 11, 13, 8, 1, 4, 10, 7, 9, 5, 0, 15, 14, 2, 3, 12],
+    [13, 2, 8, 4, 6, 15, 11, 1, 10, 9, 3, 14, 5, 0, 12, 7,
+     1, 15, 13, 8, 10, 3, 7, 4, 12, 5, 6, 11, 0, 14, 9, 2,
+     7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8,
+     2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11],
+]
+
+
+def _permute(value, table, in_bits):
+    out = 0
+    for pos in table:
+        out = (out << 1) | ((value >> (in_bits - pos)) & 1)
+    return out
+
+
+def _des_subkeys(key):
+    k = _permute(int.from_bytes(key, 'big'), _PC1, 64)
+    c, d = k >> 28, k & 0xFFFFFFF
+    subkeys = []
+    for shift in _SHIFTS:
+        c = ((c << shift) | (c >> (28 - shift))) & 0xFFFFFFF
+        d = ((d << shift) | (d >> (28 - shift))) & 0xFFFFFFF
+        subkeys.append(_permute((c << 28) | d, _PC2, 56))
+    return subkeys
+
+
+def _des_block(block, subkeys):
+    v = _permute(int.from_bytes(block, 'big'), _IP, 64)
+    left, right = v >> 32, v & 0xFFFFFFFF
+    for subkey in subkeys:
+        x = _permute(right, _E, 32) ^ subkey
+        s = 0
+        for i in range(8):
+            six = (x >> (42 - 6 * i)) & 0x3F
+            row = ((six >> 4) & 2) | (six & 1)
+            s = (s << 4) | _SBOX[i][row * 16 + ((six >> 1) & 0xF)]
+        left, right = right, left ^ _permute(s, _P, 32)
+    return _permute((right << 32) | left, _FP, 64).to_bytes(8, 'big')

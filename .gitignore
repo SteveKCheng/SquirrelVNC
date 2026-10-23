@@ -10,3 +10,6 @@ obj/
 *.user
 # Resource editor cache
 *.aps
+
+# Python bytecode (tests/gen)
+__pycache__/

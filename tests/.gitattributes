@@ -1,0 +1,3 @@
+# Generated test data: never convert line endings.
+cases/** -text
+fuzz/** -text

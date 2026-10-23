@@ -113,6 +113,15 @@ rfb-replay --check CASE
 
 Logs go to stderr.
 
+**Defaults.** Besides `start()`, with the shared flag set, the harness
+calls only `setMaxFrameBufferPixels()` and registers a VNC
+authentication handler. The client's bytes are then those of a viewer
+with default settings: no SetPixelFormat (the framebuffer keeps the
+server's format), SetEncodings with the default list (Tight first), a
+full update request after ServerInit and an incremental one after each
+update. An option for a client pixel format comes with the cases that
+need it; the generator models whatever the harness does.
+
 - **Input.** Read the whole of INPUT into memory and wrap it in
   `ByteArrayInputStream`. This sidesteps two problems: Windows anonymous
   pipes do not support overlapped I/O, and `stop()` cannot unblock a
@@ -143,8 +152,14 @@ Logs go to stderr.
   then copies the framebuffer and writes the PPM. The exit code says
   whether the program itself failed; whether the session went as
   expected is for the comparison.
-- **PPM.** P6, 8 bits per channel, each component scaled from the
-  framebuffer's pixel format. About 30 lines.
+- **PPM.** P6, 8 bits per channel, each component `c` scaled from its
+  maximum `max` in the framebuffer's pixel format as
+  `(c * 255 + max / 2) / max` in integers, which the generator uses too.
+  Before ServerInit the framebuffer is empty, written as
+  `P6\n0 0\n255\n`. About 30 lines.
+- **Event text.** A message is quoted, with backslash, double quote and
+  newline written as `\\`, `\"` and `\n`, in UTF-8, one event per
+  line ending in LF.
 
 ### Why replay is deterministic
 
@@ -186,6 +201,14 @@ tests/
 - Zlib-based encodings keep their streams across rectangles and
   messages. The generator models this with one `zlib.compressobj` per
   stream and `Z_SYNC_FLUSH` after each block, as servers do.
+- `python3 tests/gen/cases.py` rewrites every case's files and removes
+  those of cases that no longer exist; with `--check` it writes nothing
+  and lists files that differ, are missing or are stale. VNC
+  authentication needs DES, which `rfbgen.py` implements itself (checked
+  against the `cryptography` package) to stay within the standard
+  library.
+- `tests/.gitattributes` marks the generated files `-text`, so no
+  checkout converts their line endings.
 - **One test is one command.** `rfb-replay --check CASE` compares the
   three outputs itself, byte for byte, prints what differs (the first
   differing offset in the client bytes, the first differing line of
@@ -358,7 +381,10 @@ Each step is a commit, or a few.
    with the internal setter. Done.
 2. **The framebuffer accessor** (core change 2). Done.
 3. **The generator and the first cases** (`tests/gen`, `tests/cases`),
-   with no C++.
+   with no C++. Done, with nine cases: a Raw session at 32 bpp, RFB
+   3.3, 3.5, 3.7 and 4.1, VNC authentication succeeding and failing,
+   and refused security. They have not run against the core yet; step 4
+   is where they do.
 4. **`harnesses/rfb-replay` and `run-tests.ps1`**, passing the first cases; then
    more cases, in the order above, each batch its own commit. Each case
    that finds a bug goes in with the fix, or just before it.
