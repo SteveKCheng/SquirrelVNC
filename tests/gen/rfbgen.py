@@ -72,6 +72,10 @@ DEFAULT_ENCODINGS = [TIGHT, COPYRECT, ZRLE, HEXTILE, RRE, RAW,
 # The message ByteArrayInputStream throws at the end of the input.
 END_OF_STREAM = 'End of stream reached'
 
+# The password rfb-replay gives when asked. A case with another one keeps
+# it in NAME.password, which rfb-replay --check reads.
+HARNESS_PASSWORD = 'password'
+
 
 def u8(v):
     return struct.pack('>B', v)
@@ -94,20 +98,37 @@ def text_bytes(text):
     return text if isinstance(text, bytes) else text.encode('utf-8')
 
 
-def rfb_text(data):
-    """What the viewer makes of text from the server.
-
-    The rule decided in notes/string-encoding.md: UTF-8 if the bytes are
-    valid UTF-8, otherwise Latin-1. Until that work is done, the viewer
-    decodes the desktop name and plain cut text with the Windows ANSI
-    code page instead, so cases with non-ASCII text in those must wait
-    for it; ASCII, and valid UTF-8 where the viewer already reads UTF-8,
-    agree with both.
+def until_nul(data):
+    """The text the viewer keeps: everything before the first zero byte
+    (TextEncoding.h), since StringStorage is null-terminated.
     """
+    return data.split(b'\0', 1)[0]
+
+
+def rfb_text(data):
+    """What the viewer makes of text from the server whose encoding it
+    cannot know: the desktop name, plain cut text, reasons.
+
+    The rule decided in notes/string-encoding.md
+    (TextEncoding::fromRfbText()): UTF-8 if the bytes are valid UTF-8,
+    otherwise Latin-1. Python's strict UTF-8 decoder and Windows'
+    MB_ERR_INVALID_CHARS agree on what is valid (checked on 20,000 byte
+    strings).
+    """
+    data = until_nul(data)
     try:
         return data.decode('utf-8')
     except UnicodeDecodeError:
         return data.decode('latin-1')
+
+
+def utf8_text(data):
+    """What the viewer makes of text it reads as UTF-8 regardless
+    (TextEncoding::fromUtf8()): invalid sequences become U+FFFD. Python
+    and Windows may count replacements differently for some sequences,
+    so cases use only single invalid bytes, on which they agree.
+    """
+    return until_nul(data).decode('utf-8', 'replace')
 
 
 def rfb_string(text):
@@ -802,6 +823,7 @@ class Case:
         self.uses_tight_security = False
         self.tight = None
         self.zrle = None
+        self.password = HARNESS_PASSWORD
         # Connecting succeeds at once with the harness's in-memory gates.
         self.event('established')
 
@@ -858,12 +880,14 @@ class Case:
 
     def security_vnc(self, password, challenge, ok=True,
                      reason='Authentication failed'):
-        """VNC authentication with the harness's password.
+        """VNC authentication with the given password, which the viewer
+        is given too (see HARNESS_PASSWORD).
 
         On failure the session ends with an auth-error event; the reason
         string is sent only in RFB 3.8.
         """
         assert len(challenge) == 16
+        self.password = password
         self._offer(SEC_VNC)
         self.server += challenge
         self.client += vnc_auth_response(password, challenge)
@@ -943,7 +967,7 @@ class Case:
         data = text_bytes(text)
         self.server += u32(0xFC000200) + u32(len(data)) + data
         if data:
-            self.event('cut-text', data.decode('utf-8'))
+            self.event('cut-text', utf8_text(data))
 
     # Output
 
@@ -961,6 +985,8 @@ class Case:
                               .encode('utf-8'),
             base + '.ppm': self.fb.ppm() if self.fb else EMPTY_PPM,
         }
+        if self.password != HARNESS_PASSWORD:
+            files[base + '.password'] = self.password.encode('utf-8')
         if self.server_init_offset is not None and not self.uses_tight_security:
             files[os.path.join('fuzz', 'corpus', self.name + '.corpus')] = \
                 bytes(self.server[self.server_init_offset:])
@@ -978,11 +1004,12 @@ def update_request(incremental, width, height, x=0, y=0):
 
 
 # VNC authentication: DES in ECB mode over the 16-byte challenge, keyed
-# with the password (at most 8 bytes, padded with zeros) with the bits of
-# each key byte reversed, as every VNC implementation does.
+# with the password (its first 8 bytes in UTF-8, padded with zeros, as
+# VncAuthentication does) with the bits of each key byte reversed, as
+# every VNC implementation does.
 
 def vnc_auth_response(password, challenge):
-    key = password.encode('latin-1')[:8].ljust(8, b'\0')
+    key = password.encode('utf-8')[:8].ljust(8, b'\0')
     key = bytes(int('{:08b}'.format(b)[::-1], 2) for b in key)
     subkeys = _des_subkeys(key)
     return _des_block(challenge[:8], subkeys) + _des_block(challenge[8:], subkeys)

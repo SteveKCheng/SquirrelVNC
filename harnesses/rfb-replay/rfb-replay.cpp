@@ -32,6 +32,7 @@
 #include "network/RfbInputGate.h"
 #include "network/RfbOutputGate.h"
 #include "util/Exception.h"
+#include "util/TextEncoding.h"
 #include "viewer-core/RemoteViewerCore.h"
 
 #include "FrameBufferPpm.h"
@@ -55,7 +56,8 @@ static const TCHAR USAGE[] =
   _T("\n")
   _T("  INPUT              server-to-client bytes, or - for stdin\n")
   _T("  --check CASE       run CASE.rfb and compare with CASE.out,\n")
-  _T("                     CASE.events and CASE.ppm\n")
+  _T("                     CASE.events and CASE.ppm; the password is\n")
+  _T("                     CASE.password in UTF-8, if it exists\n")
   _T("  --out FILE         client-to-server bytes (default without\n")
   _T("                     --check: stdout)\n")
   _T("  --events FILE      event log\n")
@@ -116,6 +118,7 @@ struct Options
   StringStorage eventsFile;
   StringStorage ppmFile;
   StringStorage password;
+  bool isPasswordGiven;
   UINT64 maxPixels;
   DWORD timeoutMs;
   int logLevel;
@@ -130,6 +133,7 @@ struct Options
 static bool parseOptions(int argc, TCHAR *argv[], Options *options)
 {
   options->password = _T("password");
+  options->isPasswordGiven = false;
   options->maxPixels = 4096 * 4096;
   options->timeoutMs = 30 * 1000;
   options->logLevel = 1;
@@ -153,6 +157,7 @@ static bool parseOptions(int argc, TCHAR *argv[], Options *options)
         options->ppmFile = value;
       } else if (_tcscmp(arg, _T("--password")) == 0) {
         options->password = value;
+        options->isPasswordGiven = true;
       } else if (_tcscmp(arg, _T("--max-pixels")) == 0) {
         options->maxPixels = _tcstoui64(value, 0, 10);
       } else if (_tcscmp(arg, _T("--timeout")) == 0) {
@@ -404,6 +409,20 @@ int _tmain(int argc, TCHAR *argv[])
   std::vector<char> input;
   if (!readFile(inputPath, &input)) {
     return EXIT_ERROR;
+  }
+
+  // A case with a password other than the default keeps it in
+  // CASE.password, in UTF-8; --password still takes precedence.
+  if (isCheck && !options.isPasswordGiven) {
+    StringStorage passwordPath = options.checkCase;
+    passwordPath.appendString(_T(".password"));
+    if (_taccess_s(passwordPath.getString(), 0) == 0) {
+      std::vector<char> password;
+      if (!readFile(passwordPath, &password)) {
+        return EXIT_ERROR;
+      }
+      options.password = TextEncoding::fromUtf8(std::as_bytes(std::span(password)));
+    }
   }
 
   StderrLogger logger(options.logLevel);

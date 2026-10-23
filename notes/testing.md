@@ -110,11 +110,13 @@ rfb-replay [options] INPUT
 rfb-replay --check CASE
   INPUT              server-to-client bytes, or - for stdin
   CASE               tests/cases/CASE: run CASE.rfb and compare with
-                     CASE.out, CASE.events and CASE.ppm
+                     CASE.out, CASE.events and CASE.ppm; the password is
+                     CASE.password, if it exists
   --out FILE         client-to-server bytes (default: stdout)
   --events FILE      event log (default: none)
   --ppm FILE         final framebuffer as PPM (default: none)
-  --password TEXT    for VNC authentication (default: "password")
+  --password TEXT    for VNC authentication (default: CASE.password
+                     with --check, if it exists, otherwise "password")
   --max-pixels N     framebuffer limit (default: 4096 × 4096)
   --timeout SECONDS  give up on a session that has not ended (default: 30)
   --log LEVEL        core log on stderr, 0 to 9 (default: 1, errors)
@@ -199,6 +201,7 @@ tests/
   cases/NAME.out         expected client-to-server bytes
   cases/NAME.events      expected event log
   cases/NAME.ppm         expected final framebuffer
+  cases/NAME.password    the password, in UTF-8, if not "password"
   fuzz/corpus/NAME.corpus       the server stream after the handshake
   fuzz/regressions/NAME.corpus  fuzz inputs that found bugs
   run-tests.ps1          runs every case and compares the files

@@ -34,13 +34,11 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from rfbgen import (RGB565, Case, CopyRect, HextileRect, HextileTile, Image,   # noqa: E402
-                    RawRect, RreRect, TightRect, ZrleRect, ZrleTile, load_ppm)
+from rfbgen import (HARNESS_PASSWORD, RGB565, Case, CopyRect, HextileRect,  # noqa: E402
+                    HextileTile, Image, RawRect, RreRect, TightRect, ZrleRect,
+                    ZrleTile, load_ppm)
 
 CASES = []
-
-# The password rfb-replay gives when asked, unless told otherwise.
-HARNESS_PASSWORD = 'password'
 
 CHALLENGE = bytes(range(0x10, 0x20))
 

@@ -5,4 +5,5 @@
 *.events -text
 *.ppm -text
 *.corpus -text
+*.password -text
 *.jpg -text
