@@ -100,7 +100,10 @@ run under ASan.
 
 ```
 rfb-replay [options] INPUT
+rfb-replay --check CASE
   INPUT              server-to-client bytes, or - for stdin
+  CASE               tests/cases/CASE: run CASE.rfb and compare with
+                     CASE.out, CASE.events and CASE.ppm
   --out FILE         client-to-server bytes (default: stdout)
   --events FILE      event log (default: none)
   --ppm FILE         final framebuffer as PPM (default: none)
@@ -178,9 +181,25 @@ tests/
 - Zlib-based encodings keep their streams across rectangles and
   messages. The generator models this with one `zlib.compressobj` per
   stream and `Z_SYNC_FLUSH` after each block, as servers do.
-- `run-tests.ps1` runs `rfb-replay` on each `.rfb` and compares the
-  three outputs byte for byte, printing which ones differ. CTest can
-  replace it when CMake arrives.
+- **One test is one command.** `rfb-replay --check CASE` compares the
+  three outputs itself, byte for byte, prints what differs (the first
+  differing offset in the client bytes, the first differing line of
+  events, the first differing pixel) and exits 0 or 1. Running the tests
+  then needs no `diff` or `cmp`, and no Python, which is needed only to
+  regenerate the cases.
+- **The runner is `run-tests.ps1`**, which only runs commands and
+  counts failures: `rfb-replay --check` for each `.rfb`, and the fuzz
+  binary on its regression files. It takes the configuration and
+  platform, so it finds the executables under `bin\PLATFORM\CONFIG`.
+  No logic belongs in it, so it can be replaced without touching the
+  tests.
+- **CTest comes with CMake, not before.** Visual Studio ships CTest
+  (4.3.1 in VS 2026), and it could run these tests today from a
+  test-only `CMakeLists.txt`, but that means generating a CMake build
+  directory alongside MSBuild for no gain. When CMake builds the core,
+  each command in `run-tests.ps1` becomes an `add_test()` (with labels
+  for replay and fuzz tests, and a `TIMEOUT`, since a decoder bug can be
+  a hang), and the script goes away.
 
 First cases, roughly in order:
 
@@ -286,7 +305,8 @@ goes away then, and other message types come along with it.
 - Each input that triggers a finding is minimised and checked in under
   `tests/rfb-fuzz/regressions/`, and becomes a replay case as above.
   `run-tests.ps1` runs the fuzz binary on those files (libFuzzer runs
-  given files once and exits), so a fix stays fixed.
+  given files once and exits, failing on a crash), so a fix stays
+  fixed.
 
 ### The `Fuzz|x64` configuration
 
