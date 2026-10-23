@@ -22,7 +22,6 @@
 //
 
 #include "ResourceLoader.h"
-#include "util/UnicodeStringStorage.h"
 
 #include <crtdbg.h>
 
@@ -79,9 +78,8 @@ bool ResourceLoader::loadString(UINT id, StringStorage *string)
     UnlockResource(lockRes);
     FreeResource(hGlobal);
 
-    UnicodeStringStorage unicodeString;
-    unicodeString.setString(&strBuff.front());
-    unicodeString.toStringStorage(string);
+    // StringStorage holds UTF-16, as the string table does.
+    string->setString(&strBuff.front());
   }
   return true;
 }

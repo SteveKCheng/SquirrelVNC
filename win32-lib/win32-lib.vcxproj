@@ -128,7 +128,6 @@
     <ClCompile Include="util\StringTable.cpp" />
     <ClCompile Include="util\TextEncoding.cpp" />
     <ClCompile Include="util\Unicode.cpp" />
-    <ClCompile Include="util\UnicodeStringStorage.cpp" />
     <ClCompile Include="util\VncPassCrypt.cpp" />
     <ClCompile Include="util\ZLibBase.cpp" />
     <ClCompile Include="util\ZLibException.cpp" />
@@ -225,7 +224,6 @@
     <ClInclude Include="util\StringTable.h" />
     <ClInclude Include="util\TextEncoding.h" />
     <ClInclude Include="util\Unicode.h" />
-    <ClInclude Include="util\UnicodeStringStorage.h" />
     <ClInclude Include="util\VncPassCrypt.h" />
     <ClInclude Include="util\winhdr.h" />
     <ClInclude Include="util\ZLibBase.h" />

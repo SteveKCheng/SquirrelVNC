@@ -23,23 +23,20 @@
 
 #include "WinCommandLineArgs.h"
 #include "util/Exception.h"
-#include "util/UnicodeStringStorage.h"
 
 WinCommandLineArgs::WinCommandLineArgs(const TCHAR *cmdLineInWinFormat)
 {
+  // StringStorage holds UTF-16, which CommandLineToArgvW() takes.
   StringStorage cmdLine(cmdLineInWinFormat);
-  UnicodeStringStorage uniCmdLine(&cmdLine);
-  size_t cmdLen = uniCmdLine.getLength();
+  size_t cmdLen = cmdLine.getLength();
   if (cmdLen > 0) {
     int nArgs;
-    LPWSTR *argList = CommandLineToArgvW(uniCmdLine.getString(), &nArgs);
+    LPWSTR *argList = CommandLineToArgvW(cmdLine.getString(), &nArgs);
     if(argList == 0) {
       throw Exception(_T("Invalid command line"));
     }
     for(int i = 0; i < nArgs; i++) {
-      UnicodeStringStorage uniArg(argList[i]);
-      StringStorage arg;
-      uniArg.toStringStorage(&arg);
+      StringStorage arg(argList[i]);
       if (arg.getLength() > 0) {
         m_args.push_back(arg);
       }

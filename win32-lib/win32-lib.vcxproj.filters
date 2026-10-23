@@ -114,9 +114,6 @@
     <ClCompile Include="util\Unicode.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="util\UnicodeStringStorage.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
     <ClCompile Include="util\VncPassCrypt.cpp">
       <Filter>util</Filter>
     </ClCompile>
@@ -399,9 +396,6 @@
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="util\Unicode.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="util\UnicodeStringStorage.h">
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="util\VncPassCrypt.h">
