@@ -27,6 +27,7 @@
 
 #include "ConnectionData.h"
 #include "util/AnsiStringStorage.h"
+#include "util/Exception.h"
 #include "util/VncPassCrypt.h"
 #include "viewer-core/VncAuthentication.h"
 
@@ -104,6 +105,11 @@ void ConnectionData::setCryptedPassword(const StringStorage *hidePassword)
 
 StringStorage ConnectionData::getPlainPassword() const
 {
+  // The loop below reads two hex digits per byte, so a shorter string, as a
+  // .vnc file can give, would be read past its end.
+  if (m_defaultPassword.getLength() != VncAuthentication::VNC_PASSWORD_SIZE * 2) {
+    throw Exception(_T("The saved password is not valid"));
+  }
   // Transform password from hex-string to raw data.
   AnsiStringStorage ansiHidePassword(&m_defaultPassword);
   UINT8 encPassword[VncAuthentication::VNC_PASSWORD_SIZE];
@@ -115,9 +121,11 @@ StringStorage ConnectionData::getPlainPassword() const
     passwordStream >> std::hex >> ordOfSymbol;
     encPassword[i] = static_cast<UINT8>(ordOfSymbol);
   }
-  // Decrypt password.
-  UINT8 plainPassword[VncAuthentication::VNC_PASSWORD_SIZE];
+  // Decrypt password. An 8-character password fills all the bytes, so the
+  // terminator that AnsiStringStorage needs goes after them.
+  UINT8 plainPassword[VncAuthentication::VNC_PASSWORD_SIZE + 1];
   VncPassCrypt::getPlainPass(plainPassword, encPassword);
+  plainPassword[VncAuthentication::VNC_PASSWORD_SIZE] = 0;
 
   AnsiStringStorage ansiPlainPassword(reinterpret_cast<char *>(plainPassword));
   StringStorage password;
