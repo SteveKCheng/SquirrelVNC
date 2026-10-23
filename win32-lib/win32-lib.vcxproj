@@ -113,7 +113,6 @@
     <ClCompile Include="network\socket\SocketIPv4.cpp" />
     <ClCompile Include="network\socket\SocketStream.cpp" />
     <ClCompile Include="network\socket\WindowsSocket.cpp" />
-    <ClCompile Include="util\AnsiStringStorage.cpp" />
     <ClCompile Include="util\CommandLineArgs.cpp" />
     <ClCompile Include="util\CommandLineFormatException.cpp" />
     <ClCompile Include="util\CommandLineFormatHelp.cpp" />
@@ -206,7 +205,6 @@
     <ClInclude Include="network\socket\SocketIPv4.h" />
     <ClInclude Include="network\socket\SocketStream.h" />
     <ClInclude Include="network\socket\WindowsSocket.h" />
-    <ClInclude Include="util\AnsiStringStorage.h" />
     <ClInclude Include="util\CharDefs.h" />
     <ClInclude Include="util\CommandLineArgs.h" />
     <ClInclude Include="util\CommandLineFormatException.h" />

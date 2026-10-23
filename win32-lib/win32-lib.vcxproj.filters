@@ -69,9 +69,6 @@
     <ClCompile Include="network\socket\WindowsSocket.cpp">
       <Filter>network\socket</Filter>
     </ClCompile>
-    <ClCompile Include="util\AnsiStringStorage.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
     <ClCompile Include="util\CommandLineArgs.cpp">
       <Filter>util</Filter>
     </ClCompile>
@@ -343,9 +340,6 @@
     </ClInclude>
     <ClInclude Include="network\socket\WindowsSocket.h">
       <Filter>network\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="util\AnsiStringStorage.h">
-      <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="util\CharDefs.h">
       <Filter>util</Filter>

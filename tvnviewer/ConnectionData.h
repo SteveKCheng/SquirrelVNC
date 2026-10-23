@@ -60,13 +60,24 @@ public:
 
   // Pre: isSetPassword(); the saved password is from setPlainPassword() or
   // setCryptedPassword().
-  // Post: returns the password, decrypted; at most VNC_PASSWORD_SIZE
-  // characters, ending at the first zero byte.
+  // Post: returns the password given to setPlainPassword(), whole; or else
+  // the one given to setCryptedPassword(), decrypted: its first
+  // VNC_PASSWORD_SIZE bytes in UTF-8, up to the first zero byte, decoded
+  // as UTF-8. If those bytes end in the middle of a character, it becomes
+  // U+FFFD, and VNC authentication will not get the key the password had.
   // Throws Exception if the saved password is not VNC_PASSWORD_SIZE * 2
   // characters long. Non-hex characters are not detected; they decrypt to
   // some other password.
   StringStorage getPlainPassword() const;
+
+  // Pre: isSetPassword().
+  // Post: returns the encrypted password as hex digits, as saved in a .vnc
+  // file: the first VNC_PASSWORD_SIZE bytes of the password in UTF-8.
   StringStorage getCryptedPassword() const;
+
+  // Pre: password is not null.
+  // Post: the password is kept, and encrypted for getCryptedPassword();
+  // isSetPassword() is true.
   void setPlainPassword(const StringStorage *password);
   // Pre: password is null, or the encrypted password as hex digits, as
   // saved in a .vnc file. It comes from the file unchecked; it is checked
@@ -94,6 +105,10 @@ protected:
 
   // Saved password is crypted.
   StringStorage m_defaultPassword;
+
+  // The password as given to setPlainPassword(), if m_hasPlainPassword.
+  StringStorage m_plainPassword;
+  bool m_hasPlainPassword;
 };
 
 
