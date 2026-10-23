@@ -409,14 +409,17 @@ void RemoteViewerCore::sendCutTextEvent(const StringStorage *cutText)
 
   RfbCutTextEventClientMessage cutTextMessage(cutText);
   if (m_isUtf8ClipboardEnabled) {
-    m_logWriter.detail(_T("Sending UTF-8 clipboard cut text: \"%s\"..."), cutText->getString());
+    // The clipboard may hold passwords, so only its length is logged.
+    m_logWriter.detail(_T("Sending UTF-8 clipboard cut text (%zu characters)..."),
+                       cutText->getLength());
     cutTextMessage.sendUtf8(m_output);
   }
   else {
-    m_logWriter.detail(_T("Sending clipboard cut text: \"%s\"..."), cutText->getString());
+    m_logWriter.detail(_T("Sending clipboard cut text (%zu characters)..."),
+                       cutText->getLength());
     cutTextMessage.send(m_output);
   }
-  m_logWriter.debug(_T("Clipboard cut text: \"%s\" is sent"), cutText->getString());
+  m_logWriter.debug(_T("Clipboard cut text is sent"));
 }
 
 void RemoteViewerCore::setPreferredEncoding(INT32 encodingType)
@@ -1234,7 +1237,8 @@ void RemoteViewerCore::receiveServerCutText()
   // Latin-1 by the specification, but some servers send UTF-8.
   StringStorage cutText = TextEncoding::fromRfbText(buffer);
 
-  m_logWriter.debug(_T("Cut text: %s"), cutText.getString());
+  // Only the length: the clipboard may hold passwords.
+  m_logWriter.debug(_T("Cut text: %zu characters"), cutText.getLength());
   try {
     m_adapter->onCutText(&cutText);
   } catch (const Exception &ex) {
@@ -1259,7 +1263,8 @@ void RemoteViewerCore::receiveServerCutTextUtf8()
   m_input->readFully(buffer.data(), length);
   StringStorage cutText = TextEncoding::fromUtf8(buffer);
 
-  m_logWriter.debug(_T("Cut text: %s"), cutText.getString());
+  // Only the length: the clipboard may hold passwords.
+  m_logWriter.debug(_T("Cut text: %zu characters"), cutText.getLength());
   try {
     m_adapter->onCutText(&cutText);
   }
