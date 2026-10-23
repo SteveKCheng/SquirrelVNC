@@ -72,10 +72,11 @@ on almost every libFuzzer run.
 - Set it from C++ only, with a setter on `RemoteViewerCore` called
   before `start()`. No user setting for now. The test programs set a
   small limit, such as 4096 × 4096.
-- The rich cursor in `processPseudoEncoding()` is checked against
-  `INT_MAX` bytes too, so a cursor of about 2 GB is allowed. Cap it in
-  the same commit, to the framebuffer limit or to a much smaller fixed
-  size (real cursors are rarely larger than 256 × 256).
+- The rich cursor in `processPseudoEncoding()` was checked against
+  `INT_MAX` bytes too, so a cursor of about 2 GB was allowed. It is now
+  capped at a fixed 1024 × 1024 (`ViewerBufferSize::MAX_CURSOR_SIZE`)
+  for the viewer and the tests alike, since real cursors are rarely
+  larger than 256 × 256.
 
 ### 2. Reading the framebuffer after a session
 
@@ -286,7 +287,7 @@ separately and RFB's zlib streams run across blocks.
 Each step is a commit, or a few.
 
 1. **[SECURITY] The framebuffer and cursor limits** (core change 1),
-   with the internal setter.
+   with the internal setter. Done.
 2. **The framebuffer accessor** (core change 2).
 3. **The generator and the first cases** (`tests/gen`, `tests/cases`),
    with no C++.
