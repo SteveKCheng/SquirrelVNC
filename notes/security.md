@@ -100,6 +100,33 @@ Not exploitable with MSVC today, but worth fixing when seen, as
 so `%ld` is also wrong on Win32 with MSVC), and `front()` on a vector that
 may be empty (use `data()`).
 
+### Empty rectangles
+
+`Rect::isValid()` accepts a rectangle of zero width or height, and the
+RFB protocol allows empty rectangles, so clipping can leave an empty
+rectangle at the right or bottom edge of a buffer, where its first pixel
+lies past the end of a row or of the buffer. Code that loops over a
+rectangle must check `isEmpty()` before touching its first row or pixel;
+`FrameBuffer::fillRect()` did not, and wrote past the frame buffer.
+Coordinates that a message gives relative to an enclosing rectangle
+(RRE subrectangles, Hextile tiles and subrectangles) should also be
+checked against it, not only against the buffer.
+
+## Open findings
+
+Seen while fixing other things, not yet fixed:
+
+- **Hextile** subrectangles are not checked against their tile. At the
+  right and bottom edges a tile is smaller than 16 pixels, so a
+  subrectangle can draw outside the update rectangle; it is still
+  clipped to the frame buffer, and is never empty.
+- **`JpegDecompressor`**: `init()` calls `jpeg_create_decompress()`
+  before setting `cinfo.err`, which libjpeg expects first; and
+  `errorExit()` throws a C++ exception through libjpeg's C code, which
+  MSVC does not promise to unwind correctly. The usual pattern is
+  `setjmp`/`longjmp` back to `decompress()`.
+- **`Inflater`** does not set `opaque` before `inflateInit()`.
+
 ## Tools
 
 - **`/analyze`**: set `$env:_CL_ = '/analyze'` and rebuild. Use
@@ -111,6 +138,9 @@ may be empty (use `data()`).
 - **`/W4`**: set `$env:_CL_ = '/W4'`. Of its warnings, C4238 (address of a
   temporary) and C4701 (possibly uninitialized) are the ones worth reading
   for safety; C4100 (unused parameter) is noise.
+- **Fuzzing and ASan**: `rfb-fuzz` in `ReleaseFuzz`, and the replay
+  tests under `ReleaseAsan`; see `testing.md`. The first fuzzing run
+  found the `fillRect()` overflow above.
 - **Searching**: `readUInt32()` and `readUInt16()` for server lengths;
   `sizeof(` next to `TCHAR` buffers; `getString()` passed as a format
   string.
