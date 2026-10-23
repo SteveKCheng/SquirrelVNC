@@ -191,3 +191,15 @@ shows up as an intended difference in `.events`:
 - VNC authentication with a non-ASCII password, with the expected DES
   response in `.out`;
 - an embedded NUL in each of these.
+
+Status (2026-10-23): `rfb-replay` logs the desktop name
+(`desktop-name`), and the generator sends each kind of text and expects
+the decisions above (`rfbgen.rfb_text()`). Cases exist only where
+today's viewer already decodes that way: an ASCII desktop name, ASCII
+plain cut text, UTF-8 cut text through the TightVNC message, and a UTF-8
+failure reason (`text-ascii-and-utf8`, `vnc-auth-failed-utf8-reason`).
+The rest go in with step 3. Seen on the sandbox (ANSI code page 1252) in
+a throwaway run: a UTF-8 desktop name "Grüße 日本" came out as
+"GrÃ¼ÃŸe æ—¥æœ¬", while Latin-1 plain cut text "café £ ÿ" came out right,
+only because those characters are the same in Windows-1252; bytes
+0x80 to 0x9F, or another code page, would differ.

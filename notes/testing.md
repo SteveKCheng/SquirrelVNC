@@ -148,6 +148,7 @@ need it; the generator models whatever the harness does.
 
   ```
   established
+  desktop-name "..."
   connected
   bell
   cut-text "..."
