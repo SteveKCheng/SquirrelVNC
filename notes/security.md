@@ -121,7 +121,6 @@ Seen while fixing other things, not yet fixed:
   `errorExit()` throws a C++ exception through libjpeg's C code, which
   MSVC does not promise to unwind correctly. The usual pattern is
   `setjmp`/`longjmp` back to `decompress()`.
-- **`Inflater`** does not set `opaque` before `inflateInit()`.
 
 ## Tools
 

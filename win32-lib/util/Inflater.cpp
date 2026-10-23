@@ -27,16 +27,19 @@
 Inflater::Inflater()
 : m_unpackedSize(0)
 {
+  // zlib requires these to be set before inflateInit().
   m_zlibStream.zalloc = Z_NULL;
   m_zlibStream.zfree = Z_NULL;
-
-  inflateInit(&m_zlibStream);
-
-  m_zlibStream.next_in = 0;
+  m_zlibStream.opaque = Z_NULL;
+  m_zlibStream.next_in = Z_NULL;
   m_zlibStream.avail_in = 0;
 
-  m_zlibStream.next_out = 0;
+  m_zlibStream.next_out = Z_NULL;
   m_zlibStream.avail_out = 0;
+
+  if (inflateInit(&m_zlibStream) != Z_OK) {
+    throw ZLibException(_T("Cannot initialize the ZLib stream"));
+  }
 }
 
 Inflater::~Inflater()

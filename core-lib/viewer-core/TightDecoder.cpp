@@ -117,8 +117,7 @@ UINT32 TightDecoder::readTightPixel(RfbInputGate *input, int bytesPerCPixel)
 void TightDecoder::reset()
 {
   for (int i = 0; i < DECODERS_NUM; i++) {
-    delete m_inflater[i];
-    m_inflater[i] = new Inflater;
+    replaceInflater(i);
   }
 }
 
@@ -126,9 +125,18 @@ void TightDecoder::resetDecoders(UINT8 compressionControl)
 {
   for (int i = 0; i < DECODERS_NUM; i++)
     if (compressionControl & (0x01 << i)) {
-        delete m_inflater[i];
-        m_inflater[i] = new Inflater;
+      replaceInflater(i);
     }
+}
+
+void TightDecoder::replaceInflater(int i)
+{
+  // Construct the new stream before deleting the old one: if construction
+  // throws, m_inflater[i] must not be left pointing at a deleted object,
+  // which the destructor would delete again.
+  Inflater *fresh = new Inflater;
+  delete m_inflater[i];
+  m_inflater[i] = fresh;
 }
 
 int TightDecoder::readCompactSize(RfbInputGate *input)

@@ -45,6 +45,13 @@ protected:
 private:
   void reset();
   void resetDecoders(UINT8 compControl);
+  //
+  // Replaces zlib stream i with a new one.
+  // Pre-conditions: 0 <= i < DECODERS_NUM.
+  // Post-conditions: m_inflater[i] is a new stream; if constructing it
+  // throws, m_inflater[i] is unchanged.
+  //
+  void replaceInflater(int i);
   UINT32 readTightPixel(RfbInputGate *input, int bytesPerCPixel);
   int readCompactSize(RfbInputGate *input);
   std::vector<UINT32> readPalette(RfbInputGate *input,

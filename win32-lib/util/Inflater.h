@@ -30,6 +30,11 @@
 class Inflater : public ZLibBase
 {
 public:
+  //
+  // Post-conditions: a zlib stream ready to inflate, with no input.
+  // Throws ZLibException if zlib cannot set the stream up (out of memory,
+  // or a zlib library that does not match its headers).
+  //
   Inflater();
   ~Inflater();
 
