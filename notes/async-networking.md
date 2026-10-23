@@ -184,9 +184,56 @@ compiles as C++20 (`portability.md`).
   I/O; `std::execution` is C++26 and not in MSVC yet. Asio is
   header-only, in vcpkg, under the Boost Software License (compatible
   with the GPL), supports C++20 coroutines, uses IOCP on Windows and
-  epoll on Linux, and handles resolve and connect with cancellation,
-  timeouts and IPv6, which covers the items in `networking.md`. The
-  alternative is our own loop on `WSAPoll`/`poll`: more code to own.
+  epoll on Linux, and handles connect with cancellation, timeouts and
+  IPv6, which covers the items in `networking.md`. Name resolution on
+  Windows is the exception; see "Host name resolution". The alternative
+  is our own loop on `WSAPoll`/`poll`: more code to own.
+
+### Host name resolution
+
+Asio's `ip::tcp::resolver` is not good enough on Windows:
+
+- It takes the host as `std::string` and calls the ANSI `getaddrinfo`,
+  which reads it in the ANSI code page. A name the GUI holds as UTF-16
+  would have to be turned into Punycode with `IdnToAscii` first.
+- `async_resolve` runs the blocking call on a hidden thread of Asio's.
+  Cancelling only discards the result; the thread stays blocked until
+  DNS answers or times out.
+
+So the viewer has its own small resolver interface, with two
+implementations:
+
+- **Windows: `GetAddrInfoExW`**, which is asynchronous from Windows 8
+  (an `OVERLAPPED` with a completion routine or an event) and can be
+  cancelled with `GetAddrInfoExCancel`. It takes the name as UTF-16
+  straight from `StringStorage` and converts internationalised names to
+  Punycode itself (unless `AI_DISABLE_IDN_ENCODING`).
+  - The completion `asio::post`s the result to the connection's
+    executor, so the thread it runs on does not matter; wrapped in
+    `asio::async_initiate`, the operation takes completion tokens like
+    any Asio operation.
+  - Each `ADDRINFOEXW` address is copied into an
+    `asio::ip::tcp::endpoint`; `asio::async_connect` takes any range of
+    endpoints and tries them in turn, which IPv6 needs anyway. The list
+    is freed with `FreeAddrInfoExW`.
+  - **Lifetime is the hard part.** The `OVERLAPPED`, the result pointer
+    and the cancel handle must live until the completion runs, which it
+    still does after `GetAddrInfoExCancel` (with `WSA_E_CANCELLED`). So
+    the operation's state is on the heap and owned by the completion,
+    not by the object that started it.
+  - The call also takes a timeout, documented as applying only to
+    asynchronous calls; to be confirmed, but it would give a resolve
+    timeout for free.
+- **Elsewhere: Asio's resolver.** Linux is only a development platform,
+  and its strings are UTF-8 already. `getaddrinfo_a` would fit the same
+  interface, but gains little: glibc runs it on helper threads too,
+  `gai_cancel` cannot cancel a lookup that has started, it notifies by
+  signal or on another thread, and before glibc 2.34 it needs `-lanl`.
+
+This replaces `SocketAddressIPv4::resolve`, and covers the cancellable
+connect in `networking.md`. `HostPath::validateHostNames` then has to
+stop rejecting non-ASCII names. About a few hundred lines with the
+tests, most of the care going into cancellation.
 
 ### Transports, and stdin/stdout
 
@@ -419,7 +466,8 @@ The risky part, split up:
    (`asio::thread_pool(1)`), unused.
 2. **Connections move onto the loop.**
    - The driver becomes `async_read_some`; connecting uses Asio's
-     resolve and connect, still IPv4 only, to keep this to one change.
+     connect, and the resolver in "Host name resolution", still IPv4
+     only, to keep this to one change.
    - `RfbOutputGate`'s callers stay as they are. Its `flush()` now hands
      the buffered bytes to the loop to write.
    - Listening mode keeps `TcpServer` for now:

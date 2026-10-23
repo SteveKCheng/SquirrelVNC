@@ -148,10 +148,10 @@ back. `HostPath::validateHostNames` accepts only ASCII letters, digits,
 The planned change is the cheap one: `HostPath` stays `char`-based and
 holds UTF-8, and `ConnectionData` converts with `toUtf8`/`fromUtf8`.
 Its parsing splits at ASCII delimiters and uses no `<cctype>` calls, so
-UTF-8 is safe in it. Internationalised host names stay unsupported;
-they belong to the Asio rewrite, whose Windows resolver calls the ANSI
-`getaddrinfo`, so it will need `IdnToAscii` to turn the name into
-ASCII first.
+UTF-8 is safe in it. Internationalised host names stay unsupported
+until the Asio rewrite, which resolves with `GetAddrInfoExW` and takes
+the name as UTF-16; see "Host name resolution" in
+`async-networking.md`.
 
 ## Logging
 
