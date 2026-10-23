@@ -237,9 +237,9 @@ The robust fix is a pair of helpers, `loadPixel<T>(const void *)` and
 Compilers turn these into single loads and stores, so the pixel loops
 lose no speed, and alignment stops mattering.
 
-A lesser case: `rfb/PixelFormat.cpp`: `initBigEndianByNative()` tests
-the byte order by reading the inactive member of a union, which C++
-(unlike C) does not define. `std::endian::native` replaces it in C++20.
+`rfb/PixelFormat.cpp`'s `initBigEndianByNative()` tested the byte order
+by reading the inactive member of a union, which C++ (unlike C) does
+not define. It now uses C++20's `std::endian::native`.
 
 Checked and not a problem: pointers from `LPARAM`, `WPARAM`,
 `GWLP_USERDATA`, `GlobalLock()` and `LockResource()`, which point to

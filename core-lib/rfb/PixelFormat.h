@@ -28,6 +28,8 @@ struct PixelFormat
 {
   PixelFormat();
   // Initializes the bigEndian field by native machine value.
+  // Post-conditions: bigEndian is true if and only if the machine is big
+  // endian; no other field changes.
   void initBigEndianByNative();
 
   bool isEqualTo(const PixelFormat *pf) const;

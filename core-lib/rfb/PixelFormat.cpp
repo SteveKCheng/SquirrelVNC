@@ -23,6 +23,7 @@
 
 #include "PixelFormat.h"
 
+#include <bit>
 #include <string.h>
 
 PixelFormat::PixelFormat()
@@ -32,12 +33,7 @@ PixelFormat::PixelFormat()
 
 void PixelFormat::initBigEndianByNative()
 {
-  union {
-    char test;
-    int i;
-  } testBigEndian;
-  testBigEndian.i = 1;
-  bigEndian = (testBigEndian.test == 0);
+  bigEndian = (std::endian::native == std::endian::big);
 }
 
 // Returns the mask of a colour component with the given maximum and shift
