@@ -413,11 +413,15 @@ VS 2022, and neither needs a desktop.
 
 ## Viewing the files: Kaitai Struct (optional)
 
-An `rfb.ksy` describes both directions of the stream, with parameters
-for what the other direction negotiated (the version, the security
-type, Tight capabilities, the bpp in effect). Compressed data stays as
-opaque byte blocks, since Kaitai's `process: zlib` inflates each block
-separately and RFB's zlib streams run across blocks.
+Done, as two files: `tests/kaitai/rfb_server.ksy` reads the server's
+bytes (`tests/cases/*.rfb`, a whole session, and fuzz inputs, from
+ServerInit on), and `rfb_client.ksy` the client's (`*.out`). Each lists
+what it assumes about the other direction, which it cannot see (the
+security type chosen, the pixel format in effect). Compressed data stays
+as opaque byte blocks, since Kaitai's `process: zlib` inflates each block
+separately and RFB's zlib streams run across blocks. Kaitai reports
+warnings for them, but they parse; no generated parser is checked in,
+and nothing runs them: they are for the Kaitai Web IDE.
 
 - With it, any case or recording from a real server opens in the
   Kaitai Web IDE or `ksv`. Being written separately from the
@@ -426,9 +430,6 @@ separately and RFB's zlib streams run across blocks.
   Python, but it still needs every length and count filled in by hand,
   and it cannot carry zlib state across blocks, so it saves nothing
   over `struct`.
-- Only editing `rfb.ksy` needs the compiler (a Java runtime, or the
-  npm build). The generated Python parser is checked in, so viewing
-  needs only `pip install kaitaistruct`.
 - Nothing else depends on it; if it proves more trouble than it is
   worth, the generator and the tests are unchanged.
 
@@ -452,7 +453,7 @@ Each step is a commit, or a few.
    cases under ASan. Done: the nine cases pass on both platforms.
 6. **`ReleaseFuzz` and `rfb-fuzz`**, seeded with the whole corpus.
    Done; the proof of concept found a real bug at once.
-7. **`rfb.ksy`**, whenever it is useful.
+7. **The Kaitai descriptions.** Done (`tests/kaitai/`).
 
 ## Later
 
@@ -471,3 +472,140 @@ Known issues the tests may run into, already recorded elsewhere:
 - `TightDecoder` truncates colour components when a maximum is above
   255 (a documented precondition); a case with such a format would
   show it.
+
+## The generator, for whoever extends it
+
+How `tests/gen` works, for adding cases for new functionality and for
+finding out why a case fails.
+
+### Files and workflow
+
+- `rfbgen.py` is the library: the model of a session, one class per
+  encoding, and the expected client messages. `cases.py` holds one
+  function per case, decorated `@case`, and the `main()` that writes
+  the files. `jpeg/` holds the Tight JPEG test image, the program that
+  made it, and the decoded image the JPEG cases expect.
+- `python3 -I tests/gen/cases.py` writes every case's files under
+  `tests/cases/` and `tests/fuzz/corpus/`, and deletes those of cases
+  that no longer exist; `--check` writes nothing and lists files that
+  differ, are missing or are stale. Only the standard library is used.
+  Python is not on the Windows sandbox: run the generator elsewhere and
+  copy the files over, then run `tests/run-tests.ps1`.
+- To run one case: `rfb-replay --check tests/cases/NAME`, which prints
+  the first difference in each of the three outputs. Add
+  `--out FILE --events FILE --ppm FILE` to keep what the viewer actually
+  produced, and `--log 9` for the core's log on stderr.
+
+### How a case is built
+
+A case function makes a `Case` and calls its methods in the order the
+server sends things:
+
+```python
+c = Case('name')
+c.version(b'RFB 003.008\n')        # the server's ProtocolVersion
+c.security_none()                  # or security_vnc(), security_refused()
+c.server_init(32, 24)              # optional pf=..., name=...
+c.update([RawRect(...), ...])      # one FramebufferUpdate
+c.bell()                           # other server messages
+c.end_of_input()                   # the input ends between messages
+return c
+```
+
+Each method appends to three things at once:
+
+- `c.server`: the bytes the server sends, which become `NAME.rfb`;
+- `c.client`: the bytes SquirrelVNC must send back, `NAME.out`. These
+  follow `RemoteViewerCore` as `rfb-replay` runs it (see "Defaults"):
+  the version reply, the security type, ClientInit, `SetEncodings`
+  with `DEFAULT_ENCODINGS`, a full `FramebufferUpdateRequest` after
+  ServerInit and an incremental one after each update;
+- `c.events`: the lines of `NAME.events`, written with `c.event()`,
+  which applies the escaping `ReplayEventsAdapter` uses.
+
+`c.fb`, a `FrameBuffer`, models the client's frame buffer as colour
+components in the session's pixel format (`PixelFormat`); its `ppm()`
+is the expected `NAME.ppm`, converted to 8 bits per channel exactly as
+`rfb-replay` converts it (`PixelFormat.to_rgb8()`). Cases draw from an
+`Image` of 8-bit RGB colours, usually `Image.pattern()`, which has a
+different colour at every pixel so that misplaced pixels show;
+`PixelFormat.from_rgb8()` converts them to the format, as a server
+would.
+
+### Rectangle classes
+
+Each encoding is a class (`RawRect`, `RreRect`, `HextileRect`,
+`TightRect`) whose `encode(fb)` returns the rectangle's bytes, header
+included, and draws the result into the model. To add an encoding:
+
+1. Read the viewer's decoder first, and model what it does, not what
+   the specification says, where they differ; name the C++ function in
+   the docstring. The Kaitai description (`tests/kaitai`) may need the
+   encoding too.
+2. Draw into the model only if the viewer would accept the rectangle.
+   Decoders draw into a separate rectangle buffer, which
+   `DecoderOfRectangle::process()` copies to the frame buffer only
+   after decoding succeeds, so a rejected rectangle leaves the frame
+   buffer unchanged.
+3. For input the viewer must reject, set the object's `error` to the
+   exact message the viewer throws. `Case.update()` then records an
+   `error` event and expects no more client bytes; the case should send
+   nothing after it.
+4. Add the class to the imports in `cases.py`, and write cases for the
+   normal forms, the edges (smaller tiles, empty rectangles, rectangles
+   on the frame buffer's edges) and each error.
+
+State that lasts across rectangles belongs to the session, not the
+rectangle: Tight's four zlib streams are a `TightStreams` from
+`c.tight_streams()`, given to every `TightRect`. Hextile's background
+and foreground colours last only within one rectangle, as in the
+viewer.
+
+### Text
+
+Text the server sends (`server_init(name=...)`, `server_cut_text()`,
+`server_cut_text_utf8()`, failure reasons) can be `bytes`, sent as
+given, or `str`, encoded as the protocol says. The expected event text
+comes from `rfb_text()`, which applies the decision in
+`string-encoding.md` (UTF-8 if valid, otherwise Latin-1). Today's
+viewer decodes desktop names and plain cut text with the Windows ANSI
+code page instead, so cases with non-ASCII text there wait for that
+work (see its "Tests to add").
+
+### What the generator cannot do itself
+
+- **JPEG:** it has no codec. A JPEG case sends a checked-in file and
+  expects a checked-in decoded image, taken from a first `rfb-replay`
+  run and reviewed by a person (`quadrants_jpeg()` in `cases.py`).
+- **zlib's exact bytes** depend on the zlib build, so `--check` may
+  report Tight cases as differing on another machine although they
+  decode the same. Regenerating them there is harmless.
+- **The DES response** for VNC authentication is computed by a small
+  DES of its own (`vnc_auth_response()`), checked against the
+  `cryptography` package and against the viewer.
+
+### When a case fails
+
+- **Decide which side is wrong.** A new case that fails is as likely
+  to be a wrong model as a viewer bug: read the decoder again before
+  changing either. A wrong expected image after a rejected rectangle,
+  for example, was the generator drawing what the viewer discards.
+- **Read the first difference.** For client bytes, the offset points
+  into `NAME.out`; open it with `rfb_client.ksy` in the Kaitai Web IDE
+  to see which message it is in. For events, a line that differs only
+  in a hidden character is shown with `\xHH` escapes. For the image,
+  the first differing pixel and the count of differing pixels tell a
+  misplaced rectangle from a wrong colour.
+- **Check that a test can fail.** A case that passes the first time
+  proves little until a deliberately broken copy of its input fails as
+  expected: patch one byte in a copy of `NAME.rfb` and run
+  `rfb-replay --check` on it with the original expected files.
+- **Check the build is current.** Files copied to the sandbox must get
+  a new modification time (extract with `tar -xmf`), or MSBuild may skip
+  recompiling them; a check that seems to do nothing may simply not be
+  in the program.
+- **Non-ASCII output over SSH** is mangled by the Windows console;
+  fetch the files and compare bytes instead of reading console output.
+- **Fuzz inputs** come from the cases automatically (from ServerInit
+  on, as `tests/fuzz/corpus/NAME.corpus`), so a new case also seeds the
+  fuzzer; `run-tests.ps1` runs them all through `rfb-fuzz` too.
