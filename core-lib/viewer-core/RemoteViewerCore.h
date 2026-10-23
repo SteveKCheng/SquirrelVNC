@@ -297,7 +297,21 @@ public:
   // Set the specified pixel format. The viewer will request that pixel format
   // from the server, as well as a full screen update. The pixel format is not
   // guaranteed to be applied immediately. It will be applied when allowed by
-  // the protocol, and adapter's onNewFrameBuffer() will be called after that.
+  // the protocol, and adapter's onFrameBufferPropChange() will be called after
+  // that.
+  //
+  // Timing: the format is applied by updatePixelFormat() in the next
+  // sendFbUpdateRequest(), which sends SetPixelFormat ahead of that request.
+  // - Called before start(), as rfb-replay does, or from
+  //   CoreEventsAdapter::onConnected(), as ViewerWindow does through
+  //   applySettings(), it is applied with the first update request: both
+  //   happen before that request, on the protocol thread or before it starts.
+  // - Called later from the GUI thread, when the user changes the colour
+  //   setting, it races with the protocol thread, so which request carries
+  //   it varies from run to run.
+  // FIXME: after the asynchronous rewrite (notes/async-networking.md), check
+  // that a change from the GUI is posted to the network loop and applied in
+  // order with the update requests, so that this timing is deterministic too.
   //
   void setPixelFormat(const PixelFormat *viewerPixelFormat);
 
