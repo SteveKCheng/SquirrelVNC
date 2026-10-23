@@ -40,9 +40,10 @@ protected:
   // dstRect comes from the server, so it is not trusted: each 16x16 tile
   // must lie inside framebuffer, or an Exception is thrown.  An Exception
   // is also thrown for a tile that has no subrectangles before any
-  // background colour was sent.  Subrectangles are clipped to framebuffer
-  // by FrameBuffer::fillRect().  On an exception, the tiles before the bad
-  // one have already been drawn.
+  // background colour was sent, and for a subrectangle that does not lie
+  // within its tile (tiles at the right and bottom edges may be smaller
+  // than 16 pixels).  On an exception, the tiles before the bad one have
+  // already been drawn.
   //
   // Pre: framebuffer has the pixel format the server sends, so that each
   // colour read is framebuffer->getBytesPerPixel() bytes.

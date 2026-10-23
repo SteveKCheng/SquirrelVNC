@@ -116,10 +116,6 @@ checked against it, not only against the buffer.
 
 Seen while fixing other things, not yet fixed:
 
-- **Hextile** subrectangles are not checked against their tile. At the
-  right and bottom edges a tile is smaller than 16 pixels, so a
-  subrectangle can draw outside the update rectangle; it is still
-  clipped to the frame buffer, and is never empty.
 - **`JpegDecompressor`**: `init()` calls `jpeg_create_decompress()`
   before setting `cinfo.err`, which libjpeg expects first; and
   `errorExit()` throws a C++ exception through libjpeg's C code, which

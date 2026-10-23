@@ -89,6 +89,12 @@ void HexTileDecoder::decode(RfbInputGate *input,
             int subY = xy & 0xF;
             int w = ((wh >> 4) & 0xF) + 1;
             int h = (wh & 0xF) + 1;
+            // Subrectangles are positioned relative to the tile, and must
+            // lie within it; at the right and bottom edges a tile may be
+            // smaller than 16 pixels.
+            if (subX + w > tileRect.getWidth() || subY + h > tileRect.getHeight()) {
+              throw Exception(_T("Error in protocol: Hextile subrectangle outside its tile"));
+            }
             Rect subRect(subX, subY, subX + w, subY + h);
 
             subRect.move(tileRect.left, tileRect.top);
