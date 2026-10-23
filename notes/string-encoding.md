@@ -153,6 +153,113 @@ until the Asio rewrite, which resolves with `GetAddrInfoExW` and takes
 the name as UTF-16; see "Host name resolution" in
 `async-networking.md`.
 
+## `.ini` files
+
+`IniFileSettingsManager` is used for `.vnc` connection files only:
+`ViewerCmdLine` loads them and `ViewerWindow` saves them. The settings
+are in the registry, but the plan (`branding-and-icons.md`) is to move
+them to `%APPDATA%\SquirrelVNC\default.ini`, so `.ini` files become the
+only settings store.
+
+### The Win32 profile functions
+
+`IniFileSettingsManager` uses `GetPrivateProfileString`,
+`WritePrivateProfileString` and `GetPrivateProfileInt`. They cannot be
+kept:
+
+- **No UTF-8.** The W versions read and write UTF-16LE when the file
+  starts with a UTF-16LE byte-order mark, and the ANSI code page
+  otherwise, including when they create the file; characters outside
+  the code page become `?`. A UTF-8 file is read as ANSI, and a UTF-8
+  byte-order mark becomes part of the first line.
+- **Not `activeCodePage`.** Setting the manifest's `activeCodePage` to
+  UTF-8 would make the ANSI code page UTF-8 for the whole process. It
+  is rejected: it changes every A function, to fix one API.
+- **Legacy otherwise.** Microsoft keeps them only for 16-bit
+  compatibility, and they are subject to `IniFileMapping` redirection
+  in the registry. Each call opens and parses the file again, and
+  there is no way to write a whole file and replace the old one
+  atomically, so a crash or power cut during a save can leave a broken
+  file.
+
+### Format: INI, not TOML
+
+`.vnc` files are exchanged with TightVNC and other viewers, so they
+must stay INI. Using the same format and code for `default.ini` keeps
+one parser. TOML would be cleaner for the settings, but would be a
+second parser for little gain.
+
+### Libraries
+
+Searched in the vcpkg registry (2026-10-23):
+
+| Library | vcpkg | Licence | Writes | Keeps comments and order | Wide strings |
+|---|---|---|---|---|---|
+| SimpleIni | `simpleini` 4.27 | MIT | yes | yes | `wchar_t` interface, UTF-8 file |
+| inih | `inih` 62 | BSD-3-Clause | no | n/a | none |
+| mINI | not in vcpkg | MIT | yes | yes | none; `std::string`, "should play nicely with UTF-8" |
+| toml++ (TOML) | `tomlplusplus` 3.4.0 | MIT | yes | not as far as I know | wide keys and values on Windows |
+| toml11 (TOML) | `toml11` 4.4.0 | MIT | yes | yes | none |
+
+**SimpleIni** fits the requirements:
+
+- It is header-only, reads and writes, and keeps sections, keys and
+  comments in the order they were loaded.
+- `CSimpleIniW` has a `wchar_t` interface. With `SetUnicode(true)` the
+  file is UTF-8; on Windows its converter (`SI_CONVERT_WIN32`) calls
+  `MultiByteToWideChar`/`WideCharToMultiByte` with `CP_UTF8`. Other
+  platforms use `CSimpleIniA` with `char` holding UTF-8, which matches
+  `TCHAR = char` in `portability.md`.
+- `LoadData(const char *, size_t)` parses a buffer, and `Save` writes to
+  a string or an `OutputWriter`, so the file I/O stays ours.
+- Errors are return codes; its own buffers use `new (std::nothrow)`.
+- `CSimpleIniW` is case-insensitive, like the profile functions.
+
+How to use it:
+
+- **Reading.** Read the file ourselves, with a size limit far below
+  SimpleIni's 1 GiB (a few hundred KiB is plenty). Then decide the
+  encoding:
+  - a UTF-8 byte-order mark, or valid UTF-8: UTF-8;
+  - a UTF-16LE byte-order mark: convert to UTF-8 first;
+  - otherwise the ANSI code page, converted to UTF-8 first. Files
+    written by TightVNC, or by this viewer until now, are in it; this
+    is the one place where `CP_ACP` is still right, because the file
+    really was written that way.
+
+  Then `SetUnicode(true)` and `LoadData`. Its converter does not pass
+  `MB_ERR_INVALID_CHARS`, so invalid UTF-8 would be replaced silently;
+  the check above makes that moot. An embedded NUL ends the text, as in
+  `TextEncoding.h`.
+- **Writing.** `Save` to a string, without a byte-order mark
+  (`SaveFile(const char *)` adds one by default), write it to a
+  temporary file next to the target, then `MoveFileEx` with
+  `MOVEFILE_REPLACE_EXISTING` (`std::filesystem::rename` elsewhere).
+  Other viewers reading such a file decode non-ASCII values in their
+  ANSI code page; the values are almost always ASCII.
+- **Compatibility.** `GetPrivateProfileString` strips one pair of
+  surrounding quotes from a value; SimpleIni does that only with
+  `SetQuotes(true)`.
+- **Untrusted input.** A downloaded `.vnc` file is attacker-controlled,
+  so the loader gets a libFuzzer target like the protocol code.
+
+The others:
+
+- **inih** only reads, and its lines are limited to 200 bytes by
+  default.
+- **mINI** is not in vcpkg and makes no promise about encodings.
+- **toml++** has the best wide-string support of all: with
+  `TOML_ENABLE_WINDOWS_COMPAT` (on by default on Windows), lookups,
+  `value<std::wstring>()` and `insert` take wide strings and convert
+  them. Its documentation does not mention keeping comments when it
+  writes a table back.
+- **toml11** keeps comments and formatting, but has only `std::string`.
+
+Recommendation: SimpleIni from vcpkg, behind the existing
+`SettingsManager` interface, so callers do not change. This is a
+separate step from the string classes, and can be done before or
+after them.
+
 ## Logging
 
 `RemoteViewerCore::sendCutTextEvent` logs the clipboard text at detail
