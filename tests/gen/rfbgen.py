@@ -220,9 +220,10 @@ class RreRect:
 
     Subrectangles are given relative to the rectangle, as (x, y, width,
     height, rgb). The viewer must reject one that does not lie within the
-    rectangle (RreDecoder::decode()); the model then stops there, with
-    the background and the subrectangles before it drawn, and error is
-    set to the message the session ends with.
+    rectangle (RreDecoder::decode()), and error is set to the message the
+    session ends with. Nothing of that rectangle then reaches the frame
+    buffer: decoders draw into a separate rectangle buffer, which
+    DecoderOfRectangle::process() copies only after decoding succeeds.
     """
 
     ERROR = 'Error in protocol: RRE subrectangle outside its rectangle'
@@ -238,15 +239,16 @@ class RreRect:
         out = bytearray(u16(self.x) + u16(self.y) + u16(self.w) + u16(self.h)
                         + s32(RRE) + u32(len(self.subrects)))
         out += pf.pixel_bytes(pf.from_rgb8(self.background))
-        fb.fill(self.x, self.y, self.w, self.h, pf.from_rgb8(self.background))
+        fills = [(self.x, self.y, self.w, self.h, pf.from_rgb8(self.background))]
         for sx, sy, sw, sh, rgb in self.subrects:
             comps = pf.from_rgb8(rgb)
             out += pf.pixel_bytes(comps) + u16(sx) + u16(sy) + u16(sw) + u16(sh)
-            if self.error is None:
-                if sx + sw > self.w or sy + sh > self.h:
-                    self.error = self.ERROR
-                else:
-                    fb.fill(self.x + sx, self.y + sy, sw, sh, comps)
+            if sx + sw > self.w or sy + sh > self.h:
+                self.error = self.ERROR
+            fills.append((self.x + sx, self.y + sy, sw, sh, comps))
+        if self.error is None:
+            for fill in fills:
+                fb.fill(*fill)
         return bytes(out)
 
 

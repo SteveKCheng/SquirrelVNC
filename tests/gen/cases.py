@@ -205,7 +205,8 @@ def rre_empty_at_bottom_edge():
 def rre_subrect_outside():
     """An RRE subrectangle outside its rectangle ends the session.
 
-    The background and the subrectangle before it are drawn first.
+    The frame buffer keeps what the update before it drew: nothing of the
+    rejected rectangle is copied to it.
     """
     c = Case('rre-subrect-outside')
     c.version(b'RFB 003.008\n')
