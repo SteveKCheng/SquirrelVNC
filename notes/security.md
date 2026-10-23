@@ -116,11 +116,12 @@ checked against it, not only against the buffer.
 
 Seen while fixing other things, not yet fixed:
 
-- **`JpegDecompressor`**: `init()` calls `jpeg_create_decompress()`
-  before setting `cinfo.err`, which libjpeg expects first; and
-  `errorExit()` throws a C++ exception through libjpeg's C code, which
-  MSVC does not promise to unwind correctly. The usual pattern is
-  `setjmp`/`longjmp` back to `decompress()`.
+- **`JpegDecompressor`**: `errorExit()` throws a C++ exception through
+  libjpeg's C code. On MSVC that works and leaks nothing (libjpeg
+  allocates only from pools that `jpeg_destroy()` frees), so it is not a
+  security issue, but it is not portable and depends on `/EHsc`
+  details; and `init()` sets the error handler too late. The plan is to
+  move to the TurboJPEG API: see `image-decoding.md`.
 
 ## Tools
 
