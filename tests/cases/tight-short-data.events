@@ -1,3 +1,4 @@
 established
+desktop-name "test"
 connected
 error "Error in protocol: incorrect decompressed data size (tight-decoder)"

@@ -1,0 +1,8 @@
+established
+desktop-name "Test desktop (ASCII) \"#1\""
+connected
+cut-text "Plain text, \"quoted\" \\ back\nslashed"
+cut-text ""
+cut-text "Grüße, 日本語, 🐿️"
+bell
+disconnect "End of stream reached"

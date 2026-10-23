@@ -89,9 +89,30 @@ def s32(v):
     return struct.pack('>i', v)
 
 
+def text_bytes(text):
+    """Text as the server sends it: bytes as given, str as UTF-8."""
+    return text if isinstance(text, bytes) else text.encode('utf-8')
+
+
+def rfb_text(data):
+    """What the viewer makes of text from the server.
+
+    The rule decided in notes/string-encoding.md: UTF-8 if the bytes are
+    valid UTF-8, otherwise Latin-1. Until that work is done, the viewer
+    decodes the desktop name and plain cut text with the Windows ANSI
+    code page instead, so cases with non-ASCII text in those must wait
+    for it; ASCII, and valid UTF-8 where the viewer already reads UTF-8,
+    agree with both.
+    """
+    try:
+        return data.decode('utf-8')
+    except UnicodeDecodeError:
+        return data.decode('latin-1')
+
+
 def rfb_string(text):
-    """A UTF-8 string with a 32-bit length, as in reason strings."""
-    data = text.encode('utf-8')
+    """A string with a 32-bit length, as in reason strings."""
+    data = text_bytes(text)
     return u32(len(data)) + data
 
 
@@ -642,7 +663,8 @@ class Case:
         if not ok:
             if self.minor >= 8:
                 self.server += rfb_string(reason)
-                self.event('auth-error', 'Authentication reason: ' + reason)
+                self.event('auth-error',
+                           'Authentication reason: ' + rfb_text(text_bytes(reason)))
             else:
                 self.event('auth-error', 'Authentication failure')
 
@@ -650,16 +672,22 @@ class Case:
         """RFB 3.8: the server offers no security types, and says why."""
         assert self.minor >= 8
         self.server += u8(0) + rfb_string(reason)
-        self.event('auth-error', 'Authentication reason: ' + reason)
+        self.event('auth-error',
+                   'Authentication reason: ' + rfb_text(text_bytes(reason)))
 
     # Initialisation
 
     def server_init(self, width, height, pf=RGB888, name='test'):
-        """ClientInit and ServerInit, then the client's first requests."""
+        """ClientInit and ServerInit, then the client's first requests.
+
+        name is the desktop name, as bytes or as str sent in UTF-8; the
+        viewer reports it as a desktop-name event (see rfb_text()).
+        """
         self.client += u8(1)   # ClientInit: shared
         self.server_init_offset = len(self.server)
         self.server += u16(width) + u16(height) + pf.pack() + rfb_string(name)
         self.fb = FrameBuffer(width, height, pf)
+        self.event('desktop-name', rfb_text(text_bytes(name)))
         self.event('connected')
         self.client += set_encodings(DEFAULT_ENCODINGS)
         self.client += update_request(False, width, height)
@@ -685,6 +713,25 @@ class Case:
     def bell(self):
         self.server += u8(2)
         self.event('bell')
+
+    def server_cut_text(self, text):
+        """Plain ServerCutText: bytes as given, or str in Latin-1 as the
+        protocol defines it. The viewer reports it as a cut-text event,
+        even when empty.
+        """
+        data = text if isinstance(text, bytes) else text.encode('latin-1')
+        self.server += u8(3) + b'\0\0\0' + u32(len(data)) + data
+        self.event('cut-text', rfb_text(data))
+
+    def server_cut_text_utf8(self, text):
+        """TightVNC's ServerCutTextUtf8 (0xFC000200): str in UTF-8, or
+        bytes as given. The viewer reads it whether or not it enabled the
+        extension, and ignores it when empty.
+        """
+        data = text_bytes(text)
+        self.server += u32(0xFC000200) + u32(len(data)) + data
+        if data:
+            self.event('cut-text', data.decode('utf-8'))
 
     # Output
 

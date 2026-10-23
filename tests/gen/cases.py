@@ -455,6 +455,39 @@ def tight_jpeg_wrong_size():
     return c
 
 
+@case
+def text_ascii_and_utf8():
+    """Text from the server that today's viewer already decodes as
+    notes/string-encoding.md decides: an ASCII desktop name, plain cut
+    text in ASCII (empty included), and TightVNC UTF-8 cut text outside
+    ASCII, beyond the Basic Multilingual Plane too. Quotes, backslashes
+    and newlines check the event log's escaping.
+    """
+    c = Case('text-ascii-and-utf8')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    c.server_init(8, 8, name='Test desktop (ASCII) "#1"')
+    c.server_cut_text('Plain text, "quoted" \\ back\nslashed')
+    c.server_cut_text('')
+    c.server_cut_text_utf8('Gr\u00fc\u00dfe, \u65e5\u672c\u8a9e, \U0001f43f\ufe0f')
+    c.server_cut_text_utf8('')
+    c.bell()
+    c.end_of_input()
+    return c
+
+
+@case
+def vnc_auth_failed_utf8_reason():
+    """A 3.8 authentication failure whose reason is UTF-8 outside ASCII,
+    which the viewer already reads as UTF-8.
+    """
+    c = Case('vnc-auth-failed-utf8-reason')
+    c.version(b'RFB 003.008\n')
+    c.security_vnc(HARNESS_PASSWORD, CHALLENGE, ok=False,
+                   reason='Mot de passe incorrect \u2014 r\u00e9essayez')
+    return c
+
+
 def generate():
     """All files of all cases, as {path relative to tests/: bytes}."""
     files = {}

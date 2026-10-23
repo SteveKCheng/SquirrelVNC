@@ -1,4 +1,5 @@
 established
+desktop-name "test"
 connected
 bell
 disconnect "End of stream reached"
