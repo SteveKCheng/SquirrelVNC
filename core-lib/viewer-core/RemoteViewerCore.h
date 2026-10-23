@@ -422,6 +422,22 @@ public:
   // returns list of server displays offsets and dimensions
   std::vector<Rect> getDesktops();
 
+  //
+  // Copy the frame buffer, as the decoders have left it, into dst.
+  //
+  // May be called from any thread, at any time. A test program calls it
+  // once the session has ended, because CoreEventsAdapter's update events
+  // come from another thread and may not report the last updates.
+  //
+  // Pre-conditions: dst is not 0.
+  // Post-conditions: dst has the dimension and pixel format of the frame
+  // buffer and a copy of its pixels, taken under m_fbLock. The copy never
+  // contains a cursor, since the notifier draws the cursor and removes it
+  // again under the same lock. Before ServerInit the copy is empty.
+  // Throws Exception if dst cannot be set up, or std::bad_alloc.
+  //
+  void copyFrameBuffer(FrameBuffer *dst);
+
 private:
   //
   // Overrides Thread::execute(). Implements the input thread.
