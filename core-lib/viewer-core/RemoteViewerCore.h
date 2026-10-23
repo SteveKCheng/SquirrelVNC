@@ -236,6 +236,20 @@ public:
   bool wasStarted() const;
 
   //
+  // Set the largest frame buffer the server may ask for, in pixels
+  // (width * height). The limit applies to the size in ServerInit and to
+  // DesktopSize updates. The default is
+  // ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS.
+  //
+  // Pre-conditions: the object has not been started, so it was made with
+  // the passive constructor and start() has not been called.
+  // Post-conditions: a larger frame buffer ends the session with an
+  // Exception, reported through CoreEventsAdapter::onError().
+  // Throws Exception, and changes nothing, if the object was started.
+  //
+  void setMaxFrameBufferPixels(UINT64 maxPixels);
+
+  //
   // Stop operation, detach from the data connection and terminate all active
   // threads.
   //
@@ -468,6 +482,14 @@ private:
   //
   // Process a fake rectangle which represents a pseudo-encoding.
   //
+  // Pre-conditions: rect has been read from the update header, and the
+  // input is at the rectangle's data.
+  // Post-conditions: the data has been read, and the frame buffer, the
+  // cursor or the pointer position updated.
+  // Throws Exception for an unsupported pseudo-encoding, a cursor wider or
+  // taller than ViewerBufferSize::MAX_CURSOR_SIZE, or a desktop size that
+  // setFbProperties() rejects; IOException if the input fails.
+  //
   void processPseudoEncoding(const Rect *rect, int encType);
 
   //
@@ -536,8 +558,10 @@ private:
   // Post-conditions: m_frameBuffer and m_rectangleFb have the given size
   // and format, filled with black.
   // Throws Exception before changing either frame buffer if the size is
-  // negative or too large or the format is not valid
-  // (PixelFormat::isValid()), and Exception if a buffer cannot be set up.
+  // negative, has more pixels than m_maxFrameBufferPixels or does not fit
+  // in memory (ViewerBufferSize::fitsFrameBuffer()), or the format is not
+  // valid (PixelFormat::isValid()); and Exception if a buffer cannot be
+  // set up.
   //
   void setFbProperties(const Dimension *fbDimension,
                        const PixelFormat *fbPixelFormat);
@@ -607,6 +631,10 @@ private:
   // This flag is set after call start().
   mutable LocalMutex m_startLock;
   bool m_wasStarted;
+
+  // The frame buffer limit, in pixels. Written only before start(), under
+  // m_startLock, so the threads read it without a lock.
+  UINT64 m_maxFrameBufferPixels;
 
   // This flag is set after onConnected().
   mutable LocalMutex m_connectLock;

@@ -141,6 +141,7 @@ void RemoteViewerCore::init()
   m_output = 0;
 
   m_wasStarted = false;
+  m_maxFrameBufferPixels = ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS;
   m_wasConnected = false;
   m_isNewPixelFormat = false;
   m_isPixelFormatSent = false;
@@ -233,6 +234,15 @@ bool RemoteViewerCore::wasStarted() const
 {
   AutoLock al(&m_startLock);
   return m_wasStarted;
+}
+
+void RemoteViewerCore::setMaxFrameBufferPixels(UINT64 maxPixels)
+{
+  AutoLock al(&m_startLock);
+  if (m_wasStarted) {
+    throw Exception(_T("Frame buffer limit cannot change after start"));
+  }
+  m_maxFrameBufferPixels = maxPixels;
 }
 
 bool RemoteViewerCore::wasConnected() const
@@ -822,7 +832,8 @@ void RemoteViewerCore::setFbProperties(const Dimension *fbDimension,
     throw Exception(_T("Invalid framebuffer properties"));
   }
 
-  if (!ViewerBufferSize::fitsFrameBuffer(width, height, bitsPerPixel / 8)) {
+  if (static_cast<UINT64>(width) * height > m_maxFrameBufferPixels ||
+      !ViewerBufferSize::fitsFrameBuffer(width, height, bitsPerPixel / 8)) {
     throw Exception(_T("Framebuffer is too large"));
   }
 
@@ -1121,8 +1132,8 @@ void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
       UINT16 height = static_cast<UINT16>(rect->getHeight());
       UINT8 bytesPerPixel = m_frameBuffer.getBytesPerPixel();
 
-      // CursorShape may resize once with its previous pixel format (up to 32 bpp).
-      if (!ViewerBufferSize::fitsDecoderBuffer(width, height, 4)) {
+      if (width > ViewerBufferSize::MAX_CURSOR_SIZE ||
+          height > ViewerBufferSize::MAX_CURSOR_SIZE) {
         throw Exception(_T("Rich cursor is too large"));
       }
 
