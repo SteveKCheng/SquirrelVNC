@@ -14,7 +14,8 @@ stdin/stdout", "Order of work").
 ## Scope
 
 - **In:** replay tests of whole sessions through `RemoteViewerCore`,
-  and fuzzing of the decoders called directly.
+  and fuzzing of FramebufferUpdate messages, read by the fuzzer itself
+  and passed to the real decoders.
 - **Out, for now:** fuzzing whole sessions. `RemoteViewerCore` runs a
   protocol thread and an `FbUpdateNotifier` thread, so coverage is not
   deterministic, and a single-threaded mode would be thrown away by the
@@ -162,11 +163,12 @@ tests/
   cases/NAME.out         expected client-to-server bytes
   cases/NAME.events      expected event log
   cases/NAME.ppm         expected final framebuffer
+  rfb-fuzz/corpus/NAME   the server stream after the handshake
   run-tests.ps1          runs every case and compares the files
 ```
 
 - The generator is plain Python 3, with only `struct` and `zlib`. It
-  writes all four files of a case from one description, and the files
+  writes all the files of a case from one description, and the files
   are checked in, so building and running the tests needs no Python.
 - **The generator is the oracle.** A case describes an image and how to
   send it (encoding, rectangles, pixel format); the generator encodes
@@ -203,47 +205,88 @@ First cases, roughly in order:
 
 A libFuzzer program in `tests/rfb-fuzz/`, built only in `Fuzz|x64`.
 The aim at this stage is to show that fuzzing works in SquirrelVNC and
-to cover the code that handles the most untrusted input; whole-session
-fuzzing waits for the rewrite (see "Scope").
+to cover the code that handles the most untrusted input, the decoders;
+whole-session fuzzing waits for the rewrite (see "Scope").
 
-### Targets
+### Input: a strict subset of RFB
 
-One target per decoder, selected at build time or by the first input
-byte: Raw, CopyRect, RRE, Hextile, Tight (including JPEG) and ZRLE,
-each called through `DecoderOfRectangle::process()`. Rich cursors and
-pointer positions are not decoders: `processPseudoEncoding()` reads
-the cursor bytes and hands them to `CursorPainter`, whose
-`setNewCursor()`, `updatePointerPos()`, `showCursor()` and
-`hideCursor()` a separate target calls directly.
+The input is what a server sends after the security handshake, in a
+session where the client never changes the pixel format:
 
-Each run:
+1. **ServerInit:** width, height, pixel format, desktop name.
+2. **Server messages,** until the input runs out.
 
-1. Reads a short header from the input: the pixel format (bpp 8, 16 or
-   32 and byte order, mapped to valid formats), and the framebuffer
-   size, bounded to something small such as 256 × 256.
-2. Makes a new decoder, so per-decoder state (the zlib streams of
-   Tight and ZRLE) starts fresh, and two framebuffers of that size.
-3. Repeatedly reads a rectangle (bounded to the framebuffer) and calls
-   `process()` on the rest of the input, until the input runs out.
-   Several rectangles per input exercise the state carried between
-   them.
-4. Catches `Exception`: rejecting bad input is correct behaviour. ASan
-   reports, crashes and hangs are the findings.
+There is no custom header, so any server stream is a valid input once
+its handshake is cut off, and the generator's cases seed the corpus
+directly (see "Corpus and regressions").
 
-Everything runs on the fuzzer's thread. `process()` always calls
-`notify()`, so it needs an `FbUpdateNotifier`. A real one that is never
-started will do: its thread is created suspended, `onUpdate()` only
-adds to a region, and the destructor does not wait for a thread that
-never ran. One notifier can live for the whole process.
+- **ServerInit** is checked as the core checks it: bits per pixel 8,
+  16 or 32; a colour-map format replaced by the standard format of that
+  depth; any other format must pass `PixelFormat::isValid()`; a desktop
+  name of at most 64 KiB. The fuzzer then sets a small framebuffer
+  limit, such as 256 × 256 pixels, so that runs stay fast; an input
+  that asks for more ends there.
+- **FramebufferUpdate** is decoded in full: the padding, the rectangle
+  count, and for each rectangle its header, the check that it lies
+  inside the framebuffer, and the decoder found through `DecoderStore`,
+  the class the core uses. The four pseudo-encodings are handled as in
+  `processPseudoEncoding()`: LastRect ends the update, DesktopSize
+  resizes the framebuffers (within the fuzzer's limit), and the rich
+  cursor and pointer position go to a `CursorPainter`, on which the
+  fuzzer then calls `showCursor()` and `hideCursor()` after each update.
+- **SetColorMapEntries, Bell and ServerCutText** are read and ignored,
+  with the core's limit on cut text, so that streams containing them
+  are still valid inputs.
+- **Any other message type** ends the run. (The core logs it and reads
+  on, which gets out of step with the stream; for the fuzzer, stopping
+  is the useful choice.)
+- `Exception` from any of this is caught: rejecting bad input is
+  correct behaviour. ASan reports, crashes and hangs are the findings.
+
+Everything runs on the fuzzer's thread, with new decoders for each
+input, so per-decoder state (the zlib streams of Tight and ZRLE)
+starts fresh. `process()` always calls `notify()`, so it needs an
+`FbUpdateNotifier`. A real one that is never started will do: its
+thread is created suspended, `onUpdate()` only adds to a region, and
+the destructor does not wait for a thread that never ran.
+
+### Duplication, and how to keep it honest
+
+This reading loop copies what `RemoteViewerCore` does in
+`clientAndServerInit()`, `readPixelFormat()`, `receiveFbUpdate()`,
+`receiveFbUpdateRectangle()` and `processPseudoEncoding()`, rather than
+moving that code out of the core into a shared class. The copy is
+about a hundred lines, and the mainline code does not change for the
+fuzzer. The decoders and `CursorPainter`, which are what is being
+fuzzed, are the real ones.
+
+The cost is that the checks made before a decoder runs (the rectangle
+bounds, the cursor size, the frame buffer limit, the pixel format) are
+tested in the copy, not in the core. To keep the two in step:
+
+- Each copied check has a comment naming the function it mirrors.
+- Every input that finds a bug also becomes a replay case: the
+  generator adds a handshake in front of it, so `rfb-replay` runs it
+  through the real core. A decoder bug then shows in the mainline path
+  as well, and a difference between the copy and the core shows as a
+  failing case.
+
+After the asynchronous rewrite, the server-message loop is a
+single-threaded coroutine that the fuzzer can call directly; the copy
+goes away then, and other message types come along with it.
 
 ### Corpus and regressions
 
-- The seed corpus comes from the generator: the rectangle data of the
-  replay cases, rewritten in the fuzz target's input format.
+- The generator writes each case's server stream after the handshake
+  to `tests/rfb-fuzz/corpus/NAME` as well. For cases in which the
+  client sets a pixel format of its own, the generator writes a
+  ServerInit carrying that format, since the updates are encoded in it.
+  Cases using the Tight security type are left out, as their
+  capability lists follow ServerInit.
 - Each input that triggers a finding is minimised and checked in under
-  `tests/rfb-fuzz/regressions/TARGET/`. `run-tests.ps1` runs the fuzz
-  binary on those files (libFuzzer runs given files once and exits), so
-  a fix stays fixed.
+  `tests/rfb-fuzz/regressions/`, and becomes a replay case as above.
+  `run-tests.ps1` runs the fuzz binary on those files (libFuzzer runs
+  given files once and exits), so a fix stays fixed.
 
 ### The `Fuzz|x64` configuration
 
@@ -296,8 +339,9 @@ Each step is a commit, or a few.
    that finds a bug goes in with the fix, or just before it.
 5. **The `Fuzz|x64` configuration**, with `rfb-replay` running the
    cases under ASan.
-6. **`rfb-fuzz` with one target** (Hextile is small and has the most
-   branching per byte) as the proof of concept; then the others.
+6. **`rfb-fuzz`**, seeded at first with the Hextile cases as the proof
+   of concept (Hextile is small and has the most branching per byte);
+   then the whole corpus.
 7. **`rfb.ksy`**, whenever it is useful.
 
 Known issues the tests may run into, already recorded elsewhere:
