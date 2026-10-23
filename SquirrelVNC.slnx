@@ -11,19 +11,12 @@
     <BuildDependency Project="core-lib/core-lib.vcxproj" />
     <BuildDependency Project="win32-lib/win32-lib.vcxproj" />
   </Project>
-  <Project Path="tools/svg2ico/svg2ico.vcxproj" Id="c8a85bf1-5e04-4c6c-a4c4-0b78f90b9631">
-    <BuildType Solution="ReleaseAsan|*" Project="Release" />
-    <Build Solution="ReleaseAsan|*" Project="false" />
-  </Project>
+  <Project Path="tools/svg2ico/svg2ico.vcxproj" Id="c8a85bf1-5e04-4c6c-a4c4-0b78f90b9631" />
   <Project Path="tvnviewer/tvnviewer.vcxproj" Id="082f71ad-cdf6-44de-84f7-9d2d16784b23">
-    <BuildType Solution="ReleaseAsan|*" Project="Release" />
-    <Build Solution="ReleaseAsan|*" Project="false" />
     <BuildDependency Project="core-lib/core-lib.vcxproj" />
     <BuildDependency Project="win32-lib/win32-lib.vcxproj" />
   </Project>
   <Project Path="viewer-keysym-test/viewer-keysym-test.vcxproj" Id="10b3f744-b1b4-41fa-90d5-bc630cb19b6b">
-    <BuildType Solution="ReleaseAsan|*" Project="Release" />
-    <Build Solution="ReleaseAsan|*" Project="false" />
     <BuildDependency Project="core-lib/core-lib.vcxproj" />
     <BuildDependency Project="win32-lib/win32-lib.vcxproj" />
   </Project>

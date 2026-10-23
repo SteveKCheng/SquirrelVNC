@@ -26,10 +26,9 @@
   </PropertyGroup>
   <!--
     ReleaseAsan: the Release settings (projects test the configuration
-    name with StartsWith('Release')) plus AddressSanitizer. Only the
-    libraries and the test harnesses have it; see notes/testing.md.
-    The ASan runtime DLL is copied next to each program (see
-    Directory.Build.targets).
+    name with StartsWith('Release')) plus AddressSanitizer, for every
+    project; see notes/testing.md. The ASan runtime DLL is copied next
+    to each program (see Directory.Build.targets).
   -->
   <PropertyGroup Condition="'$(Configuration)' == 'ReleaseAsan'">
     <EnableASAN>true</EnableASAN>

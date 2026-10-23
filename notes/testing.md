@@ -359,9 +359,9 @@ VS 2022, and neither needs a desktop.
   the start of the configuration name (`$(Configuration.StartsWith('Release'))`),
   so `ReleaseAsan` and `ReleaseFuzz` get every Release setting without
   copies; only `Directory.Build.props` says what each adds.
-- **`ReleaseAsan`** (done): `EnableASAN`, for `core-lib`, `win32-lib`
-  and `rfb-replay`, on both platforms. `SquirrelVNC.slnx` leaves the
-  other projects out of it. MSVC links the ASan runtime DLL even with
+- **`ReleaseAsan`** (done): `EnableASAN`, for every project on both
+  platforms, the viewer included, so that it can also be tried by hand
+  under ASan. MSVC links the ASan runtime DLL even with
   the static CRT, so `Directory.Build.targets` copies
   `clang_rt.asan_dynamic-*.dll` next to each program. `rfb-replay`
   sets ASan's exit code to 4 (`__asan_default_options()`), so that a
@@ -376,8 +376,6 @@ VS 2022, and neither needs a desktop.
   flags will be settled when it is built.
 - The vcpkg libraries (zlib-ng, libjpeg-turbo) stay uninstrumented.
   They are C, so the STL annotation mismatch checks do not apply.
-- The GUI could get `ReleaseAsan` too, for manual testing, once
-  `tvnviewer`'s project is rewritten in the same concise form.
 - LeakSanitizer does not exist on Windows; leak checking waits for the
   Linux build (`portability.md`).
 
