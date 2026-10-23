@@ -67,12 +67,24 @@ static const TCHAR USAGE[] =
   _T("  --log LEVEL        core log on stderr, 0 to 9 (default: 1, errors)\n")
   _T("\n")
   _T("Exit codes: 0 success or match, 1 mismatch, 2 usage or I/O error,\n")
-  _T("3 timeout.\n");
+  _T("3 timeout, 4 AddressSanitizer report (ReleaseAsan build).\n");
 
 static const int EXIT_MATCH = 0;
 static const int EXIT_MISMATCH = 1;
 static const int EXIT_ERROR = 2;
 static const int EXIT_TIMEOUT = 3;
+
+#ifdef __SANITIZE_ADDRESS__
+//
+// In the ReleaseAsan build, an AddressSanitizer report ends the program
+// with exit code 4, rather than ASan's default of 1, which would read as
+// a mismatch.
+//
+extern "C" const char *__asan_default_options()
+{
+  return "exitcode=4";
+}
+#endif
 
 //
 // A Logger that prints the core's log on stderr, up to a level.

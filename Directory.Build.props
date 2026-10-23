@@ -24,5 +24,15 @@
     <OutDir>$(MSBuildThisFileDirectory)bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(MSBuildThisFileDirectory)obj\$(Platform)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
   </PropertyGroup>
+  <!--
+    ReleaseAsan: the Release settings (projects test the configuration
+    name with StartsWith('Release')) plus AddressSanitizer. Only the
+    libraries and the test harnesses have it; see notes/testing.md.
+    The ASan runtime DLL is copied next to each program (see
+    Directory.Build.targets).
+  -->
+  <PropertyGroup Condition="'$(Configuration)' == 'ReleaseAsan'">
+    <EnableASAN>true</EnableASAN>
+  </PropertyGroup>
   <Import Project="$(TvnVcpkgMSBuildDir)vcpkg.props" />
 </Project>

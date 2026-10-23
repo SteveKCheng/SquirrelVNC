@@ -22,6 +22,14 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseAsan|Win32">
+      <Configuration>ReleaseAsan</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseAsan|x64">
+      <Configuration>ReleaseAsan</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{92C11C78-56D1-46E7-9ADD-8FF4549B7A2E}</ProjectGuid>

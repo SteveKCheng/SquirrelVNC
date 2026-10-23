@@ -102,8 +102,8 @@ last ones before `stop()` ends that thread.
 ## ① The replay harness: `rfb-replay`
 
 A console program in `harnesses/rfb-replay/`, built in all four
-configurations and in `Fuzz|x64` (below), so the regression tests also
-run under ASan.
+configurations and in `ReleaseAsan` (below), so the regression tests
+also run under ASan.
 
 ```
 rfb-replay [options] INPUT
@@ -121,7 +121,8 @@ rfb-replay --check CASE
 ```
 
 Exit codes: 0 for success or a match, 1 for a mismatch, 2 for a usage
-or I/O error, 3 for a timeout. On a timeout the program exits without
+or I/O error, 3 for a timeout, 4 for an AddressSanitizer report (in
+`ReleaseAsan`). On a timeout the program exits without
 destroying the core, since a looping decoder cannot be stopped and the
 destructor would wait for it.
 
@@ -261,7 +262,8 @@ First cases, roughly in order:
 
 ## ② Decoder fuzzing: `rfb-fuzz`
 
-A libFuzzer program in `harnesses/rfb-fuzz/`, built only in `Fuzz|x64`.
+A libFuzzer program in `harnesses/rfb-fuzz/`, built only in
+`ReleaseFuzz` (below).
 The aim at this stage is to show that fuzzing works in SquirrelVNC and
 to cover the code that handles the most untrusted input, the decoders;
 whole-session fuzzing waits for the rewrite (see "Scope").
@@ -347,19 +349,35 @@ goes away then, and other message types come along with it.
   given files once and exits, failing on a crash), so a fix stays
   fixed.
 
-### The `Fuzz|x64` configuration
+### The `ReleaseAsan` and `ReleaseFuzz` configurations
 
 MSVC has supported AddressSanitizer and libFuzzer natively since
 VS 2022, and neither needs a desktop.
 
-- `core-lib`, `win32-lib`, `rfb-replay` and `rfb-fuzz` get a `Fuzz`
-  configuration, set up in `Directory.Build.props`: an optimised build
-  with debug information, `/fsanitize=address`, and coverage
-  instrumentation (`/fsanitize-coverage=...`) for the libraries.
-  `rfb-fuzz` links with `/fsanitize=fuzzer`. The exact flags will be
-  settled when this is built.
+- **Configurations, not switches,** so that they appear in Visual Studio
+  and their output goes to its own `bin\PLATFORM\CONFIG`. Projects test
+  the start of the configuration name (`$(Configuration.StartsWith('Release'))`),
+  so `ReleaseAsan` and `ReleaseFuzz` get every Release setting without
+  copies; only `Directory.Build.props` says what each adds.
+- **`ReleaseAsan`** (done): `EnableASAN`, for `core-lib`, `win32-lib`
+  and `rfb-replay`, on both platforms. `SquirrelVNC.slnx` leaves the
+  other projects out of it. MSVC links the ASan runtime DLL even with
+  the static CRT, so `Directory.Build.targets` copies
+  `clang_rt.asan_dynamic-*.dll` next to each program. `rfb-replay`
+  sets ASan's exit code to 4 (`__asan_default_options()`), so that a
+  report is not read as a mismatch; `run-tests.ps1 -Configuration
+  ReleaseAsan` runs the cases under it.
+- **`ReleaseFuzz`** (with `rfb-fuzz`, step 6): ASan plus coverage
+  instrumentation (`/fsanitize-coverage=...`) for the libraries, and
+  `/fsanitize=fuzzer` for `rfb-fuzz`. It is separate from `ReleaseAsan`
+  so that the replay tests run on libraries without coverage hooks,
+  which libFuzzer's runtime is there to serve (whether a program without
+  libFuzzer could link them at all is to be checked then). The exact
+  flags will be settled when it is built.
 - The vcpkg libraries (zlib-ng, libjpeg-turbo) stay uninstrumented.
   They are C, so the STL annotation mismatch checks do not apply.
+- The GUI could get `ReleaseAsan` too, for manual testing, once
+  `tvnviewer`'s project is rewritten in the same concise form.
 - LeakSanitizer does not exist on Windows; leak checking waits for the
   Linux build (`portability.md`).
 
@@ -400,9 +418,9 @@ Each step is a commit, or a few.
    cases. Done: the nine cases pass in all four configurations. Then
    more cases, in the order above, each batch its own commit. Each case
    that finds a bug goes in with the fix, or just before it.
-5. **The `Fuzz|x64` configuration**, with `rfb-replay` running the
-   cases under ASan.
-6. **`rfb-fuzz`**, seeded at first with the Hextile cases as the proof
+5. **The `ReleaseAsan` configuration**, with `rfb-replay` running the
+   cases under ASan. Done: the nine cases pass on both platforms.
+6. **`ReleaseFuzz` and `rfb-fuzz`**, seeded at first with the Hextile cases as the proof
    of concept (Hextile is small and has the most branching per byte);
    then the whole corpus.
 7. **`rfb.ksy`**, whenever it is useful.

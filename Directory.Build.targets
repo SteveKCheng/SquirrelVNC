@@ -2,4 +2,18 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- See Directory.Build.props. -->
   <Import Project="$(TvnVcpkgMSBuildDir)vcpkg.targets" />
+
+  <!--
+    Programs built with AddressSanitizer need its runtime DLL; MSVC links
+    the DLL version even with the static CRT. Copy it next to them, so
+    they run outside Visual Studio as well.
+  -->
+  <PropertyGroup Condition="'$(EnableASAN)' == 'true'">
+    <TvnAsanDll Condition="'$(Platform)' == 'x64'">$(VCToolsInstallDir)bin\Hostx64\x64\clang_rt.asan_dynamic-x86_64.dll</TvnAsanDll>
+    <TvnAsanDll Condition="'$(Platform)' == 'Win32'">$(VCToolsInstallDir)bin\Hostx64\x86\clang_rt.asan_dynamic-i386.dll</TvnAsanDll>
+  </PropertyGroup>
+  <Target Name="TvnCopyAsanRuntime" AfterTargets="Build"
+          Condition="'$(EnableASAN)' == 'true' and '$(ConfigurationType)' == 'Application'">
+    <Copy SourceFiles="$(TvnAsanDll)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

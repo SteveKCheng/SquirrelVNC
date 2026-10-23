@@ -47,7 +47,12 @@ foreach ($case in $cases) {
     Write-Host "PASS $name"
   } else {
     $failed += $name
-    $why = switch ($code) { 1 { 'mismatch' } 3 { 'timeout' } default { "exit code $code" } }
+    $why = switch ($code) {
+      1 { 'mismatch' }
+      3 { 'timeout' }
+      4 { 'AddressSanitizer report' }
+      default { "exit code $code" }
+    }
     Write-Host "FAIL $name ($why)"
     $output | ForEach-Object { Write-Host "     $_" }
   }
