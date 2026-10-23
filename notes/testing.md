@@ -4,8 +4,15 @@ A plan (2026-10-23) for the first automated tests: a replay harness
 that runs recorded or generated RFB sessions without the GUI, and
 libFuzzer targets for the rectangle decoders. Nothing here is
 implemented yet. The motivation is the Region bug fixed after the /W4
-work: every region came out empty and the viewer showed a black screen,
-which any test that compared a framebuffer would have caught.
+work: every region came out empty and the viewer showed a black screen.
+
+That bug did not touch the framebuffer itself: the decoders still drew
+into it, but `FbUpdateNotifier` merges the updated areas into a
+`Region`, which came out empty, so the GUI was never told to repaint.
+So the replay tests below, which compare the final framebuffer, would
+not have caught it. What would have is a unit test of `Region`, run as
+a small program in `harnesses/` like the others; it is a separate item
+from this plan (see "Later").
 
 See also `portability.md` ("A command-line RFB client over
 stdin/stdout", "Fuzzing") and `async-networking.md` ("Transports, and
@@ -236,8 +243,7 @@ tests/
 
 First cases, roughly in order:
 
-1. RFB 3.8, security type None, Raw at 32 bpp: the minimal session,
-   and the one that would have caught the Region bug.
+1. RFB 3.8, security type None, Raw at 32 bpp: the minimal session.
 2. VNC authentication: success, and failure with a reason string.
 3. RFB 3.3 and 3.7, which negotiate security differently.
 4. Each encoding: CopyRect, RRE, Hextile (every subencoding, and a
@@ -400,6 +406,12 @@ Each step is a commit, or a few.
    of concept (Hextile is small and has the most branching per byte);
    then the whole corpus.
 7. **`rfb.ksy`**, whenever it is useful.
+
+## Later
+
+- **Unit tests** of the pure classes, starting with `Region` (whose
+  clamp bug the replay tests could not have caught, as explained at the
+  top), as another program in `harnesses/` run by `run-tests.ps1`.
 
 Known issues the tests may run into, already recorded elsewhere:
 

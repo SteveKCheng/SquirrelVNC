@@ -59,8 +59,8 @@ def raw_session(c, width, height):
 def raw_rgb888():
     """The minimal session: RFB 3.8, no security, Raw at 32 bpp.
 
-    Several updates, partial rectangles at offsets, an empty update and a
-    bell. Would have caught the Region bug that made every update empty.
+    Several updates, partial rectangles at offsets, an empty update, a
+    bell, and strips along the bottom and right edges.
     """
     c = Case('raw-rgb888')
     c.version(b'RFB 003.008\n')
