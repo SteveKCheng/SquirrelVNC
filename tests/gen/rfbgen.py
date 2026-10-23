@@ -177,6 +177,12 @@ class FrameBuffer:
         # setFbProperties() fills a new framebuffer with black.
         self.rows = [[(0, 0, 0)] * width for _ in range(height)]
 
+    def fill(self, x, y, w, h, comps):
+        """Fill a rectangle, clipped to the framebuffer."""
+        for row in range(max(0, y), min(self.height, y + h)):
+            for col in range(max(0, x), min(self.width, x + w)):
+                self.rows[row][col] = comps
+
     def ppm(self):
         out = bytearray(b'P6\n%d %d\n255\n' % (self.width, self.height))
         for row in self.rows:
@@ -206,6 +212,41 @@ class RawRect:
                 comps = fb.pf.from_rgb8(rgb)
                 out += fb.pf.pixel_bytes(comps)
                 fb.rows[self.y + dy][self.x + dx] = comps
+        return bytes(out)
+
+
+class RreRect:
+    """A rectangle in RRE encoding: a background, then subrectangles.
+
+    Subrectangles are given relative to the rectangle, as (x, y, width,
+    height, rgb). The viewer must reject one that does not lie within the
+    rectangle (RreDecoder::decode()); the model then stops there, with
+    the background and the subrectangles before it drawn, and error is
+    set to the message the session ends with.
+    """
+
+    ERROR = 'Error in protocol: RRE subrectangle outside its rectangle'
+
+    def __init__(self, x, y, w, h, background, subrects=()):
+        self.x, self.y, self.w, self.h = x, y, w, h
+        self.background = background
+        self.subrects = list(subrects)
+        self.error = None
+
+    def encode(self, fb):
+        pf = fb.pf
+        out = bytearray(u16(self.x) + u16(self.y) + u16(self.w) + u16(self.h)
+                        + s32(RRE) + u32(len(self.subrects)))
+        out += pf.pixel_bytes(pf.from_rgb8(self.background))
+        fb.fill(self.x, self.y, self.w, self.h, pf.from_rgb8(self.background))
+        for sx, sy, sw, sh, rgb in self.subrects:
+            comps = pf.from_rgb8(rgb)
+            out += pf.pixel_bytes(comps) + u16(sx) + u16(sy) + u16(sw) + u16(sh)
+            if self.error is None:
+                if sx + sw > self.w or sy + sh > self.h:
+                    self.error = self.ERROR
+                else:
+                    fb.fill(self.x + sx, self.y + sy, sw, sh, comps)
         return bytes(out)
 
 
@@ -303,10 +344,19 @@ class Case:
     # Server messages
 
     def update(self, rects):
-        """A FramebufferUpdate, and the incremental request that follows."""
+        """A FramebufferUpdate, and the incremental request that follows.
+
+        If a rectangle makes the viewer stop with an error (its error
+        attribute), the session ends there: no request follows, and the
+        case should send nothing more.
+        """
         self.server += u8(0) + u8(0) + u16(len(rects))
         for rect in rects:
             self.server += rect.encode(self.fb)
+            error = getattr(rect, 'error', None)
+            if error is not None:
+                self.event('error', error)
+                return
         self.client += update_request(True, self.fb.width, self.fb.height)
 
     def bell(self):

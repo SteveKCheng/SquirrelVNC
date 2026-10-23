@@ -34,7 +34,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from rfbgen import Case, Image, RawRect   # noqa: E402
+from rfbgen import Case, Image, RawRect, RreRect   # noqa: E402
 
 CASES = []
 
@@ -156,6 +156,64 @@ def security_refused():
     c = Case('security-refused')
     c.version(b'RFB 003.008\n')
     c.security_refused('Too many connections')
+    return c
+
+
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+GREY = (128, 128, 128)
+
+
+@case
+def rre():
+    """RRE: a background and subrectangles, some on the rectangle's edges."""
+    c = Case('rre')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    raw_session(c, 32, 24)
+    c.update([RreRect(4, 2, 20, 16, GREY,
+                      [(0, 0, 5, 3, RED),
+                       (15, 13, 5, 3, GREEN),
+                       (8, 6, 1, 1, BLUE),
+                       (0, 15, 20, 1, BLUE)])])
+    c.update([RreRect(24, 18, 8, 6, GREEN)])
+    c.end_of_input()
+    return c
+
+
+@case
+def rre_empty_at_bottom_edge():
+    """An empty RRE rectangle lying on the frame buffer's bottom edge.
+
+    The protocol allows empty rectangles, and the viewer's bounds check
+    accepts this one. Filling its background must change nothing:
+    FrameBuffer::fillRect() used to write its first row, which starts at
+    the end of the buffer, past the frame buffer.
+    """
+    c = Case('rre-empty-at-bottom-edge')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    raw_session(c, 8, 8)
+    c.update([RreRect(0, 8, 8, 0, RED)])
+    c.update([RreRect(2, 2, 4, 4, BLUE)])
+    c.end_of_input()
+    return c
+
+
+@case
+def rre_subrect_outside():
+    """An RRE subrectangle outside its rectangle ends the session.
+
+    The background and the subrectangle before it are drawn first.
+    """
+    c = Case('rre-subrect-outside')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    raw_session(c, 8, 8)
+    c.update([RreRect(0, 0, 8, 8, GREY,
+                      [(1, 1, 2, 2, RED),
+                       (0, 8, 8, 1, BLUE)])])
     return c
 
 
