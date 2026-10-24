@@ -30,7 +30,7 @@ class Trackbar : public Control
 {
 public:
   Trackbar();
-  virtual ~Trackbar();
+  ~Trackbar() override;
 
   // Sets the range of minimum and maximum logical positions for the slider.
   void setRange(long min, long max);

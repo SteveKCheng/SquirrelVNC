@@ -36,26 +36,26 @@ class DibFrameBuffer : public FrameBuffer
 {
 public:
   DibFrameBuffer();
-  virtual ~DibFrameBuffer();
+  ~DibFrameBuffer() override;
 
-  virtual void setColor(UINT8 reg, UINT8 green, UINT8 blue);
-  virtual void fillRect(const Rect *dstRect, UINT32 color);
+  void setColor(UINT8 reg, UINT8 green, UINT8 blue) override;
+  void fillRect(const Rect *dstRect, UINT32 color) override;
 
-  virtual bool isEqualTo(const FrameBuffer *frameBuffer);
+  bool isEqualTo(const FrameBuffer *frameBuffer) override;
 
-  virtual bool copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
-                        int srcX, int srcY);
-  virtual bool copyFrom(const FrameBuffer *srcFrameBuffer,
-                        int srcX, int srcY);
-  virtual bool overlay(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
-                       int srcX, int srcY, const char *andMask);
-  virtual void move(const Rect *dstRect, const int srcX, const int srcY);
-  virtual bool cmpFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
-                       const int srcX, const int srcY);
+  bool copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+                int srcX, int srcY) override;
+  bool copyFrom(const FrameBuffer *srcFrameBuffer,
+                int srcX, int srcY) override;
+  bool overlay(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+               int srcX, int srcY, const char *andMask) override;
+  void move(const Rect *dstRect, const int srcX, const int srcY) override;
+  bool cmpFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+               const int srcX, const int srcY) override;
 
-  virtual inline Dimension getDimension() const;
+  inline Dimension getDimension() const override;
 
-  virtual inline PixelFormat getPixelFormat() const;
+  inline PixelFormat getPixelFormat() const override;
 
   // This function must uses instead of function that can change the FrameBuffer properties
   // compatibleWindow - is hwnd of a window that will be used to create a compatible DC for
@@ -71,16 +71,16 @@ public:
   // got from a compatible window on object creation. This function can be call many times.
   void setTargetDC(HDC targetDC);
 
-  virtual UINT8 getBitsPerPixel() const;
+  UINT8 getBitsPerPixel() const override;
 
-  virtual UINT8 getBytesPerPixel() const;
+  UINT8 getBytesPerPixel() const override;
 
-  virtual inline void *getBuffer() const;
+  inline void *getBuffer() const override;
 
-  virtual void *getBufferPtr(int x, int y) const;
+  void *getBufferPtr(int x, int y) const override;
 
-  virtual inline int getBufferSize() const;
-  virtual inline int getBytesPerRow() const;
+  inline int getBufferSize() const override;
+  inline int getBytesPerRow() const override;
 
   // This function copies a block of bits from a source DC (that has been used to create the
   // DIB section) to the DIB section.
@@ -110,17 +110,17 @@ private:
   // This section to reduce access to some function that have been inherited from the
   // FrameBuffer class and can't to be use in here. Also, if user code will to try
   // use this functions from a base class its will throw Exception.
-  virtual bool assignProperties(const FrameBuffer *srcFrameBuffer);
-  virtual bool clone(const FrameBuffer *srcFrameBuffer);
-  virtual bool setDimension(const Dimension *newDim);
-  virtual bool setDimension(const Rect *rect);
-  virtual void setEmptyDimension(const Rect *dimByRect);
-  virtual bool setPixelFormat(const PixelFormat *pixelFormat);
-  virtual void setEmptyPixelFmt(const PixelFormat *pf);
-  virtual bool setProperties(const Dimension *newDim, const PixelFormat *pixelFormat);
-  virtual bool setProperties(const Rect *dimByRect, const PixelFormat *pixelFormat);
-  virtual void setPropertiesWithoutResize(const Dimension *newDim, const PixelFormat *pf);
-  virtual void setBuffer(void *newBuffer);
+  bool assignProperties(const FrameBuffer *srcFrameBuffer) override;
+  bool clone(const FrameBuffer *srcFrameBuffer) override;
+  bool setDimension(const Dimension *newDim) override;
+  bool setDimension(const Rect *rect) override;
+  void setEmptyDimension(const Rect *dimByRect) override;
+  bool setPixelFormat(const PixelFormat *pixelFormat) override;
+  void setEmptyPixelFmt(const PixelFormat *pf) override;
+  bool setProperties(const Dimension *newDim, const PixelFormat *pixelFormat) override;
+  bool setProperties(const Rect *dimByRect, const PixelFormat *pixelFormat) override;
+  void setPropertiesWithoutResize(const Dimension *newDim, const PixelFormat *pf) override;
+  void setBuffer(void *newBuffer) override;
 
 private:
   // This function updates a DIB section in accord with the FrameBuffer

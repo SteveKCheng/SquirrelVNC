@@ -37,13 +37,13 @@ public:
   RemoteFolderCreateOperation(LogWriter *logWriter,
                               FileInfo file,
                               const TCHAR *pathToTargetRoot);
-  virtual ~RemoteFolderCreateOperation();
+  ~RemoteFolderCreateOperation() override;
 
-  virtual void start();
+  void start() override;
 
 protected:
-  virtual void onMkdirReply(DataInputStream *input);
-  virtual void onLastRequestFailedReply(DataInputStream *input);
+  void onMkdirReply(DataInputStream *input) override;
+  void onLastRequestFailedReply(DataInputStream *input) override;
 
 protected:
   StringStorage m_pathToTargetFile;

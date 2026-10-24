@@ -30,7 +30,7 @@ class CompressionLevel : public PseudoDecoder
 {
 public:
   CompressionLevel(LogWriter *logWriter, int compression);
-  virtual ~CompressionLevel();
+  ~CompressionLevel() override;
 
 public:
   static int levelToEncoding(int compressionLevel);

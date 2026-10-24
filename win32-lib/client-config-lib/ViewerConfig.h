@@ -43,7 +43,7 @@ class ViewerConfig : public Singleton<ViewerConfig>
 {
 public:
   ViewerConfig(const TCHAR registryPath[]);
-  ~ViewerConfig();
+  ~ViewerConfig() override;
 
   // Deserializes client configuration from settings storage.
   // Returns true if was no errors during deserialization,

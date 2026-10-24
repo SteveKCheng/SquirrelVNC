@@ -33,7 +33,7 @@ class RfbInputGate : public DataInputStream
 public:
   RfbInputGate(Channel *stream);
   RfbInputGate(InputStream *stream);
-  virtual ~RfbInputGate();
+  ~RfbInputGate() override;
 };
 
 #endif

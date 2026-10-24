@@ -57,7 +57,7 @@ public:
    *
    * Pre-conditions: the subclass's destructor has called stop().
    */
-  virtual ~TcpServer();
+  ~TcpServer() override;
 
   /**
    * Returns bind port.
@@ -92,7 +92,7 @@ protected:
    * Inherited from Thread class.
    * Listening for incoming tcp connections.
    */
-  virtual void execute();
+  void execute() override;
 
 private:
   /**

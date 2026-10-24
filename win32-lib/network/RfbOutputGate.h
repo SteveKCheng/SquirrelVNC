@@ -52,14 +52,14 @@ public:
   /**
    * Deletes rfb output gate.
    */
-  virtual ~RfbOutputGate();
+  ~RfbOutputGate() override;
 
   /**
    * Flushes inner buffer to real output stream.
    * @throws whatever the real output stream's write() throws: IOException
    *   for a SocketStream.
    */
-  virtual void flush();
+  void flush() override;
 
 private:
   /**

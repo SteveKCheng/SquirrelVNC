@@ -42,7 +42,7 @@ class FileTransferReplyBuffer : public FileTransferEventHandler
 {
 public:
   FileTransferReplyBuffer(LogWriter *logWriter);
-  virtual ~FileTransferReplyBuffer();
+  ~FileTransferReplyBuffer() override;
 
   void getLastErrorMessage(StringStorage *storage);
 
@@ -64,28 +64,28 @@ public:
   // Inherited from FileTransferEventHandler abstract class
   //
 
-  virtual void onCompressionSupportReply(DataInputStream *input);
+  void onCompressionSupportReply(DataInputStream *input) override;
   // Reads a file list reply into m_filesInfo, replacing the previous list.
   // If this throws, the previous list is gone and the new one may be partly
   // read: some entries may be left empty.  The count the server sends is
   // rejected if the data is too short to hold that many entries.
-  virtual void onFileListReply(DataInputStream *input);
-  virtual void onMd5DataReply(DataInputStream *input);
+  void onFileListReply(DataInputStream *input) override;
+  void onMd5DataReply(DataInputStream *input) override;
 
-  virtual void onUploadReply(DataInputStream *input);
-  virtual void onUploadDataReply(DataInputStream *input);
-  virtual void onUploadEndReply(DataInputStream *input);
+  void onUploadReply(DataInputStream *input) override;
+  void onUploadDataReply(DataInputStream *input) override;
+  void onUploadEndReply(DataInputStream *input) override;
 
-  virtual void onDownloadReply(DataInputStream *input);
-  virtual void onDownloadDataReply(DataInputStream *input);
-  virtual void onDownloadEndReply(DataInputStream *input);
+  void onDownloadReply(DataInputStream *input) override;
+  void onDownloadDataReply(DataInputStream *input) override;
+  void onDownloadEndReply(DataInputStream *input) override;
 
-  virtual void onMkdirReply(DataInputStream *input);
-  virtual void onRmReply(DataInputStream *input);
-  virtual void onMvReply(DataInputStream *input);
+  void onMkdirReply(DataInputStream *input) override;
+  void onRmReply(DataInputStream *input) override;
+  void onMvReply(DataInputStream *input) override;
 
-  virtual void onDirSizeReply(DataInputStream *input);
-  virtual void onLastRequestFailedReply(DataInputStream *input);
+  void onDirSizeReply(DataInputStream *input) override;
+  void onLastRequestFailedReply(DataInputStream *input) override;
 
 private:
 

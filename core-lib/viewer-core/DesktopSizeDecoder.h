@@ -30,7 +30,7 @@ class DesktopSizeDecoder : public PseudoDecoder
 {
 public:
   DesktopSizeDecoder(LogWriter *logWriter);
-  virtual ~DesktopSizeDecoder();
+  ~DesktopSizeDecoder() override;
 };
 
 #endif

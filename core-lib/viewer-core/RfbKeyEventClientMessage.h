@@ -30,9 +30,9 @@ class RfbKeyEventClientMessage : public RfbClientToServerMessage
 {
 public:
   RfbKeyEventClientMessage(bool downFlag, UINT32 key);
-  ~RfbKeyEventClientMessage();
+  ~RfbKeyEventClientMessage() override;
 
-  void send(RfbOutputGate *output);
+  void send(RfbOutputGate *output) override;
 
 private:
   UINT32 m_key;

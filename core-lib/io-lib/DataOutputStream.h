@@ -43,13 +43,13 @@ public:
    * @param outputStream real output stream.
    */
   DataOutputStream(OutputStream *outputStream);
-  virtual ~DataOutputStream();
+  ~DataOutputStream() override;
 
   /**
    * Inherited from superclass.
    * @remark just delegates call to real output stream.
    */
-  virtual size_t write(const void *buffer, size_t len);
+  size_t write(const void *buffer, size_t len) override;
 
   /**
    * Writes exacly specified count of bytes to stream.
@@ -85,7 +85,7 @@ public:
   /**
    * Flushes inner output stream.
    */
-  virtual void flush();
+  void flush() override;
 protected:
   OutputStream *m_outStream;
 };

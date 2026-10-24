@@ -30,7 +30,7 @@ class PointerPosDecoder : public PseudoDecoder
 {
 public:
   PointerPosDecoder(LogWriter *logWriter);
-  virtual ~PointerPosDecoder();
+  ~PointerPosDecoder() override;
 };
 
 #endif

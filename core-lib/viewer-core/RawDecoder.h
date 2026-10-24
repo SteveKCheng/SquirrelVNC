@@ -30,22 +30,22 @@ class RawDecoder : public DecoderOfRectangle
 {
 public:
   RawDecoder(LogWriter *logWriter);
-  virtual ~RawDecoder();
+  ~RawDecoder() override;
 
   //
   // This method is inherited from DecoderOfRectangle.
   //
-  virtual void process(RfbInputGate *input,
-                       FrameBuffer *frameBuffer,
-                       FrameBuffer *secondFrameBuffer,
-                       const Rect *rect,
-                       LocalMutex *fbLock,
-                       FbUpdateNotifier *fbNotifier);
+  void process(RfbInputGate *input,
+               FrameBuffer *frameBuffer,
+               FrameBuffer *secondFrameBuffer,
+               const Rect *rect,
+               LocalMutex *fbLock,
+               FbUpdateNotifier *fbNotifier) override;
 
 protected:
-  virtual void decode(RfbInputGate *input,
-                      FrameBuffer *frameBuffer,
-                      const Rect *rect);
+  void decode(RfbInputGate *input,
+              FrameBuffer *frameBuffer,
+              const Rect *rect) override;
 
 private:
   static const size_t AREA_OF_ONE_PART = 1024 * 64;

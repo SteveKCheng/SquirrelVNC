@@ -31,7 +31,7 @@ class ZLibException : public Exception
 public:
   ZLibException(const TCHAR *message);
   ZLibException();
-  virtual ~ZLibException();
+  ~ZLibException() override;
 };
 
 #endif

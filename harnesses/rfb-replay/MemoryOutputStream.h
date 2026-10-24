@@ -35,13 +35,13 @@ class MemoryOutputStream : public OutputStream
 {
 public:
   MemoryOutputStream();
-  virtual ~MemoryOutputStream();
+  ~MemoryOutputStream() override;
 
   //
   // Pre-conditions: buffer points to len bytes.
   // Post-conditions: the bytes are appended; returns len.
   //
-  virtual size_t write(const void *buffer, size_t len);
+  size_t write(const void *buffer, size_t len) override;
 
   //
   // Post-conditions: returns a copy of everything written so far.

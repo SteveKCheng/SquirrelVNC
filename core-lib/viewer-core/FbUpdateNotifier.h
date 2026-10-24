@@ -46,7 +46,7 @@ public:
   FbUpdateNotifier(FbUpdateNotifier &&) = delete;
   FbUpdateNotifier &operator=(FbUpdateNotifier &&) = delete;
 
-  virtual ~FbUpdateNotifier();
+  ~FbUpdateNotifier() override;
 
   void setAdapter(CoreEventsAdapter *adapter);
 
@@ -62,8 +62,8 @@ public:
   void setIgnoreShapeUpdates(bool ignore);
 protected:
   // Inherited from Thread
-  void execute();
-  void onTerminate();
+  void execute() override;
+  void onTerminate() override;
 
   LocalMutex *m_fbLock;
   FrameBuffer *m_frameBuffer;

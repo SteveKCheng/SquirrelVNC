@@ -30,7 +30,7 @@ class JpegQualityLevel : public PseudoDecoder
 {
 public:
   JpegQualityLevel(LogWriter *logWriter, int quality);
-  virtual ~JpegQualityLevel();
+  ~JpegQualityLevel() override;
 
 public:
   static int qualityToEncoding(int qualityLevel);

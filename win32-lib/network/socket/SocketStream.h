@@ -36,7 +36,7 @@ class SocketStream : public Channel
 {
 public:
   SocketStream(SocketIPv4 *);
-  virtual ~SocketStream();
+  ~SocketStream() override;
 
   //
   // Inherited from Channel.
@@ -44,15 +44,15 @@ public:
 
   // read() and write() throw IOException on failure, including a closed
   // connection in read().
-  virtual size_t read(void *, size_t);
+  size_t read(void *, size_t) override;
 
-  virtual size_t write(const void *, size_t);
+  size_t write(const void *, size_t) override;
 
   // Closes connection and break all blocked operation.
   // Does not throw: a failure to shut the connection down is ignored.
-  virtual void close();
+  void close() override;
 
-  virtual size_t available();
+  size_t available() override;
 
 protected:
   SocketIPv4 *m_socket;

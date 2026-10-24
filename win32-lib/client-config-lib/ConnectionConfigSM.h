@@ -31,7 +31,7 @@ class ConnectionConfigSM : public RegistrySettingsManager
 public:
   ConnectionConfigSM(const TCHAR registryPath[],
                      const TCHAR entryName[]);
-  virtual ~ConnectionConfigSM();
+  ~ConnectionConfigSM() override;
 };
 
 #endif

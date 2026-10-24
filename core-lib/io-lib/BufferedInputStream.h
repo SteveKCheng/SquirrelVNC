@@ -10,11 +10,11 @@ public:
 
   BufferedInputStream(InputStream *input);
 
-  virtual ~BufferedInputStream();
+  ~BufferedInputStream() override;
 
-  virtual size_t read(void *buffer, size_t len);
+  size_t read(void *buffer, size_t len) override;
 
-  size_t available();
+  size_t available() override;
 
 protected:
 

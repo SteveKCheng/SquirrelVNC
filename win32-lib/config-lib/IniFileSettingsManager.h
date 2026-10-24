@@ -53,7 +53,7 @@ public:
   IniFileSettingsManager(const TCHAR *pathToFile);
   IniFileSettingsManager();
 
-  virtual ~IniFileSettingsManager();
+  ~IniFileSettingsManager() override;
 
   IniFileSettingsManager(const IniFileSettingsManager &) = delete;
   IniFileSettingsManager &operator=(const IniFileSettingsManager &) = delete;
@@ -106,24 +106,24 @@ public:
   // Inherited from SettingsManager class
   //
 
-  virtual bool getString(const TCHAR *name, StringStorage *storage);
+  bool getString(const TCHAR *name, StringStorage *storage) override;
   // Returns false, changing nothing, if value is NULL, or if name, value
   // or the section name has a line break, which would break the file.
-  virtual bool setString(const TCHAR *name, const TCHAR *value);
+  bool setString(const TCHAR *name, const TCHAR *value) override;
 
   // True only for the value 1, as before.
-  virtual bool getBoolean(const TCHAR *name, bool *value);
-  virtual bool setBoolean(const TCHAR *name, bool value);
+  bool getBoolean(const TCHAR *name, bool *value) override;
+  bool setBoolean(const TCHAR *name, bool value) override;
 
-  virtual bool setUINT(const TCHAR *name, UINT value);
+  bool setUINT(const TCHAR *name, UINT value) override;
 
   // Returns false, leaving value unchanged, if the key is missing or its
   // value is not a decimal number (optionally signed) within int's range.
-  virtual bool getInt(const TCHAR *name, int *value);
-  virtual bool setInt(const TCHAR *name, int value);
+  bool getInt(const TCHAR *name, int *value) override;
+  bool setInt(const TCHAR *name, int value) override;
 
-  virtual bool getByte(const TCHAR *name, char *value);
-  virtual bool setByte(const TCHAR *name, char value);
+  bool getByte(const TCHAR *name, char *value) override;
+  bool setByte(const TCHAR *name, char value) override;
 
 protected:
   StringStorage m_appName;

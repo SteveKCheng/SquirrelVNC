@@ -44,7 +44,7 @@ class LoginDialog : public BaseDialog
 {
 public:
   LoginDialog(TvnViewer *viewer);
-  ~LoginDialog();
+  ~LoginDialog() override;
 
   void setConConf(ConnectionConfig *conConf);
   // set listening mode
@@ -60,9 +60,9 @@ public:
   static const int LISTENING_MODE = 2;
 
 protected:
-  BOOL onInitDialog();
-  BOOL onCommand(UINT controlID, UINT notificationID);
-  BOOL onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis);
+  BOOL onInitDialog() override;
+  BOOL onCommand(UINT controlID, UINT notificationID) override;
+  BOOL onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis) override;
   bool m_isListening;
 
   Control m_listening;

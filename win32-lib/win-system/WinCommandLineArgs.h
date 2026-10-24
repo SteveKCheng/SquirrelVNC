@@ -30,7 +30,7 @@ class WinCommandLineArgs : public CommandLineArgs
 {
 public:
   WinCommandLineArgs(const TCHAR *cmdLineInWinFormat);
-  virtual ~WinCommandLineArgs();
+  ~WinCommandLineArgs() override;
 };
 
 #endif // __WINCOMMANDLINEARGS_H__

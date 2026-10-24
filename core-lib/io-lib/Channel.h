@@ -39,7 +39,7 @@ public:
   /**
    * Destructor, does nothing.
    */
-  virtual ~Channel();
+  ~Channel() override;
 
   /**
    * Closes channel and break all blocking operation that executed at the moment of close() call.

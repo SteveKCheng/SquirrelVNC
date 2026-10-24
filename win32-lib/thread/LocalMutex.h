@@ -50,17 +50,17 @@ public:
   /**
    * Deletes local mutex.
    */
-  virtual ~LocalMutex();
+  ~LocalMutex() override;
 
   /**
    * Inherited from Lockable.
    */
-  virtual void lock();
+  void lock() override;
 
   /**
    * Inherited from Lockable.
    */
-  virtual void unlock();
+  void unlock() override;
 
 private:
   /**

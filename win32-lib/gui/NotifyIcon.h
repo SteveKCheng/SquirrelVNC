@@ -42,7 +42,7 @@ public:
   NotifyIcon(NotifyIcon &&) = delete;
   NotifyIcon &operator=(NotifyIcon &&) = delete;
 
-  virtual ~NotifyIcon();
+  ~NotifyIcon() override;
 
   bool isVisible() const;
 

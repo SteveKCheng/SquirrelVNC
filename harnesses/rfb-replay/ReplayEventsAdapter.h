@@ -50,7 +50,7 @@ class ReplayEventsAdapter : public CoreEventsAdapter
 {
 public:
   ReplayEventsAdapter();
-  virtual ~ReplayEventsAdapter();
+  ~ReplayEventsAdapter() override;
 
   //
   // Give the core whose events this adapter records, so that
@@ -62,13 +62,13 @@ public:
   //
   void setCore(RemoteViewerCore *core);
 
-  virtual void onBell();
-  virtual void onCutText(const StringStorage *cutText);
-  virtual void onEstablished();
-  virtual void onConnected(RfbOutputGate *output);
-  virtual void onDisconnect(const StringStorage *message);
-  virtual void onAuthError(const AuthException *exception);
-  virtual void onError(const Exception *exception);
+  void onBell() override;
+  void onCutText(const StringStorage *cutText) override;
+  void onEstablished() override;
+  void onConnected(RfbOutputGate *output) override;
+  void onDisconnect(const StringStorage *message) override;
+  void onAuthError(const AuthException *exception) override;
+  void onError(const Exception *exception) override;
 
   //
   // Wait until the session ends, by disconnection or error.

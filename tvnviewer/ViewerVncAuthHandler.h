@@ -31,10 +31,10 @@ class ViewerVncAuthHandler : public VncAuthenticationHandler
 {
 public:
   ViewerVncAuthHandler(ConnectionData *connectionData);
-  virtual ~ViewerVncAuthHandler();
+  ~ViewerVncAuthHandler() override;
 
 private:
-  virtual void getPassword(StringStorage *passString);
+  void getPassword(StringStorage *passString) override;
 
   ConnectionData *m_connectionData;
 };

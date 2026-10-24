@@ -30,7 +30,7 @@ class RichCursorDecoder : public PseudoDecoder
 {
 public:
   RichCursorDecoder(LogWriter *logWriter);
-  virtual ~RichCursorDecoder();
+  ~RichCursorDecoder() override;
 };
 
 #endif

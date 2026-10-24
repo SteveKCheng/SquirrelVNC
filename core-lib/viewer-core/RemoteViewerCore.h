@@ -154,7 +154,7 @@ public:
   // stop() and waitTermination() explicitly prior to destroying the object
   // (unless you are sure there are no active threads).
   //
-  virtual ~RemoteViewerCore();
+  ~RemoteViewerCore() override;
 
   //
   // Each overloaded start() function actually starts operation.
@@ -410,33 +410,33 @@ public:
   // Next methods is implements of CapabilitiesManager.
   //
 
-  virtual void addAuthCapability(AuthHandler *authHandler,
-                                 UINT32 code,
-                                 const char *vendorSignature,
-                                 const char *nameSignature,
-                                 const StringStorage description = _T(""));
+  void addAuthCapability(AuthHandler *authHandler,
+                         UINT32 code,
+                         const char *vendorSignature,
+                         const char *nameSignature,
+                         const StringStorage description = _T("")) override;
 
-  virtual void addServerMsgCapability(ServerMessageListener *listener,
-                                      UINT32 code,
-                                      const char *vendorSignature,
-                                      const char *nameSignature,
-                                      const StringStorage description = _T(""));
+  void addServerMsgCapability(ServerMessageListener *listener,
+                              UINT32 code,
+                              const char *vendorSignature,
+                              const char *nameSignature,
+                              const StringStorage description = _T("")) override;
 
-  virtual void addClientMsgCapability(UINT32 code,
-                                      const char *vendorSignature,
-                                      const char *nameSignature,
-                                      const StringStorage description = _T(""));
+  void addClientMsgCapability(UINT32 code,
+                              const char *vendorSignature,
+                              const char *nameSignature,
+                              const StringStorage description = _T("")) override;
 
-  virtual void addEncodingCapability(std::unique_ptr<Decoder> decoder,
-                                     int priorityEncoding,
-                                     UINT32 code,
-                                     const char *vendorSignature,
-                                     const char *nameSignature,
-                                     const StringStorage description = _T(""));
+  void addEncodingCapability(std::unique_ptr<Decoder> decoder,
+                             int priorityEncoding,
+                             UINT32 code,
+                             const char *vendorSignature,
+                             const char *nameSignature,
+                             const StringStorage description = _T("")) override;
 
-  virtual void getEnabledClientMsgCapabilities(std::vector<UINT32> *codes) const;
-  virtual void getEnabledServerMsgCapabilities(std::vector<UINT32> *codes) const;
-  virtual void getEnabledEncodingCapabilities(std::vector<UINT32> *codes) const;
+  void getEnabledClientMsgCapabilities(std::vector<UINT32> *codes) const override;
+  void getEnabledServerMsgCapabilities(std::vector<UINT32> *codes) const override;
+  void getEnabledEncodingCapabilities(std::vector<UINT32> *codes) const override;
 
   // returns list of server displays offsets and dimensions
   std::vector<Rect> getDesktops();
@@ -461,7 +461,7 @@ private:
   //
   // Overrides Thread::execute(). Implements the input thread.
   //
-  void execute();
+  void execute() override;
 
   //
   // This function includes common initialization code used by constructors.

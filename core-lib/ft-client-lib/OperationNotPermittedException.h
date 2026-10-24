@@ -41,7 +41,7 @@ class OperationNotPermittedException : public Exception
 {
 public:
   OperationNotPermittedException();
-  virtual ~OperationNotPermittedException();
+  ~OperationNotPermittedException() override;
 };
 
 #endif

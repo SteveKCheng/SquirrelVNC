@@ -40,7 +40,7 @@ class CopyOperation : public FileTransferOperation
 public:
   CopyOperation(LogWriter *logWriter);
 
-  virtual ~CopyOperation();
+  ~CopyOperation() override;
 
   // Sets copy event listener
   void setCopyProcessListener(CopyFileEventListener *listener);

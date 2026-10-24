@@ -63,7 +63,7 @@ public:
   FileAccount(FileAccount &&) = delete;
   FileAccount &operator=(FileAccount &&) = delete;
 
-  virtual ~FileAccount();
+  ~FileAccount() override;
 
   // This function must to call after the constructor with postponed initialization.
   // Between the constructor and this function calling all log lines stores in
@@ -94,11 +94,11 @@ public:
   virtual bool acceptsLevel(int logLevel);
 
 protected:
-  virtual void flush(unsigned int processId,
-                     unsigned int threadId,
-                     const DateTime *dt,
-                     int level,
-                     const TCHAR *message);
+  void flush(unsigned int processId,
+             unsigned int threadId,
+             const DateTime *dt,
+             int level,
+             const TCHAR *message) override;
 
 private:
   // Changes or creates or closes file depending on a new level and

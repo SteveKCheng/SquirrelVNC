@@ -44,7 +44,7 @@ public:
   /**
    * Frees resource loader singleton.
    */
-  virtual ~ResourceLoader();
+  ~ResourceLoader() override;
 
   /**
    * Loads icon from resources.

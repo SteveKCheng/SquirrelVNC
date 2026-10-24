@@ -30,7 +30,7 @@ class LastRectDecoder : public PseudoDecoder
 {
 public:
   LastRectDecoder(LogWriter *logWriter);
-  virtual ~LastRectDecoder();
+  ~LastRectDecoder() override;
 };
 
 #endif

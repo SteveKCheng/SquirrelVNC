@@ -44,7 +44,7 @@ class DesktopWindow : public PaintWindow,
 {
 public:
   DesktopWindow(LogWriter *logWriter, ConnectionConfig *conConf);
-  virtual ~DesktopWindow();
+  ~DesktopWindow() override;
 
   void setClipboardData(const StringStorage *strText);
   void updateFramebuffer(const FrameBuffer *framebuffer,
@@ -88,13 +88,13 @@ protected:
   //
   // Overrides RfbKeySymListener::onRfbKeySymEvent().
   //
-  void onRfbKeySymEvent(unsigned int rfbKeySym, bool down);
+  void onRfbKeySymEvent(unsigned int rfbKeySym, bool down) override;
 
   //
   // Inherited from BaseWindow.
   //
-  bool onMessage(UINT message, WPARAM wParam, LPARAM lParam);
-  void onPaint(DeviceContext *dc, PAINTSTRUCT *paintStruct);
+  bool onMessage(UINT message, WPARAM wParam, LPARAM lParam) override;
+  void onPaint(DeviceContext *dc, PAINTSTRUCT *paintStruct) override;
   bool onCreate(LPCREATESTRUCT pcs);
   bool onDrawClipboard();
   bool onEraseBackground(HDC hdc);
@@ -103,7 +103,7 @@ protected:
   bool onVScroll(WPARAM wParam, LPARAM lParam);
   bool onKey(WPARAM wParam, LPARAM lParam);
   bool onChar(WPARAM wParam, LPARAM lParam);
-  bool onMouse(unsigned char mouseKeys, unsigned short wheelSpeed, POINT position);
+  bool onMouse(unsigned char mouseKeys, unsigned short wheelSpeed, POINT position) override;
   bool onSize(WPARAM wParam, LPARAM lParam);
   bool onDestroy();
 

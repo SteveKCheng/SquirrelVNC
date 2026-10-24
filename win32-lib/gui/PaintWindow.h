@@ -31,7 +31,7 @@ class PaintWindow: public BaseWindow
 {
 public:
   PaintWindow();
-  virtual ~PaintWindow();
+  ~PaintWindow() override;
 
 private:
   HDC getHDCPaint();
@@ -41,7 +41,7 @@ private:
 protected:
   virtual void onPaint(DeviceContext *dc, PAINTSTRUCT *paintStruct);
 
-  bool wndProc(UINT message, WPARAM wParam, LPARAM lParam);
+  bool wndProc(UINT message, WPARAM wParam, LPARAM lParam) override;
 
   bool m_bIsDraw;
   PAINTSTRUCT m_paintStruct;

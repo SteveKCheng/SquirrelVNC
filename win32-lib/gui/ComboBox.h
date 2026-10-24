@@ -31,7 +31,7 @@ class ComboBox : public Control
 {
 public:
   ComboBox();
-  ~ComboBox();
+  ~ComboBox() override;
 
   // Adds new item to the end of combo box items list.
   int addItem(const TCHAR *text);

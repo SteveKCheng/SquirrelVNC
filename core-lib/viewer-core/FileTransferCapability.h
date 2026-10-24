@@ -38,7 +38,7 @@ class FileTransferCapability : public ServerMessageListener
 {
 public:
   FileTransferCapability(Logger *logger = 0);
-  virtual ~FileTransferCapability();
+  ~FileTransferCapability() override;
 
   //
   // This method return true, if server support File Transfer.
@@ -53,7 +53,7 @@ public:
   //
   // Overrides MessageListener::onRequest().
   //
-  virtual void onServerMessage(UINT32 code, DataInputStream *input);
+  void onServerMessage(UINT32 code, DataInputStream *input) override;
 
   virtual FileTransferCore *getCore();
   virtual void setInterface(FileTransferInterface *ftInterface);

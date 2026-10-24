@@ -36,7 +36,7 @@ public:
   FileInfoListView(FileInfoListView &&) = delete;
   FileInfoListView &operator=(FileInfoListView &&) = delete;
 
-  virtual ~FileInfoListView();
+  ~FileInfoListView() override;
 
   virtual void setWindow(HWND hwnd);
 

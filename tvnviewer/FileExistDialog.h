@@ -42,7 +42,7 @@ public:
   static const int CANCEL_RESULT = 0x3;
 
   FileExistDialog();
-  ~FileExistDialog();
+  ~FileExistDialog() override;
 
   // Override BaseDialog method
   virtual int showModal();
@@ -58,10 +58,10 @@ protected:
   // Inherited from BaseDialog
   //
 
-  virtual BOOL onInitDialog();
-  virtual BOOL onNotify(UINT controlID, LPARAM data);
-  virtual BOOL onCommand(UINT controlID, UINT notificationID);
-  virtual BOOL onDestroy();
+  BOOL onInitDialog() override;
+  BOOL onNotify(UINT controlID, LPARAM data) override;
+  BOOL onCommand(UINT controlID, UINT notificationID) override;
+  BOOL onDestroy() override;
 
   //
   // Button event handlers

@@ -30,7 +30,7 @@ class OperationNotSupportedException : public Exception
 {
 public:
   OperationNotSupportedException();
-  virtual ~OperationNotSupportedException();
+  ~OperationNotSupportedException() override;
 };
 
 #endif

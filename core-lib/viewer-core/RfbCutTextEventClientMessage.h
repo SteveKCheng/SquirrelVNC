@@ -30,7 +30,7 @@ class RfbCutTextEventClientMessage : public RfbClientToServerMessage
 {
 public:
   RfbCutTextEventClientMessage(const StringStorage *cutText);
-  ~RfbCutTextEventClientMessage();
+  ~RfbCutTextEventClientMessage() override;
 
   //
   // Sends the text as a plain ClientCutText message, in Latin-1 as the
@@ -40,7 +40,7 @@ public:
   // Throws Exception if the text is too long for the 32-bit size, before
   // anything is written; otherwise whatever writing throws.
   //
-  void send(RfbOutputGate *output);
+  void send(RfbOutputGate *output) override;
 
   //
   // Sends the text as TightVNC's ClientCutTextUtf8 message: its size in

@@ -53,7 +53,7 @@ public:
   FileTransferOperation(FileTransferOperation &&) = delete;
   FileTransferOperation &operator=(FileTransferOperation &&) = delete;
 
-  virtual ~FileTransferOperation();
+  ~FileTransferOperation() override;
 
   //
   // Sets request sender member

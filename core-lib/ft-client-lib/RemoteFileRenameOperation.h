@@ -42,13 +42,13 @@ public:
                             FileInfo targetFileInfo,
                             const TCHAR *pathToTargetRoot);
 
-  virtual ~RemoteFileRenameOperation();
+  ~RemoteFileRenameOperation() override;
 
-  virtual void start();
+  void start() override;
 
 protected:
-  virtual void onMvReply(DataInputStream *input);
-  virtual void onLastRequestFailedReply(DataInputStream *input);
+  void onMvReply(DataInputStream *input) override;
+  void onLastRequestFailedReply(DataInputStream *input) override;
 
 protected:
   StringStorage m_pathToSourceFile;

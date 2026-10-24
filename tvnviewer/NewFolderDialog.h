@@ -33,7 +33,7 @@ class NewFolderDialog : public BaseDialog
 public:
   NewFolderDialog();
   NewFolderDialog(Control *parent);
-  ~NewFolderDialog();
+  ~NewFolderDialog() override;
 
   void setFileName(const TCHAR *filename);
   void getFileName(StringStorage *storage);
@@ -44,10 +44,10 @@ protected:
   // Inherited from BaseDialog
   //
 
-  virtual BOOL onInitDialog();
-  virtual BOOL onNotify(UINT controlID, LPARAM data);
-  virtual BOOL onCommand(UINT controlID, UINT notificationID);
-  virtual BOOL onDestroy();
+  BOOL onInitDialog() override;
+  BOOL onNotify(UINT controlID, LPARAM data) override;
+  BOOL onCommand(UINT controlID, UINT notificationID) override;
+  BOOL onDestroy() override;
 
   //
   // Button event handlers

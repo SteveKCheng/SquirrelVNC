@@ -37,7 +37,7 @@ class ControlTrayIcon : public NotifyIcon,
 {
 public:
   ControlTrayIcon(TvnViewer *viewerApplication);
-  virtual ~ControlTrayIcon();
+  ~ControlTrayIcon() override;
 
   //
   // this function set icon and show icon [call setIcon(), show()]
@@ -48,7 +48,7 @@ protected:
   static UINT WM_USER_TASKBAR;
 
 protected:
-  virtual LRESULT windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool *useDefWindowProc);
+  LRESULT windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool *useDefWindowProc) override;
 
   //
   // Show login-dialog after click "New connection..." in pop-up menu of tray icon

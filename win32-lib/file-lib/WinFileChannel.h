@@ -39,20 +39,20 @@ public:
   WinFileChannel(WinFileChannel &&) = delete;
   WinFileChannel &operator=(WinFileChannel &&) = delete;
 
-  ~WinFileChannel();
+  ~WinFileChannel() override;
 
   // Inherited from FileChannel.
-  virtual void seek(INT64 n);
+  void seek(INT64 n) override;
 
   // Inherited from Channel.
-  virtual size_t read(void *buffer, size_t len);
+  size_t read(void *buffer, size_t len) override;
 
   // Inherited from Channel.
-  virtual size_t write(const void *buffer, size_t len);
+  size_t write(const void *buffer, size_t len) override;
 
   // Inherited from Channel.
-  virtual void close();
-  size_t available();
+  void close() override;
+  size_t available() override;
 
 private:
   WinFile m_winFile;

@@ -48,12 +48,12 @@ public:
   void setListenerOfUpdate(WindowsApplication *application);
 
 protected:
-  BOOL onCommand(UINT controlID, UINT notificationID);
+  BOOL onCommand(UINT controlID, UINT notificationID) override;
   void onLogLevelChange();
   // Shows the viewer's log file selected in File Explorer, or the log
   // folder if there is no log file yet.  Errors are ignored.
   void onOpenFolderButtonClick();
-  BOOL onInitDialog();
+  BOOL onInitDialog() override;
 
   CheckBox m_showToolBars;
   CheckBox m_warnAtSwitching;

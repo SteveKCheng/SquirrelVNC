@@ -45,7 +45,7 @@ public:
   BufferedOutputStream(BufferedOutputStream &&) = delete;
   BufferedOutputStream &operator=(BufferedOutputStream &&) = delete;
 
-  virtual ~BufferedOutputStream();
+  ~BufferedOutputStream() override;
 
   /**
    * Writes data to output stream (with buffering).
@@ -53,13 +53,13 @@ public:
    * data will be written to real output stream it inner buffer will overflow.
    * @throws whatever the real output stream's write() throws.
    */
-  virtual size_t write(const void *buffer, size_t len);
+  size_t write(const void *buffer, size_t len) override;
 
   /**
    * Writes content of inner buffer to real output stream.
    * @throws whatever the real output stream's write() throws.
    */
-  void flush();
+  void flush() override;
 
 protected:
   DataOutputStream m_output;

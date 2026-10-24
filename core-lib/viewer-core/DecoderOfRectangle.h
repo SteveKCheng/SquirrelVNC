@@ -32,7 +32,7 @@ class DecoderOfRectangle : public Decoder
 {
 public:
   DecoderOfRectangle(LogWriter *logWriter);
-  virtual ~DecoderOfRectangle();
+  ~DecoderOfRectangle() override;
 
   //
   // This function does the following:
@@ -54,7 +54,7 @@ public:
   //
   // This method inherited Decoder::isPseudo() and return true.
   //
-  virtual bool isPseudo() const;
+  bool isPseudo() const override;
 
 protected:
   //

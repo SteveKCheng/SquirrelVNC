@@ -32,23 +32,23 @@ class CopyRectDecoder : public DecoderOfRectangle
 {
 public:
   CopyRectDecoder(LogWriter *logWriter);
-  virtual ~CopyRectDecoder();
+  ~CopyRectDecoder() override;
 
 protected:
   //
   // This method inherited by DecoderOfRectangle.
   //
-  virtual void decode(RfbInputGate *input,
-                      FrameBuffer *frameBuffer,
-                      const Rect *dstRect);
+  void decode(RfbInputGate *input,
+              FrameBuffer *frameBuffer,
+              const Rect *dstRect) override;
 
   //
   // This method inherited by DecoderOfRectangle.
   //
-  virtual void copy(FrameBuffer *dstFrameBuffer,
-                    const FrameBuffer *srcFrameBuffer,
-                    const Rect *rect,
-                    LocalMutex *fbLock);
+  void copy(FrameBuffer *dstFrameBuffer,
+            const FrameBuffer *srcFrameBuffer,
+            const Rect *rect,
+            LocalMutex *fbLock) override;
 
 private:
   // This Point save left-top corner of copy-rectangle.

@@ -30,7 +30,7 @@ class ProgressBar : public Control
 {
 public:
   ProgressBar();
-  ~ProgressBar();
+  ~ProgressBar() override;
   
   void setRange(WORD min, WORD max);
   void setPos(WORD pos);

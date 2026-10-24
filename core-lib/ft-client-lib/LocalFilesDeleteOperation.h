@@ -37,14 +37,14 @@ public:
                             const FileInfo *filesToDelete,
                             size_t filesCount,
                             const TCHAR *pathToTargetRoot);
-  virtual ~LocalFilesDeleteOperation();
+  ~LocalFilesDeleteOperation() override;
 
-  virtual void start();
-  virtual void terminate();
+  void start() override;
+  void terminate() override;
 
 private:
 
-  virtual void execute();
+  void execute() override;
 
   //
   // Deletes file, and first the files in it if it is a directory; a

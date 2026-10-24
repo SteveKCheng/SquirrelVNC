@@ -32,7 +32,7 @@ class SpinControl : public Control
 {
 public:
   SpinControl();
-  ~SpinControl();
+  ~SpinControl() override;
 
   void setBuddy(Control *buddyControl);
   void setRange(short lower, short upper);

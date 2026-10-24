@@ -29,7 +29,7 @@
 class TextBox : public Control
 {
 public:
-  ~TextBox();
+  ~TextBox() override;
 public:
 
 };

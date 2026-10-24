@@ -57,13 +57,13 @@ public:
                     const TCHAR *pathToTargetRoot,
                     const TCHAR *pathToSourceRoot);
 
-  virtual ~DownloadOperation();
+  ~DownloadOperation() override;
 
   //
   // Inherited from FileTransferOperation
   //
 
-  virtual void start();
+  void start() override;
 
 protected:
 
@@ -71,12 +71,12 @@ protected:
   // Inherited from FileTransferEventHandler
   //
 
-  virtual void onFileListReply(DataInputStream *input);
-  virtual void onDownloadReply(DataInputStream *input);
-  virtual void onDownloadDataReply(DataInputStream *input);
-  virtual void onDownloadEndReply(DataInputStream *input);
-  virtual void onLastRequestFailedReply(DataInputStream *input);
-  virtual void onDirSizeReply(DataInputStream *input);
+  void onFileListReply(DataInputStream *input) override;
+  void onDownloadReply(DataInputStream *input) override;
+  void onDownloadDataReply(DataInputStream *input) override;
+  void onDownloadEndReply(DataInputStream *input) override;
+  void onLastRequestFailedReply(DataInputStream *input) override;
+  void onDirSizeReply(DataInputStream *input) override;
 
 private:
 

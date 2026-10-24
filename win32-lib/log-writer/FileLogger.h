@@ -68,9 +68,9 @@ public:
   void changeLogProps(const TCHAR *newLogDir, unsigned char newLevel);
 
   // Stores a log line to the file.
-  virtual void print(int logLevel, const TCHAR *line);
+  void print(int logLevel, const TCHAR *line) override;
 
-  virtual bool acceptsLevel(int logLevel);
+  bool acceptsLevel(int logLevel) override;
 
 private:
   FileAccount m_fileAccount;

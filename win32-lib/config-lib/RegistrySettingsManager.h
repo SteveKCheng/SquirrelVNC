@@ -44,7 +44,7 @@ public:
   // Post-conditions: no key is set; every get and set fails until
   // setRegistryKey() is called.
   RegistrySettingsManager();
-  virtual ~RegistrySettingsManager();
+  ~RegistrySettingsManager() override;
 
   RegistrySettingsManager(const RegistrySettingsManager &) = delete;
   RegistrySettingsManager &operator=(const RegistrySettingsManager &) = delete;
@@ -58,19 +58,19 @@ public:
   //
   void setRegistryKey(HKEY rootKey, const TCHAR *entry);
 
-  virtual bool getString(const TCHAR *name, StringStorage *value);
-  virtual bool setString(const TCHAR *name, const TCHAR *value);
+  bool getString(const TCHAR *name, StringStorage *value) override;
+  bool setString(const TCHAR *name, const TCHAR *value) override;
 
-  virtual bool getBoolean(const TCHAR *name, bool *value);
-  virtual bool setBoolean(const TCHAR *name, bool value);
+  bool getBoolean(const TCHAR *name, bool *value) override;
+  bool setBoolean(const TCHAR *name, bool value) override;
 
-  virtual bool setUINT(const TCHAR *name, UINT value);
+  bool setUINT(const TCHAR *name, UINT value) override;
 
-  virtual bool getInt(const TCHAR *name, int *value);
-  virtual bool setInt(const TCHAR *name, int value);
+  bool getInt(const TCHAR *name, int *value) override;
+  bool setInt(const TCHAR *name, int value) override;
 
-  virtual bool getByte(const TCHAR *name, char *value);
-  virtual bool setByte(const TCHAR *name, char value);
+  bool getByte(const TCHAR *name, char *value) override;
+  bool setByte(const TCHAR *name, char value) override;
 
 private:
   std::unique_ptr<RegistryKey> m_key;

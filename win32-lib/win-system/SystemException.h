@@ -62,7 +62,7 @@ public:
   /**
    * Destructor, does nothing.
    */
-  virtual ~SystemException();
+  ~SystemException() override;
 private:
   /**
    * Sets m_systemMessage and m_message for the exception.

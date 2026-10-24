@@ -54,21 +54,21 @@ public:
                              FileInfo fileInfoToDelete,
                              const TCHAR *pathToTargetRoot);
 
-  virtual ~RemoteFilesDeleteOperation();
+  ~RemoteFilesDeleteOperation() override;
 
   //
   // Starts executing this delete operation
   //
 
-  virtual void start();
+  void start() override;
 
   //
   // File transfer message(accepted by this operation) handlers
   //
 
-  void onFileListReply(DataInputStream *input);
-  void onRmReply(DataInputStream *input);
-  void onLastRequestFailedReply(DataInputStream *input);
+  void onFileListReply(DataInputStream *input) override;
+  void onRmReply(DataInputStream *input) override;
+  void onLastRequestFailedReply(DataInputStream *input) override;
 
 private:
 

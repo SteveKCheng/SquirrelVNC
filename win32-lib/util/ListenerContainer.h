@@ -32,7 +32,7 @@
 template<class T> class SafeVector : public std::vector<T>,
                                      public LocalMutex {
 public:
-  virtual ~SafeVector() { };
+  ~SafeVector() override { };
 };
 
 //

@@ -33,9 +33,9 @@ class RfbSetEncodingsClientMessage : public RfbClientToServerMessage
 {
 public:
   RfbSetEncodingsClientMessage(std::vector<int> *encodings);
-  ~RfbSetEncodingsClientMessage();
+  ~RfbSetEncodingsClientMessage() override;
 
-  void send(RfbOutputGate *output);
+  void send(RfbOutputGate *output) override;
 
 private:
   std::vector<int> m_encodings;

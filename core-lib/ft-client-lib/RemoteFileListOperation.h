@@ -35,20 +35,20 @@ class RemoteFileListOperation : public FileTransferOperation
 {
 public:
   RemoteFileListOperation(LogWriter *logWriter, const TCHAR *remotePath);
-  virtual ~RemoteFileListOperation();
+  ~RemoteFileListOperation() override;
 
   //
   // Methods inherited from FileTransferOperation class
   //
 
-  virtual void start();
+  void start() override;
 
   //
   // File transfer message handlers
   //
 
-  virtual void onFileListReply(DataInputStream *input);
-  virtual void onLastRequestFailedReply(DataInputStream *input);
+  void onFileListReply(DataInputStream *input) override;
+  void onLastRequestFailedReply(DataInputStream *input) override;
 
   //
   // Returns true if operation is finished and was no error,

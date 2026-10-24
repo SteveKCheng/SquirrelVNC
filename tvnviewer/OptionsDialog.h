@@ -69,9 +69,9 @@ protected:
   CheckBox m_arrow;
   CheckBox m_nlocal;
 
-  void onMessageReceived(UINT uMsg, WPARAM wParam, LPARAM lParam);
-  BOOL onCommand(UINT controlID, UINT notificationID);
-  BOOL onInitDialog();
+  void onMessageReceived(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+  BOOL onCommand(UINT controlID, UINT notificationID) override;
+  BOOL onInitDialog() override;
 
   ConnectionConfig *m_conConfig;
   bool m_connected;

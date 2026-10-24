@@ -98,12 +98,12 @@ class StderrLogger : public Logger
 public:
   StderrLogger(int maxLevel) : m_maxLevel(maxLevel) {}
 
-  virtual void print(int logLevel, const TCHAR *line)
+  void print(int logLevel, const TCHAR *line) override
   {
     _ftprintf(stderr, _T("[%d] %s\n"), logLevel, line);
   }
 
-  virtual bool acceptsLevel(int logLevel)
+  bool acceptsLevel(int logLevel) override
   {
     return logLevel <= m_maxLevel;
   }

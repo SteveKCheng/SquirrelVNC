@@ -36,11 +36,11 @@ public:
   // the dialog is open.  parent must outlive the dialog; null means no
   // owner, as for the default constructor.
   FileRenameDialog(Control *parent);
-  ~FileRenameDialog();
+  ~FileRenameDialog() override;
 
 protected:
 
-  virtual BOOL onInitDialog();
+  BOOL onInitDialog() override;
 };
 
 #endif

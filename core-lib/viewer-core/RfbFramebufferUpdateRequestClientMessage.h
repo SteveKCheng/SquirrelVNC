@@ -33,9 +33,9 @@ class RfbFramebufferUpdateRequestClientMessage :
 public:
   RfbFramebufferUpdateRequestClientMessage
     (bool incremental, Rect updateRect);
-  ~RfbFramebufferUpdateRequestClientMessage();
+  ~RfbFramebufferUpdateRequestClientMessage() override;
 
-  void send(RfbOutputGate *output);
+  void send(RfbOutputGate *output) override;
 
 private:
   bool m_incremental;

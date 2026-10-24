@@ -36,12 +36,12 @@ class TightDecoder : public DecoderOfRectangle
 {
 public:
   TightDecoder(LogWriter *logWriter);
-  virtual ~TightDecoder();
+  ~TightDecoder() override;
 
 protected:
-  virtual void decode(RfbInputGate *input,
-                      FrameBuffer *frameBuffer,
-                      const Rect *dstRect);
+  void decode(RfbInputGate *input,
+              FrameBuffer *frameBuffer,
+              const Rect *dstRect) override;
 
 private:
   void reset();

@@ -38,7 +38,7 @@ public:
   // this window received and processing messages "WM_USER_NEW_LISTENING"
   ConnectionListener(WindowsApplication *application, UINT16 port = DEFAULT_PORT);
 
-  virtual ~ConnectionListener();
+  ~ConnectionListener() override;
 
   // this method return pointer to new listening connection, if him is exist, and 0 if isn't
   // Post-conditions: the connection returned is given to the caller.
@@ -46,7 +46,7 @@ public:
 
   UINT16 getBindPort() const;
 protected:
-  void onAcceptConnection(std::unique_ptr<SocketIPv4> socket);
+  void onAcceptConnection(std::unique_ptr<SocketIPv4> socket) override;
 
   WindowsApplication *m_application;
   std::list<std::unique_ptr<SocketIPv4> > m_connections;

@@ -37,10 +37,10 @@ public:
   // Post-conditions: getPassword() gives a copy of password.
   //
   ReplayAuthHandler(const TCHAR *password);
-  virtual ~ReplayAuthHandler();
+  ~ReplayAuthHandler() override;
 
 protected:
-  virtual void getPassword(StringStorage *passString);
+  void getPassword(StringStorage *passString) override;
 
 private:
   StringStorage m_password;

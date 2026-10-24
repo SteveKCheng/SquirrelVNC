@@ -32,9 +32,9 @@ class RfbPointerEventClientMessage : public RfbClientToServerMessage
 {
 public:
   RfbPointerEventClientMessage(const UINT8 buttonMask, const Point *position);
-  ~RfbPointerEventClientMessage();
+  ~RfbPointerEventClientMessage() override;
 
-  void send(RfbOutputGate *output);
+  void send(RfbOutputGate *output) override;
 
 private:
   UINT8 m_buttonMask;

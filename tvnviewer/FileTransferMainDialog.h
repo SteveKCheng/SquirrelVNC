@@ -46,7 +46,7 @@ class FileTransferMainDialog : public BaseDialog,
 {
 public:
   FileTransferMainDialog(FileTransferCore *core);
-  virtual ~FileTransferMainDialog();
+  ~FileTransferMainDialog() override;
 
   //
   // Kill main dialog.
@@ -59,32 +59,32 @@ public:
   //
   int onFtTargetFileExists(FileInfo *sourceFileInfo,
                            FileInfo *targetFileInfo,
-                           const TCHAR *pathToTargetFile);
-  void setProgress(double progress);
+                           const TCHAR *pathToTargetFile) override;
+  void setProgress(double progress) override;
 
-  void onFtOpError(const TCHAR *message);
-  void onFtOpInfo(const TCHAR *message);
-  void onFtOpStarted();
-  void onFtOpFinished(int state, int result);
+  void onFtOpError(const TCHAR *message) override;
+  void onFtOpInfo(const TCHAR *message) override;
+  void onFtOpStarted() override;
+  void onFtOpFinished(int state, int result) override;
 
   //
   // filetransfer's operation is finished. Need update of control
   //
-  void setNothingState();
+  void setNothingState() override;
 
   //
   // Called if local file list is updated
   //
-  void onRefreshLocalFileList();
+  void onRefreshLocalFileList() override;
 
   // Called if remote file list is updated
-  void onRefreshRemoteFileList();
+  void onRefreshRemoteFileList() override;
 
   //
   // Shows error message and throws exception
   //
 
-  void raise(Exception &ex);
+  void raise(Exception &ex) override;
 
 protected:
 
@@ -92,12 +92,12 @@ protected:
   // Inherited from BaseDialog
   //
 
-  virtual BOOL onInitDialog();
-  virtual BOOL onNotify(UINT controlID, LPARAM data);
-  virtual BOOL onCommand(UINT controlID, UINT notificationID);
-  virtual BOOL onDestroy();
+  BOOL onInitDialog() override;
+  BOOL onNotify(UINT controlID, LPARAM data) override;
+  BOOL onCommand(UINT controlID, UINT notificationID) override;
+  BOOL onDestroy() override;
 
-  virtual void onMessageReceived(UINT uMsg, WPARAM wParam, LPARAM lParam);
+  void onMessageReceived(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 
   //
   // Button event handlers

@@ -108,21 +108,21 @@ protected:
   // Inherited from CopyFileEventListener
   //
 
-  virtual void dataChunkCopied(UINT64 totalBytesCopied, UINT64 totalBytesToCopy);
+  void dataChunkCopied(UINT64 totalBytesCopied, UINT64 totalBytesToCopy) override;
 
-  virtual int targetFileExists(FileInfo *sourceFileInfo,
-                               FileInfo *targetFileInfo,
-                               const TCHAR *pathToTargetFile);
+  int targetFileExists(FileInfo *sourceFileInfo,
+                       FileInfo *targetFileInfo,
+                       const TCHAR *pathToTargetFile) override;
 
   //
   // Inherited from OperationEventListener
   //
 
-  virtual void ftOpStarted(FileTransferOperation *sender);
-  virtual void ftOpFinished(FileTransferOperation *sender);
-  virtual void ftOpErrorMessage(FileTransferOperation *sender, const TCHAR *message);
-  virtual void ftOpInfoMessage(FileTransferOperation *sender,
-                               const TCHAR *message);
+  void ftOpStarted(FileTransferOperation *sender) override;
+  void ftOpFinished(FileTransferOperation *sender) override;
+  void ftOpErrorMessage(FileTransferOperation *sender, const TCHAR *message) override;
+  void ftOpInfoMessage(FileTransferOperation *sender,
+                       const TCHAR *message) override;
 
   //
   // Interface of log

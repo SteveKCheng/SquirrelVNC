@@ -34,8 +34,8 @@ public:
   HelpDialog();
 
 protected:
-  BOOL onInitDialog() ;
-  BOOL onCommand(UINT controlID, UINT notificationID);
+  BOOL onInitDialog() override ;
+  BOOL onCommand(UINT controlID, UINT notificationID) override;
   TextBox m_shelp;
 
 };

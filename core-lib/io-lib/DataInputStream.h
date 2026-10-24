@@ -43,15 +43,15 @@ public:
    * @param inputStream input stream that will be used to read data.
    */
   DataInputStream(InputStream *inputStream);
-  virtual ~DataInputStream();
+  ~DataInputStream() override;
 
   /**
    * Inherited from superclass.
    * Delegates execution of method to real input stream.
    */
-  virtual size_t read(void *buffer, size_t len);
+  size_t read(void *buffer, size_t len) override;
 
-  virtual size_t available();
+  size_t available() override;
 
   /**
    * Reads exactly specified count of bytes from input stream.

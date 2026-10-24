@@ -81,13 +81,13 @@ public:
                   const TCHAR *pathToSourceRoot,
                   const TCHAR *pathToTargetRoot);
 
-  virtual ~UploadOperation();
+  ~UploadOperation() override;
 
   //
   // Starts upload operation
   //
 
-  virtual void start();
+  void start() override;
 
   //
   // Inherited from FileTransferEventHandler class
@@ -95,12 +95,12 @@ public:
   // Event handlers to process file transfer messages
   //
 
-  virtual void onUploadReply(DataInputStream *input);
-  virtual void onUploadDataReply(DataInputStream *input);
-  virtual void onUploadEndReply(DataInputStream *input);
-  virtual void onMkdirReply(DataInputStream *input);
-  virtual void onLastRequestFailedReply(DataInputStream *input);
-  virtual void onFileListReply(DataInputStream *input);
+  void onUploadReply(DataInputStream *input) override;
+  void onUploadDataReply(DataInputStream *input) override;
+  void onUploadEndReply(DataInputStream *input) override;
+  void onMkdirReply(DataInputStream *input) override;
+  void onLastRequestFailedReply(DataInputStream *input) override;
+  void onFileListReply(DataInputStream *input) override;
 
 private:
 

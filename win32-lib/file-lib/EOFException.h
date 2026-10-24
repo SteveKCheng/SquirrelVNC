@@ -30,7 +30,7 @@ class EOFException : public IOException
 {
 public:
   EOFException();
-  virtual ~EOFException();
+  ~EOFException() override;
 };
 
 #endif

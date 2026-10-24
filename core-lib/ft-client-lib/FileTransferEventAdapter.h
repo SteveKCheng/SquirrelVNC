@@ -42,26 +42,26 @@ class FileTransferEventAdapter : public FileTransferEventHandler
 {
 public:
   FileTransferEventAdapter();
-  virtual ~FileTransferEventAdapter();
+  ~FileTransferEventAdapter() override;
 
-  virtual void onCompressionSupportReply(DataInputStream *input);
-  virtual void onFileListReply(DataInputStream *input);
-  virtual void onMd5DataReply(DataInputStream *input);
+  void onCompressionSupportReply(DataInputStream *input) override;
+  void onFileListReply(DataInputStream *input) override;
+  void onMd5DataReply(DataInputStream *input) override;
 
-  virtual void onUploadReply(DataInputStream *input);
-  virtual void onUploadDataReply(DataInputStream *input);
-  virtual void onUploadEndReply(DataInputStream *input);
+  void onUploadReply(DataInputStream *input) override;
+  void onUploadDataReply(DataInputStream *input) override;
+  void onUploadEndReply(DataInputStream *input) override;
 
-  virtual void onDownloadReply(DataInputStream *input);
-  virtual void onDownloadDataReply(DataInputStream *input);
-  virtual void onDownloadEndReply(DataInputStream *input);
+  void onDownloadReply(DataInputStream *input) override;
+  void onDownloadDataReply(DataInputStream *input) override;
+  void onDownloadEndReply(DataInputStream *input) override;
 
-  virtual void onMkdirReply(DataInputStream *input);
-  virtual void onRmReply(DataInputStream *input);
-  virtual void onMvReply(DataInputStream *input);
+  void onMkdirReply(DataInputStream *input) override;
+  void onRmReply(DataInputStream *input) override;
+  void onMvReply(DataInputStream *input) override;
 
-  virtual void onDirSizeReply(DataInputStream *input);
-  virtual void onLastRequestFailedReply(DataInputStream *input);
+  void onDirSizeReply(DataInputStream *input) override;
+  void onLastRequestFailedReply(DataInputStream *input) override;
 };
 
 #endif

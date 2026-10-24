@@ -33,7 +33,7 @@ class ZrleDecoder : public DecoderOfRectangle
 {
 public:
   ZrleDecoder(LogWriter *logWriter);
-  virtual ~ZrleDecoder();
+  ~ZrleDecoder() override;
 
 protected:
   typedef std::vector<unsigned int> Palette;
@@ -45,9 +45,9 @@ protected:
   // high 3 bytes, which is not supported.
   // Pre-condition: the frame buffer's pixel format is valid
   // (PixelFormat::isValid()).
-  virtual void decode(RfbInputGate *input,
-                      FrameBuffer *frameBuffer,
-                      const Rect *dstRect);
+  void decode(RfbInputGate *input,
+              FrameBuffer *frameBuffer,
+              const Rect *dstRect) override;
 
 
   void readAndInflate(RfbInputGate *input, size_t maximalUnpackedSize);

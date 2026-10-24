@@ -39,7 +39,7 @@ public:
    * @param bufferSize count of bytes in memory buffer.
    */
   ByteArrayInputStream(const char *buffer, size_t bufferSize);
-  virtual ~ByteArrayInputStream();
+  ~ByteArrayInputStream() override;
 
   /**
    * Reads data from memory.
@@ -47,9 +47,9 @@ public:
    * @param len count of bytes to write.
    * @throws IOException when no data left in memory buffer.
    */
-  virtual size_t read(void *buffer, size_t len);
+  size_t read(void *buffer, size_t len) override;
 
-  virtual size_t available();
+  size_t available() override;
 
 protected:
   const char *m_buffer;

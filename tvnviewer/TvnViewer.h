@@ -49,7 +49,7 @@ public:
   TvnViewer(HINSTANCE appInstance,
             const TCHAR *windowClassName,
             const TCHAR *viewerWindowClassName);
-  virtual ~TvnViewer();
+  ~TvnViewer() override;
 
   //
   // show login dialog
@@ -83,10 +83,10 @@ public:
   void stopListening();
 
   // Inherited from WindowsApplication
-  void registerWindowClass(WNDCLASS *wndClass);
+  void registerWindowClass(WNDCLASS *wndClass) override;
   static LRESULT CALLBACK wndProc(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam);
-  virtual void createWindow(const TCHAR *className);
-  int processMessages();
+  void createWindow(const TCHAR *className) override;
+  int processMessages() override;
 
 public:
   // this message must sended after accepted new listening-connection

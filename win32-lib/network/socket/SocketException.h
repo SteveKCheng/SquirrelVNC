@@ -42,7 +42,7 @@ public:
   // Error number is sets to zero.
   SocketException(const TCHAR *message);
   // Destructor.
-  virtual ~SocketException();
+  ~SocketException() override;
 
   // Returns error number.
   int errno();

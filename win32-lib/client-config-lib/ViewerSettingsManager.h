@@ -32,7 +32,7 @@ class ViewerSettingsManager : public RegistrySettingsManager
 {
 public:
   ViewerSettingsManager(const TCHAR registryName[]);
-  virtual ~ViewerSettingsManager();
+  ~ViewerSettingsManager() override;
 
   // Post-conditions: getInstance() gives a new instance for registryName;
   // the old one, if any, is destroyed.

@@ -39,7 +39,7 @@ public:
   /**
    * Destroys dialog.
    */
-  virtual ~AboutDialog();
+  ~AboutDialog() override;
 
 protected:
   /**
@@ -60,27 +60,27 @@ protected:
    * Inherited from BaseDialog.
    * Does nothing.
    */
-  virtual BOOL onInitDialog();
+  BOOL onInitDialog() override;
   /**
    * Inherited from BaseDialog.
    * Does nothing.
    */
-  virtual BOOL onNotify(UINT controlID, LPARAM data);
+  BOOL onNotify(UINT controlID, LPARAM data) override;
   /**
    * Inherited from BaseDialog.
    * Handles buttons events.
    */
-  virtual BOOL onCommand(UINT controlID, UINT notificationID);
+  BOOL onCommand(UINT controlID, UINT notificationID) override;
   /**
    * Inherited from BaseDialog.
    * Draws the logo.
    */
-  virtual BOOL onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis);
+  BOOL onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis) override;
   /**
    * Inherited from BaseDialog.
    * Does nothing.
    */
-  virtual BOOL onDestroy();
+  BOOL onDestroy() override;
 };
 
 #endif

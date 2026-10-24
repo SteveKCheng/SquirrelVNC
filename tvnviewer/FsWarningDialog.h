@@ -35,8 +35,8 @@ public:
   bool isFsWarning();
 
 protected:
-  BOOL onInitDialog();
-  BOOL onCommand(UINT controlID, UINT notificationID);
+  BOOL onInitDialog() override;
+  BOOL onCommand(UINT controlID, UINT notificationID) override;
 
   CheckBox m_fsWarning;
 };

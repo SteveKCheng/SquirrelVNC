@@ -30,7 +30,7 @@ class RreDecoder : public DecoderOfRectangle
 {
 public:
   RreDecoder(LogWriter *logWriter);
-  virtual ~RreDecoder();
+  ~RreDecoder() override;
 
 protected:
   //
@@ -43,9 +43,9 @@ protected:
   // subrectangle does not lie within dstRect; IOException if the input
   // fails.
   //
-  virtual void decode(RfbInputGate *input,
-                      FrameBuffer *framebuffer,
-                      const Rect *dstRect);
+  void decode(RfbInputGate *input,
+              FrameBuffer *framebuffer,
+              const Rect *dstRect) override;
 };
 
 #endif

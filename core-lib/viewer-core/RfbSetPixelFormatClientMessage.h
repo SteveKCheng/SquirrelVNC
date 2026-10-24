@@ -31,9 +31,9 @@ class RfbSetPixelFormatClientMessage : public RfbClientToServerMessage
 {
 public:
   RfbSetPixelFormatClientMessage(const PixelFormat *pixelFormat);
-  virtual ~RfbSetPixelFormatClientMessage();
+  ~RfbSetPixelFormatClientMessage() override;
 
-  void send(RfbOutputGate *output);
+  void send(RfbOutputGate *output) override;
 
 protected:
   PixelFormat m_pixelFormat;

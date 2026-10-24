@@ -30,9 +30,9 @@ class PseudoDecoder : public Decoder
 {
 public:
   PseudoDecoder(LogWriter *logWriter);
-  virtual ~PseudoDecoder();
+  ~PseudoDecoder() override;
 
-  virtual bool isPseudo() const;
+  bool isPseudo() const override;
 };
 
 #endif

@@ -30,17 +30,17 @@ class VncAuthenticationHandler : public AuthHandler
 {
 public:
   VncAuthenticationHandler();
-  virtual ~VncAuthenticationHandler();
+  ~VncAuthenticationHandler() override;
 
   //
   // Overrides AuthHandler::authenticate().
   //
-  virtual void authenticate(DataInputStream *input, DataOutputStream *output);
+  void authenticate(DataInputStream *input, DataOutputStream *output) override;
 
   //
   // Overrides AuthHandler::addAuthCapability().
   //
-  virtual void addAuthCapability(CapabilitiesManager *capabilitiesManager);
+  void addAuthCapability(CapabilitiesManager *capabilitiesManager) override;
 
 protected:
   virtual void getPassword(StringStorage *passString) = 0;

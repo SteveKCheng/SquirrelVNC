@@ -52,7 +52,7 @@ public:
   ViewerWindow(WindowsApplication *application,
                ConnectionData *conData, ConnectionConfig *conConf,
                Logger *logger = 0);
-  virtual ~ViewerWindow();
+  ~ViewerWindow() override;
 
   void setFileTransfer(FileTransferCapability *ft);
   void setRemoteViewerCore(RemoteViewerCore *pCore);
@@ -77,7 +77,7 @@ protected:
   static const int TIMER_DESKTOP_STATE = 1;
   static const int TIMER_DESKTOP_STATE_DELAY = 50;
 
-  bool onMessage(UINT message, WPARAM wParam, LPARAM lParam);
+  bool onMessage(UINT message, WPARAM wParam, LPARAM lParam) override;
   bool onEraseBackground(HDC hdc);
   
   bool onDisconnect();
@@ -87,9 +87,9 @@ protected:
   bool onFsWarning();
   bool onSize(WPARAM wParam, LPARAM lParam);
   bool onCreate(LPCREATESTRUCT lps);
-  bool onCommand(WPARAM wParam, LPARAM lParam);
-  bool onNotify(int idCtrl, LPNMHDR pnmh);
-  bool onSysCommand(WPARAM wParam, LPARAM lParam);
+  bool onCommand(WPARAM wParam, LPARAM lParam) override;
+  bool onNotify(int idCtrl, LPNMHDR pnmh) override;
+  bool onSysCommand(WPARAM wParam, LPARAM lParam) override;
   bool onClose();
   bool onDestroy();
   bool onFocus(WPARAM wParam);
@@ -114,14 +114,14 @@ protected:
   //
   // It is implementation of CoreEventsAdapter functions.
   //
-  void onBell();
-  void onConnected(RfbOutputGate *output);
-  void onDisconnect(const StringStorage *message);
-  void onAuthError(const AuthException *exception);
-  void onError(const Exception *exception);
-  void onFrameBufferUpdate(const FrameBuffer *fb, const Rect *rect);
-  void onFrameBufferPropChange(const FrameBuffer *fb);
-  void onCutText(const StringStorage *cutText);
+  void onBell() override;
+  void onConnected(RfbOutputGate *output) override;
+  void onDisconnect(const StringStorage *message) override;
+  void onAuthError(const AuthException *exception) override;
+  void onError(const Exception *exception) override;
+  void onFrameBufferUpdate(const FrameBuffer *fb, const Rect *rect) override;
+  void onFrameBufferPropChange(const FrameBuffer *fb) override;
+  void onCutText(const StringStorage *cutText) override;
 
   int translateAccelToTB(int val);
   void applyScreenChanges(bool isFullScreen);
@@ -204,7 +204,7 @@ private:
   void updateDisplayRequest();
 
   // onHookProc function implementation of HookEventListener base abstract class.
-  virtual LRESULT onHookProc(int code, WPARAM wParam, LPARAM lParam);
+  LRESULT onHookProc(int code, WPARAM wParam, LPARAM lParam) override;
   WinHooks m_winHooks;
   bool m_hooksEnabledFirstTime;
 
