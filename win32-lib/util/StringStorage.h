@@ -172,9 +172,9 @@ public:
 
   // Removes count characters from the specified start index.  The string is
   // unchanged if this throws.
-  // Throws Exception if startIndex + count > length in the release
-  // configuration and throws an ASSERTION FAILED message in the debug
-  // configuration.
+  // Throws Exception if startIndex + count > length (computed without
+  // overflow) in the release configuration and throws an ASSERTION FAILED
+  // message in the debug configuration.
   void remove(size_t startIndex, size_t count);
 
   /**

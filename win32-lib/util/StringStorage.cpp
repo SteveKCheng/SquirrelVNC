@@ -221,7 +221,10 @@ void StringStorage::removeChars(const TCHAR badCharacters[], size_t count)
 
 void StringStorage::remove(size_t startIndex, size_t count)
 {
-  bool isFailed = startIndex + count > getLength();
+  // Not startIndex + count > getLength(), which can wrap around: with
+  // startIndex 1 and count SIZE_MAX the sum is 0, and the memmove below
+  // would write past the end of the buffer.
+  bool isFailed = startIndex > getLength() || count > getLength() - startIndex;
   _ASSERT(!isFailed);
   if (isFailed) {
     throw Exception(_T("An incorrect StringStorage::remove() usage"));
