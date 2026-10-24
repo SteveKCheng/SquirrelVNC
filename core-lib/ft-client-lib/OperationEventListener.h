@@ -29,38 +29,36 @@
 class OperationEventListener
 {
 public:
-  OperationEventListener();
-
   //
   // Must be called by file transfer operation when operation had started
   //
 
-  virtual void ftOpStarted(FileTransferOperation *sender);
+  virtual void ftOpStarted(FileTransferOperation *sender) = 0;
 
   //
   // Must be called by file transfer operation when operation had finished
   //
 
-  virtual void ftOpFinished(FileTransferOperation *sender);
+  virtual void ftOpFinished(FileTransferOperation *sender) = 0;
 
   //
   // Must be called by file transfer operation when some error occured(
   // not list files from catalog, cannot open file, cannot create folder etc)
   //
 
-  virtual void ftOpErrorMessage(FileTransferOperation *sender, const TCHAR *message);
+  virtual void ftOpErrorMessage(FileTransferOperation *sender, const TCHAR *message) = 0;
 
   //
   // Must be called by file transfer operation when need to do some text output
   // to user (or console, or log)
   //
 
-  virtual void ftOpInfoMessage(FileTransferOperation *sender, const TCHAR *message);
+  virtual void ftOpInfoMessage(FileTransferOperation *sender, const TCHAR *message) = 0;
 
 protected:
   // Protected, and so not virtual: implementations cannot be deleted
   // through this interface.
-  ~OperationEventListener();
+  ~OperationEventListener() = default;
 };
 
 #endif

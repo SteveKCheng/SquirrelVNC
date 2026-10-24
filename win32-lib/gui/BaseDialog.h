@@ -81,9 +81,9 @@ protected:
   // This methods must be overrided by child classes.
   //
 
-  virtual BOOL onInitDialog();
+  virtual BOOL onInitDialog() = 0;
   virtual BOOL onNotify(UINT controlID, LPARAM data);
-  virtual BOOL onCommand(UINT controlID, UINT notificationID);
+  virtual BOOL onCommand(UINT controlID, UINT notificationID) = 0;
   BOOL onClose();
   virtual BOOL onDestroy();
 

@@ -92,6 +92,15 @@ void ReplayEventsAdapter::onError(const Exception *exception)
   m_endEvent.notify();
 }
 
+void ReplayEventsAdapter::onFrameBufferUpdate(const FrameBuffer * /* fb */,
+                                              const Rect * /* update */)
+{
+}
+
+void ReplayEventsAdapter::onFrameBufferPropChange(const FrameBuffer * /* fb */)
+{
+}
+
 bool ReplayEventsAdapter::waitForEnd(DWORD milliseconds)
 {
   {

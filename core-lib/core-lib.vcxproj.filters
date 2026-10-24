@@ -108,9 +108,6 @@
     <ClCompile Include="viewer-core\CopyRectDecoder.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
-    <ClCompile Include="viewer-core\CoreEventsAdapter.cpp">
-      <Filter>viewer-core</Filter>
-    </ClCompile>
     <ClCompile Include="viewer-core\CursorPainter.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
@@ -244,9 +241,6 @@
       <Filter>ft-client-lib</Filter>
     </ClCompile>
     <ClCompile Include="ft-client-lib\LocalFilesDeleteOperation.cpp">
-      <Filter>ft-client-lib</Filter>
-    </ClCompile>
-    <ClCompile Include="ft-client-lib\OperationEventListener.cpp">
       <Filter>ft-client-lib</Filter>
     </ClCompile>
     <ClCompile Include="ft-client-lib\OperationNotPermittedException.cpp">

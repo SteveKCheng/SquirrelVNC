@@ -42,9 +42,6 @@ HDC PaintWindow::getHDCPaint()
   return m_hdc;
 }
 
-void PaintWindow::onPaint(DeviceContext * /* dc */, PAINTSTRUCT * /* paintStruct */) {
-}
-
 bool PaintWindow::wndProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
   if (message == WM_PAINT) {

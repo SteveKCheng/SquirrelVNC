@@ -105,7 +105,7 @@ private:
   virtual bool onCommand(WPARAM wParam, LPARAM lParam);
   virtual bool onNotify(int idCtrl, LPNMHDR pnmh);
   virtual bool onSysCommand(WPARAM wParam, LPARAM lParam);
-  virtual bool onMessage(UINT message, WPARAM wParam, LPARAM lParam);
+  virtual bool onMessage(UINT message, WPARAM wParam, LPARAM lParam) = 0;
   virtual bool onMouse(unsigned char mouseButtons, unsigned short wheelSpeed, POINT position);
 
 protected:

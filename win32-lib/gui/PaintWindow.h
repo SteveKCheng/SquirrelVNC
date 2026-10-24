@@ -39,7 +39,7 @@ private:
   friend class DeviceContext;
 
 protected:
-  virtual void onPaint(DeviceContext *dc, PAINTSTRUCT *paintStruct);
+  virtual void onPaint(DeviceContext *dc, PAINTSTRUCT *paintStruct) = 0;
 
   bool wndProc(UINT message, WPARAM wParam, LPARAM lParam) override;
 

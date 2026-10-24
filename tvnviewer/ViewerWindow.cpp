@@ -1121,6 +1121,11 @@ Rect ViewerWindow::calculateDefaultSize()
   return defaultRect;
 }
 
+void ViewerWindow::onEstablished()
+{
+  // Nothing to do until the protocol is initialized (onConnected()).
+}
+
 void ViewerWindow::onConnected(RfbOutputGate *output)
 {
   // Set flags.

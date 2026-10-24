@@ -115,6 +115,7 @@ protected:
   // It is implementation of CoreEventsAdapter functions.
   //
   void onBell() override;
+  void onEstablished() override;
   void onConnected(RfbOutputGate *output) override;
   void onDisconnect(const StringStorage *message) override;
   void onAuthError(const AuthException *exception) override;

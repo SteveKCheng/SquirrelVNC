@@ -126,7 +126,6 @@
     <ClCompile Include="viewer-core\CapsContainer.cpp" />
     <ClCompile Include="viewer-core\CompressionLevel.cpp" />
     <ClCompile Include="viewer-core\CopyRectDecoder.cpp" />
-    <ClCompile Include="viewer-core\CoreEventsAdapter.cpp" />
     <ClCompile Include="viewer-core\CursorPainter.cpp" />
     <ClCompile Include="viewer-core\Decoder.cpp" />
     <ClCompile Include="viewer-core\DecoderOfRectangle.cpp" />
@@ -172,7 +171,6 @@
     <ClCompile Include="ft-client-lib\FileTransferReplyBuffer.cpp" />
     <ClCompile Include="ft-client-lib\FileTransferRequestSender.cpp" />
     <ClCompile Include="ft-client-lib\LocalFilesDeleteOperation.cpp" />
-    <ClCompile Include="ft-client-lib\OperationEventListener.cpp" />
     <ClCompile Include="ft-client-lib\OperationNotPermittedException.cpp" />
     <ClCompile Include="ft-client-lib\OperationSupport.cpp" />
     <ClCompile Include="ft-client-lib\RemoteFileListOperation.cpp" />

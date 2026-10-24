@@ -48,24 +48,25 @@ class CoreEventsAdapter
 {
 public:
   //
-  // This makes the class abstract, so that no instance can be created.
+  // Every event is pure virtual: an implementation says what it does with
+  // each, if only nothing.
   //
-  virtual ~CoreEventsAdapter() = 0;
+  virtual ~CoreEventsAdapter() = default;
 
   //
   // Bell event has been received from the server.
   //
-  virtual void onBell();
+  virtual void onBell() = 0;
 
   //
   // New cut text (clipboard) contents has been received from the server.
   //
-  virtual void onCutText(const StringStorage *cutText);
+  virtual void onCutText(const StringStorage *cutText) = 0;
 
   //
   // Connection has been established.
   //
-  virtual void onEstablished();
+  virtual void onEstablished() = 0;
 
   //
   // Protocol has entered the normal interactive phase (in other words,
@@ -73,7 +74,7 @@ public:
   //
   // FIXME: document it.
   // Output need for capability, e.g. FT.
-  virtual void onConnected(RfbOutputGate *output);
+  virtual void onConnected(RfbOutputGate *output) = 0;
 
   //
   // RemoteViewerCore has been disconnected by calling stop()
@@ -81,18 +82,17 @@ public:
   //
   // FIXME: now, onDisconnect not called after onError().
   // FIXME: change documentation or call onDisconnect() after onError().
-  virtual void onDisconnect(const StringStorage *message);
+  virtual void onDisconnect(const StringStorage *message) = 0;
 
   //
   // Authentication has been failed.
-  // By default, onAuthError() call onError(exception).
   //
-  virtual void onAuthError(const AuthException *exception);
+  virtual void onAuthError(const AuthException *exception) = 0;
 
   //
   // Error has been occured.
   //
-  virtual void onError(const Exception *exception);
+  virtual void onError(const Exception *exception) = 0;
 
   // this event after update of frame buffer "fb" in rectangle "update".
   // guaranteed correct of frame buffer's area in rectangle "update".
@@ -101,7 +101,7 @@ public:
   // the frame buffer is locked, and the rectangle is guaranteed to be valid
   // (no guarantees about other areas of the frame buffer).
   //
-  virtual void onFrameBufferUpdate(const FrameBuffer *fb, const Rect *update);
+  virtual void onFrameBufferUpdate(const FrameBuffer *fb, const Rect *update) = 0;
 
   // changed properties of frame buffer.
   // In this moment frame buffer area is dirty and may be contained incorrect data
@@ -110,7 +110,7 @@ public:
   // frame buffer has been created and the old one has been destroyed. This
   // notification will be called on initial frame buffer allocation as well.
   //
-  virtual void onFrameBufferPropChange(const FrameBuffer *fb);
+  virtual void onFrameBufferPropChange(const FrameBuffer *fb) = 0;
 };
 
 #endif

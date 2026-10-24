@@ -168,11 +168,6 @@ bool BaseWindow::onSysCommand(WPARAM /* wParam */, LPARAM /* lParam */)
   return false;
 }
 
-bool BaseWindow::onMessage(UINT /* message */, WPARAM /* wParam */, LPARAM /* lParam */)
-{
-  return false;
-}
-
 bool BaseWindow::wndProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
   switch (message) {

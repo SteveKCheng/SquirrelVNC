@@ -235,17 +235,7 @@ bool BaseDialog::setForeground()
   return m_ctrlThis.setForeground();
 }
 
-BOOL BaseDialog::onInitDialog()
-{
-  return FALSE;
-}
-
 BOOL BaseDialog::onNotify(UINT /* controlID */, LPARAM /* data */)
-{
-  return FALSE;
-}
-
-BOOL BaseDialog::onCommand(UINT /* controlID */, UINT /* notificationID */)
 {
   return FALSE;
 }
