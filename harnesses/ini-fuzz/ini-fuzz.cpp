@@ -54,7 +54,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
       StringStorage text;
       int number = 0;
       bool flag = false;
-      ini.keyExist(name);
       ini.getString(name, &text);
       ini.getInt(name, &number);
       ini.getBoolean(name, &flag);
@@ -71,7 +70,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   // And changes, as saving a session does.
   ini.setApplicationName(_T("connection"));
   ini.setString(_T("host"), _T("example.com"));
-  ini.deleteKey(_T("port"));
+  ini.setUINT(_T("port"), 5901);
   ini.setApplicationName(_T("options"));
   config.saveToStorage(&ini);
   return 0;

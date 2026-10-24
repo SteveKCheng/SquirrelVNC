@@ -67,7 +67,6 @@ public:
   //
   // Reads the file.
   //
-  // Pre-conditions: isOk().
   // Post-conditions: returns true if the file was read: its settings
   // replace those held. Returns false, holding no settings, if it does not
   // exist, cannot be read, or is larger than MAX_FILE_SIZE. The file may
@@ -95,7 +94,7 @@ public:
   // access control list. A crash or failure leaves either the old file or
   // the new one, never a mix.
   //
-  // Pre-conditions: isOk().
+  // Pre-conditions: the path to the file is not empty.
   // Throws Exception (SystemException for a Win32 error) if the file
   // cannot be written; the file is then unchanged.
   //
@@ -105,27 +104,15 @@ public:
   // Inherited from SettingsManager class
   //
 
-  // Return false if path to ini file name not specified
-  virtual bool isOk();
-
-  virtual bool keyExist(const TCHAR *name);
-
-  // Returns true: the key does not exist afterwards.
-  virtual bool deleteKey(const TCHAR *name);
-
   virtual bool getString(const TCHAR *name, StringStorage *storage);
   // Returns false, changing nothing, if value is NULL, or if name, value
   // or the section name has a line break, which would break the file.
   virtual bool setString(const TCHAR *name, const TCHAR *value);
 
-  virtual bool getLong(const TCHAR *name, long *value);
-  virtual bool setLong(const TCHAR *name, long value);
-
   // True only for the value 1, as before.
   virtual bool getBoolean(const TCHAR *name, bool *value);
   virtual bool setBoolean(const TCHAR *name, bool value);
 
-  virtual bool getUINT(const TCHAR *name, UINT *value);
   virtual bool setUINT(const TCHAR *name, UINT value);
 
   // Returns false, leaving value unchanged, if the key is missing or its
@@ -135,9 +122,6 @@ public:
 
   virtual bool getByte(const TCHAR *name, char *value);
   virtual bool setByte(const TCHAR *name, char value);
-
-  virtual bool getBinaryData(const TCHAR *name, void *value, size_t *size);
-  virtual bool setBinaryData(const TCHAR *name, const void *value, size_t size);
 
 protected:
   StringStorage m_appName;
@@ -151,7 +135,7 @@ private:
 
   //
   // Helper template method to avoid code duplicate
-  // in such methods as getByte, getUINT.
+  // in such methods as getByte.
   //
 
   template<typename T> bool getIntAndCastTo(const TCHAR *name, T *value) {

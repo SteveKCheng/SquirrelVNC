@@ -313,22 +313,6 @@ void IniFileSettingsManager::save()
   }
 }
 
-bool IniFileSettingsManager::isOk()
-{
-  return !m_pathToFile.isEmpty();
-}
-
-bool IniFileSettingsManager::keyExist(const TCHAR *name)
-{
-  return m_ini.GetValue(m_appName.getString(), name) != 0;
-}
-
-bool IniFileSettingsManager::deleteKey(const TCHAR *name)
-{
-  m_ini.Delete(m_appName.getString(), name);
-  return true;
-}
-
 bool IniFileSettingsManager::getString(const TCHAR *name, StringStorage *storage)
 {
   const TCHAR *value = m_ini.GetValue(m_appName.getString(), name);
@@ -352,20 +336,6 @@ bool IniFileSettingsManager::setString(const TCHAR *name, const TCHAR *value)
   return m_ini.SetValue(m_appName.getString(), name, value) >= 0;
 }
 
-// FIXME: Stub
-bool IniFileSettingsManager::getLong(const TCHAR * /* name */, long * /* value */)
-{
-  _ASSERT(FALSE);
-  return false;
-}
-
-// FIXME: Stub
-bool IniFileSettingsManager::setLong(const TCHAR * /* name */, long /* value */)
-{
-  _ASSERT(FALSE);
-  return false;
-}
-
 bool IniFileSettingsManager::getBoolean(const TCHAR *name, bool *value)
 {
   int intVal;
@@ -379,11 +349,6 @@ bool IniFileSettingsManager::getBoolean(const TCHAR *name, bool *value)
 bool IniFileSettingsManager::setBoolean(const TCHAR *name, bool value)
 {
   return setInt(name, value ? 1 : 0);
-}
-
-bool IniFileSettingsManager::getUINT(const TCHAR *name, UINT *value)
-{
-  return getIntAndCastTo<UINT>(name, value);
 }
 
 bool IniFileSettingsManager::setUINT(const TCHAR *name, UINT value)
@@ -419,18 +384,4 @@ bool IniFileSettingsManager::getByte(const TCHAR *name, char *value)
 bool IniFileSettingsManager::setByte(const TCHAR *name, char value)
 {
   return setInt(name, value);
-}
-
-// FIXME: Stub
-bool IniFileSettingsManager::getBinaryData(const TCHAR * /* name */, void * /* value */, size_t * /* size */)
-{
-  _ASSERT(FALSE);
-  return false;
-}
-
-// FIXME: Stub
-bool IniFileSettingsManager::setBinaryData(const TCHAR * /* name */, const void * /* value */, size_t /* size */)
-{
-  _ASSERT(FALSE);
-  return false;
 }

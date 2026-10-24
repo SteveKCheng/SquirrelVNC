@@ -195,24 +195,20 @@ static void testSetters()
 {
   IniFileSettingsManager ini;
   ini.setApplicationName(L"s");
-  check(ini.setString(L"k", L"v") && ini.keyExist(L"k"), "setString and keyExist");
+  check(ini.setString(L"k", L"v") && getString(ini, L"s", L"k") == L"v", "setString");
   check(!ini.setString(L"k", 0), "setString of NULL fails");
   check(!ini.setString(L"k", L"a\nb") && getString(ini, L"s", L"k") == L"v",
         "a value with a line break is refused");
-  check(!ini.setString(L"x\r", L"v") && !ini.keyExist(L"x\r"),
+  check(!ini.setString(L"x\r", L"v") && getString(ini, L"s", L"x\r") == L"(missing)",
         "a name with a line break is refused");
   ini.setApplicationName(L"bad\nsection");
   check(!ini.setString(L"k", L"v"), "a section name with a line break is refused");
   ini.setApplicationName(L"s");
-  check(ini.deleteKey(L"k") && !ini.keyExist(L"k"), "deleteKey");
-  check(ini.deleteKey(L"never"), "deleteKey of a missing key succeeds");
   check(ini.setInt(L"i", -5) && ini.setUINT(L"u", 4000000000u) && ini.setBoolean(L"b", true),
         "setInt, setUINT, setBoolean");
   int i = 0;
-  UINT u = 0;
   check(ini.getInt(L"i", &i) && i == -5, "getInt after setInt");
-  // As before, a UINT goes through int, so values above INT_MAX do not load.
-  check(!ini.getUINT(L"u", &u), "getUINT above INT_MAX fails, as getInt does");
+  check(getString(ini, L"s", L"u") == L"4000000000", "setUINT writes the whole value");
 }
 
 static void testFiles(const std::wstring &dir)
