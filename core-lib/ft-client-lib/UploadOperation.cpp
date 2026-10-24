@@ -31,7 +31,7 @@ UploadOperation::UploadOperation(LogWriter *logWriter,
                                  const TCHAR *pathToSourceRoot,
                                  const TCHAR *pathToTargetRoot)
 : CopyOperation(logWriter),
-  m_file(0), m_fis(0), m_gotoChild(false), m_gotoParent(false), m_firstUpload(true),
+  m_gotoChild(false), m_gotoParent(false), m_firstUpload(true),
   m_bufferSize(20000)
 {
   m_pathToSourceRoot.setString(pathToSourceRoot);
@@ -48,7 +48,7 @@ UploadOperation::UploadOperation(LogWriter *logWriter,
                                  const TCHAR *pathToSourceRoot,
                                  const TCHAR *pathToTargetRoot)
 : CopyOperation(logWriter),
-  m_file(0), m_fis(0), m_gotoChild(false), m_gotoParent(false), m_firstUpload(true),
+  m_gotoChild(false), m_gotoParent(false), m_firstUpload(true),
   m_bufferSize(20000)
 {
   m_pathToSourceRoot.setString(pathToSourceRoot);
@@ -65,13 +65,16 @@ UploadOperation::~UploadOperation()
   if (m_toCopy != NULL) {
     delete m_toCopy->getRoot();
   }
-  if (m_fis != NULL) {
-    try { m_fis->close(); } catch (IOException) { }
-    delete m_fis;
+  closeFile();
+}
+
+void UploadOperation::closeFile()
+{
+  if (m_fis) {
+    try { m_fis->close(); } catch (...) { }
+    m_fis.reset();
   }
-  if (m_file != NULL) {
-    delete m_file;
-  }
+  m_file.reset();
 }
 
 void UploadOperation::start()
@@ -119,12 +122,7 @@ void UploadOperation::onUploadDataReply(DataInputStream * /* input */)
 void UploadOperation::onUploadEndReply(DataInputStream * /* input */)
 {
   // Cleanup
-  try { m_fis->close(); } catch (...) { }
-  delete m_fis;
-  m_fis = NULL;
-
-  delete m_file;
-  m_file = NULL;
+  closeFile();
 
   // Upload next file in the list
   gotoNext();
@@ -311,13 +309,8 @@ void UploadOperation::processFile()
   // Cleanup
   //
 
-  if (m_fis != NULL) {
-    try { m_fis->close(); } catch (...) { }
-    delete m_fis;
-  }
-  if (m_file != NULL) {
-    delete m_file;
-  }
+  // The previous file is still open if its upload failed.
+  closeFile();
 
   UINT64 initialFileOffset = 0;
 
@@ -362,11 +355,11 @@ void UploadOperation::processFile()
   } // for all files in remote files
 
   // Trying to open file for reading
-  m_file = new File(m_pathToSourceFile.getString());
+  m_file = std::make_unique<File>(m_pathToSourceFile.getString());
   try {
     StringStorage path;
     m_file->getPath(&path);
-    m_fis = new WinFileChannel(path.getString(), F_READ, FM_OPEN);
+    m_fis = std::make_unique<WinFileChannel>(path.getString(), F_READ, FM_OPEN);
     // Try to seek
     m_fis->seek((INT64)initialFileOffset);
 
@@ -384,7 +377,11 @@ void UploadOperation::processFile()
 
 void UploadOperation::sendFileDataChunk()
 {
-  _ASSERT(m_fis != NULL);
+  // No file is open if it could not be opened, or if the server sent the
+  // reply that asks for data unasked.
+  if (!m_fis) {
+    return;
+  }
 
   if ((DateTime::now() - m_lastRequestTime).getTime() > 300) {
     m_bufferSize /= 2;

@@ -29,8 +29,6 @@ DownloadOperation::DownloadOperation(LogWriter *logWriter,
                                      const TCHAR *pathToTargetRoot,
                                      const TCHAR *pathToSourceRoot)
 : CopyOperation(logWriter),
-  m_file(0),
-  m_fos(0),
   m_fileOffset(0),
   m_bufferSize(20000)
 {
@@ -47,13 +45,16 @@ DownloadOperation::~DownloadOperation()
   if (m_toCopy != NULL) {
     delete m_toCopy->getRoot();
   }
-  if (m_fos != NULL) {
-    try { m_fos->close(); } catch (IOException) { }
-    delete m_fos;
+  closeFile();
+}
+
+void DownloadOperation::closeFile()
+{
+  if (m_fos) {
+    try { m_fos->close(); } catch (...) { }
+    m_fos.reset();
   }
-  if (m_file != NULL) {
-    delete m_file;
-  }
+  m_file.reset();
 }
 
 void DownloadOperation::start()
@@ -96,19 +97,14 @@ void DownloadOperation::onDownloadReply(DataInputStream * /* input */)
   // Cleanup
   //
 
-  if (m_fos != NULL) {
-    try { m_fos->close(); } catch (...) { }
-    delete m_fos;
-  }
-  if (m_file != NULL) {
-    delete m_file;
-  }
+  // The previous file is still open if its download failed.
+  closeFile();
 
   //
   // Try to create file on local file system and open it for writting
   //
 
-  m_file = new File(m_pathToTargetFile.getString());
+  m_file = std::make_unique<File>(m_pathToTargetFile.getString());
 
   if (m_fileOffset == 0) {
     m_file->truncate();
@@ -117,7 +113,7 @@ void DownloadOperation::onDownloadReply(DataInputStream * /* input */)
   try {
     StringStorage path;
     m_file->getPath(&path);
-    m_fos = new WinFileChannel(path.getString(), F_WRITE, FM_OPEN);
+    m_fos = std::make_unique<WinFileChannel>(path.getString(), F_WRITE, FM_OPEN);
     // Seek to initial file position to continue writting
     m_fos->seek((INT64)m_fileOffset);
     m_totalBytesCopied += m_fileOffset;
@@ -145,8 +141,14 @@ void DownloadOperation::onDownloadDataReply(DataInputStream * /* input */)
     return ;
   }
 
+  // Data for no open file (it could not be opened, or the server sent the
+  // reply unasked) is dropped.
+  if (!m_fos) {
+    return;
+  }
+
   try {
-    DataOutputStream dos(m_fos);
+    DataOutputStream dos(m_fos.get());
     if (!m_replyBuffer->getDownloadBuffer().empty()) {
       dos.writeFully(&m_replyBuffer->getDownloadBuffer().front(),
                      m_replyBuffer->getDownloadBufferSize());
@@ -194,18 +196,20 @@ void DownloadOperation::onDownloadEndReply(DataInputStream * /* input */)
   // Cleanup
   //
 
-  try { m_fos->close(); } catch (...) { }
-  delete m_fos;
-  m_fos = NULL;
-
-  try {
-    m_file->setLastModified(m_replyBuffer->getDownloadLastModified());
-  } catch (...) {
-    notifyFailedToDownload(_T("Cannot set modification time"));
+  // Neither may be open, if the server sent the reply unasked.
+  if (m_fos) {
+    try { m_fos->close(); } catch (...) { }
+    m_fos.reset();
   }
 
-  delete m_file;
-  m_file = NULL;
+  if (m_file) {
+    try {
+      m_file->setLastModified(m_replyBuffer->getDownloadLastModified());
+    } catch (...) {
+      notifyFailedToDownload(_T("Cannot set modification time"));
+    }
+    m_file.reset();
+  }
 
   gotoNext();
 }

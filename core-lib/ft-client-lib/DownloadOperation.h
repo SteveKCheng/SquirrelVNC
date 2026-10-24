@@ -29,6 +29,9 @@
 #include "FileInfoList.h"
 #include "CopyOperation.h"
 #include "util/DateTime.h"
+#include "file-lib/File.h"
+
+#include <memory>
 
 //
 // File transfer operation class for downloading files (and file trees).
@@ -108,11 +111,17 @@ private:
   // m_pathToSourceFile, m_pathToTargetFile members
   void changeFileToDownload(FileInfoList *toDownload);
 
+  //
+  // Post-conditions: the file being downloaded, if any, is closed (errors in
+  // closing it are ignored), and m_fos and m_file are empty.
+  //
+  void closeFile();
+
 protected:
   // Target local file
-  File *m_file;
+  std::unique_ptr<File> m_file;
   // File output stream associated with m_file
-  WinFileChannel *m_fos;
+  std::unique_ptr<WinFileChannel> m_fos;
 
   // Initial file offset for current download (broken downloads)
   UINT64 m_fileOffset;

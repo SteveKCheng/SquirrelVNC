@@ -31,6 +31,7 @@
 #include "CopyOperation.h"
 #include "util/DateTime.h"
 
+#include <memory>
 #include <vector>
 
 //
@@ -178,11 +179,17 @@ protected:
   // m_pathToTargetFile members
   void changeFileToUpload(FileInfoList *toUpload);
 
+  //
+  // Post-conditions: the file being uploaded, if any, is closed (errors in
+  // closing it are ignored), and m_fis and m_file are empty.
+  //
+  void closeFile();
+
 protected:
   // Source file that we uploading now
-  File *m_file;
+  std::unique_ptr<File> m_file;
   // File input stream associated with m_file
-  WinFileChannel *m_fis;
+  std::unique_ptr<WinFileChannel> m_fis;
 
   // File list of remote directory where we uploading
   // current file now
