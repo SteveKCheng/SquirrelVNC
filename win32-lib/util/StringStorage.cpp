@@ -52,8 +52,28 @@ StringStorage::StringStorage(StringStorage &&other) noexcept
   other.m_string.clear();
 }
 
+StringStorage::StringStorage(const StdString &string)
+: m_string(string)
+{
+  cutAtNull();
+}
+
+StringStorage::StringStorage(StdString &&string)
+: m_string(std::move(string))
+{
+  cutAtNull();
+}
+
 StringStorage::~StringStorage()
 {
+}
+
+void StringStorage::cutAtNull()
+{
+  size_t position = m_string.find(_T('\0'));
+  if (position != StdString::npos) {
+    m_string.resize(position);
+  }
 }
 
 void StringStorage::setString(const TCHAR *string)
@@ -62,13 +82,25 @@ void StringStorage::setString(const TCHAR *string)
     string = _T("");
   }
   // Copied first, as string may point into m_string.
-  std::basic_string<TCHAR> copy(string);
+  StdString copy(string);
   m_string = std::move(copy);
 }
 
 const TCHAR *StringStorage::getString() const
 {
   return m_string.c_str();
+}
+
+const StringStorage::StdString &StringStorage::str() const &
+{
+  return m_string;
+}
+
+StringStorage::StdString StringStorage::str() &&
+{
+  StdString result = std::move(m_string);
+  m_string.clear();
+  return result;
 }
 
 size_t StringStorage::getLength() const
@@ -110,7 +142,7 @@ void StringStorage::getSubstring(StringStorage *substr,
 
   // startIndex <= length, so substr() does not throw. Made before the
   // assignment, as substr may be this object.
-  std::basic_string<TCHAR> result = m_string.substr(startIndex, endIndex - startIndex);
+  StdString result = m_string.substr(startIndex, endIndex - startIndex);
   substr->m_string = std::move(result);
 }
 
@@ -121,7 +153,7 @@ void StringStorage::appendString(const TCHAR *string)
   }
   // Copied first, as string may point into m_string, which appending may
   // reallocate.
-  std::basic_string<TCHAR> copy(string);
+  StdString copy(string);
   m_string += copy;
 }
 
@@ -187,7 +219,7 @@ void StringStorage::truncate(size_t count)
 TCHAR *StringStorage::find(const TCHAR *substr)
 {
   size_t position = m_string.find(substr);
-  if (position == std::basic_string<TCHAR>::npos) {
+  if (position == StdString::npos) {
     return 0;
   }
   return m_string.data() + position;

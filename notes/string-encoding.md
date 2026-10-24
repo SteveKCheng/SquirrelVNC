@@ -270,6 +270,13 @@ Recommendation: SimpleIni from vcpkg, behind the existing
 separate step from the string classes, and can be done before or
 after them.
 
+Inside `IniFileSettingsManager`, strings cross between `StringStorage`
+and the library as standard strings: `StringStorage::str()` gives the
+`std::basic_string<TCHAR>` (`StringStorage::StdString`), moved out from
+an rvalue, and the explicit `StdString` constructors take one back,
+cut at a null character if it has one. `StringStorage` keeps its
+characters in a `std::basic_string` and moves (2026-10-24).
+
 ## Logging
 
 `RemoteViewerCore::sendCutTextEvent` logged the clipboard text at

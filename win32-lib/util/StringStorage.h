@@ -41,10 +41,16 @@
  * say otherwise.
  *
  * Moving from a StringStorage leaves it empty.
+ *
+ * For code that needs the standard string, such as a library's interface,
+ * str() gives the characters as a StdString, and the StdString
+ * constructors take one; both move when given an rvalue.
  */
 class StringStorage
 {
 public:
+  typedef std::basic_string<TCHAR> StdString;
+
   /**
   Creates new string storage with unset string (zero string).
   */
@@ -67,6 +73,15 @@ public:
    */
   StringStorage(StringStorage &&other) noexcept;
 
+  /**
+   * Creates a string from a standard one, copied or moved.
+   *
+   * Post-condition: holds the characters of string up to its first null
+   * character, if it has one, since a StringStorage never contains one.
+   */
+  explicit StringStorage(const StdString &string);
+  explicit StringStorage(StdString &&string);
+
   ~StringStorage();
 
   // Sets this string to a copy of string, which may be null for the empty
@@ -81,6 +96,17 @@ public:
    * valid only until this object is changed or destroyed.
    */
   _Ret_z_ const TCHAR *getString() const;
+
+  /**
+   * Returns the characters as a standard string, which has no null
+   * character inside.
+   *
+   * On an lvalue the result refers to this object's string, valid until
+   * this object is changed or destroyed. On an rvalue, as in
+   * std::move(s).str(), the characters are moved out and s is left empty.
+   */
+  const StdString &str() const &;
+  StdString str() &&;
 
   // Returns length of string (in characters, not including terminating null character).
   size_t getLength() const;
@@ -233,7 +259,10 @@ public:
   void operator += (const TCHAR* str);
 
 private:
-  std::basic_string<TCHAR> m_string;
+  // Post-condition: m_string ends before its first null character.
+  void cutAtNull();
+
+  StdString m_string;
 };
 
 #endif
