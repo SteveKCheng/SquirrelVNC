@@ -213,6 +213,8 @@ void ViewerCmdLine::parseOptionsFile()
     pathToIniFile = newPathToIniFile;
   }
   IniFileSettingsManager sm(pathToIniFile.getString());
+  // A file that cannot be read holds no host, which is reported below.
+  sm.load();
   sm.setApplicationName(_T("connection"));
 
   StringStorage host;

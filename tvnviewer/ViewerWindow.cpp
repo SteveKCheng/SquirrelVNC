@@ -565,10 +565,8 @@ void ViewerWindow::commandSaveSession()
   ofn.Flags = OFN_OVERWRITEPROMPT;
   try {
     if (GetSaveFileName(&ofn)) {
-      File oldSettings(fileName);
-      if (oldSettings.exists()) {
-        oldSettings.remove();
-      }
+      // Starts empty, without loading the file: save() replaces it whole,
+      // so a failure leaves the old file as it was.
       IniFileSettingsManager sm(fileName);
       sm.setApplicationName(_T("connection"));
 
@@ -590,7 +588,12 @@ void ViewerWindow::commandSaveSession()
 
       sm.setApplicationName(_T("options"));
       m_conConf->saveToStorage(&sm);
+      sm.save();
     }
+  } catch (const Exception &e) {
+    m_logWriter.error(_T("Error in save connection: %s"), e.getMessage());
+    MessageBox(m_hWnd, e.getMessage(), ProductNames::VIEWER_PRODUCT_NAME,
+               MB_OK | MB_ICONERROR);
   } catch (...) {
     m_logWriter.error(_T("Error in save connection"));
   }
