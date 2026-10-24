@@ -42,7 +42,9 @@ DesktopWindow::DesktopWindow(LogWriter *logWriter, ConnectionConfig *conConf)
 {
   // Not make_unique(): RfbKeySymListener is a protected base, so only this
   // class can convert this to it.
-  m_rfbKeySym.reset(new RfbKeySym(this, m_logWriter));
+  // The cast is here because make_unique cannot reach the private base.
+  m_rfbKeySym = std::make_unique<RfbKeySym>(static_cast<RfbKeySymListener *>(this),
+                                            m_logWriter);
 }
 
 DesktopWindow::~DesktopWindow()

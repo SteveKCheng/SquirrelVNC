@@ -130,7 +130,7 @@ std::unique_ptr<SocketIPv4> SocketIPv4::accept()
 #endif
   });
 
-  std::unique_ptr<SocketIPv4> accepted(new SocketIPv4());
+  std::unique_ptr<SocketIPv4> accepted = std::make_unique<SocketIPv4>();
   accepted->close();
   // From here accepted owns result, and closes it.
   closeResult.release();
