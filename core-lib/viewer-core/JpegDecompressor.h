@@ -41,6 +41,11 @@ public:
   static const size_t BYTES_PER_PIXEL = 3;
 public:
   JpegDecompressor();
+  JpegDecompressor(const JpegDecompressor &) = delete;
+  JpegDecompressor &operator=(const JpegDecompressor &) = delete;
+  JpegDecompressor(JpegDecompressor &&) = delete;
+  JpegDecompressor &operator=(JpegDecompressor &&) = delete;
+
   virtual ~JpegDecompressor();
 
   /*

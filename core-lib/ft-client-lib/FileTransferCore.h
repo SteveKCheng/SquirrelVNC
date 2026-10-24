@@ -58,6 +58,11 @@ public:
                    FileTransferRequestSender *sender,
                    FileTransferReplyBuffer *replyBuffer,
                    ListenerContainer<FileTransferEventHandler *> *ftListeners);
+  FileTransferCore(const FileTransferCore &) = delete;
+  FileTransferCore &operator=(const FileTransferCore &) = delete;
+  FileTransferCore(FileTransferCore &&) = delete;
+  FileTransferCore &operator=(FileTransferCore &&) = delete;
+
   virtual ~FileTransferCore();
 
   void setInterface(FileTransferInterface *ftInterface);

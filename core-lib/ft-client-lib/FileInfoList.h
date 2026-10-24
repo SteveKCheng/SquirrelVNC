@@ -67,6 +67,11 @@ public:
   // The element before this one, if any, is left pointing to it.
   //
 
+  FileInfoList(const FileInfoList &) = delete;
+  FileInfoList &operator=(const FileInfoList &) = delete;
+  FileInfoList(FileInfoList &&) = delete;
+  FileInfoList &operator=(FileInfoList &&) = delete;
+
   ~FileInfoList();
 
   //

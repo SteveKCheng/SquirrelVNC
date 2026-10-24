@@ -131,6 +131,11 @@ public:
                    Logger *logger = 0,
                    bool sharedFlag = true);
 
+  RemoteViewerCore(const RemoteViewerCore &) = delete;
+  RemoteViewerCore &operator=(const RemoteViewerCore &) = delete;
+  RemoteViewerCore(RemoteViewerCore &&) = delete;
+  RemoteViewerCore &operator=(RemoteViewerCore &&) = delete;
+
   // FIX DOCUMENTATION: What objects will be destroyed? Will a socket object be destroyed
   // which has been passed with the constructor?
   //
@@ -745,11 +750,6 @@ private:
   bool m_isUtf8ClipboardEnabled;
 
   bool m_forceFullUpdate;
-
-private:
-  // Do not allow copying objects.
-  RemoteViewerCore(const RemoteViewerCore &);
-  RemoteViewerCore &operator=(const RemoteViewerCore &);
 };
 
 #endif

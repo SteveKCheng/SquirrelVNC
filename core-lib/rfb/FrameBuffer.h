@@ -35,6 +35,11 @@ class FrameBuffer
 {
 public:
   FrameBuffer(void);
+  FrameBuffer(const FrameBuffer &) = delete;
+  FrameBuffer &operator=(const FrameBuffer &) = delete;
+  FrameBuffer(FrameBuffer &&) = delete;
+  FrameBuffer &operator=(FrameBuffer &&) = delete;
+
   virtual ~FrameBuffer(void);
 
   virtual bool assignProperties(const FrameBuffer *srcFrameBuffer);

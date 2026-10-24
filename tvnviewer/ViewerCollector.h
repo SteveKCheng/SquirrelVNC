@@ -36,6 +36,11 @@ class ViewerCollector
 {
 public:
   ViewerCollector();
+  ViewerCollector(const ViewerCollector &) = delete;
+  ViewerCollector &operator=(const ViewerCollector &) = delete;
+  ViewerCollector(ViewerCollector &&) = delete;
+  ViewerCollector &operator=(ViewerCollector &&) = delete;
+
   virtual ~ViewerCollector();
 
   // Adds instance to a self list, which owns it from then on.

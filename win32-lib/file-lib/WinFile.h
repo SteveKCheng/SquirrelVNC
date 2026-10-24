@@ -66,6 +66,11 @@ public:
           bool shareToRead = false);
   WinFile();
 
+  WinFile(const WinFile &) = delete;
+  WinFile &operator=(const WinFile &) = delete;
+  WinFile(WinFile &&) = delete;
+  WinFile &operator=(WinFile &&) = delete;
+
   virtual ~WinFile();
 
   // Opens or creates pathToFile, as fMode says, for the access dAcc.  The

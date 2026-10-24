@@ -42,6 +42,11 @@ public:
    */
   LocalMutex();
 
+  LocalMutex(const LocalMutex &) = delete;
+  LocalMutex &operator=(const LocalMutex &) = delete;
+  LocalMutex(LocalMutex &&) = delete;
+  LocalMutex &operator=(LocalMutex &&) = delete;
+
   /**
    * Deletes local mutex.
    */

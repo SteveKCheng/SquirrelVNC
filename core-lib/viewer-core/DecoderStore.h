@@ -36,6 +36,11 @@ class DecoderStore
 {
 public:
   DecoderStore(LogWriter *logWriter);
+  DecoderStore(const DecoderStore &) = delete;
+  DecoderStore &operator=(const DecoderStore &) = delete;
+  DecoderStore(DecoderStore &&) = delete;
+  DecoderStore &operator=(DecoderStore &&) = delete;
+
   ~DecoderStore();
 
   Decoder *getDecoder(INT32 decoderId);

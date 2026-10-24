@@ -55,6 +55,11 @@ public:
    * @remark thread is suspended by default.
    */
   Thread();
+  Thread(const Thread &) = delete;
+  Thread &operator=(const Thread &) = delete;
+  Thread(Thread &&) = delete;
+  Thread &operator=(Thread &&) = delete;
+
   /**
    * Deletes thread.
    * @remark does not stops thread execution if it's still running.

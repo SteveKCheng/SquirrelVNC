@@ -37,6 +37,11 @@ class NotifyIcon : public NotifyIconWindow
 {
 public:
   NotifyIcon(bool showAfterCreation = true);
+  NotifyIcon(const NotifyIcon &) = delete;
+  NotifyIcon &operator=(const NotifyIcon &) = delete;
+  NotifyIcon(NotifyIcon &&) = delete;
+  NotifyIcon &operator=(NotifyIcon &&) = delete;
+
   virtual ~NotifyIcon();
 
   bool isVisible() const;

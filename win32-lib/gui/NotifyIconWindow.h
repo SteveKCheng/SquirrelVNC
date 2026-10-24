@@ -32,6 +32,11 @@ class NotifyIconWindow
 {
 public:
   NotifyIconWindow();
+  NotifyIconWindow(const NotifyIconWindow &) = delete;
+  NotifyIconWindow &operator=(const NotifyIconWindow &) = delete;
+  NotifyIconWindow(NotifyIconWindow &&) = delete;
+  NotifyIconWindow &operator=(NotifyIconWindow &&) = delete;
+
   virtual ~NotifyIconWindow();
 
   HWND getWindow();

@@ -31,6 +31,11 @@ class Menu
 {
 public:
   Menu();
+  Menu(const Menu &) = delete;
+  Menu &operator=(const Menu &) = delete;
+  Menu(Menu &&) = delete;
+  Menu &operator=(Menu &&) = delete;
+
   virtual ~Menu();
 
   HMENU getMenu();

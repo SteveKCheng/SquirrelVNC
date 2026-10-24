@@ -37,6 +37,8 @@ public:
   // Each object owns its handle, which a copy would close twice.
   RegistryKey(const RegistryKey &) = delete;
   RegistryKey &operator=(const RegistryKey &) = delete;
+  RegistryKey(RegistryKey &&) = delete;
+  RegistryKey &operator=(RegistryKey &&) = delete;
 
 public:
 

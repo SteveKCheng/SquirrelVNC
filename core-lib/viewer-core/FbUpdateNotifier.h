@@ -41,6 +41,11 @@ class FbUpdateNotifier : public Thread
 {
 public:
   FbUpdateNotifier(FrameBuffer *fb, LocalMutex *fbLock, LogWriter *logger);
+  FbUpdateNotifier(const FbUpdateNotifier &) = delete;
+  FbUpdateNotifier &operator=(const FbUpdateNotifier &) = delete;
+  FbUpdateNotifier(FbUpdateNotifier &&) = delete;
+  FbUpdateNotifier &operator=(FbUpdateNotifier &&) = delete;
+
   virtual ~FbUpdateNotifier();
 
   void setAdapter(CoreEventsAdapter *adapter);
@@ -85,11 +90,6 @@ protected:
 
   // This flag is true after set new cursor or update position.
   bool m_isCursorChange;
-
-private:
-  // Do not allow copying objects.
-  FbUpdateNotifier(const FbUpdateNotifier &);
-  FbUpdateNotifier &operator=(const FbUpdateNotifier &);
 };
 
 #endif

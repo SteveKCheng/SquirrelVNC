@@ -30,6 +30,11 @@ class Brush
 {
 public:
   Brush();
+  Brush(const Brush &) = delete;
+  Brush &operator=(const Brush &) = delete;
+  Brush(Brush &&) = delete;
+  Brush &operator=(Brush &&) = delete;
+
   virtual ~Brush();
 
 protected:

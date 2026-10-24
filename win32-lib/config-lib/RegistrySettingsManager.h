@@ -48,6 +48,8 @@ public:
 
   RegistrySettingsManager(const RegistrySettingsManager &) = delete;
   RegistrySettingsManager &operator=(const RegistrySettingsManager &) = delete;
+  RegistrySettingsManager(RegistrySettingsManager &&) = delete;
+  RegistrySettingsManager &operator=(RegistrySettingsManager &&) = delete;
 
   //
   // Post-conditions: the settings are the values of rootKey\entry, which

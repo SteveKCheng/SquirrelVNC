@@ -39,6 +39,11 @@ class DisplayRequest
 {
 public:
   DisplayRequest();
+  DisplayRequest(const DisplayRequest &) = delete;
+  DisplayRequest &operator=(const DisplayRequest &) = delete;
+  DisplayRequest(DisplayRequest &&) = delete;
+  DisplayRequest &operator=(DisplayRequest &&) = delete;
+
   virtual ~DisplayRequest();
 
   /**

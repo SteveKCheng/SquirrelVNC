@@ -36,6 +36,11 @@ public:
   // or a zlib library that does not match its headers).
   //
   Inflater();
+  Inflater(const Inflater &) = delete;
+  Inflater &operator=(const Inflater &) = delete;
+  Inflater(Inflater &&) = delete;
+  Inflater &operator=(Inflater &&) = delete;
+
   ~Inflater();
 
   //

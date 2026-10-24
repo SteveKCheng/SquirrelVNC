@@ -38,6 +38,11 @@ public:
   // Small icon from the resources (see ScaledIcons), for the
   // notification area.
   Icon(DWORD icon);
+  Icon(const Icon &) = delete;
+  Icon &operator=(const Icon &) = delete;
+  Icon(Icon &&) = delete;
+  Icon &operator=(Icon &&) = delete;
+
   virtual ~Icon();
 
   HICON getHICON();

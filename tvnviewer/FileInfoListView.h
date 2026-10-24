@@ -31,6 +31,11 @@ class FileInfoListView : public ListView
 {
 public:
   FileInfoListView();
+  FileInfoListView(const FileInfoListView &) = delete;
+  FileInfoListView &operator=(const FileInfoListView &) = delete;
+  FileInfoListView(FileInfoListView &&) = delete;
+  FileInfoListView &operator=(FileInfoListView &&) = delete;
+
   virtual ~FileInfoListView();
 
   virtual void setWindow(HWND hwnd);

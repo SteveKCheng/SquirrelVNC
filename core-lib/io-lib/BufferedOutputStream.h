@@ -40,6 +40,11 @@ public:
    * @param output real output stream.
    */
   BufferedOutputStream(OutputStream *output);
+  BufferedOutputStream(const BufferedOutputStream &) = delete;
+  BufferedOutputStream &operator=(const BufferedOutputStream &) = delete;
+  BufferedOutputStream(BufferedOutputStream &&) = delete;
+  BufferedOutputStream &operator=(BufferedOutputStream &&) = delete;
+
   virtual ~BufferedOutputStream();
 
   /**

@@ -36,6 +36,11 @@ public:
   // else (_tfopen_s() opens files for writing without sharing).  Throws
   // Exception, with the CRT's errno value, if either cannot be opened.
   KeySymTest(const TCHAR *fileFrom, const TCHAR *fileTo);
+  KeySymTest(const KeySymTest &) = delete;
+  KeySymTest &operator=(const KeySymTest &) = delete;
+  KeySymTest(KeySymTest &&) = delete;
+  KeySymTest &operator=(KeySymTest &&) = delete;
+
   virtual ~KeySymTest();
 
   int run();

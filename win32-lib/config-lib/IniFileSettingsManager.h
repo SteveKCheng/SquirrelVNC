@@ -57,6 +57,8 @@ public:
 
   IniFileSettingsManager(const IniFileSettingsManager &) = delete;
   IniFileSettingsManager &operator=(const IniFileSettingsManager &) = delete;
+  IniFileSettingsManager(IniFileSettingsManager &&) = delete;
+  IniFileSettingsManager &operator=(IniFileSettingsManager &&) = delete;
 
   // Sets application name (section name)
   void setApplicationName(const TCHAR *appName);

@@ -34,6 +34,11 @@ public:
   DeviceContext(HWND window);
   // Create device context complatible with other DC.
   DeviceContext(DeviceContext* compatibleDevice);
+  DeviceContext(const DeviceContext &) = delete;
+  DeviceContext &operator=(const DeviceContext &) = delete;
+  DeviceContext(DeviceContext &&) = delete;
+  DeviceContext &operator=(DeviceContext &&) = delete;
+
   // Destroys device context.
   virtual ~DeviceContext();
 

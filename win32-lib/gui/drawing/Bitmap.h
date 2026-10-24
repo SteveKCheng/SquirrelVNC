@@ -41,6 +41,11 @@ public:
   Bitmap(HDC dc, int width, int height);
   // Creates bitmap from HBITMAP object.
   Bitmap(HBITMAP bitmap);
+  Bitmap(const Bitmap &) = delete;
+  Bitmap &operator=(const Bitmap &) = delete;
+  Bitmap(Bitmap &&) = delete;
+  Bitmap &operator=(Bitmap &&) = delete;
+
   // Destroys bitmap object.
   virtual ~Bitmap();
 

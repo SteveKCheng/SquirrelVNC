@@ -33,6 +33,11 @@ public:
   BaseDialog();
   BaseDialog(DWORD resourceId);
   BaseDialog(const TCHAR *resourceName);
+  BaseDialog(const BaseDialog &) = delete;
+  BaseDialog &operator=(const BaseDialog &) = delete;
+  BaseDialog(BaseDialog &&) = delete;
+  BaseDialog &operator=(BaseDialog &&) = delete;
+
   virtual ~BaseDialog();
 public:
 

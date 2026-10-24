@@ -31,6 +31,11 @@ class BaseWindow
 public:
   BaseWindow();
 
+  BaseWindow(const BaseWindow &) = delete;
+  BaseWindow &operator=(const BaseWindow &) = delete;
+  BaseWindow(BaseWindow &&) = delete;
+  BaseWindow &operator=(BaseWindow &&) = delete;
+
   virtual ~BaseWindow();
 
   // getWindow()

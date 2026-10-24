@@ -34,6 +34,11 @@ public:
   // See WinFile for detail.
   WinFileChannel(const TCHAR *pathName, DesiredAccess dAcc, FileMode fMode,
                  bool sharedToRead = true);
+  WinFileChannel(const WinFileChannel &) = delete;
+  WinFileChannel &operator=(const WinFileChannel &) = delete;
+  WinFileChannel(WinFileChannel &&) = delete;
+  WinFileChannel &operator=(WinFileChannel &&) = delete;
+
   ~WinFileChannel();
 
   // Inherited from FileChannel.

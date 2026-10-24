@@ -48,6 +48,11 @@ class FileTransferOperation : public FileTransferEventAdapter,
 {
 public:
   FileTransferOperation(LogWriter *logWriter);
+  FileTransferOperation(const FileTransferOperation &) = delete;
+  FileTransferOperation &operator=(const FileTransferOperation &) = delete;
+  FileTransferOperation(FileTransferOperation &&) = delete;
+  FileTransferOperation &operator=(FileTransferOperation &&) = delete;
+
   virtual ~FileTransferOperation();
 
   //

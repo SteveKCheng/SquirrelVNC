@@ -30,6 +30,11 @@ class WindowsEvent
 {
 public:
   WindowsEvent(const TCHAR *name = 0);
+  WindowsEvent(const WindowsEvent &) = delete;
+  WindowsEvent &operator=(const WindowsEvent &) = delete;
+  WindowsEvent(WindowsEvent &&) = delete;
+  WindowsEvent &operator=(WindowsEvent &&) = delete;
+
   virtual ~WindowsEvent();
 
   void notify();

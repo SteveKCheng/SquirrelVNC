@@ -48,6 +48,11 @@ public:
    * Creates new socket.
    */
   SocketIPv4();
+  SocketIPv4(const SocketIPv4 &) = delete;
+  SocketIPv4 &operator=(const SocketIPv4 &) = delete;
+  SocketIPv4(SocketIPv4 &&) = delete;
+  SocketIPv4 &operator=(SocketIPv4 &&) = delete;
+
   /**
    * Deletes and closes socket.
    */

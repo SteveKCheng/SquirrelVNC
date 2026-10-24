@@ -38,6 +38,11 @@ class TcpConnection
 {
 public:
   TcpConnection(LogWriter *logWriter);
+  TcpConnection(const TcpConnection &) = delete;
+  TcpConnection &operator=(const TcpConnection &) = delete;
+  TcpConnection(TcpConnection &&) = delete;
+  TcpConnection &operator=(TcpConnection &&) = delete;
+
   virtual ~TcpConnection();
 
   void bind(const TCHAR *host, UINT16 port);

@@ -42,6 +42,11 @@ public:
    */
   WindowsApplication(HINSTANCE appInstance, const TCHAR *windowClassName);
 
+  WindowsApplication(const WindowsApplication &) = delete;
+  WindowsApplication &operator=(const WindowsApplication &) = delete;
+  WindowsApplication(WindowsApplication &&) = delete;
+  WindowsApplication &operator=(WindowsApplication &&) = delete;
+
   /**
    * Destroys WindowsApplication instance.
    * @remark it does not shutdown application if it's executing it

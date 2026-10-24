@@ -31,6 +31,11 @@ class WsaStartup
 {
 public:
   WsaStartup(BYTE minorVer, BYTE majorVer);
+  WsaStartup(const WsaStartup &) = delete;
+  WsaStartup &operator=(const WsaStartup &) = delete;
+  WsaStartup(WsaStartup &&) = delete;
+  WsaStartup &operator=(WsaStartup &&) = delete;
+
   virtual ~WsaStartup();
 
 private:

@@ -41,6 +41,11 @@ public:
   // It may be changed many times later. Note that changed DC must be compatible with
   // the DIB section.
   DibSection(const PixelFormat *pf, const Dimension *dim, HWND compatibleWin = 0);
+  DibSection(const DibSection &) = delete;
+  DibSection &operator=(const DibSection &) = delete;
+  DibSection(DibSection &&) = delete;
+  DibSection &operator=(DibSection &&) = delete;
+
   virtual ~DibSection();
 
   // This function changes the target DC. In default target DC is a DC that has been

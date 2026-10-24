@@ -58,6 +58,11 @@ public:
   // be stored to a file.
   FileAccount(bool logHeadEnabled);
 
+  FileAccount(const FileAccount &) = delete;
+  FileAccount &operator=(const FileAccount &) = delete;
+  FileAccount(FileAccount &&) = delete;
+  FileAccount &operator=(FileAccount &&) = delete;
+
   virtual ~FileAccount();
 
   // This function must to call after the constructor with postponed initialization.

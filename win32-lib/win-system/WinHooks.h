@@ -29,6 +29,11 @@ class WinHooks
 {
 public:
   WinHooks();
+  WinHooks(const WinHooks &) = delete;
+  WinHooks &operator=(const WinHooks &) = delete;
+  WinHooks(WinHooks &&) = delete;
+  WinHooks &operator=(WinHooks &&) = delete;
+
   ~WinHooks();
   
   // Hook procedure.

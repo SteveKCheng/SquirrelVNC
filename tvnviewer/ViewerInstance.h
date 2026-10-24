@@ -47,6 +47,11 @@ public:
                  const ConnectionConfig *conConf,
                  std::unique_ptr<SocketIPv4> socket);
 
+  ViewerInstance(const ViewerInstance &) = delete;
+  ViewerInstance &operator=(const ViewerInstance &) = delete;
+  ViewerInstance(ViewerInstance &&) = delete;
+  ViewerInstance &operator=(ViewerInstance &&) = delete;
+
   virtual ~ViewerInstance();
 
   bool requiresReconnect() const;

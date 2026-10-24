@@ -31,6 +31,11 @@ class ToolBar
 {
 public:
   ToolBar();
+  ToolBar(const ToolBar &) = delete;
+  ToolBar &operator=(const ToolBar &) = delete;
+  ToolBar(ToolBar &&) = delete;
+  ToolBar &operator=(ToolBar &&) = delete;
+
   virtual ~ToolBar();
 
   static const int TB_Style_sep = 0;

@@ -34,6 +34,11 @@ class CursorPainter
 {
 public:
   CursorPainter(FrameBuffer *fb, LogWriter *logWriter);
+  CursorPainter(const CursorPainter &) = delete;
+  CursorPainter &operator=(const CursorPainter &) = delete;
+  CursorPainter(CursorPainter &&) = delete;
+  CursorPainter &operator=(CursorPainter &&) = delete;
+
   virtual ~CursorPainter();
 
   // this functions is thread-safe for private data of cursor, but need external lock of frame buffer
@@ -74,11 +79,6 @@ private:
   bool m_cursorIsMoveable;
 
   bool m_ignoreShapeUpdates;
-
-private:
-  // Do not allow copying objects.
-  CursorPainter(const CursorPainter &);
-  CursorPainter &operator=(const CursorPainter &);
 };
 
 #endif

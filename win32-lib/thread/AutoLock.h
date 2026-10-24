@@ -30,6 +30,11 @@ class AutoLock
 {
 public:
   AutoLock(Lockable *locker);
+  AutoLock(const AutoLock &) = delete;
+  AutoLock &operator=(const AutoLock &) = delete;
+  AutoLock(AutoLock &&) = delete;
+  AutoLock &operator=(AutoLock &&) = delete;
+
   virtual ~AutoLock();
 
 protected:
