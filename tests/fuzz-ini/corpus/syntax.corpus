@@ -1,0 +1,14 @@
+; comment
+# comment
+[Options]
+  quality = " 9 "
+quality=12
+scale_num=1
+scale_den=0
+[connection
+host
+=value
+[]
+k=<<<END
+more
+END

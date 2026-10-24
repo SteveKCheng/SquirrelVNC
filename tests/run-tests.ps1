@@ -7,7 +7,8 @@
 <#
 .SYNOPSIS
 Runs the replay tests in tests/cases with rfb-replay, the unit tests in
-ini-test, and the fuzz inputs in tests/fuzz with rfb-fuzz.
+ini-test, the fuzz inputs in tests/fuzz with rfb-fuzz, and those in
+tests/fuzz-ini with ini-fuzz.
 
 .DESCRIPTION
 Each case is one command, rfb-replay --check, which compares the client's
@@ -42,6 +43,7 @@ $bin = Join-Path $root "bin\$Platform\$Configuration"
 $replay = Join-Path $bin 'rfb-replay.exe'
 $fuzz = Join-Path $bin 'rfb-fuzz.exe'
 $iniTest = Join-Path $bin 'ini-test.exe'
+$iniFuzz = Join-Path $bin 'ini-fuzz.exe'
 if (-not (Test-Path $replay) -and -not (Test-Path $fuzz) -and -not (Test-Path $iniTest)) {
   Write-Error "None of rfb-replay.exe, ini-test.exe and rfb-fuzz.exe is in $bin (build the solution for $Configuration|$Platform first)"
 }
@@ -95,24 +97,31 @@ if ((Test-Path $iniTest) -and 'ini-test' -like $Filter) {
   Write-Host "SKIP ini-test: it is not built in $Configuration"
 }
 
-if (Test-Path $fuzz) {
+# Runs a fuzz program once on the corpus and regression inputs in tests\$dirName.
+function Test-FuzzInputs([string]$program, [string]$dirName, [string]$label) {
+  if (-not (Test-Path $program)) {
+    return
+  }
   $inputs = @('corpus', 'regressions') | ForEach-Object {
-    $dir = Join-Path $PSScriptRoot "fuzz\$_"
+    $dir = Join-Path $PSScriptRoot "$dirName\$_"
     if (Test-Path $dir) { Get-ChildItem $dir -File -Filter "$Filter.corpus" | Sort-Object Name }
   }
   if ($inputs.Count -gt 0) {
-    $total++
-    $output = & $fuzz $inputs.FullName 2>&1 | ForEach-Object { "$_" }
+    $script:total++
+    $output = & $program $inputs.FullName 2>&1 | ForEach-Object { "$_" }
     $code = $LASTEXITCODE
     if ($code -eq 0) {
-      Write-Host "PASS fuzz inputs ($($inputs.Count) files)"
+      Write-Host "PASS $label ($($inputs.Count) files)"
     } else {
-      $failed += 'fuzz inputs'
-      Write-Host "FAIL fuzz inputs ($(Get-Reason $code))"
+      $script:failed += $label
+      Write-Host "FAIL $label ($(Get-Reason $code))"
       $output | Select-Object -Last 40 | ForEach-Object { Write-Host "     $_" }
     }
   }
 }
+
+Test-FuzzInputs $fuzz 'fuzz' 'fuzz inputs'
+Test-FuzzInputs $iniFuzz 'fuzz-ini' 'ini fuzz inputs'
 
 Write-Host ''
 Write-Host ("{0} of {1} tests passed ({2}|{3})" -f
