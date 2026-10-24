@@ -231,9 +231,9 @@ implementations:
   signal or on another thread, and before glibc 2.34 it needs `-lanl`.
 
 This replaces `SocketAddressIPv4::resolve`, and covers the cancellable
-connect in `networking.md`. `HostPath::validateHostNames` then has to
-stop rejecting non-ASCII names. About a few hundred lines with the
-tests, most of the care going into cancellation.
+connect in `networking.md`. `HostPath` already accepts internationalised
+names (`string-encoding.md`, "Host names"). About a few hundred lines
+with the tests, most of the care going into cancellation.
 
 ### Transports, and stdin/stdout
 

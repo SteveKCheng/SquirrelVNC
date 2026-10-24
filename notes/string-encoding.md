@@ -149,19 +149,30 @@ above U+10FFFF included (a throwaway check).
 
 ## Host names
 
-`SocketAddressIPv4::resolve` already calls `GetAddrInfo` with `TCHAR`
-strings, which is `GetAddrInfoW`. The only lossy step is
-`ConnectionData`, which converts the host to ACP for `HostPath` and
-back. `HostPath::validateHostNames` accepts only ASCII letters, digits,
-`.`, `-` and `_`, so in practice nothing is lost today.
+Done (2026-10-24). The host stays in `StringStorage` (UTF-16) from the
+GUI or the command line to `GetAddrInfoW()`, which
+`SocketAddressIPv4::resolve` calls:
 
-The planned change is the cheap one: `HostPath` stays `char`-based and
-holds UTF-8, and `ConnectionData` converts with `toUtf8`/`fromUtf8`.
-Its parsing splits at ASCII delimiters and uses no `<cctype>` calls, so
-UTF-8 is safe in it. Internationalised host names stay unsupported
-until the Asio rewrite, which resolves with `GetAddrInfoExW` and takes
-the name as UTF-16; see "Host name resolution" in
-`async-networking.md`.
+- **No conversion.** `HostPath` works on `TCHAR` and keeps its parts in
+  `StringStorage`; `ConnectionData` no longer converts to UTF-8 for it.
+  The first plan here, a `char`-based `HostPath` holding UTF-8, was
+  dropped as soon as nothing else needed the conversion.
+- **Internationalised names are accepted.** `GetAddrInfoW()` converts
+  them to Punycode itself (Windows 8 and later); "bücher.de" resolves as
+  "xn--bcher-kva.de" does. `HostPath` refuses, outside ASCII, controls,
+  white space, invisible formatting characters (such as zero-width
+  spaces and direction overrides), the specials block and unpaired
+  surrogates, and leaves the rest to the resolver. An SSH user name
+  stays ASCII.
+- **Tests:** `HostPathTests.cpp` in `unit-test`; `ini-fuzz` parses the
+  host of each input.
+
+Still to come, with the Asio rewrite: resolving asynchronously and
+cancellably with `GetAddrInfoExW`, and IPv6 ("Host name resolution" in
+`async-networking.md`). Look-alike names (a Cyrillic "а" for a Latin
+"a") are possible, as in any program that accepts internationalised
+names; the host is what the user typed or opened, and the window title
+shows it.
 
 ## `.ini` files
 
