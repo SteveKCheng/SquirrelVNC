@@ -45,6 +45,10 @@
 
 #include <vector>
 
+#ifdef _MSC_VER
+#pragma warning(disable: 6262) // suppress warning on use of a ~64KB buffer on the stack
+#endif
+
 //
 // The notifier shared by every input (see FuzzNotifier).
 //

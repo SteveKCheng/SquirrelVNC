@@ -52,6 +52,10 @@
 #include <string>
 #include <vector>
 
+#ifdef _MSC_VER
+#pragma warning(disable: 6262) // suppress warning on use of a ~64KB buffer on the stack
+#endif
+
 static const TCHAR USAGE[] =
   _T("Usage: rfb-replay [options] INPUT\n")
   _T("       rfb-replay [options] --check CASE\n")

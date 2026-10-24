@@ -42,6 +42,10 @@
 #include <span>
 #include <vector>
 
+#ifdef _MSC_VER
+#pragma warning(disable: 6262) // suppress warning on use of a ~64KB buffer on the stack
+#endif
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
   IniFileSettingsManager ini;
