@@ -24,83 +24,57 @@
 #include "FileInfoList.h"
 
 FileInfoList::FileInfoList(FileInfo fileInfo)
-: m_parent(0), m_child(0), m_next(0), m_prev(0)
+: m_parent(0), m_prev(0)
 {
   setFileInfo(fileInfo);
 }
 
 FileInfoList::FileInfoList(const FileInfo *filesInfo, size_t count)
-: m_parent(0), m_child(0), m_next(0), m_prev(0)
+: m_parent(0), m_prev(0)
 {
   setFileInfo(filesInfo[0]);
-
-  FileInfoList *list = fromArray(filesInfo, count);
-  FileInfoList *second = list->getNext();
-
-  list->m_next = NULL;
-
-  if (second != NULL) {
-    second->m_prev = this;
-  }
-
-  m_next = second;
-
-  delete list;
+  appendAfter(this, filesInfo + 1, count - 1);
 }
 
 FileInfoList::~FileInfoList()
 {
-  //
-  // This class is owner of child and next list elements
-  // so in destructor it must free allocated memory.
-  //
-
-  // Recursion here is as deep as the tree of directories.
-  if (m_child != NULL) {
-    delete m_child;
-  }
+  // m_child is freed recursively, as deep as the tree of directories.
   // The following elements are freed in a loop: a list from a server can
   // hold millions of them, too many to free recursively on the stack.
-  FileInfoList *next = m_next;
-  while (next != NULL) {
-    FileInfoList *following = next->m_next;
-    next->m_next = NULL;
-    delete next;
-    next = following;
+  // Each assignment takes the next pointer of the element it frees first,
+  // so that element has none left to free.
+  std::unique_ptr<FileInfoList> next = std::move(m_next);
+  while (next) {
+    next = std::move(next->m_next);
   }
 }
 
-void FileInfoList::setNext(FileInfoList *next)
+void FileInfoList::appendAfter(FileInfoList *last, const FileInfo *filesInfo, size_t count)
 {
-  if (m_next != NULL) {
-    delete m_next;
+  for (size_t i = 0; i < count; i++) {
+    last->m_next = std::make_unique<FileInfoList>(filesInfo[i]);
+    last->m_next->m_prev = last;
+    last = last->m_next.get();
   }
-  m_next = next;
-}
-
-void FileInfoList::setPrev(FileInfoList *prev)
-{
-  // The previous element is not owned: it owns this one.
-  m_prev = prev;
 }
 
 void FileInfoList::setChild(const FileInfo *filesInfo, size_t count)
 {
   // Cleanup
-  if (m_child != NULL) {
-    delete m_child;
+  m_child.reset();
+  if (count == 0) {
+    return;
   }
-  // Parent to child relationship
-  m_child = FileInfoList::fromArray(filesInfo, count);
+  // Parent to child relationship, made whole before it is set.
+  std::unique_ptr<FileInfoList> child = std::make_unique<FileInfoList>(filesInfo, count);
   // Child to parent relationship
-  if (m_child != NULL) {
-    m_child->m_parent = this;
-  }
+  child->m_parent = this;
+  m_child = std::move(child);
 }
 
 FileInfoList *FileInfoList::getChild()
 {
-  return m_child;
+  return m_child.get();
 }
 
 FileInfoList *FileInfoList::getParent()
@@ -131,7 +105,7 @@ FileInfoList *FileInfoList::getFirst()
 
 FileInfoList *FileInfoList::getNext()
 {
-  return m_next;
+  return m_next.get();
 }
 
 FileInfoList *FileInfoList::getPrev()
@@ -177,23 +151,3 @@ void FileInfoList::getAbsolutePath(StringStorage *storage, TCHAR directorySepara
   storage->appendString(fileName);
 }
 
-FileInfoList *FileInfoList::fromArray(const FileInfo *filesInfo, size_t count)
-{
-  if (count == 0) {
-    return NULL;
-  }
-
-  FileInfoList *current = NULL;
-  FileInfoList *prev = NULL;
-
-  for (UINT32 i = 0; i < count; i++) {
-    current = new FileInfoList(filesInfo[i]);
-    current->setPrev(prev);
-    if (prev != NULL) {
-      prev->setNext(current);
-    }
-    prev = current;
-  }
-
-  return current->getFirst();
-}

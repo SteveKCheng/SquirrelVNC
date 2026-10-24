@@ -29,6 +29,7 @@
 
 #include "ft-client-lib/FileInfoList.h"
 
+#include <memory>
 #include <vector>
 
 void runFileInfoListTests()
@@ -43,7 +44,7 @@ void runFileInfoListTests()
   }
   FileInfo folder(0, 0, FileInfo::DIRECTORY, _T("dir"));
 
-  FileInfoList *root = new FileInfoList(folder);
+  std::unique_ptr<FileInfoList> root = std::make_unique<FileInfoList>(folder);
   root->setChild(files.data(), files.size());
 
   FileInfoList *last = root->getChild();
@@ -54,12 +55,12 @@ void runFileInfoListTests()
   }
   check(length == COUNT, "FileInfoList holds every file of a long list");
   check(last->getFirst() == root->getChild(), "FileInfoList finds the first of a long list");
-  check(last->getRoot() == root, "FileInfoList finds the root from the end of a long list");
+  check(last->getRoot() == root.get(), "FileInfoList finds the root from the end of a long list");
 
   StringStorage path;
   last->getAbsolutePath(&path, _T('/'));
   check(path.isEqualTo(_T("dir/f")), "FileInfoList gives the path of a file in a directory");
 
-  delete root;
+  root.reset();
   check(true, "FileInfoList frees a long list");
 }

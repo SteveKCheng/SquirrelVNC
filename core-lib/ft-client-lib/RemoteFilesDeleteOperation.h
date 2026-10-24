@@ -27,6 +27,8 @@
 #include "FileTransferOperation.h"
 #include "FileInfoList.h"
 
+#include <memory>
+
 class RemoteFilesDeleteOperation : public FileTransferOperation
 {
 public:
@@ -80,6 +82,9 @@ protected:
   // Current file list to delete
   //
 
+  // The tree of files to delete, which owns all of it, and the file that
+  // is currently being deleted in it (0 once the operation has ended).
+  std::unique_ptr<FileInfoList> m_toDeleteRoot;
   FileInfoList *m_toDelete;
   StringStorage m_pathToTargetRoot;
 };

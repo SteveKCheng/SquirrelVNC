@@ -26,6 +26,9 @@
 
 #include "FileTransferOperation.h"
 #include "CopyFileEventListener.h"
+#include "FileInfoList.h"
+
+#include <memory>
 
 //
 // Abstract class that contain intersection of functionality
@@ -43,7 +46,9 @@ public:
   void setCopyProcessListener(CopyFileEventListener *listener);
 
 protected:
-  // Information about file that currently coping
+  // The tree of files to copy, which owns all of it, and the file that is
+  // currently being copied in it (0 once the operation has ended).
+  std::unique_ptr<FileInfoList> m_toCopyRoot;
   FileInfoList *m_toCopy;
 
   // Path to root folder where files that should be copied is located

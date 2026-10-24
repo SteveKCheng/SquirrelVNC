@@ -35,16 +35,14 @@ DownloadOperation::DownloadOperation(LogWriter *logWriter,
   m_pathToSourceRoot.setString(pathToSourceRoot);
   m_pathToTargetRoot.setString(pathToTargetRoot);
 
-  m_toCopy = new FileInfoList(filesToDownload, filesCount);
+  m_toCopyRoot = std::make_unique<FileInfoList>(filesToDownload, filesCount);
+  m_toCopy = m_toCopyRoot.get();
 
   changeFileToDownload(m_toCopy);
 }
 
 DownloadOperation::~DownloadOperation()
 {
-  if (m_toCopy != NULL) {
-    delete m_toCopy->getRoot();
-  }
   closeFile();
 }
 
@@ -407,7 +405,7 @@ void DownloadOperation::killOp()
   // operation is finished
   //
 
-  delete m_toCopy->getRoot();
+  m_toCopyRoot.reset();
   m_toCopy = NULL;
 
   notifyFinish();

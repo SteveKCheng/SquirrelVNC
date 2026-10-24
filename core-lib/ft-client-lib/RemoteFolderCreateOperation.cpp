@@ -35,10 +35,8 @@ RemoteFolderCreateOperation::RemoteFolderCreateOperation(LogWriter *logWriter,
                                                          const TCHAR *pathToTargetRoot)
 : FileTransferOperation(logWriter)
 {
-  FileInfoList *list = new FileInfoList(file);
-  getRemotePath(list, pathToTargetRoot, &m_pathToTargetFile);
-  // or delete list->getRoot(); ?
-  delete list;
+  FileInfoList list(file);
+  getRemotePath(&list, pathToTargetRoot, &m_pathToTargetFile);
 }
 
 RemoteFolderCreateOperation::~RemoteFolderCreateOperation()

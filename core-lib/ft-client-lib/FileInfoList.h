@@ -26,6 +26,8 @@
 
 #include "ft-common/FileInfo.h"
 
+#include <memory>
+
 //
 // 2D two-side linked list class with FileInfo data inside
 // specified for using in recursive file transfer client operations
@@ -52,6 +54,8 @@ public:
   //
   // Creates 1d two-side linked list with data from filesInfo array
   //
+  // Pre-conditions: count >= 1, and filesInfo points to count entries.
+  //
 
   FileInfoList(const FileInfo *filesInfo, size_t count);
 
@@ -68,6 +72,10 @@ public:
   //
   // Creates new file info list from filesInfo array and set it to child
   // of this list (also it creates backward "child to parent" relationship).
+  //
+  // Pre-conditions: filesInfo points to count entries (none if 0).
+  // Post-conditions: the old children are freed, and pointers into them
+  // are no longer valid; if making the new ones throws, there are none.
   //
 
   void setChild(const FileInfo *filesInfo, size_t count);
@@ -132,20 +140,22 @@ public:
 
 protected:
 
-  // Frees the old next element, and those after it, and takes ownership
-  // of next.
-  void setNext(FileInfoList *next);
-  // prev is not owned, since it owns this element.
-  void setPrev(FileInfoList *prev);
-
-  static FileInfoList *fromArray(const FileInfo *filesInfo, size_t count);
+  //
+  // Pre-conditions: last has no next element; filesInfo points to count
+  // entries.
+  // Post-conditions: copies of the entries follow last, in order, linked
+  // both ways. If this throws, those made so far are kept.
+  //
+  static void appendAfter(FileInfoList *last, const FileInfo *filesInfo, size_t count);
 
 protected:
 
-  FileInfoList *m_child;
+  // Each element owns its first child and the element after it; the
+  // parent and previous element own it in turn.
+  std::unique_ptr<FileInfoList> m_child;
   FileInfoList *m_parent;
 
-  FileInfoList *m_next;
+  std::unique_ptr<FileInfoList> m_next;
   FileInfoList *m_prev;
 
   FileInfo m_fileInfo;

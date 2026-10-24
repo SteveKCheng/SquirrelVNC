@@ -37,7 +37,8 @@ UploadOperation::UploadOperation(LogWriter *logWriter,
   m_pathToSourceRoot.setString(pathToSourceRoot);
   m_pathToTargetRoot.setString(pathToTargetRoot);
 
-  m_toCopy = new FileInfoList(fileToUpload);
+  m_toCopyRoot = std::make_unique<FileInfoList>(fileToUpload);
+  m_toCopy = m_toCopyRoot.get();
 
   changeFileToUpload(m_toCopy);
   m_lastRequestTime = DateTime::now();
@@ -54,7 +55,8 @@ UploadOperation::UploadOperation(LogWriter *logWriter,
   m_pathToSourceRoot.setString(pathToSourceRoot);
   m_pathToTargetRoot.setString(pathToTargetRoot);
 
-  m_toCopy = new FileInfoList(filesToUpload, filesCount);
+  m_toCopyRoot = std::make_unique<FileInfoList>(filesToUpload, filesCount);
+  m_toCopy = m_toCopyRoot.get();
 
   changeFileToUpload(m_toCopy);
   m_lastRequestTime = DateTime::now();
@@ -62,9 +64,6 @@ UploadOperation::UploadOperation(LogWriter *logWriter,
 
 UploadOperation::~UploadOperation()
 {
-  if (m_toCopy != NULL) {
-    delete m_toCopy->getRoot();
-  }
   closeFile();
 }
 
@@ -168,7 +167,7 @@ void UploadOperation::killOp()
   // operation is finished
   //
 
-  delete m_toCopy->getRoot();
+  m_toCopyRoot.reset();
   m_toCopy = NULL;
 
   // Notify listeners that operation ended

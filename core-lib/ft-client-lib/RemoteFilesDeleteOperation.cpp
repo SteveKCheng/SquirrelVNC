@@ -29,7 +29,8 @@ RemoteFilesDeleteOperation::RemoteFilesDeleteOperation(LogWriter *logWriter,
                                                        const TCHAR *pathToTargetRoot)
 : FileTransferOperation(logWriter)
 {
-  m_toDelete = new FileInfoList(filesInfoToDelete, filesCount);
+  m_toDeleteRoot = std::make_unique<FileInfoList>(filesInfoToDelete, filesCount);
+  m_toDelete = m_toDeleteRoot.get();
   m_pathToTargetRoot.setString(pathToTargetRoot);
 }
 
@@ -38,15 +39,13 @@ RemoteFilesDeleteOperation::RemoteFilesDeleteOperation(LogWriter *logWriter,
                                                        const TCHAR *pathToTargetRoot)
 : FileTransferOperation(logWriter)
 {
-  m_toDelete = new FileInfoList(fileInfoToDelete);
+  m_toDeleteRoot = std::make_unique<FileInfoList>(fileInfoToDelete);
+  m_toDelete = m_toDeleteRoot.get();
   m_pathToTargetRoot.setString(pathToTargetRoot);
 }
 
 RemoteFilesDeleteOperation::~RemoteFilesDeleteOperation()
 {
-  if (m_toDelete != NULL) {
-    delete m_toDelete;
-  }
 }
 
 void RemoteFilesDeleteOperation::start()
@@ -210,7 +209,7 @@ void RemoteFilesDeleteOperation::gotoNext()
 
 void RemoteFilesDeleteOperation::killOp()
 {
-  delete m_toDelete->getRoot();
+  m_toDeleteRoot.reset();
   m_toDelete = NULL;
 
   // Notify listeners that operation have ended
