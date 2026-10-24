@@ -44,6 +44,13 @@ private:
 
   virtual void execute();
 
+  //
+  // Deletes file, and first the files in it if it is a directory; a
+  // directory that cannot be listed is reported with notifyError().
+  //
+  // Post-conditions: returns true if file was removed; false, after
+  // notifyError(), if it could not be, or if the operation is terminating.
+  //
   bool deleteFile(File *file);
 
 protected:

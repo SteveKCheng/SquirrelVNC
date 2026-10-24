@@ -52,6 +52,12 @@ public:
   const FileInfo *getFilesInfo() const;
   UINT32 getFilesCount() const;
 
+  //
+  // Post-conditions: returns true, and replaces the files info with that
+  // of the files in the folder (or of the roots, for an empty folder
+  // name); returns false, with a files count of 0, if the folder cannot be
+  // listed.
+  //
   bool list();
 
 protected:

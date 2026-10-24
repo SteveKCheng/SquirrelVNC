@@ -102,6 +102,11 @@ public:
 private:
 
   UINT64 getInputFilesSize();
+  //
+  // Post-conditions: returns the size of the file, or the total size of
+  // the files in the directory and its subdirectories; a file or
+  // directory that cannot be read counts as 0.
+  //
   UINT64 getFileSize(const TCHAR *pathToFile);
 
 protected:

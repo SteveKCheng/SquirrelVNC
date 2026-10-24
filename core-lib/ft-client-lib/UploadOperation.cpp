@@ -230,22 +230,18 @@ UINT64 UploadOperation::getFileSize(const TCHAR *pathToFile)
   File file(pathToFile);
 
   if (file.isDirectory()) {
-    UINT32 filesCount = 0;
-    file.list(NULL, &filesCount);
+    // A directory that cannot be listed counts as empty.
+    std::vector<StringStorage> fileNames;
+    file.list(&fileNames);
 
-    StringStorage *fileNames = new StringStorage[filesCount];
-    file.list(fileNames, NULL);
-
-    for (UINT32 i = 0; i < filesCount; i++) {
-      File subfile(pathToFile, fileNames[i].getString());
+    for (const StringStorage &fileName : fileNames) {
+      File subfile(pathToFile, fileName.getString());
 
       StringStorage pathToSubFile;
       subfile.getPath(&pathToSubFile);
 
       fileSize += getFileSize(pathToSubFile.getString());
     }
-
-    delete[] fileNames;
   } else {
     INT64 len = file.length();
     if (len == -1) {

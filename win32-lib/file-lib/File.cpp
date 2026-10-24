@@ -147,12 +147,12 @@ UINT64 File::length() const
   return fileInfo.nFileSizeHigh * maxDWORDPlusOne + fileInfo.nFileSizeLow;
 }
 
-bool File::list(StringStorage *fileList, UINT32 *filesCount) const
+bool File::list(std::vector<StringStorage> *fileList) const
 {
   StringStorage folderPath(m_pathName.getString());
   folderPath.appendString(_T("\\*"));
 
-  UINT32 index = 0;
+  std::vector<StringStorage> names;
 
   HANDLE hfile;
   WIN32_FIND_DATA findFileData;
@@ -184,57 +184,38 @@ bool File::list(StringStorage *fileList, UINT32 *filesCount) const
       continue;
     }
 
-    if (fileList != NULL) {
-      fileList[index].setString(findFileData.cFileName);
-    }
-
-    index++;
+    names.push_back(StringStorage(findFileData.cFileName));
 
   } while (FindNextFile(hfile, &findFileData));
 
   FindClose(hfile);
 
-  if (fileList == NULL) {
-    *filesCount = index;
-  }
-
+  *fileList = std::move(names);
   return true;
 }
 
-bool File::listRoots(StringStorage *rootList, UINT32 *rootsCount)
+bool File::listRoots(std::vector<StringStorage> *rootList)
 {
   TCHAR drivesList[256];
 
-  if (GetLogicalDriveStrings(255, drivesList) == 0) {
+  // The size excludes the final null character. A larger result is the
+  // size needed, and nothing is written.
+  DWORD length = GetLogicalDriveStrings(255, drivesList);
+  if (length == 0 || length > 255) {
     return false;
   }
 
-  UINT32 count = 0;
-  size_t i = 0;
-
-  while (drivesList[i] != '\0') {
-
-    TCHAR *drive = _tcsdup(&drivesList[i]);
-    TCHAR *backslash = _tcsrchr(drive, '\\');
-
-    if (backslash != NULL) {
-      *backslash = '\0';
+  std::vector<StringStorage> roots;
+  // Each name ends with a null character, and the list with one more.
+  for (const TCHAR *drive = drivesList; *drive != _T('\0'); drive += _tcslen(drive) + 1) {
+    StringStorage root(drive);
+    if (root.endsWith(_T('\\'))) {
+      root.truncate(1);
     }
-
-    if (rootList != NULL) {
-      rootList[count].setString(drive);
-    }
-
-    free(drive);
-
-    i += _tcscspn(&drivesList[i], _T("\0")) + 1;
-    count++;
-  } // while
-
-  if (rootList == NULL) {
-    *rootsCount = count;
+    roots.push_back(root);
   }
 
+  *rootList = std::move(roots);
   return true;
 }
 

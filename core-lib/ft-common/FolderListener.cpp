@@ -49,36 +49,26 @@ UINT32 FolderListener::getFilesCount() const
 
 bool FolderListener::list()
 {
-  StringStorage *fileNameList = NULL;
+  std::vector<StringStorage> fileNameList;
   m_filesCount = 0;
-  bool listResult = true;
 
   if (!m_folderPath.isEmpty()) {
     File folder(m_folderPath.getString());
-    listResult = folder.list(NULL, &m_filesCount);
+    if (!folder.list(&fileNameList)) {
+      return false;
+    }
   } else {
-    File::listRoots(NULL, &m_filesCount);
+    // Without roots, the list is empty.
+    File::listRoots(&fileNameList);
   }
-
-  if (!listResult) {
-    return false;
-  }
-
-  fileNameList = new StringStorage[m_filesCount];
 
   if (m_filesInfo != NULL) {
     delete[] m_filesInfo;
     m_filesInfo = NULL;
   }
 
-  m_filesInfo = new FileInfo[m_filesCount];
-
-  if (!m_folderPath.isEmpty()) {
-    File folder(m_folderPath.getString());
-    folder.list(fileNameList, NULL);
-  } else {
-    File::listRoots(fileNameList, NULL);
-  }
+  m_filesInfo = new FileInfo[fileNameList.size()];
+  m_filesCount = static_cast<UINT32>(fileNameList.size());
 
   for (UINT32 i = 0; i < m_filesCount; i++) {
 
@@ -100,8 +90,6 @@ bool FolderListener::list()
       m_filesInfo[i].setLastModified(0);
     }
   }
-
-  delete[] fileNameList;
 
   return true;
 }

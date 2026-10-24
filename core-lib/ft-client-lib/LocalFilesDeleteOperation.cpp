@@ -103,14 +103,10 @@ bool LocalFilesDeleteOperation::deleteFile(File *file)
 
   // Remove files in directory first
   if (file->isDirectory()) {
-    UINT32 filesCount;
-    StringStorage *files = NULL;
+    std::vector<StringStorage> files;
 
-    if (file->list(NULL, &filesCount)) {
-      files = new StringStorage[filesCount];
-      file->list(files, NULL);
-
-      for (UINT32 i = 0; i < filesCount; i++) {
+    if (file->list(&files)) {
+      for (const StringStorage &fileName : files) {
 
         if (Thread::isTerminating()) {
           return false;
@@ -120,14 +116,12 @@ bool LocalFilesDeleteOperation::deleteFile(File *file)
         StringStorage pathToTargetSubFile(pathToTargetFile.getString());
 
         pathToTargetSubFile.appendString(_T("\\"));
-        pathToTargetSubFile.appendString(files[i].getString());
+        pathToTargetSubFile.appendString(fileName.getString());
 
         File subFile(pathToTargetSubFile.getString());
         // Delete file
         deleteFile(&subFile);
       } // for all subfiles
-
-      delete[] files;
     } else {
       StringStorage message;
 

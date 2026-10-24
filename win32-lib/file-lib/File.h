@@ -27,6 +27,8 @@
 #include "util/CommonHeader.h"
 #include "util/inttypes.h"
 
+#include <vector>
+
 class File
 {
 public:
@@ -96,31 +98,19 @@ public:
   UINT64 length() const;
 
   //
-  // Fills fileList array of strings naming the files and directories
-  // in the directory denoted by this pathname
+  // Post-conditions: returns true and sets *fileList to the names of the
+  // files and directories in the directory this pathname denotes, other
+  // than "." and ".."; returns false, leaving *fileList unchanged, if the
+  // directory cannot be listed.
   //
-  // If fileList is NULL than sets files count value to filesCount
-  //
-  // FIXME: Current implementation forces to perform two calls, first to
-  //        determine the list size, then to fill in the list itself.
-  //        However, the list size can be changed between these calls!
-  //        This MUST be fixed someday.
-  //
-
-  bool list(StringStorage *fileList, UINT32 *filesCount) const;
+  bool list(std::vector<StringStorage> *fileList) const;
 
   //
-  // List the available filesystem roots to rootList array
+  // Post-conditions: returns true and sets *rootList to the filesystem
+  // roots, as drive names without a trailing backslash ("C:"); returns
+  // false, leaving *rootList unchanged, if they cannot be read.
   //
-  // If rootList is NULL that sets root list size to rootsCount
-  //
-  // FIXME: Current implementation forces to perform two calls, first to
-  //        determine the list size, then to fill in the list itself.
-  //        However, the list size can be changed between these calls!
-  //        This MUST be fixed someday.
-  //
-
-  static bool listRoots(StringStorage *rootList, UINT32 *rootsCount);
+  static bool listRoots(std::vector<StringStorage> *rootList);
 
   //
   // Creates the directory named by this pathname

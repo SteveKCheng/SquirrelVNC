@@ -44,5 +44,6 @@ std::vector<std::wstring> listFiles(const std::wstring &directory);
 void runIniTests(const std::wstring &dir);
 void runHostPathTests();
 void runDecoderStoreTests();
+void runFileTests(const std::wstring &dir);
 
 #endif // _UNIT_TEST_H_
