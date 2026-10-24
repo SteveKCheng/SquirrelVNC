@@ -165,7 +165,7 @@ SOCKET SocketIPv4::getAcceptedSocket(struct sockaddr_in *addr)
     // FIXME: The select() and accept() function can provoke an system
     // exception, if it allows by project settings and closesocket() has alredy
     // been called.
-    int ret = select((int)m_socket + 1, &afd, NULL, NULL, &timeout);
+    int ret = select((int)m_socket + 1, &afd, nullptr, nullptr, &timeout);
 
     if (m_isClosed || ret == SOCKET_ERROR) {
       throw SocketException();

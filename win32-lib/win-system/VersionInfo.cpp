@@ -42,12 +42,12 @@ VersionInfo::VersionInfo(const TCHAR *pathToFile)
 
   UINT fixedInfoSize = 0;
 
-  VS_FIXEDFILEINFO *fixedInfo = 0;
+  VS_FIXEDFILEINFO *fixedInfo = nullptr;
 
   if (VerQueryValue(verInfo, _T("\\"), (void **)&fixedInfo, &fixedInfoSize) == 0) {
     throw SystemException();
   }
-  if (fixedInfo == 0 || fixedInfoSize < sizeof(VS_FIXEDFILEINFO)) {
+  if (fixedInfo == nullptr || fixedInfoSize < sizeof(VS_FIXEDFILEINFO)) {
     throw SystemException(ERROR_RESOURCE_DATA_NOT_FOUND);
   }
 

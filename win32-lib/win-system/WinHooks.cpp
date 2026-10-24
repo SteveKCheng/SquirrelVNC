@@ -24,8 +24,8 @@
 #include "WinHooks.h"
 #include "win-system/SystemException.h"
 
-HHOOK WinHooks::s_hooks = 0;
-HookEventListener *WinHooks::s_eventListener = 0;
+HHOOK WinHooks::s_hooks = nullptr;
+HookEventListener *WinHooks::s_eventListener = nullptr;
 
 WinHooks::WinHooks()
 {
@@ -34,7 +34,7 @@ WinHooks::WinHooks()
 
 WinHooks::~WinHooks()
 {
-  unregisterKeyboardHook(0);
+  unregisterKeyboardHook(nullptr);
 }
 
 LRESULT CALLBACK WinHooks::lowLevelKeyboardHook(int nCode, WPARAM wParam, LPARAM lParam)
@@ -53,20 +53,20 @@ LRESULT CALLBACK WinHooks::lowLevelKeyboardHook(int nCode, WPARAM wParam, LPARAM
 
 void WinHooks::registerKeyboardHook(HookEventListener *hookEventListener)
 {
-  unregisterKeyboardHook(0);
+  unregisterKeyboardHook(nullptr);
   s_eventListener = hookEventListener;
-  HINSTANCE hinst = GetModuleHandle(0);
+  HINSTANCE hinst = GetModuleHandle(nullptr);
   s_hooks = SetWindowsHookEx(WH_KEYBOARD_LL, lowLevelKeyboardHook, hinst, 0);
-  if (s_hooks == NULL) {
+  if (s_hooks == nullptr) {
     throw SystemException(_T("Unnable to set hooks"));
   }
 }
 
 void WinHooks::unregisterKeyboardHook(HookEventListener * /* hookEventListener */)
 {
-  if (s_hooks != 0) {
+  if (s_hooks != nullptr) {
     UnhookWindowsHookEx(s_hooks);
   }
-  s_hooks = 0;
-  s_eventListener = 0;
+  s_hooks = nullptr;
+  s_eventListener = nullptr;
 }

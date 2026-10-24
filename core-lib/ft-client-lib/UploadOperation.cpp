@@ -168,7 +168,7 @@ void UploadOperation::killOp()
   //
 
   m_toCopyRoot.reset();
-  m_toCopy = NULL;
+  m_toCopy = nullptr;
 
   // Notify listeners that operation ended
   notifyFinish();
@@ -201,7 +201,7 @@ UINT64 UploadOperation::getInputFilesSize()
   UINT64 totalFilesSize = 0;
 
   FileInfoList *fil = m_toCopy;
-  while (fil != NULL) {
+  while (fil != nullptr) {
     StringStorage pathNoRoot;
     StringStorage pathToFile;
 
@@ -261,7 +261,7 @@ void UploadOperation::startUpload()
   FileInfo *fileInfo = m_toCopy->getFileInfo();
 
   // Logging
-  if (m_toCopy->getFirst()->getParent() == NULL) {
+  if (m_toCopy->getFirst()->getParent() == nullptr) {
     StringStorage message;
 
     message.format(_T("Uploading '%s' %s"), m_pathToSourceFile.getString(),
@@ -429,7 +429,7 @@ void UploadOperation::sendFileDataChunk()
   m_totalBytesCopied += read;
 
   // Notify listener, that data chunk is copied
-  if (m_copyListener != NULL) {
+  if (m_copyListener != nullptr) {
     m_copyListener->dataChunkCopied(m_totalBytesCopied,
                                     m_totalBytesToCopy);
   }
@@ -444,9 +444,9 @@ void UploadOperation::gotoNext(bool fake)
 {
   FileInfoList *current = m_toCopy;
 
-  bool hasChild = current->getChild() != NULL;
-  bool hasNext = current->getNext() != NULL;
-  bool hasParent = current->getFirst()->getParent() != NULL;
+  bool hasChild = current->getChild() != nullptr;
+  bool hasNext = current->getNext() != nullptr;
+  bool hasParent = current->getFirst()->getParent() != nullptr;
 
   if (hasChild) {
     if (fake) {
@@ -480,13 +480,13 @@ void UploadOperation::gotoNext(bool fake)
         StringStorage pathToRemoteFolder(m_pathToTargetRoot.getString());
 
         FileInfoList *parentOfCurrent = m_toCopy->getFirst()->getParent();
-        FileInfoList *parentOfParent = NULL;
+        FileInfoList *parentOfParent = nullptr;
 
-        if (parentOfCurrent != NULL) {
+        if (parentOfCurrent != nullptr) {
           parentOfParent = parentOfCurrent->getFirst()->getParent();
         }
 
-        if (parentOfParent != NULL) {
+        if (parentOfParent != nullptr) {
           getRemotePath(parentOfParent, m_pathToTargetRoot.getString(), &pathToRemoteFolder);
         }
 
@@ -495,7 +495,7 @@ void UploadOperation::gotoNext(bool fake)
         return ;
       } else {
         changeFileToUpload(first->getParent());
-        m_toCopy->setChild(NULL, 0);
+        m_toCopy->setChild(nullptr, 0);
         gotoNext();
       }
     } else {

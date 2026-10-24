@@ -56,11 +56,11 @@ Rect Screen::getDesktopRect()
 
 void Screen::getBMI(BMI *bmi)
 {
-  HDC screenDC = GetDC(0);
-  if (screenDC == NULL) {
+  HDC screenDC = GetDC(nullptr);
+  if (screenDC == nullptr) {
     throw Exception(_T("Can't get a screen DC"));
   }
-  ScopeExit releaseDC([&] { ReleaseDC(0, screenDC); });
+  ScopeExit releaseDC([&] { ReleaseDC(nullptr, screenDC); });
   // The bitmap belongs to the DC, so it is not deleted.
   HBITMAP hbm = (HBITMAP)GetCurrentObject(screenDC, OBJ_BITMAP);
 
@@ -70,9 +70,9 @@ void Screen::getBMI(BMI *bmi)
   // With biBitCount == 0, GetDIBits() fills only the header. Called again
   // for BI_BITFIELDS, it fills the three colour masks after it; for other
   // formats it would write a colour table, which BMI has no room for.
-  bool isOk = GetDIBits(screenDC, hbm, 0, 0, NULL, (LPBITMAPINFO)bmi, DIB_RGB_COLORS) != 0;
+  bool isOk = GetDIBits(screenDC, hbm, 0, 0, nullptr, (LPBITMAPINFO)bmi, DIB_RGB_COLORS) != 0;
   if (isOk && bmi->bmiHeader.biCompression == BI_BITFIELDS) {
-    isOk = GetDIBits(screenDC, hbm, 0, 0, NULL, (LPBITMAPINFO)bmi, DIB_RGB_COLORS) != 0;
+    isOk = GetDIBits(screenDC, hbm, 0, 0, nullptr, (LPBITMAPINFO)bmi, DIB_RGB_COLORS) != 0;
   }
   if (!isOk) {
     // The error is read, and the exception made, before releaseDC calls

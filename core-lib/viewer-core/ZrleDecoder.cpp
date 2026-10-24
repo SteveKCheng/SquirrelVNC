@@ -343,7 +343,7 @@ void ZrleDecoder::drawTile(FrameBuffer *fb,
   int y = tileRect->top;
    
   const char *pixelsPtr = &pixels->front();
-  char *bufferPtr = 0;
+  char *bufferPtr = nullptr;
   for (int i = 0; i < tileLength; i++) {
     bufferPtr = (char*)fb->getBufferPtr(x + i % width, y + i / width);
     memset(bufferPtr, 0, fbBytesPerPixel);

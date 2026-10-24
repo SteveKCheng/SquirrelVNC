@@ -45,7 +45,7 @@ public:
   Singleton() {
     AutoLock l(&m_instanceMutex);
 
-    if (s_instance == 0) {
+    if (s_instance == nullptr) {
       s_instance = (T*)this;
     } else {
       _ASSERT(FALSE);
@@ -60,14 +60,14 @@ public:
   virtual ~Singleton() {
     AutoLock l(&m_instanceMutex);
 
-    s_instance = 0;
+    s_instance = nullptr;
   }
 
   static T* getInstance() {
     {
       AutoLock l(&m_instanceMutex);
 
-      if (s_instance == 0) {
+      if (s_instance == nullptr) {
         _ASSERT(FALSE);
       }
     }
@@ -82,6 +82,6 @@ private:
 };
 
 template<class T> LocalMutex Singleton<T>::m_instanceMutex;
-template<class T> void *Singleton<T>::s_instance = 0;
+template<class T> void *Singleton<T>::s_instance = nullptr;
 
 #endif

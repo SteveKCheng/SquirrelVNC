@@ -51,7 +51,7 @@ class ViewerWindow final : public BaseWindow,
 public:
   ViewerWindow(WindowsApplication *application,
                ConnectionData *conData, ConnectionConfig *conConf,
-               Logger *logger = 0);
+               Logger *logger = nullptr);
   ~ViewerWindow() override;
 
   void setFileTransfer(FileTransferCapability *ft);

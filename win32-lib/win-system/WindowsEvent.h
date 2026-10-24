@@ -29,7 +29,7 @@
 class WindowsEvent final
 {
 public:
-  WindowsEvent(const TCHAR *name = 0);
+  WindowsEvent(const TCHAR *name = nullptr);
   WindowsEvent(const WindowsEvent &) = delete;
   WindowsEvent &operator=(const WindowsEvent &) = delete;
   WindowsEvent(WindowsEvent &&) = delete;

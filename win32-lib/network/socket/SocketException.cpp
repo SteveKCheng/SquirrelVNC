@@ -52,10 +52,10 @@ void SocketException::setErrno(int error)
 
   // The buffer is only written on success.
   if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                    NULL, m_errno,
+                    nullptr, m_errno,
                     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                     (LPTSTR)&buffer[0],
-                    sizeof(buffer) / sizeof(TCHAR), NULL) == 0) {
+                    sizeof(buffer) / sizeof(TCHAR), nullptr) == 0) {
     m_message.format(_T("Socket error %d"), m_errno);
     return;
   }

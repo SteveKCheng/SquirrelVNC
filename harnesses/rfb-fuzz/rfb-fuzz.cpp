@@ -54,7 +54,7 @@
 //
 static FuzzNotifier *getNotifier()
 {
-  static LogWriter logWriter(0);
+  static LogWriter logWriter(nullptr);
   static FrameBuffer frameBuffer;
   static LocalMutex fbLock;
   static FuzzNotifier notifier(&frameBuffer, &fbLock, &logWriter);
@@ -85,7 +85,7 @@ int _tmain(int argc, TCHAR *argv[])
     return 2;
   }
   for (int i = 1; i < argc; i++) {
-    FILE *file = 0;
+    FILE *file = nullptr;
     if (_tfopen_s(&file, argv[i], _T("rb")) != 0) {
       _ftprintf(stderr, _T("Cannot open %s\n"), argv[i]);
       return 2;

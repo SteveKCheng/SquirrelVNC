@@ -42,10 +42,10 @@ void Environment::getErrStr(StringStorage *out)
 
   // FIXME: Remove "new line" character from buffer.
   if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                    NULL, errCode,
+                    nullptr, errCode,
                     MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
                     (LPTSTR)&buffer[0],
-                    sizeof(buffer) / sizeof(TCHAR), NULL) == 0) {
+                    sizeof(buffer) / sizeof(TCHAR), nullptr) == 0) {
     out->format(_T("<<Cannot get text error describing>> (%u)"), errCode);
   } else {
     out->format(_T("%s (%u)"), buffer, errCode);
@@ -80,7 +80,7 @@ bool Environment::getSpecialFolderPath(int specialFolderId, StringStorage *out)
   bool returnVal = false;
 
   TCHAR path[MAX_PATH + 1];
-  if (SHGetSpecialFolderPath(NULL, &path[0], csidl, TRUE) == TRUE) {
+  if (SHGetSpecialFolderPath(nullptr, &path[0], csidl, TRUE) == TRUE) {
     out->setString(&path[0]);
     returnVal = true;
   }
@@ -97,7 +97,7 @@ bool Environment::getCurrentModulePath(StringStorage *out)
     // Allocate buffer
     buffer.resize(size + 1);
     // Try to get file name
-    DWORD ret = GetModuleFileName(NULL, &buffer[0], size);
+    DWORD ret = GetModuleFileName(nullptr, &buffer[0], size);
 
     if (ret == 0) {
       return false;

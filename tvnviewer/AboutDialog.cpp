@@ -52,7 +52,7 @@ void AboutDialog::onVisitSiteButtonClick()
 void AboutDialog::openUrl(const TCHAR *url)
 {
   try {
-    Shell::open(url, 0, 0);
+    Shell::open(url, nullptr, nullptr);
   } catch (SystemException &sysEx) {
     StringStorage message;
 

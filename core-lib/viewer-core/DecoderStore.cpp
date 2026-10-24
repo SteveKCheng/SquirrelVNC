@@ -50,7 +50,7 @@ Decoder *DecoderStore::getDecoder(INT32 decoderId)
   if (found != m_decoders.end())
     return found->second.second.get();
   else
-    return 0;
+    return nullptr;
 }
 
 std::vector<INT32> DecoderStore::getDecoderIds()

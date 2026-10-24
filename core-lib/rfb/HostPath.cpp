@@ -61,7 +61,7 @@ namespace
     for (size_t i = 0; i < length; i++) {
       TCHAR c = name[i];
       if (static_cast<unsigned>(c) < 0x80) {
-        if (c == _T('\0') || _tcschr(ASCII_CHARS, c) == 0) {
+        if (c == _T('\0') || _tcschr(ASCII_CHARS, c) == nullptr) {
           return false;
         }
       } else if (IS_HIGH_SURROGATE(c)) {
@@ -117,7 +117,7 @@ HostPath::set(const TCHAR *path)
   // Check the path length and save a copy for this object. One character
   // more than the limit is looked at, so that a longer path is rejected
   // rather than cut short.
-  if (path == 0) {
+  if (path == nullptr) {
     return false;
   }
   size_t pathLen = _tcsnlen(path, m_MAX_PATH_LEN + 1);
@@ -243,14 +243,14 @@ HostPath::parsePath(size_t results[]) const
   const TCHAR* vncHostStart = path;
 
   const TCHAR* slashPtr = _tcschr(path, _T('/'));
-  if (slashPtr != 0) {
+  if (slashPtr != nullptr) {
     results[0] = _tcscspn(path, _T(":/"));
     results[1] = (slashPtr - path) - results[0];
     vncHostStart = slashPtr + 1;
   }
 
   const TCHAR *colonPtr = _tcschr(vncHostStart, _T(':'));
-  if (colonPtr != 0) {
+  if (colonPtr != nullptr) {
     results[2] = colonPtr - vncHostStart;
     results[3] = _tcsnlen(colonPtr, m_MAX_PATH_LEN);
   } else {
@@ -269,7 +269,7 @@ HostPath::validateHostNames() const
     size_t sshHostLen = m_sshHost.getLength();
 
     const TCHAR *sobakaPtr = _tcschr(sshHostPtr, _T('@'));
-    if (sobakaPtr != 0) {
+    if (sobakaPtr != nullptr) {
       const TCHAR* sshUserPtr = sshHostPtr;
       size_t sshUserLen = sobakaPtr - sshHostPtr;
       sshHostPtr = sobakaPtr + 1;

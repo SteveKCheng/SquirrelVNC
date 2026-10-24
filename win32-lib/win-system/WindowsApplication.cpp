@@ -33,7 +33,7 @@ std::list<HWND> WindowsApplication::m_modelessDialogList;
 WindowsApplication::WindowsApplication(HINSTANCE appInstance,
                                        const TCHAR *windowClassName)
 : m_appInstance(appInstance),
-  m_mainWindow(0),
+  m_mainWindow(nullptr),
   m_windowClassName(windowClassName)
 {
 }
@@ -58,7 +58,7 @@ int WindowsApplication::processMessages()
 {
   MSG msg;
   BOOL ret;
-  while ((ret = GetMessage(&msg, NULL, 0, 0)) != 0) {
+  while ((ret = GetMessage(&msg, nullptr, 0, 0)) != 0) {
     if (ret < 0) {
       return 1;
     }
@@ -74,11 +74,11 @@ int WindowsApplication::processMessages()
 void WindowsApplication::createWindow(const TCHAR *className)
 {
   m_mainWindow = CreateWindow(className,
-                              0, 0,
+                              nullptr, 0,
                               0, 0, 0, 0,
-                              HWND_MESSAGE, 0,
+                              HWND_MESSAGE, nullptr,
                               m_appInstance,
-                              0);
+                              nullptr);
 }
 
 void WindowsApplication::registerWindowClass(WNDCLASS *wndClass)

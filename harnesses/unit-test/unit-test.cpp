@@ -53,7 +53,7 @@ int wmain()
     return 2;
   }
   std::wstring dir = std::wstring(temp) + L"unit-test-" + std::to_wstring(GetCurrentProcessId());
-  if (!CreateDirectoryW(dir.c_str(), 0)) {
+  if (!CreateDirectoryW(dir.c_str(), nullptr)) {
     printf("Cannot create %ls\n", dir.c_str());
     return 2;
   }

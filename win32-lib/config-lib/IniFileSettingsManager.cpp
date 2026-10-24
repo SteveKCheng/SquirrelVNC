@@ -43,8 +43,8 @@ namespace
   //
   bool readFile(const StringStorage &path, size_t maxSize, std::vector<std::byte> *data)
   {
-    HANDLE file = CreateFile(path.getString(), GENERIC_READ, FILE_SHARE_READ, 0,
-                             OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE file = CreateFile(path.getString(), GENERIC_READ, FILE_SHARE_READ, nullptr,
+                             OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (file == INVALID_HANDLE_VALUE) {
       return false;
     }
@@ -60,7 +60,7 @@ namespace
         DWORD count = 0;
         // maxSize is far below 4 GiB, so the size fits a DWORD.
         ok = ReadFile(file, data->data() + done,
-                      static_cast<DWORD>(data->size() - done), &count, 0) != 0 &&
+                      static_cast<DWORD>(data->size() - done), &count, nullptr) != 0 &&
              count > 0;
         done += count;
       }
@@ -81,7 +81,7 @@ namespace
     // MAX_FILE_SIZE keeps the size far below INT_MAX.
     const char *text = reinterpret_cast<const char *>(bytes.data());
     int size = static_cast<int>(bytes.size());
-    int length = MultiByteToWideChar(CP_ACP, 0, text, size, 0, 0);
+    int length = MultiByteToWideChar(CP_ACP, 0, text, size, nullptr, 0);
     if (length <= 0) {
       return std::vector<std::byte>();
     }
@@ -127,7 +127,7 @@ namespace
   //
   bool hasLineBreak(const TCHAR *text)
   {
-    return _tcspbrk(text, _T("\r\n")) != 0;
+    return _tcspbrk(text, _T("\r\n")) != nullptr;
   }
 
   //
@@ -272,8 +272,8 @@ void IniFileSettingsManager::save()
   ScopeExit deleteTemp([&] { DeleteFile(tempPath); });
 
   {
-    HANDLE file = CreateFile(tempPath, GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
-                             FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE file = CreateFile(tempPath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+                             FILE_ATTRIBUTE_NORMAL, nullptr);
     if (file == INVALID_HANDLE_VALUE) {
       throw SystemException(_T("Cannot open a file to save the settings"));
     }
@@ -284,7 +284,7 @@ void IniFileSettingsManager::save()
     while (ok && done < text.size()) {
       DWORD count = 0;
       DWORD chunk = static_cast<DWORD>(std::min<size_t>(text.size() - done, 1 << 20));
-      ok = WriteFile(file, text.data() + done, chunk, &count, 0) != 0;
+      ok = WriteFile(file, text.data() + done, chunk, &count, nullptr) != 0;
       done += count;
     }
     // Written through before it replaces the old file.
@@ -298,7 +298,7 @@ void IniFileSettingsManager::save()
     // ReplaceFile() keeps the old file's attributes and access control list,
     // so a file the user made private stays private; without
     // REPLACEFILE_IGNORE_MERGE_ERRORS it fails rather than lose them.
-    if (ReplaceFile(target, tempPath, 0, 0, 0, 0)) {
+    if (ReplaceFile(target, tempPath, nullptr, 0, nullptr, nullptr)) {
       deleteTemp.release();
       return;
     }
@@ -318,7 +318,7 @@ void IniFileSettingsManager::save()
 bool IniFileSettingsManager::getString(const TCHAR *name, StringStorage *storage)
 {
   const TCHAR *value = m_ini.GetValue(m_appName.getString(), name);
-  if (value == 0) {
+  if (value == nullptr) {
     return false;
   }
   storage->setString(value);
@@ -327,7 +327,7 @@ bool IniFileSettingsManager::getString(const TCHAR *name, StringStorage *storage
 
 bool IniFileSettingsManager::setString(const TCHAR *name, const TCHAR *value)
 {
-  if (value == NULL || name == NULL) {
+  if (value == nullptr || name == nullptr) {
     return false;
   }
   // With multi-line values off, SimpleIni writes a line break as it is,
@@ -364,7 +364,7 @@ bool IniFileSettingsManager::setUINT(const TCHAR *name, UINT value)
 bool IniFileSettingsManager::getInt(const TCHAR *name, int *value)
 {
   const TCHAR *text = m_ini.GetValue(m_appName.getString(), name);
-  if (text == 0) {
+  if (text == nullptr) {
     return false;
   }
   return parseInt(text, value);

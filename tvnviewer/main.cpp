@@ -54,7 +54,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE,
   }
   catch (const CommandLineFormatException &exception) {
     StringStorage strError(exception.getMessage());
-    MessageBox(0,
+    MessageBox(nullptr,
       strError.getString(),
       ProductNames::VIEWER_PRODUCT_NAME,
       MB_OK | MB_ICONERROR);
@@ -87,7 +87,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE,
     }
     result = tvnViewer.run();
   } catch (const Exception &ex) {
-    MessageBox(0,
+    MessageBox(nullptr,
                StringTable::getString(IDS_UNKNOWN_ERROR_IN_VIEWER),
                ProductNames::VIEWER_PRODUCT_NAME,
                MB_OK | MB_ICONERROR);

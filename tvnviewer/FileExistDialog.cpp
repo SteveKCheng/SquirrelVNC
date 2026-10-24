@@ -29,8 +29,8 @@
 
 FileExistDialog::FileExistDialog()
 : m_controlsInitialized(false), 
-  m_newFileInfo(NULL),
-  m_existingFileInfo(NULL), 
+  m_newFileInfo(nullptr),
+  m_existingFileInfo(nullptr), 
   m_canAppend(true)
 {
   setResourceId(ftclient_fileExistDialog);

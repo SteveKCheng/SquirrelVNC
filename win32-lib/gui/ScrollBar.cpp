@@ -24,7 +24,7 @@
 #include "ScrollBar.h"
 
 ScrollBar::ScrollBar() 
-: m_hwnd(0), 
+: m_hwnd(nullptr), 
   m_vPos(0), m_hPos(0), 
   m_vMax(0), m_hMax(0),
   m_vMin(0), m_hMin(0), 

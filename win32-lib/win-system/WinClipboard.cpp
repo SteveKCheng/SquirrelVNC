@@ -60,11 +60,11 @@ bool WinClipboard::getString(StringStorage *str)
   }
   ScopeExit closeClipboard([&] { CloseClipboard(); });
   HANDLE hndData = GetClipboardData(uFormat);
-  if (hndData == 0) {
+  if (hndData == nullptr) {
     return false;
   }
   const TCHAR *data = static_cast<const TCHAR *>(GlobalLock(hndData));
-  if (data == 0) {
+  if (data == nullptr) {
     return false;
   }
   ScopeExit unlockData([&] { GlobalUnlock(hndData); });
@@ -89,14 +89,14 @@ bool WinClipboard::setString(const StringStorage *serverClipboard)
   size_t dataSize = (nativeClipboard.getLength() + 1) * sizeof(TCHAR);
 
   HGLOBAL hndData = GlobalAlloc(GMEM_MOVEABLE, dataSize);
-  if (hndData == 0) {
+  if (hndData == nullptr) {
     return false;
   }
   // Released once SetClipboardData() succeeds: the memory then belongs to
   // the system, which frees it when the clipboard is next emptied.
   ScopeExit freeData([&] { GlobalFree(hndData); });
   TCHAR *dst = static_cast<TCHAR *>(GlobalLock(hndData));
-  if (dst == 0) {
+  if (dst == nullptr) {
     return false;
   }
   CopyMemory(dst, nativeClipboard.getString(), dataSize);
@@ -108,7 +108,7 @@ bool WinClipboard::setString(const StringStorage *serverClipboard)
   ScopeExit closeClipboard([&] { CloseClipboard(); });
   // EmptyClipboard() makes m_hWnd the owner, which SetClipboardData()
   // needs, and removes the other formats of what was there before.
-  if (!EmptyClipboard() || SetClipboardData(dataType, hndData) == 0) {
+  if (!EmptyClipboard() || SetClipboardData(dataType, hndData) == nullptr) {
     return false;
   }
   freeData.release();

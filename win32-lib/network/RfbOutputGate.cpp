@@ -26,7 +26,7 @@
 #include <exception>
 
 RfbOutputGate::RfbOutputGate(OutputStream *stream)
-: DataOutputStream(0),
+: DataOutputStream(nullptr),
   m_tunnel(std::make_unique<BufferedOutputStream>(stream))
 {
   // Change real output stream for data output stream to our tunnel.

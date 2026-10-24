@@ -27,13 +27,13 @@
 
 DibSection::DibSection(const PixelFormat *pf, const Dimension *dim, HWND compatibleWin)
 : m_isOwnTargetDC(false),
-  m_targetDC(0),
-  m_memDC(0),
-  m_hbmOld(0),
-  m_hbmDIB(0),
+  m_targetDC(nullptr),
+  m_memDC(nullptr),
+  m_hbmOld(nullptr),
+  m_hbmDIB(nullptr),
   m_srcOffsetX(0),
   m_srcOffsetY(0),
-  m_buffer(0)
+  m_buffer(nullptr)
 {
   // The destructor does not run if the constructor throws.
   ScopeExit closeOnFailure([&] { closeDIBSection(); });
@@ -155,10 +155,10 @@ void DibSection::openDIBSection(const PixelFormat *pf, const Dimension *dim, HWN
 {
   m_targetDC = GetDC(compatibleWin);
   m_isOwnTargetDC = true;
-  if (m_targetDC == 0) {
+  if (m_targetDC == nullptr) {
     throw SystemException(_T("Can't get DC to create a DIB section"));
   }
-  if (compatibleWin == 0) {
+  if (compatibleWin == nullptr) {
     // In this special case is needed to store offset of the desktop, because coordinates
     // of the top level corner may be non zero.
     m_screen.update();
@@ -184,12 +184,12 @@ void DibSection::openDIBSection(const PixelFormat *pf, const Dimension *dim, HWN
   }
 
   m_memDC = CreateCompatibleDC(m_targetDC);
-  if (m_memDC == NULL) {
+  if (m_memDC == nullptr) {
     throw SystemException(_T("Can't create a compatible DC to open a dib section"));
   }
 
-  m_hbmDIB = CreateDIBSection(m_memDC, pBmi, DIB_RGB_COLORS, &m_buffer, NULL, NULL);
-  if (m_hbmDIB == 0) {
+  m_hbmDIB = CreateDIBSection(m_memDC, pBmi, DIB_RGB_COLORS, &m_buffer, nullptr, NULL);
+  if (m_hbmDIB == nullptr) {
     throw SystemException(_T("Can't create a dib section"));
   }
 
@@ -198,19 +198,19 @@ void DibSection::openDIBSection(const PixelFormat *pf, const Dimension *dim, HWN
 
 void DibSection::closeDIBSection()
 {
-  if (m_hbmOld != 0) {
+  if (m_hbmOld != nullptr) {
     SelectObject(m_memDC, m_hbmOld);
-    m_hbmOld = 0;
+    m_hbmOld = nullptr;
   }
 
-  if (m_hbmDIB != 0) {
+  if (m_hbmDIB != nullptr) {
     DeleteObject(m_hbmDIB);
-    m_hbmDIB = 0;
+    m_hbmDIB = nullptr;
   }
 
-  if (m_memDC != 0) {
+  if (m_memDC != nullptr) {
     DeleteDC(m_memDC);
-    m_memDC = 0;
+    m_memDC = nullptr;
   }
 
   releaseTargetDC();
@@ -218,8 +218,8 @@ void DibSection::closeDIBSection()
 
 void DibSection::releaseTargetDC()
 {
-  if (m_targetDC != 0 && m_isOwnTargetDC) {
-    ReleaseDC(0, m_targetDC);
-    m_targetDC = 0;
+  if (m_targetDC != nullptr && m_isOwnTargetDC) {
+    ReleaseDC(nullptr, m_targetDC);
+    m_targetDC = nullptr;
   }
 }

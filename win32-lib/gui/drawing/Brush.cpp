@@ -24,7 +24,7 @@
 #include "Brush.h"
 
 Brush::Brush()
-: m_brush(0)
+: m_brush(nullptr)
 {
 }
 
@@ -35,8 +35,8 @@ Brush::~Brush()
 
 void Brush::release()
 {
-  if (m_brush != 0) {
+  if (m_brush != nullptr) {
     DeleteObject(m_brush);
-    m_brush = 0;
+    m_brush = nullptr;
   }
 }

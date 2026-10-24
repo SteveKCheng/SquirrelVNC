@@ -120,7 +120,7 @@ void runHostPathTests()
   }
 
   HostPath hostPath;
-  check(!hostPath.set(0) && !hostPath.isValid(), "HostPath of null is invalid");
+  check(!hostPath.set(nullptr) && !hostPath.isValid(), "HostPath of null is invalid");
 
   std::wstring longest(255, L'a');
   Case longestCase = { longest.c_str(), true, longest.c_str(), 5900, L"", 0 };

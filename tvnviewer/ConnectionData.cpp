@@ -102,7 +102,7 @@ void ConnectionData::setCryptedPassword(const StringStorage *hidePassword)
 {
   m_hasPlainPassword = false;
   m_plainPassword.setString(_T(""));
-  if (hidePassword == 0) {
+  if (hidePassword == nullptr) {
     m_isSetPassword = false;
   } else {
     m_defaultPassword = *hidePassword;

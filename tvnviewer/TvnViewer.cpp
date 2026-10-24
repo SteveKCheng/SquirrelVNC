@@ -32,7 +32,7 @@ TvnViewer::TvnViewer(HINSTANCE appInstance, const TCHAR *windowClassName,
                      const TCHAR *viewerWindowClassName)
 : WindowsApplication(appInstance, windowClassName),
   m_viewerWindowClassName(viewerWindowClassName),
-  m_hAccelTable(0),
+  m_hAccelTable(nullptr),
   m_logWriter(ViewerConfig::getInstance()->getLogger()),
   m_isListening(false)
 {
@@ -76,7 +76,7 @@ void TvnViewer::startListeningServer(const int listeningPort)
   } catch (const Exception &ex) {
     m_isListening = false;
     m_logWriter.error(_T("Error in start listening: %s"), ex.getMessage());
-    MessageBox(0,
+    MessageBox(nullptr,
                StringTable::getString(IDS_ERROR_START_LISTENING),
                ProductNames::VIEWER_PRODUCT_NAME,
                MB_OK | MB_ICONERROR);
@@ -170,7 +170,7 @@ void TvnViewer::createWindow(const TCHAR *className)
   WindowsApplication::createWindow(className);
   SetWindowLongPtr(m_mainWindow, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
-  SetTimer(m_mainWindow, TIMER_DELETE_DEAD_INSTANCE, TIMER_DELETE_DEAD_INSTANCE_DELAY, (TIMERPROC)NULL);
+  SetTimer(m_mainWindow, TIMER_DELETE_DEAD_INSTANCE, TIMER_DELETE_DEAD_INSTANCE_DELAY, (TIMERPROC)nullptr);
 }
 
 void TvnViewer::registerWindowClass(WNDCLASS *wndClass)
@@ -199,12 +199,12 @@ void TvnViewer::registerViewerWindowClass()
 
 void TvnViewer::unregisterViewerWindowClass()
 {
-  UnregisterClass(m_viewerWndClass.lpszClassName, GetModuleHandle(0));
+  UnregisterClass(m_viewerWndClass.lpszClassName, GetModuleHandle(nullptr));
 }
 
 LRESULT CALLBACK TvnViewer::wndProcViewer(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-  BaseWindow *_this = 0;
+  BaseWindow *_this = nullptr;
 
   if (message == WM_CREATE) {
     CREATESTRUCT * createStruct = reinterpret_cast<CREATESTRUCT *>(lParam);
@@ -215,7 +215,7 @@ LRESULT CALLBACK TvnViewer::wndProcViewer(HWND hWnd, UINT message, WPARAM wParam
   } else {
     _this = reinterpret_cast<BaseWindow *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
   }
-  if (_this != 0) {
+  if (_this != nullptr) {
     if (_this->wndProc(message, wParam, lParam)) {
       return 0;
     }
@@ -253,7 +253,7 @@ int TvnViewer::processMessages()
 {
   MSG msg;
   BOOL ret;
-  while ((ret = GetMessage(&msg, NULL, 0, 0)) != 0) {
+  while ((ret = GetMessage(&msg, nullptr, 0, 0)) != 0) {
     if (ret < 0) {
       return 1;
     }
@@ -318,7 +318,7 @@ LRESULT CALLBACK TvnViewer::wndProc(HWND hWnd, UINT msg, WPARAM wparam, LPARAM l
 {
   if (msg >= WM_USER || msg == WM_TIMER) {
     TvnViewer *_this = reinterpret_cast<TvnViewer *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
-    if (_this != 0) {
+    if (_this != nullptr) {
       switch (msg) {
       case WM_TIMER:
         return _this->onTimer(wparam);

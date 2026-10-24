@@ -95,7 +95,7 @@ bool FileAccount::acceptsLevel(int logLevel)
 
 bool FileAccount::printsLine(int level)
 {
-  return m_file != 0 && level <= m_level;
+  return m_file != nullptr && level <= m_level;
 }
 
 void FileAccount::flush(unsigned int processId,
@@ -163,7 +163,7 @@ void FileAccount::format(unsigned int processId,
   const TCHAR endLine[] = { 13, 10 };
 
   // Writing string without null-termination symbol.
-  if (m_file != 0) {
+  if (m_file != nullptr) {
     m_file->write(resultLine.getString(), resultLine.getSize() - sizeof(TCHAR));
     m_file->write(endLine, sizeof(endLine));
     if (logBarrier > 9) {
@@ -203,7 +203,7 @@ void FileAccount::setNewFile(unsigned char newLevel, const TCHAR *newDir)
     return;
   }
 
-  bool fileAlreadyOpen = m_file != 0;
+  bool fileAlreadyOpen = m_file != nullptr;
   bool openningIsNeeded = !fileAlreadyOpen || logDirChanged;
   // If log directory was changed then new file creating needed instead of
   // the existing file appending.

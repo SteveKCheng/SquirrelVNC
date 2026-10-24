@@ -30,7 +30,7 @@
 #include <stdio.h>
 
 FileInfoListView::FileInfoListView()
-: m_smallImageList(0)
+: m_smallImageList(nullptr)
 {
   // By default, file list is sorted by file name.
   sort(0);
@@ -38,7 +38,7 @@ FileInfoListView::FileInfoListView()
 
 FileInfoListView::~FileInfoListView()
 {
-  if (m_smallImageList != 0) {
+  if (m_smallImageList != nullptr) {
     ImageList_Destroy(m_smallImageList);
   }
 }
@@ -138,14 +138,14 @@ FileInfo *FileInfoListView::getSelectedFileInfo()
 {
   int si = getSelectedIndex();
   if (si == -1) {
-    return NULL;
+    return nullptr;
   }
   return reinterpret_cast<FileInfo *>(getSelectedItem().tag);
 }
 
 void FileInfoListView::loadImages()
 {
-  if (m_smallImageList != NULL) {
+  if (m_smallImageList != nullptr) {
     ImageList_Destroy(m_smallImageList);
   }
 

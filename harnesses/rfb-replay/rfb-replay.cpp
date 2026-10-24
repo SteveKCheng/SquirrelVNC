@@ -160,9 +160,9 @@ static bool parseOptions(int argc, TCHAR *argv[], Options *options)
         options->password = value;
         options->isPasswordGiven = true;
       } else if (_tcscmp(arg, _T("--max-pixels")) == 0) {
-        options->maxPixels = _tcstoui64(value, 0, 10);
+        options->maxPixels = _tcstoui64(value, nullptr, 10);
       } else if (_tcscmp(arg, _T("--timeout")) == 0) {
-        options->timeoutMs = static_cast<DWORD>(_tcstoul(value, 0, 10)) * 1000;
+        options->timeoutMs = static_cast<DWORD>(_tcstoul(value, nullptr, 10)) * 1000;
       } else if (_tcscmp(arg, _T("--log")) == 0) {
         options->logLevel = _tstoi(value);
       } else {
@@ -192,7 +192,7 @@ static bool parseOptions(int argc, TCHAR *argv[], Options *options)
 //
 static bool readFile(const StringStorage &path, std::vector<char> *data)
 {
-  FILE *file = 0;
+  FILE *file = nullptr;
   bool isStdin = path.isEqualTo(_T("-"));
   if (isStdin) {
     file = stdin;
@@ -227,7 +227,7 @@ static bool readFile(const StringStorage &path, std::vector<char> *data)
 //
 static bool writeFile(const StringStorage &path, const char *data, size_t size)
 {
-  FILE *file = 0;
+  FILE *file = nullptr;
   bool isStdout = path.isEqualTo(_T("-"));
   if (isStdout) {
     file = stdout;

@@ -37,7 +37,7 @@
 class FileTransferCapability final : public ServerMessageListener
 {
 public:
-  FileTransferCapability(Logger *logger = 0);
+  FileTransferCapability(Logger *logger = nullptr);
   ~FileTransferCapability() override;
 
   //

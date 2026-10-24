@@ -138,8 +138,8 @@ void RemoteViewerCore::init()
   m_decoderStore.addDecoder(std::make_unique<LastRectDecoder>(&m_logWriter), -1);
   m_decoderStore.addDecoder(std::make_unique<PointerPosDecoder>(&m_logWriter), -1);
   m_decoderStore.addDecoder(std::make_unique<RichCursorDecoder>(&m_logWriter), -1);
-  m_input = 0;
-  m_output = 0;
+  m_input = nullptr;
+  m_output = nullptr;
 
   m_wasStarted = false;
   m_maxFrameBufferPixels = ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS;
@@ -183,7 +183,7 @@ void RemoteViewerCore::start(CoreEventsAdapter *adapter,
 {
   m_logWriter.detail(_T("Starting remote viewer core..."));
 
-  if (adapter == 0) {
+  if (adapter == nullptr) {
     throw Exception(_T("Remote viewer core is not started: adapter is 0"));
   }
 
@@ -299,7 +299,7 @@ bool RemoteViewerCore::updatePixelFormat()
     if (isEqual && m_isPixelFormatSent) {
       return false;
     }
-    if (!isEqual && m_frameBuffer.getBuffer() != 0) {
+    if (!isEqual && m_frameBuffer.getBuffer() != nullptr) {
       Dimension fbDimension = m_frameBuffer.getDimension();
       setFbProperties(&fbDimension, &pxFormat);
     }
@@ -1090,7 +1090,7 @@ bool RemoteViewerCore::receiveFbUpdateRectangle()
     }
 
     Decoder *decoder = m_decoderStore.getDecoder(encodingType);
-    if (decoder != 0) {
+    if (decoder != nullptr) {
       m_logWriter.debug(_T("Decoding..."));
 
       DecoderOfRectangle *rectangleDecoder = dynamic_cast<DecoderOfRectangle *>(decoder);
@@ -1316,8 +1316,8 @@ void RemoteViewerCore::handshake()
   serverProtocol[12] = 0;
   m_input->readFully(serverProtocol, 12);
 
-  m_major = strtol(&serverProtocol[4], 0, 10);
-  m_minor = strtol(&serverProtocol[8], 0, 10);
+  m_major = strtol(&serverProtocol[4], nullptr, 10);
+  m_minor = strtol(&serverProtocol[8], nullptr, 10);
   m_isTight = false;
 
   m_logWriter.info(_T("Server sent protocol version: %s"), getProtocolString().getString());

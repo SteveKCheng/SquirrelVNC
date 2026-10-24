@@ -28,13 +28,13 @@
 SystemException::SystemException()
 : Exception(), m_errcode(GetLastError())
 {
-  createMessage(0, m_errcode);
+  createMessage(nullptr, m_errcode);
 }
 
 SystemException::SystemException(int errcode)
 : Exception(), m_errcode(errcode)
 {
-  createMessage(0, m_errcode);
+  createMessage(nullptr, m_errcode);
 }
 
 SystemException::SystemException(const TCHAR *userMessage)
@@ -55,7 +55,7 @@ SystemException::~SystemException()
 
 void SystemException::createMessage(const TCHAR *userMessage, int errcode)
 {
-  if (userMessage == 0 && errcode == ERROR_SUCCESS) {
+  if (userMessage == nullptr && errcode == ERROR_SUCCESS) {
     userMessage = _T("Thrown a system exception but the program")
                   _T(" cannot identify the corresponding system error.");
   }
@@ -82,12 +82,12 @@ void SystemException::createMessage(const TCHAR *userMessage, int errcode)
   {
     auto numChars = FormatMessage(
       FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-      NULL,
+      nullptr,
       errcode,
       MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
       buffer.data(),
       static_cast<DWORD>(buffer.size()),  // buffer will not exceed 128KB
-      NULL);
+      nullptr);
 
     if (numChars != 0 || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
     {
@@ -128,7 +128,7 @@ void SystemException::createMessage(const TCHAR *userMessage, int errcode)
   // Use user message if specified.
 
   if (errcode != 0) {
-    if (userMessage == 0) {
+    if (userMessage == nullptr) {
       m_message = m_systemMessage;
     } else {
       m_message.format(_T("%s (system error: %s)"),

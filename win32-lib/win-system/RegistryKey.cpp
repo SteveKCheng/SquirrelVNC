@@ -26,15 +26,15 @@
 
 RegistryKey::RegistryKey(HKEY rootKey, const TCHAR *entry,
                          bool createIfNotExists)
-: m_key(0),
-  m_rootKey(0)
+: m_key(nullptr),
+  m_rootKey(nullptr)
 {
   initialize(rootKey, entry, createIfNotExists);
 }
 
 RegistryKey::RegistryKey()
-: m_key(0),
-  m_rootKey(0)
+: m_key(nullptr),
+  m_rootKey(nullptr)
 {
 }
 
@@ -100,7 +100,7 @@ bool RegistryKey::getValueAsInt32(const TCHAR *name, int *out)
   DWORD type = 0;
   DWORD value = 0;
   DWORD size = sizeof(value);
-  if (RegQueryValueEx(m_key, name, 0, &type, (BYTE *)&value, &size) != ERROR_SUCCESS ||
+  if (RegQueryValueEx(m_key, name, nullptr, &type, (BYTE *)&value, &size) != ERROR_SUCCESS ||
       type != REG_DWORD || size != sizeof(value)) {
     return false;
   }
@@ -117,7 +117,7 @@ bool RegistryKey::getValueAsString(const TCHAR *name, StringStorage *out)
   DWORD type = 0;
   DWORD size;
 
-  if (RegQueryValueEx(m_key, name, 0, &type, NULL, &size) != ERROR_SUCCESS ||
+  if (RegQueryValueEx(m_key, name, nullptr, &type, nullptr, &size) != ERROR_SUCCESS ||
       (type != REG_SZ && type != REG_EXPAND_SZ)) {
     return false;
   }
@@ -125,7 +125,7 @@ bool RegistryKey::getValueAsString(const TCHAR *name, StringStorage *out)
   std::vector<TCHAR> buffer(size + 1);
 
   // The value may have changed since the size was read.
-  if (RegQueryValueEx(m_key, name, 0, &type, (BYTE *)&buffer[0], &size) != ERROR_SUCCESS ||
+  if (RegQueryValueEx(m_key, name, nullptr, &type, (BYTE *)&buffer[0], &size) != ERROR_SUCCESS ||
       (type != REG_SZ && type != REG_EXPAND_SZ)) {
     return false;
   }
@@ -141,7 +141,7 @@ bool RegistryKey::getValueAsString(const TCHAR *name, StringStorage *out)
 
 bool RegistryKey::isOpened()
 {
-  return m_key != 0;
+  return m_key != nullptr;
 }
 
 void RegistryKey::close()
@@ -150,7 +150,7 @@ void RegistryKey::close()
     if (m_key != m_rootKey) {
       RegCloseKey(m_key);
     }
-    m_key = 0;
+    m_key = nullptr;
   }
 }
 
@@ -159,7 +159,7 @@ void RegistryKey::initialize(HKEY rootKey, const TCHAR *entry, bool createIfNotE
   // open() may be called on an open key; its handle would leak.
   close();
   m_rootKey = rootKey;
-  m_key = 0;
+  m_key = nullptr;
 
   m_entry.setString(entry);
 

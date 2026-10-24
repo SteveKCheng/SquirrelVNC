@@ -32,8 +32,8 @@ ToolBar::ToolBar()
   m_id(0),
   m_width(0),
   m_height(0),
-  m_hWndToolbar(0),
-  m_imageList(0)
+  m_hWndToolbar(nullptr),
+  m_imageList(nullptr)
 {
   INITCOMMONCONTROLSEX initCtrlEx;
 
@@ -107,14 +107,14 @@ void ToolBar::attachToolBar(HWND hwnd)
   }
   m_autoButtons.clear();
 
-  m_hWndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, 0,
+  m_hWndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, nullptr,
      WS_VISIBLE | WS_CHILD | TBSTYLE_TOOLTIPS | WS_CLIPSIBLINGS | TBSTYLE_FLAT | WS_BORDER,
      0, 0, 0, 0,
      hwnd,
      // A child window takes its control id in place of a menu, as documented.
      reinterpret_cast<HMENU>(static_cast<INT_PTR>(m_id)),
-     GetModuleHandle(NULL),
-     0);
+     GetModuleHandle(nullptr),
+     nullptr);
   SendMessage(m_hWndToolbar, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
   // Disabled buttons are drawn greyed from the same images.
   SendMessage(m_hWndToolbar, TB_SETIMAGELIST, 0, reinterpret_cast<LPARAM>(m_imageList));

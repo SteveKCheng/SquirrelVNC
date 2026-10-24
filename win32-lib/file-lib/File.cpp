@@ -234,7 +234,7 @@ bool File::listRoots(std::vector<StringStorage> *rootList)
 
 bool File::mkdir() const
 {
-  if (CreateDirectory(m_pathName.getString(), NULL) == 0) {
+  if (CreateDirectory(m_pathName.getString(), nullptr) == 0) {
     return false;
   }
   return true;
@@ -273,10 +273,10 @@ bool File::setLastModified(INT64 time)
   HANDLE hfile = CreateFile(m_pathName.getString(),
                             GENERIC_READ | GENERIC_WRITE,
                             0,
-                            NULL,
+                            nullptr,
                             OPEN_EXISTING,
                             FILE_ATTRIBUTE_NORMAL,
-                            NULL);
+                            nullptr);
   if (hfile == INVALID_HANDLE_VALUE) {
     return false;
   }
@@ -292,7 +292,7 @@ bool File::setLastModified(INT64 time)
 
   dt.toFileTime(&ft);
 
-  return SetFileTime(hfile, NULL, NULL, &ft) != FALSE;
+  return SetFileTime(hfile, nullptr, nullptr, &ft) != FALSE;
 }
 
 bool File::truncate()
@@ -334,10 +334,10 @@ bool File::tryCreateFile(DWORD desiredAccess, DWORD creationDisposition) const
   HANDLE hfile = CreateFile(m_pathName.getString(),
                             desiredAccess,
                             FILE_SHARE_READ,
-                            NULL,
+                            nullptr,
                             creationDisposition,
                             FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS,
-                            NULL);
+                            nullptr);
 
   if (hfile == INVALID_HANDLE_VALUE) {
     return false;

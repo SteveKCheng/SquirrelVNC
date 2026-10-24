@@ -27,7 +27,7 @@ ListView::ListView() :
   m_sortAscending(false)
 {
   m_sortColumnIndex = -1;
-  m_compareItem = 0;
+  m_compareItem = nullptr;
 }
 
 void ListView::addColumn(int index, const TCHAR *caption, int width, int fmt)
@@ -247,7 +247,7 @@ void ListView::sort(int columnIndex, PFNLVCOMPARE compareItem)
 
   // Update arrow in header.
   HWND hHeader = ListView_GetHeader(m_hwnd);
-  if (hHeader != 0) {
+  if (hHeader != nullptr) {
     HDITEM hdrItem = { 0 };
     hdrItem.mask = HDI_FORMAT;
 
@@ -269,7 +269,7 @@ void ListView::sort(int columnIndex, PFNLVCOMPARE compareItem)
 
 void ListView::sort()
 {
-  if (m_sortColumnIndex >= 0 && m_compareItem != 0) {
+  if (m_sortColumnIndex >= 0 && m_compareItem != nullptr) {
     // use sortColumnIndex (lParamSort) as an index of column and
     // as a flag: positive for ascending order,
     // negative for descending order

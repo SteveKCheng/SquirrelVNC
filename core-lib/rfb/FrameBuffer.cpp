@@ -34,7 +34,7 @@ static inline bool hasPixelFormatOf(const PixelFormat *pf, const FrameBuffer *fb
 }
 
 FrameBuffer::FrameBuffer(void)
-: m_buffer(0)
+: m_buffer(nullptr)
 {
   memset(&m_pixelFormat, 0, sizeof(m_pixelFormat));
 }

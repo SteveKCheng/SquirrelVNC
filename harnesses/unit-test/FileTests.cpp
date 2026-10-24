@@ -36,8 +36,8 @@ void runFileTests(const std::wstring &dir)
   const wchar_t *names[] = { L"a.txt", L"b.txt", L"c.txt" };
   for (const wchar_t *name : names) {
     std::wstring path = dir + L"\\" + name;
-    HANDLE file = CreateFileW(path.c_str(), GENERIC_WRITE, 0, 0, CREATE_NEW,
-                              FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE file = CreateFileW(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_NEW,
+                              FILE_ATTRIBUTE_NORMAL, nullptr);
     if (file != INVALID_HANDLE_VALUE) {
       CloseHandle(file);
     }
@@ -66,9 +66,9 @@ void runFileTests(const std::wstring &dir)
   std::wstring target = dir + L"\\target";
   std::wstring targetFile = target + L"\\kept.txt";
   std::wstring link = dir + L"\\link";
-  CreateDirectoryW(target.c_str(), 0);
-  HANDLE kept = CreateFileW(targetFile.c_str(), GENERIC_WRITE, 0, 0, CREATE_NEW,
-                            FILE_ATTRIBUTE_NORMAL, 0);
+  CreateDirectoryW(target.c_str(), nullptr);
+  HANDLE kept = CreateFileW(targetFile.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_NEW,
+                            FILE_ATTRIBUTE_NORMAL, nullptr);
   if (kept != INVALID_HANDLE_VALUE) {
     CloseHandle(kept);
   }

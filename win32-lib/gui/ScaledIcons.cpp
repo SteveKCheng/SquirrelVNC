@@ -82,13 +82,13 @@ HICON ScaledIcons::get(UINT id, int width, int height)
     return it->second;
   }
 
-  HINSTANCE instance = GetModuleHandle(NULL);
-  HICON icon = NULL;
+  HINSTANCE instance = GetModuleHandle(nullptr);
+  HICON icon = nullptr;
   if (FAILED(LoadIconWithScaleDown(instance, MAKEINTRESOURCE(id), width, height, &icon))) {
     // Shared icon, which must not be destroyed either.
     icon = LoadIcon(instance, MAKEINTRESOURCE(id));
   }
-  if (icon != NULL) {
+  if (icon != nullptr) {
     cache()[key] = icon;
   }
   return icon;
@@ -101,7 +101,7 @@ void ScaledIcons::drawCentered(const DRAWITEMSTRUCT *dis, UINT id)
     SendMessage(parent, WM_CTLCOLORSTATIC,
                 reinterpret_cast<WPARAM>(dis->hDC),
                 reinterpret_cast<LPARAM>(dis->hwndItem)));
-  if (background == NULL) {
+  if (background == nullptr) {
     background = GetSysColorBrush(COLOR_BTNFACE);
   }
   FillRect(dis->hDC, &dis->rcItem, background);
@@ -110,10 +110,10 @@ void ScaledIcons::drawCentered(const DRAWITEMSTRUCT *dis, UINT id)
   int height = dis->rcItem.bottom - dis->rcItem.top;
   int size = (width < height) ? width : height;
   HICON icon = get(id, size, size);
-  if (icon != NULL) {
+  if (icon != nullptr) {
     DrawIconEx(dis->hDC,
                dis->rcItem.left + (width - size) / 2,
                dis->rcItem.top + (height - size) / 2,
-               icon, size, size, 0, NULL, DI_NORMAL);
+               icon, size, size, 0, nullptr, DI_NORMAL);
   }
 }

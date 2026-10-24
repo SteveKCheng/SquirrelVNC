@@ -29,9 +29,9 @@ TcpConnection::TcpConnection(LogWriter *logWriter)
 : m_logWriter(logWriter)
 {
   m_port = 0;
-  m_socket = 0;
-  m_input = 0;
-  m_output = 0;
+  m_socket = nullptr;
+  m_input = nullptr;
+  m_output = nullptr;
   m_wasBound = false;
   m_wasConnected = false;
   m_isEstablished = false;
@@ -45,9 +45,9 @@ void TcpConnection::bind(const TCHAR *host, UINT16 port)
   }
   m_host = host;
   m_port = port;
-  m_socket = 0;
-  m_input = 0;
-  m_output = 0;
+  m_socket = nullptr;
+  m_input = nullptr;
+  m_output = nullptr;
   m_wasBound = true;
 }
 
@@ -60,8 +60,8 @@ void TcpConnection::bind(SocketIPv4 *socket)
   m_host = _T("");
   m_port = 0;
   m_socket = socket;
-  m_input = 0;
-  m_output = 0;
+  m_input = nullptr;
+  m_output = nullptr;
   m_wasBound = true;
 }
 
@@ -73,7 +73,7 @@ void TcpConnection::bind(RfbInputGate *input, RfbOutputGate *output)
   }
   m_host = _T("");
   m_port = 0;
-  m_socket = 0;
+  m_socket = nullptr;
   m_input = input;
   m_output = output;
   m_wasBound = true;
@@ -87,9 +87,9 @@ void TcpConnection::connect()
     m_wasConnected = true;
   }
   // need create to gates
-  if (m_input == 0 && m_output == 0) {
+  if (m_input == nullptr && m_output == nullptr) {
     // need create to socket
-    if (m_socket == 0) {
+    if (m_socket == nullptr) {
       if (!m_host.isEmpty() && m_port != 0) {
         SocketAddressIPv4 ipAddress(m_host.getString(), m_port);
 

@@ -24,7 +24,7 @@
 #include "Menu.h"
 
 Menu::Menu()
-: m_menu(0),
+: m_menu(nullptr),
   m_bCreated(false)
 {
 }
@@ -60,7 +60,7 @@ bool Menu::loadMenu(LPCTSTR lpMenuName)
 {
   _ASSERT(m_menu == 0);
 
-  m_menu = LoadMenu(GetModuleHandle(0), lpMenuName);
+  m_menu = LoadMenu(GetModuleHandle(nullptr), lpMenuName);
   m_bCreated = true;
   return (!m_menu?false:true);
 }
@@ -127,7 +127,7 @@ bool Menu::appendMenu(StringStorage strVal, UINT uID)
 
 bool Menu::appendSeparator()
 {
-  return appendMenu(MF_MENUBREAK, 0, 0);
+  return appendMenu(MF_MENUBREAK, 0, nullptr);
 }
 
 bool Menu::insertMenuItem(UINT uItem, StringStorage strVal, UINT uID)

@@ -46,12 +46,12 @@ static const UINT32 MAX_DESKTOP_NAME_LENGTH = 64 * 1024;
 
 FuzzSession::FuzzSession(FuzzNotifier *notifier)
 : m_notifier(notifier),
-  m_logWriter(0),
-  m_input(0),
-  m_decoderStore(0),
-  m_frameBuffer(0),
-  m_rectangleFb(0),
-  m_cursorPainter(0)
+  m_logWriter(nullptr),
+  m_input(nullptr),
+  m_decoderStore(nullptr),
+  m_frameBuffer(nullptr),
+  m_rectangleFb(nullptr),
+  m_cursorPainter(nullptr)
 {
 }
 
@@ -95,11 +95,11 @@ void FuzzSession::run(const UINT8 *data, size_t size)
   } catch (const Exception &) {
     // The viewer rejects the input here: correct behaviour.
   }
-  m_input = 0;
-  m_frameBuffer = 0;
-  m_rectangleFb = 0;
-  m_decoderStore = 0;
-  m_cursorPainter = 0;
+  m_input = nullptr;
+  m_frameBuffer = nullptr;
+  m_rectangleFb = nullptr;
+  m_decoderStore = nullptr;
+  m_cursorPainter = nullptr;
   m_notifier->clearUpdates();
 }
 
@@ -255,7 +255,7 @@ bool FuzzSession::readFbUpdateRectangle()
     }
 
     Decoder *decoder = m_decoderStore->getDecoder(encodingType);
-    if (decoder == 0) {
+    if (decoder == nullptr) {
       throw Exception(_T("Decoder isn't exist"));
     }
     // As in the core, the result of the cast is not checked: every

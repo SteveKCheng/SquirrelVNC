@@ -49,7 +49,7 @@ void runFileInfoListTests()
 
   FileInfoList *last = root->getChild();
   size_t length = 1;
-  while (last->getNext() != 0) {
+  while (last->getNext() != nullptr) {
     last = last->getNext();
     length++;
   }

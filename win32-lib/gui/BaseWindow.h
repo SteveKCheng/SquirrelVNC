@@ -46,7 +46,7 @@ public:
   // createWindow()
   // Create window with windowName and setted style
   // other parameters can by changed
-  bool createWindow(const StringStorage *windowName, DWORD style, HWND hWndParent = 0,
+  bool createWindow(const StringStorage *windowName, DWORD style, HWND hWndParent = nullptr,
                     int xPos = CW_USEDEFAULT, int yPos = CW_USEDEFAULT,
                     int width = CW_USEDEFAULT, int height = CW_USEDEFAULT);
   bool destroyWindow();
@@ -80,7 +80,7 @@ public:
   void setExStyle(DWORD exstyle);
 
   // full redraw of window area
-  void redraw(const RECT *rcArea = 0);
+  void redraw(const RECT *rcArea = nullptr);
 
   // set foreground window
   void setForegroundWindow();

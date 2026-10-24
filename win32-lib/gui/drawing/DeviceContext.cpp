@@ -37,7 +37,7 @@ DeviceContext::DeviceContext(DeviceContext* compatibleDevice)
 }
 
 DeviceContext::DeviceContext(PaintWindow* pntWnd)
-: m_wnd(0), m_hasOwnDC(false)
+: m_wnd(nullptr), m_hasOwnDC(false)
 {
   m_dc = pntWnd->getHDCPaint();
 }

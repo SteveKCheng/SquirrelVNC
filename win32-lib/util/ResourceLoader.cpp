@@ -60,7 +60,7 @@ bool ResourceLoader::loadString(UINT id, StringStorage *string)
   HRSRC resHnd = FindResource(m_appInstance,
                               MAKEINTRESOURCE(resId),
                               RT_STRING);
-  if (resHnd != 0) {
+  if (resHnd != nullptr) {
     HGLOBAL hGlobal = LoadResource(m_appInstance, resHnd);
     LPVOID lockRes = LockResource(hGlobal);
 
@@ -93,7 +93,7 @@ HACCEL ResourceLoader::loadAccelerator(UINT id)
 
 HCURSOR ResourceLoader::loadStandardCursor(const TCHAR *id)
 {
-  return LoadCursor(0, id);
+  return LoadCursor(nullptr, id);
 }
 
 HCURSOR ResourceLoader::loadCursor(UINT id)

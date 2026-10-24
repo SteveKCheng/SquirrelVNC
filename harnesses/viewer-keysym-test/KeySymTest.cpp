@@ -31,13 +31,13 @@ const TCHAR KeySymTest::VALID_WORD_LETTERS[] = _T("zyxwvutsrqponmlkjihgfedcba")
                                                _T("01234567890");
 
 KeySymTest::KeySymTest(const TCHAR *fileFrom, const TCHAR *fileTo)
-: m_fTo(0),
-  m_fFrom(0),
+: m_fTo(nullptr),
+  m_fFrom(nullptr),
   m_lineNumber(0),
   m_fromFileName(fileFrom),
   m_toFileName(fileTo),
   m_isNextEventInSeries(false),
-  m_log(0)
+  m_log(nullptr)
 {
   // The destructor does not run if this throws, so whatever has been
   // opened or allocated is released by a guard.
@@ -124,7 +124,7 @@ int KeySymTest::run()
 
 void KeySymTest::changeKbdLayout(HKL hkl)
 {
-  if (ActivateKeyboardLayout(hkl, 0) == 0) {
+  if (ActivateKeyboardLayout(hkl, 0) == nullptr) {
     StringStorage errMess;
     errMess.format(_T("Can't apply a keyboard layout requested at the %zu line (%s)"),
                    m_lineNumber,
@@ -136,7 +136,7 @@ void KeySymTest::changeKbdLayout(HKL hkl)
 bool KeySymTest::readLine(StringStorage *line)
 {
   TCHAR buff[255];
-  if (_fgetts(buff, sizeof(buff) / sizeof(TCHAR), m_fFrom) != 0) {
+  if (_fgetts(buff, sizeof(buff) / sizeof(TCHAR), m_fFrom) != nullptr) {
     line->setString(buff);
     return true;
   }

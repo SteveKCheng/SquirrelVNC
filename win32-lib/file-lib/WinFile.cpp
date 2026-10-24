@@ -103,17 +103,17 @@ void WinFile::open(const TCHAR *pathToFile,
   m_hFile = CreateFile(m_pathToFile.getString(),
                        desiredAccess,
                        shareMode,
-                       0,
+                       nullptr,
                        creationDisposition,
                        FILE_ATTRIBUTE_NORMAL,
-                       0);
+                       nullptr);
   if (!isValid()) {
     throw SystemException();
   }
 
   if (append) {
     // Move file pointer to the end of file.
-    DWORD result = SetFilePointer(m_hFile, 0, 0, FILE_END);
+    DWORD result = SetFilePointer(m_hFile, 0, nullptr, FILE_END);
     DWORD errCode = GetLastError();
     // Checking for an error
     if (result == INVALID_SET_FILE_POINTER && errCode != NO_ERROR) {
@@ -166,7 +166,7 @@ size_t WinFile::read(void *buff, size_t count)
     throw IOException(_T("Requested size to read is too big"));
   }
   DWORD result = 0;
-  if (ReadFile(m_hFile, buff, count32, &result, 0) == 0) {
+  if (ReadFile(m_hFile, buff, count32, &result, nullptr) == 0) {
     DWORD error = GetLastError();
     if (error == ERROR_HANDLE_EOF) {
       throw EOFException();
@@ -191,7 +191,7 @@ size_t WinFile::write(const void *buff, size_t count)
     throw IOException(_T("Requested size to write is too big"));
   }
   DWORD result = 0;
-  if (WriteFile(m_hFile, buff, count32, &result, 0) == 0) {
+  if (WriteFile(m_hFile, buff, count32, &result, nullptr) == 0) {
     StringStorage errText;
     Environment::getErrStr(&errText);
     throw IOException(errText.getString());

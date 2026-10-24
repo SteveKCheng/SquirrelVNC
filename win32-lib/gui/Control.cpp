@@ -26,14 +26,14 @@
 #include <vector>
 
 Control::Control()
-: m_hwnd(NULL),
-  m_defWindowProc(NULL)
+: m_hwnd(nullptr),
+  m_defWindowProc(nullptr)
 {
 }
 
 Control::Control(HWND hwnd)
 : m_hwnd(hwnd),
-  m_defWindowProc(NULL)
+  m_defWindowProc(nullptr)
 {
 }
 
@@ -105,7 +105,7 @@ bool Control::isEnabled()
 
 void Control::invalidate()
 {
-  InvalidateRect(m_hwnd, NULL, TRUE);
+  InvalidateRect(m_hwnd, nullptr, TRUE);
 }
 
 void Control::getText(StringStorage *storage)

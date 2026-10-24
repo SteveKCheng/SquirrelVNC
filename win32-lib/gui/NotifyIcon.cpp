@@ -26,7 +26,7 @@
 #include <shellapi.h>
 
 NotifyIcon::NotifyIcon(bool showAfterCreation)
-: NotifyIconWindow(), m_icon(0), m_visible(showAfterCreation)
+: NotifyIconWindow(), m_icon(nullptr), m_visible(showAfterCreation)
 {
   memset(&m_nid, 0, sizeof(NOTIFYICONDATA));
 
@@ -42,8 +42,8 @@ NotifyIcon::NotifyIcon(bool showAfterCreation)
 
 NotifyIcon::~NotifyIcon()
 {
-  if (m_nid.hIcon != 0) {
-    setIcon(NULL);
+  if (m_nid.hIcon != nullptr) {
+    setIcon(nullptr);
   }
 }
 
@@ -60,7 +60,7 @@ void NotifyIcon::hide()
 {
   m_nid.uFlags = NIF_ICON;
   Shell_NotifyIcon(NIM_DELETE, &m_nid);
-  m_nid.hIcon = 0;
+  m_nid.hIcon = nullptr;
   m_visible = false;
 }
 
@@ -72,7 +72,7 @@ bool NotifyIcon::isVisible() const
 void NotifyIcon::setIcon(Icon *icon)
 {
   m_nid.uFlags = NIF_ICON;
-  if (icon != 0) {
+  if (icon != nullptr) {
     m_nid.hIcon = icon->getHICON();
     Shell_NotifyIcon(NIM_MODIFY, &m_nid);
   } else {

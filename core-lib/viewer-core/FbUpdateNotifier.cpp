@@ -34,7 +34,7 @@ FbUpdateNotifier::FbUpdateNotifier(FrameBuffer *fb, LocalMutex *fbLock, LogWrite
   m_cursorPainter(fb, logWriter),
   m_isNewSize(false),
   m_isCursorChange(false),
-  m_adapter(0)
+  m_adapter(nullptr)
 {
   m_oldPosition = m_cursorPainter.hideCursor();
 
@@ -68,7 +68,7 @@ void FbUpdateNotifier::execute()
 
       // Check: now adapter is set?
       AutoLock al(&m_updateLock);
-      if (m_adapter != 0) {
+      if (m_adapter != nullptr) {
         adapterIsNull = false;
       }
     }

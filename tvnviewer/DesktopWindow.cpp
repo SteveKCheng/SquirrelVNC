@@ -25,7 +25,7 @@
 
 DesktopWindow::DesktopWindow(LogWriter *logWriter, ConnectionConfig *conConf)
 : m_logWriter(logWriter),
-  m_clipboard(0),
+  m_clipboard(nullptr),
   m_showVert(false),
   m_showHorz(false),
   m_fbWidth(1),
@@ -33,7 +33,7 @@ DesktopWindow::DesktopWindow(LogWriter *logWriter, ConnectionConfig *conConf)
   m_winResize(false),
   m_conConf(conConf),
   m_brush(RGB(0, 0, 0)),
-  m_viewerCore(0),
+  m_viewerCore(nullptr),
   m_ctrlDown(false),
   m_altDown(false),
   m_previousMousePos(-1, -1),
@@ -100,7 +100,7 @@ bool DesktopWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
     case WM_CHANGECBCHAIN:
       if ((HWND)wParam == m_hwndNextViewer) {
         m_hwndNextViewer = (HWND)lParam;
-      } else if (m_hwndNextViewer != NULL) {
+      } else if (m_hwndNextViewer != nullptr) {
         SendMessage(m_hwndNextViewer, message, wParam, lParam);
       }
       return true;
@@ -608,7 +608,7 @@ void DesktopWindow::setScale(int scale)
   m_scManager.setScale(scale);
   m_winResize = true;
   // Invalidate all area of desktop window.
-  if (m_hWnd != 0) {
+  if (m_hWnd != nullptr) {
     redraw();
   }
 }
@@ -650,10 +650,10 @@ Rect DesktopWindow::getFrameBufferGeometry()
 void DesktopWindow::getServerGeometry(Rect *rect, int *pixelsize)
 {
   AutoLock al(&m_bufferLock);
-  if (rect != 0) {
+  if (rect != nullptr) {
     *rect = m_serverDimension.getRect();
   }
-  if (pixelsize != 0) {
+  if (pixelsize != nullptr) {
     *pixelsize = m_framebuffer.getBitsPerPixel();
   }
 }
@@ -700,7 +700,7 @@ void DesktopWindow::sendKeyboardEvent(bool downFlag, UINT32 key)
   }
 
   // If pointer to viewer core is 0, then exit.
-  if (m_viewerCore == 0) {
+  if (m_viewerCore == nullptr) {
     return;
   }
 
@@ -720,7 +720,7 @@ void DesktopWindow::sendPointerEvent(UINT8 buttonMask, const Point *position)
   }
 
   // If pointer to viewer core is 0, then exit.
-  if (m_viewerCore == 0) {
+  if (m_viewerCore == nullptr) {
     return;
   }
 
@@ -740,7 +740,7 @@ void DesktopWindow::sendCutTextEvent(const StringStorage *cutText)
   }
 
   // If pointer to viewer core is 0, then exit.
-  if (m_viewerCore == 0) {
+  if (m_viewerCore == nullptr) {
     return;
   }
 

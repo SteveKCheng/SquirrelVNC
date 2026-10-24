@@ -24,7 +24,7 @@
 #include "NotifyIconWindow.h"
 
 NotifyIconWindow::NotifyIconWindow()
-: m_wph(0)
+: m_wph(nullptr)
 {
   //
   // Register window class
@@ -36,11 +36,11 @@ NotifyIconWindow::NotifyIconWindow()
   wc.lpfnWndProc = WindowProcHolder::defWindowProc;
   wc.cbClsExtra = 0;
   wc.cbWndExtra = 0;
-  wc.hInstance = GetModuleHandle(0);
-  wc.hIcon = NULL;
-  wc.hCursor = NULL;
-  wc.hbrBackground = NULL;
-  wc.lpszMenuName = NULL;
+  wc.hInstance = GetModuleHandle(nullptr);
+  wc.hIcon = nullptr;
+  wc.hCursor = nullptr;
+  wc.hbrBackground = nullptr;
+  wc.lpszMenuName = nullptr;
   wc.lpszClassName = _T("NotifyIconWindowClass");
 
   ATOM atom = RegisterClass(&wc);
@@ -54,14 +54,14 @@ NotifyIconWindow::NotifyIconWindow()
                           WS_OVERLAPPED,
                           CW_USEDEFAULT, CW_USEDEFAULT,
                           CW_USEDEFAULT, CW_USEDEFAULT,
-                          NULL, NULL, GetModuleHandle(0), NULL);
+                          nullptr, nullptr, GetModuleHandle(nullptr), nullptr);
 
   SetWindowLongPtr(m_window, GWLP_USERDATA, (LONG_PTR)m_wph);
 }
 
 NotifyIconWindow::~NotifyIconWindow()
 {
-  setWindowProcHolder(NULL);
+  setWindowProcHolder(nullptr);
 
   //DestroyWindow(m_window);
 }

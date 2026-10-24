@@ -35,8 +35,8 @@ BaseDialog::BaseDialog()
 }
 
 BaseDialog::BaseDialog(DWORD resourceId)
-: m_ctrlParent(NULL), m_resourceName(0), m_resourceId(resourceId), m_hicon(0),
-  m_hiconSmall(0), m_isModal(false)
+: m_ctrlParent(nullptr), m_resourceName(nullptr), m_resourceId(resourceId), m_hicon(nullptr),
+  m_hiconSmall(nullptr), m_isModal(false)
 {
 }
 
@@ -48,14 +48,14 @@ BaseDialog::BaseDialog(const TCHAR *resourceName)
 
 BaseDialog::~BaseDialog()
 {
-  if (m_resourceName != 0) {
+  if (m_resourceName != nullptr) {
     free(m_resourceName);
   }
 }
 
 void BaseDialog::setResourceName(const TCHAR *resourceName)
 {
-  if (m_resourceName != 0) {
+  if (m_resourceName != nullptr) {
     free(m_resourceName);
   }
 
@@ -74,7 +74,7 @@ void BaseDialog::setParent(Control *ctrlParent)
 
 int BaseDialog::show()
 {
-  if (m_ctrlThis.getWindow() == NULL) {
+  if (m_ctrlThis.getWindow() == nullptr) {
     create();
   } else {
     m_ctrlThis.setForeground();
@@ -96,18 +96,18 @@ void BaseDialog::kill(int code)
     EndDialog(m_ctrlThis.getWindow(), code);
   }
   // We have no valid hwnd, so forse set hwnd to NULL
-  m_ctrlThis.setWindow(NULL);
+  m_ctrlThis.setWindow(nullptr);
 }
 
 void BaseDialog::create()
 {
-  HWND window, parentWindow = NULL;
+  HWND window, parentWindow = nullptr;
 
-  if (m_ctrlParent != NULL) {
+  if (m_ctrlParent != nullptr) {
     parentWindow = m_ctrlParent->getWindow();
   }
 
-  window = CreateDialogParam(GetModuleHandle(NULL), getResouceName(),
+  window = CreateDialogParam(GetModuleHandle(nullptr), getResouceName(),
                              parentWindow, dialogProc, (LPARAM)this);
 
   m_isModal = false;
@@ -118,10 +118,10 @@ void BaseDialog::create()
 int BaseDialog::showModal()
 {
   int result = 0;
-  if (m_ctrlThis.getWindow() == NULL) {
+  if (m_ctrlThis.getWindow() == nullptr) {
     m_isModal = true;
-    HWND parentWindow = (m_ctrlParent != NULL) ? m_ctrlParent->getWindow() : NULL;
-    result = (int)DialogBoxParam(GetModuleHandle(NULL),
+    HWND parentWindow = (m_ctrlParent != nullptr) ? m_ctrlParent->getWindow() : nullptr;
+    result = (int)DialogBoxParam(GetModuleHandle(nullptr),
                                  getResouceName(),
                                  parentWindow, dialogProc, (LPARAM)this);
   } else {
@@ -141,7 +141,7 @@ int BaseDialog::showModal()
 
 bool BaseDialog::isCreated()
 {
-  bool isInit = m_ctrlThis.getWindow() != 0;
+  bool isInit = m_ctrlThis.getWindow() != nullptr;
 
   if (!isInit) {
     return false;
@@ -172,7 +172,7 @@ INT_PTR CALLBACK BaseDialog::dialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     _this->updateIcon();
   } else {
     _this = (BaseDialog *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-    if (_this == 0) {
+    if (_this == nullptr) {
       return FALSE;
     }
   }

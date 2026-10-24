@@ -27,7 +27,7 @@
 
 FileTransferRequestSender::FileTransferRequestSender(LogWriter *logWriter)
 : m_logWriter(logWriter),
-  m_output(0)
+  m_output(nullptr)
 {
 }
 

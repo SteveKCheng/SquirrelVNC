@@ -40,7 +40,7 @@ bool StringParser::parseHex(const TCHAR* str, unsigned int* out)
     if (_stscanf(str, _T("%x%c"), &val, &c) != 1) {
         return false;
     }
-    if (out != NULL) {
+    if (out != nullptr) {
         *out = val;
     }
     return true;
@@ -53,7 +53,7 @@ bool StringParser::parseInt(const TCHAR *str, int *out)
   if(_stscanf(str, _T("%d%c"), &value, &c) != 1) {
     return false;
   }
-  if (out != NULL) {
+  if (out != nullptr) {
     *out = value;
   }
 
@@ -65,14 +65,14 @@ bool StringParser::parseInt(const TCHAR *str, int *out)
 bool StringParser::parseUInt(const TCHAR *str, unsigned int *out)
 {
   // Check the minus sign manually because _tcstoul does not fail on it.
-  if (str != 0 && str[0] == _T('-')) {
+  if (str != nullptr && str[0] == _T('-')) {
     return false;
   }
 
-  TCHAR *ptr = 0;
+  TCHAR *ptr = nullptr;
   errno = 0;
   unsigned long ulongValue = _tcstoul(str, &ptr, 10);
-  if (errno != 0 || ptr == 0 || *ptr != _T('\0')) {
+  if (errno != 0 || ptr == nullptr || *ptr != _T('\0')) {
     return false;
   }
 
@@ -81,7 +81,7 @@ bool StringParser::parseUInt(const TCHAR *str, unsigned int *out)
     return false;
   }
 
-  if (out != NULL) {
+  if (out != nullptr) {
     *out = uintValue;
   }
 
@@ -90,5 +90,5 @@ bool StringParser::parseUInt(const TCHAR *str, unsigned int *out)
 
 bool StringParser::tryParseInt(const TCHAR *str)
 {
-  return parseInt(str, NULL);
+  return parseInt(str, nullptr);
 }

@@ -37,7 +37,7 @@ LogWriter::~LogWriter()
 void LogWriter::interror(_Printf_format_string_ const TCHAR *fmt, ...)
 {
   int level = LOG_INTERR;
-  if (m_logger != 0 && m_logger->acceptsLevel(level)) {
+  if (m_logger != nullptr && m_logger->acceptsLevel(level)) {
     va_list vl;
     va_start(vl, fmt);
     vprintLog(level, fmt, vl);
@@ -48,7 +48,7 @@ void LogWriter::interror(_Printf_format_string_ const TCHAR *fmt, ...)
 void LogWriter::error(_Printf_format_string_ const TCHAR *fmt, ...)
 {
   int level = LOG_ERR;
-  if (m_logger != 0 && m_logger->acceptsLevel(level)) {
+  if (m_logger != nullptr && m_logger->acceptsLevel(level)) {
     va_list vl;
     va_start(vl, fmt);
     vprintLog(level, fmt, vl);
@@ -59,7 +59,7 @@ void LogWriter::error(_Printf_format_string_ const TCHAR *fmt, ...)
 void LogWriter::warning(_Printf_format_string_ const TCHAR *fmt, ...)
 {
   int level = LOG_WARN;
-  if (m_logger != 0 && m_logger->acceptsLevel(level)) {
+  if (m_logger != nullptr && m_logger->acceptsLevel(level)) {
     va_list vl;
     va_start(vl, fmt);
     vprintLog(level, fmt, vl);
@@ -70,7 +70,7 @@ void LogWriter::warning(_Printf_format_string_ const TCHAR *fmt, ...)
 void LogWriter::message(_Printf_format_string_ const TCHAR *fmt, ...)
 {
   int level = LOG_MSG;
-  if (m_logger != 0 && m_logger->acceptsLevel(level)) {
+  if (m_logger != nullptr && m_logger->acceptsLevel(level)) {
     va_list vl;
     va_start(vl, fmt);
     vprintLog(level, fmt, vl);
@@ -81,7 +81,7 @@ void LogWriter::message(_Printf_format_string_ const TCHAR *fmt, ...)
 void LogWriter::info(_Printf_format_string_ const TCHAR *fmt, ...)
 {
   int level = LOG_INFO;
-  if (m_logger != 0 && m_logger->acceptsLevel(level)) {
+  if (m_logger != nullptr && m_logger->acceptsLevel(level)) {
     va_list vl;
     va_start(vl, fmt);
     vprintLog(level, fmt, vl);
@@ -92,7 +92,7 @@ void LogWriter::info(_Printf_format_string_ const TCHAR *fmt, ...)
 void LogWriter::detail(_Printf_format_string_ const TCHAR *fmt, ...)
 {
   int level = LOG_DETAIL;
-  if (m_logger != 0 && m_logger->acceptsLevel(level)) {
+  if (m_logger != nullptr && m_logger->acceptsLevel(level)) {
     va_list vl;
     va_start(vl, fmt);
     vprintLog(level, fmt, vl);
@@ -103,7 +103,7 @@ void LogWriter::detail(_Printf_format_string_ const TCHAR *fmt, ...)
 void LogWriter::debug(_Printf_format_string_ const TCHAR *fmt, ...)
 {
   int level = LOG_DEBUG;
-  if (m_logger != 0 && m_logger->acceptsLevel(level)) {
+  if (m_logger != nullptr && m_logger->acceptsLevel(level)) {
     va_list vl;
     va_start(vl, fmt);
     vprintLog(level, fmt, vl);
@@ -120,7 +120,7 @@ void LogWriter::debug(_Printf_format_string_ const TCHAR *fmt, ...)
 
 void LogWriter::vprintLog(int logLevel, const TCHAR *fmt, va_list argList)
 {
-  if (m_logger != 0) {
+  if (m_logger != nullptr) {
     // Format the original string.  argList is read twice, to count and then
     // to format, so the count reads a copy: reading a va_list leaves it
     // unusable on some ABIs (MSVC's is a plain pointer passed by value).

@@ -25,7 +25,7 @@
 #include "gui/ScaledIcons.h"
 
 Icon::Icon()
-: m_hasOwnIcon(true), m_icon(NULL)
+: m_hasOwnIcon(true), m_icon(nullptr)
 {
 }
 
@@ -35,14 +35,14 @@ Icon::Icon(HICON icon)
 }
 
 Icon::Icon(Bitmap *bitmap)
-: m_hasOwnIcon(true), m_icon(NULL)
+: m_hasOwnIcon(true), m_icon(nullptr)
 {
   Bitmap mask(bitmap->getWidth(), bitmap->getHeight());
   fromBitmap(bitmap, &mask);
 }
 
 Icon::Icon(Bitmap *bitmap, Bitmap *mask)
-: m_hasOwnIcon(true), m_icon(NULL)
+: m_hasOwnIcon(true), m_icon(nullptr)
 {
   fromBitmap(bitmap, mask);
 }
@@ -71,8 +71,8 @@ void Icon::fromBitmap(Bitmap *bitmap, Bitmap *mask)
 
   memset(&ii, 0, sizeof(ICONINFO));
 
-  ii.hbmColor = (bitmap != 0) ? bitmap->m_bitmap : 0;
-  ii.hbmMask = (mask != 0) ? mask->m_bitmap : 0;
+  ii.hbmColor = (bitmap != nullptr) ? bitmap->m_bitmap : nullptr;
+  ii.hbmMask = (mask != nullptr) ? mask->m_bitmap : nullptr;
 
   m_icon = CreateIconIndirect(&ii);
 }

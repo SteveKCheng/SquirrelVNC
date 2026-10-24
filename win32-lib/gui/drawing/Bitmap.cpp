@@ -26,7 +26,7 @@
 #include <vector>
 
 Bitmap::Bitmap(int width, int height)
-: m_bitmap(NULL)
+: m_bitmap(nullptr)
 {
   // Prepare buffer
   int bpp = 32;
@@ -51,7 +51,7 @@ Bitmap::Bitmap(HBITMAP bitmap)
 
 Bitmap::~Bitmap()
 {
-  if (m_bitmap != NULL) {
+  if (m_bitmap != nullptr) {
     DeleteObject(m_bitmap);
   }
 }

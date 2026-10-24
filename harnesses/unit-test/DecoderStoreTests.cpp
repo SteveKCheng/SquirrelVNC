@@ -35,12 +35,12 @@
 
 void runDecoderStoreTests()
 {
-  LogWriter logWriter(0);
+  LogWriter logWriter(nullptr);
   DecoderStore store(&logWriter);
 
   check(store.addDecoder(std::make_unique<RawDecoder>(&logWriter), 0),
         "DecoderStore adds a decoder");
-  check(store.getDecoder(EncodingDefs::RAW) != 0,
+  check(store.getDecoder(EncodingDefs::RAW) != nullptr,
         "DecoderStore finds the decoder added");
   check(store.addDecoder(std::make_unique<RichCursorDecoder>(&logWriter), -1),
         "DecoderStore adds a pseudo-decoder");
@@ -49,7 +49,7 @@ void runDecoderStoreTests()
   check(!store.addDecoder(std::make_unique<RichCursorDecoder>(&logWriter), -1),
         "DecoderStore refuses a second decoder of the same code");
   check(store.removeDecoder(EncodingDefs::RAW), "DecoderStore removes a decoder");
-  check(store.getDecoder(EncodingDefs::RAW) == 0,
+  check(store.getDecoder(EncodingDefs::RAW) == nullptr,
         "DecoderStore no longer finds the decoder removed");
   check(!store.removeDecoder(EncodingDefs::RAW),
         "DecoderStore reports a decoder it does not have");

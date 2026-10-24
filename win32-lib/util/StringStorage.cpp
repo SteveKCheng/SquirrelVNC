@@ -78,7 +78,7 @@ void StringStorage::cutAtNull()
 
 void StringStorage::setString(const TCHAR *string)
 {
-  if (string == 0) {
+  if (string == nullptr) {
     string = _T("");
   }
   // Copied first, as string may point into m_string.
@@ -148,7 +148,7 @@ void StringStorage::getSubstring(StringStorage *substr,
 
 void StringStorage::appendString(const TCHAR *string)
 {
-  if (string == 0) {
+  if (string == nullptr) {
     return;
   }
 
@@ -189,7 +189,7 @@ bool StringStorage::isEqualTo(const StringStorage *other) const
 
 bool StringStorage::isEqualTo(const TCHAR *other) const
 {
-  if (other == 0) {
+  if (other == nullptr) {
     return false;
   }
   // Compares up to other's terminator; m_string has no null character, so
@@ -236,7 +236,7 @@ TCHAR *StringStorage::find(const TCHAR *substr)
 {
   size_t position = m_string.find(substr);
   if (position == StdString::npos) {
-    return 0;
+    return nullptr;
   }
   return m_string.data() + position;
 }

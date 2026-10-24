@@ -31,7 +31,7 @@
 
 ConfigurationDialog::ConfigurationDialog()
 : BaseDialog(IDD_CONFIGURATION),
-  m_application(0)
+  m_application(nullptr)
 {
 }
 
@@ -49,7 +49,7 @@ BOOL ConfigurationDialog::onCommand(UINT controlID, UINT notificationID)
   }
   if (controlID == IDOK) {
     onOkPressed();
-    if (m_application != 0) {
+    if (m_application != nullptr) {
       m_application->postMessage(TvnViewer::WM_USER_CONFIGURATION_RELOAD);
     }
     kill(1);

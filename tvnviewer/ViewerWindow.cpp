@@ -42,8 +42,8 @@ ViewerWindow::ViewerWindow(WindowsApplication *application,
   m_conConf(conConf),
   m_scale(100),
   m_isFullScr(false),
-  m_viewerCore(0),
-  m_fileTransfer(0),
+  m_viewerCore(nullptr),
+  m_fileTransfer(nullptr),
   m_conData(conData),
   m_dsktWnd(&m_logWriter, conConf),
   m_isConnected(false),
@@ -75,7 +75,7 @@ ViewerWindow::ViewerWindow(WindowsApplication *application,
                          WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_CHILD,
                          getHWnd());
 
-  SetTimer(m_hWnd, TIMER_DESKTOP_STATE, TIMER_DESKTOP_STATE_DELAY, (TIMERPROC)NULL);
+  SetTimer(m_hWnd, TIMER_DESKTOP_STATE, TIMER_DESKTOP_STATE_DELAY, (TIMERPROC)nullptr);
 }
 
 ViewerWindow::~ViewerWindow()
@@ -102,7 +102,7 @@ bool ViewerWindow::onCreate(LPCREATESTRUCT /* lps */)
 {
   m_control.setWindow(m_hWnd);
 
-  setClassCursor(LoadCursor(NULL, IDC_ARROW));
+  setClassCursor(LoadCursor(nullptr, IDC_ARROW));
   loadIcon(IDI_APPICON);
   m_toolbar.loadIcons(IDI_TB_NEWCONNECTION, IDI_TB_FULLSCREEN - IDI_TB_NEWCONNECTION + 1);
   m_toolbar.setButtonsRange(IDS_TB_NEWCONNECTION);
@@ -245,7 +245,7 @@ void ViewerWindow::updateDisplayRequest()
 
 void ViewerWindow::changeCursor(int type)
 {
-  HCURSOR hcur = 0;
+  HCURSOR hcur = nullptr;
 
   ResourceLoader *rLoader = ResourceLoader::getInstance();
   switch (type) {
@@ -786,7 +786,7 @@ void ViewerWindow::showFileTransferDialog()
     if (m_ftDialog) {
       if (!m_ftDialog->isCreated()) {
         _ASSERT(m_fileTransfer != 0);
-        m_fileTransfer->setInterface(0);
+        m_fileTransfer->setInterface(nullptr);
         m_ftDialog.reset();
       }
     }
@@ -834,7 +834,7 @@ void ViewerWindow::setSizeFullScreenWindow()
   setStyle((getStyle() | WS_MAXIMIZE) & ~(WS_CAPTION | WS_BORDER | WS_THICKFRAME  | WS_MAXIMIZEBOX));
   setExStyle(getExStyle() | WS_EX_TOPMOST);
 
-  SetWindowPos(m_hWnd, 0,
+  SetWindowPos(m_hWnd, nullptr,
                fullScreenRect.left, fullScreenRect.top,
                fullScreenRect.getWidth(), fullScreenRect.getHeight(),
                SWP_SHOWWINDOW);
@@ -1013,7 +1013,7 @@ bool ViewerWindow::onAuthError(WPARAM wParam)
   // If authentication is canceled, then do quiet exit, else show error-message.
   if (wParam != AuthException::AUTH_CANCELED) {
     StringStorage error = m_error.getMessage();
-    int result = MessageBox(0,
+    int result = MessageBox(nullptr,
                             error.getString(),
                             formatWindowName().getString(),
                             MB_RETRYCANCEL | MB_ICONERROR);

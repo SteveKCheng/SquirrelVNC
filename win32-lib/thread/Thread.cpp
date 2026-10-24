@@ -28,7 +28,7 @@
 Thread::Thread()
 : m_terminated(false), m_active(false)
 {
-  m_hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) threadProc,
+  m_hThread = CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE) threadProc,
                            (LPVOID) this, CREATE_SUSPENDED, (LPDWORD) &m_threadID);
 }
 

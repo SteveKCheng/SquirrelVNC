@@ -76,7 +76,7 @@ void RemoteFilesDeleteOperation::onFileListReply(DataInputStream * /* input */)
   // Forced remove folder otherwise
   //
 
-  if (child != NULL) {
+  if (child != nullptr) {
     m_toDelete = child;
     remove(false);
   } else {
@@ -119,7 +119,7 @@ void RemoteFilesDeleteOperation::remove(bool removeIfFolder)
     return ;
   }
 
-  if (m_toDelete == NULL) {
+  if (m_toDelete == nullptr) {
     return ;
   }
 
@@ -136,7 +136,7 @@ void RemoteFilesDeleteOperation::remove(bool removeIfFolder)
   //
 
   if (((fileInfo->isDirectory() && !removeIfFolder) ||
-      (!fileInfo->isDirectory())) && (m_toDelete->getFirst()->getParent() == NULL)) {
+      (!fileInfo->isDirectory())) && (m_toDelete->getFirst()->getParent() == nullptr)) {
     StringStorage message;
 
     message.format(_T("Deleting remote '%s' %s"), remotePath.getString(),
@@ -161,7 +161,7 @@ void RemoteFilesDeleteOperation::remove(bool removeIfFolder)
     //
 
     if ((removeIfFolder) && (fileInfo->isDirectory())) {
-      m_toDelete->setChild(NULL, 0);
+      m_toDelete->setChild(nullptr, 0);
     }
   } else {
     // Send file list request cause we must remove subfolders and files from
@@ -174,9 +174,9 @@ void RemoteFilesDeleteOperation::gotoNext()
 {
   FileInfoList *current = m_toDelete;
 
-  bool hasChild = current->getChild() != NULL;
-  bool hasNext = current->getNext() != NULL;
-  bool hasParent = current->getFirst()->getParent() != NULL;
+  bool hasChild = current->getChild() != nullptr;
+  bool hasNext = current->getNext() != nullptr;
+  bool hasParent = current->getFirst()->getParent() != nullptr;
 
   if (hasChild) {
     // If it has child, we must remove child file list first
@@ -210,7 +210,7 @@ void RemoteFilesDeleteOperation::gotoNext()
 void RemoteFilesDeleteOperation::killOp()
 {
   m_toDeleteRoot.reset();
-  m_toDelete = NULL;
+  m_toDelete = nullptr;
 
   // Notify listeners that operation have ended
   notifyFinish();

@@ -26,8 +26,8 @@
 
 FileTransferOperation::FileTransferOperation(LogWriter *logWriter)
 : m_logWriter(logWriter),
-  m_sender(0),
-  m_replyBuffer(0),
+  m_sender(nullptr),
+  m_replyBuffer(nullptr),
   m_isTerminating(false)
 {
 }

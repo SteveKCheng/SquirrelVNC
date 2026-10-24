@@ -123,8 +123,8 @@ SocketAddressIPv4 SocketAddressIPv4::resolve(const TCHAR *host, unsigned short m
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_protocol = IPPROTO_TCP;
 
-  ADDRINFOT *addresses = 0;
-  int error = GetAddrInfo(host, 0, &hints, &addresses);
+  ADDRINFOT *addresses = nullptr;
+  int error = GetAddrInfo(host, nullptr, &hints, &addresses);
   if (error != 0) {
     throw SocketException(error);
   }

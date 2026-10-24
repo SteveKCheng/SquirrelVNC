@@ -26,8 +26,8 @@
 #include "ScaledIcons.h"
 
 BaseWindow::BaseWindow()
-: m_hWnd(0),
-  m_hicon(0),
+: m_hWnd(nullptr),
+  m_hicon(nullptr),
   m_bWndCreated(false)
 {
 }
@@ -57,10 +57,10 @@ bool BaseWindow::createWindow(const StringStorage *windowName, DWORD style, HWND
                         xPos, yPos, 
                         width, height, 
                         hWndParent, 
-                        0, 
-                        GetModuleHandle(0), 
+                        nullptr, 
+                        GetModuleHandle(nullptr), 
                         reinterpret_cast<LPVOID>(this));
-  m_bWndCreated = (m_hWnd == 0 ? false : true);
+  m_bWndCreated = (m_hWnd == nullptr ? false : true);
   if (m_bWndCreated) {
       SetWindowLongPtr(m_hWnd, 
                        GWLP_USERDATA, 
@@ -71,7 +71,7 @@ bool BaseWindow::createWindow(const StringStorage *windowName, DWORD style, HWND
 
 void BaseWindow::loadIcon(DWORD id)
 {
-  m_hicon = 0;
+  m_hicon = nullptr;
   if (IS_INTRESOURCE(id)) {
     m_hicon = ScaledIcons::getLarge(id);
     SetClassLongPtr(m_hWnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(m_hicon));
@@ -106,14 +106,14 @@ void BaseWindow::hide()
 bool BaseWindow::setSize(int width, int height)
 {
   _ASSERT(m_hWnd != 0);
-  return !!SetWindowPos(m_hWnd, 0, 0, 0, width, height, 
+  return !!SetWindowPos(m_hWnd, nullptr, 0, 0, width, height, 
                         SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 bool BaseWindow::setPosition(int xPos, int yPos)
 {
   _ASSERT(m_hWnd != 0);
-  return !!SetWindowPos(m_hWnd, 0, xPos, yPos, 0, 0, 
+  return !!SetWindowPos(m_hWnd, nullptr, xPos, yPos, 0, 0, 
                         SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
@@ -255,8 +255,8 @@ void BaseWindow::redraw(const RECT *rcArea)
 {
   _ASSERT(m_hWnd != 0);
 
-  if (rcArea == 0) {
-     InvalidateRect(m_hWnd, NULL, TRUE);
+  if (rcArea == nullptr) {
+     InvalidateRect(m_hWnd, nullptr, TRUE);
   } else {
      InvalidateRect(m_hWnd, rcArea, FALSE);
   }

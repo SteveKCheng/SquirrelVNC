@@ -26,7 +26,7 @@
 PaintWindow::PaintWindow()
  : m_bIsDraw(false),
    m_paintStruct(),
-   m_hdc(0)
+   m_hdc(nullptr)
 {
 }
 
@@ -37,7 +37,7 @@ PaintWindow::~PaintWindow()
 HDC PaintWindow::getHDCPaint()
 {
   if (!m_bIsDraw) {
-    return 0;
+    return nullptr;
   }
   return m_hdc;
 }

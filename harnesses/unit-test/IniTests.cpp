@@ -47,12 +47,12 @@ static std::vector<std::byte> bytes(const std::string &text)
 }
 
 static std::wstring getString(IniFileSettingsManager &ini, const wchar_t *section,
-                              const wchar_t *name, bool *found = 0)
+                              const wchar_t *name, bool *found = nullptr)
 {
   ini.setApplicationName(section);
   StringStorage value(_T("(unchanged)"));
   bool ok = ini.getString(name, &value);
-  if (found != 0) {
+  if (found != nullptr) {
     *found = ok;
   }
   return ok ? value.str() : L"(missing)";
@@ -60,7 +60,7 @@ static std::wstring getString(IniFileSettingsManager &ini, const wchar_t *sectio
 
 static bool writeBytes(const std::wstring &path, const std::string &data)
 {
-  FILE *file = 0;
+  FILE *file = nullptr;
   if (_wfopen_s(&file, path.c_str(), L"wb") != 0) {
     return false;
   }
@@ -70,7 +70,7 @@ static bool writeBytes(const std::wstring &path, const std::string &data)
 
 static std::string readBytes(const std::wstring &path)
 {
-  FILE *file = 0;
+  FILE *file = nullptr;
   std::string data;
   if (_wfopen_s(&file, path.c_str(), L"rb") != 0) {
     return "(cannot open)";
@@ -185,7 +185,7 @@ static void testSetters()
   IniFileSettingsManager ini;
   ini.setApplicationName(L"s");
   check(ini.setString(L"k", L"v") && getString(ini, L"s", L"k") == L"v", "setString");
-  check(!ini.setString(L"k", 0), "setString of NULL fails");
+  check(!ini.setString(L"k", nullptr), "setString of NULL fails");
   check(!ini.setString(L"k", L"a\nb") && getString(ini, L"s", L"k") == L"v",
         "a value with a line break is refused");
   check(!ini.setString(L"x\r", L"v") && getString(ini, L"s", L"x\r") == L"(missing)",

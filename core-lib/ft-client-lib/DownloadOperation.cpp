@@ -163,7 +163,7 @@ void DownloadOperation::onDownloadDataReply(DataInputStream * /* input */)
 
   m_totalBytesCopied += m_replyBuffer->getDownloadBufferSize();
 
-  if (m_copyListener != NULL) {
+  if (m_copyListener != nullptr) {
     m_copyListener->dataChunkCopied(m_totalBytesCopied, m_totalBytesToCopy);
   }
 
@@ -250,7 +250,7 @@ void DownloadOperation::startDownload()
   FileInfo *fileInfo = m_toCopy->getFileInfo();
 
   // Logging
-  if (m_toCopy->getFirst()->getParent() == NULL) {
+  if (m_toCopy->getFirst()->getParent() == nullptr) {
     StringStorage message;
 
     message.format(_T("Downloading '%s' %s"), m_pathToTargetFile.getString(),
@@ -340,9 +340,9 @@ void DownloadOperation::gotoNext()
 {
   FileInfoList *current = m_toCopy;
 
-  bool hasChild = current->getChild() != NULL;
-  bool hasNext = current->getNext() != NULL;
-  bool hasParent = current->getFirst()->getParent() != NULL;
+  bool hasChild = current->getChild() != nullptr;
+  bool hasNext = current->getNext() != nullptr;
+  bool hasParent = current->getFirst()->getParent() != nullptr;
 
   if (hasChild) {
     // If it has child, we must download child file list first
@@ -363,7 +363,7 @@ void DownloadOperation::gotoNext()
     FileInfoList *first = current->getFirst();
     if (hasParent) {
       changeFileToDownload(first->getParent());
-      m_toCopy->setChild(NULL, 0);
+      m_toCopy->setChild(nullptr, 0);
 
       gotoNext();
     } else {
@@ -376,7 +376,7 @@ void DownloadOperation::tryCalcInputFilesSize()
 {
   FileInfoList *fil = m_toCopy;
 
-  while (fil != NULL) {
+  while (fil != nullptr) {
     if (fil->getFileInfo()->isDirectory()) {
       StringStorage pathNoRoot;
       StringStorage pathToFile;
@@ -406,7 +406,7 @@ void DownloadOperation::killOp()
   //
 
   m_toCopyRoot.reset();
-  m_toCopy = NULL;
+  m_toCopy = nullptr;
 
   notifyFinish();
 }

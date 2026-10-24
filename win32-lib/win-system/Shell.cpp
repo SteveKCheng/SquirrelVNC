@@ -56,7 +56,7 @@ void Shell::showInFolder(const TCHAR *file, const TCHAR *folder)
   // initialized on this thread, which still needs a matching CoUninitialize;
   // RPC_E_CHANGED_MODE means it was initialized as multithreaded, which the
   // shell also accepts, and must not be uninitialized here.
-  HRESULT hrInit = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED |
+  HRESULT hrInit = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED |
                                         COINIT_DISABLE_OLE1DDE);
   if (FAILED(hrInit) && hrInit != RPC_E_CHANGED_MODE) {
     throw SystemException(hrInit);
@@ -69,17 +69,17 @@ void Shell::showInFolder(const TCHAR *file, const TCHAR *folder)
 
   // Fails if the path does not exist.
   PIDLIST_ABSOLUTE pidl = ILCreateFromPath(file);
-  if (pidl == NULL) {
+  if (pidl == nullptr) {
     pidl = ILCreateFromPath(folder);
   }
-  if (pidl == NULL) {
+  if (pidl == nullptr) {
     throw SystemException(_T("Cannot find the folder to show"));
   }
   ScopeExit freePidl([&] { ILFree(pidl); });
 
   // With no child items, the item that pidl names is selected in its
   // parent folder.
-  HRESULT hr = SHOpenFolderAndSelectItems(pidl, 0, NULL, 0);
+  HRESULT hr = SHOpenFolderAndSelectItems(pidl, 0, nullptr, 0);
   if (FAILED(hr)) {
     throw SystemException(hr);
   }

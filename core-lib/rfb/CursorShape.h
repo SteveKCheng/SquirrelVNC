@@ -48,7 +48,7 @@ public:
 
   const FrameBuffer *getPixels() const { return &m_pixels; }
   int getPixelsSize() const { return m_pixels.getBufferSize(); }
-  const char *getMask() const { return m_mask.empty() ? 0 : &m_mask.front(); }
+  const char *getMask() const { return m_mask.empty() ? nullptr : &m_mask.front(); }
   void assignMaskFromRfb(const char *srcMask);
   int getMaskSize() const;
   int getMaskWidthInBytes() const;

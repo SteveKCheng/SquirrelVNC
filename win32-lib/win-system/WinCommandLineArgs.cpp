@@ -33,7 +33,7 @@ WinCommandLineArgs::WinCommandLineArgs(const TCHAR *cmdLineInWinFormat)
   if (cmdLen > 0) {
     int nArgs;
     LPWSTR *argList = CommandLineToArgvW(cmdLine.getString(), &nArgs);
-    if(argList == 0) {
+    if(argList == nullptr) {
       throw Exception(_T("Invalid command line"));
     }
     ScopeExit freeArgList([&] { LocalFree(argList); });

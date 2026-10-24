@@ -110,7 +110,7 @@ void DateTime::toString(StringStorage *target) const
   if (GetDateFormat(LOCALE_USER_DEFAULT,
         DATE_SHORTDATE,
         &systemTime,
-        0,
+        nullptr,
         dateString,
         dateStringMaxLength) == 0) {
     // TODO: Process this error.
@@ -127,7 +127,7 @@ void DateTime::toString(StringStorage *target) const
         LOCALE_USER_DEFAULT,
         0,
         &systemTime,
-        0,
+        nullptr,
         timeString,
         timeStringMaxLength) == 0) {
     // TODO: Process this error.

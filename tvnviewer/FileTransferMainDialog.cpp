@@ -264,7 +264,7 @@ void FileTransferMainDialog::onRenameRemoteButtonClick()
 {
   FileInfo *fileInfo = m_remoteFileListView.getSelectedFileInfo();
 
-  if (fileInfo == NULL) {
+  if (fileInfo == nullptr) {
     MessageBox(m_ctrlThis.getWindow(),
                _T("No file selected."),
                _T("Rename File"), MB_OK | MB_ICONWARNING);
@@ -352,7 +352,7 @@ void FileTransferMainDialog::onRenameLocalButtonClick()
 {
   FileInfo *fileInfo = m_localFileListView.getSelectedFileInfo();
 
-  if (fileInfo == NULL) {
+  if (fileInfo == nullptr) {
     MessageBox(m_ctrlThis.getWindow(),
                _T("No file selected."),
                _T("Rename File"), MB_OK | MB_ICONWARNING);
@@ -572,7 +572,7 @@ void FileTransferMainDialog::moveUpRemoteFolder()
 void FileTransferMainDialog::onRemoteListViewDoubleClick()
 {
   FileInfo *selFileInfo = m_remoteFileListView.getSelectedFileInfo();
-  if (selFileInfo == 0)
+  if (selFileInfo == nullptr)
     return;
 
   if (!selFileInfo->isDirectory())
@@ -581,7 +581,7 @@ void FileTransferMainDialog::onRemoteListViewDoubleClick()
   int si = m_remoteFileListView.getSelectedIndex();
 
   // Fake ".." folder - move one folder up
-  if ((si == 0) && (selFileInfo != 0) && (_tcscmp(selFileInfo->getFileName(), _T(".."))) == 0) {
+  if ((si == 0) && (selFileInfo != nullptr) && (_tcscmp(selFileInfo->getFileName(), _T(".."))) == 0) {
     moveUpRemoteFolder();
     return ;
   }
@@ -598,7 +598,7 @@ void FileTransferMainDialog::onLocalListViewDoubleClick()
   // FIXME: removed duplicate code (see onRemoteListViewDoubleClick)
   FileInfo *selFileInfo = m_localFileListView.getSelectedFileInfo();
 
-  if (selFileInfo == 0)
+  if (selFileInfo == nullptr)
     return;
 
   if (!selFileInfo->isDirectory())
@@ -607,7 +607,7 @@ void FileTransferMainDialog::onLocalListViewDoubleClick()
   int si = m_localFileListView.getSelectedIndex();
 
   // Fake ".." folder - move one folder up
-  if ((si == 0) && (selFileInfo != 0) && (_tcscmp(selFileInfo->getFileName(), _T(".."))) == 0) {
+  if ((si == 0) && (selFileInfo != nullptr) && (_tcscmp(selFileInfo->getFileName(), _T(".."))) == 0) {
     moveUpLocalFolder();
     return ;
   }

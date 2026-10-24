@@ -26,8 +26,8 @@
 
 WindowsEvent::WindowsEvent(const TCHAR *name)
 {
-  m_hEvent = CreateEvent(0, FALSE, FALSE, name);
-  if (m_hEvent == 0) {
+  m_hEvent = CreateEvent(nullptr, FALSE, FALSE, name);
+  if (m_hEvent == nullptr) {
     int errCode = GetLastError();
     StringStorage errMess;
     errMess.format(_T("Cannot create windows event with error = %d"), errCode);

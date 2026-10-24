@@ -40,7 +40,7 @@ public:
   // In default the created DC will used as a target DC for the blitting operations.
   // It may be changed many times later. Note that changed DC must be compatible with
   // the DIB section.
-  DibSection(const PixelFormat *pf, const Dimension *dim, HWND compatibleWin = 0);
+  DibSection(const PixelFormat *pf, const Dimension *dim, HWND compatibleWin = nullptr);
   DibSection(const DibSection &) = delete;
   DibSection &operator=(const DibSection &) = delete;
   DibSection(DibSection &&) = delete;

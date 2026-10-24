@@ -26,7 +26,7 @@
 #include "util/StringParser.h"
 
 SpinControl::SpinControl()
-: m_buddy(NULL),
+: m_buddy(nullptr),
   m_isAutoAccelerationEnabled(false), m_maxDelta(0)
 {
 }

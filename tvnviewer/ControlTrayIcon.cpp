@@ -110,7 +110,7 @@ void ControlTrayIcon::onRightButtonUp()
 
   int action = TrackPopupMenu(m_menu.getMenu(),
                               TPM_NONOTIFY | TPM_RETURNCMD | TPM_RIGHTBUTTON,
-                              pos.x, pos.y, 0, notifyWnd, NULL);
+                              pos.x, pos.y, 0, notifyWnd, nullptr);
 
   switch (action) {
   case IDS_NEW_CONN:

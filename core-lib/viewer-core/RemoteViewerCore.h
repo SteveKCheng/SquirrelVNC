@@ -82,7 +82,7 @@ public:
   // To allow logging, pass a pointer to an object which implements the Logger
   // interface (see log-writer/Logger.h). Logging is disabled by default.
   //
-  RemoteViewerCore(Logger *logger = 0);
+  RemoteViewerCore(Logger *logger = nullptr);
 
   //
   // Active constructors.
@@ -105,7 +105,7 @@ public:
   //
   RemoteViewerCore(RfbInputGate *input, RfbOutputGate *output,
                    CoreEventsAdapter *adapter,
-                   Logger *logger = 0,
+                   Logger *logger = nullptr,
                    bool sharedFlag = true);
 
   //
@@ -118,7 +118,7 @@ public:
   //
   RemoteViewerCore(const TCHAR *host, UINT16 port,
                    CoreEventsAdapter *adapter,
-                   Logger *logger = 0,
+                   Logger *logger = nullptr,
                    bool sharedFlag = true);
 
   // FIX DOCUMENTATION: Clarify differents between the constructor with sockets and gates.
@@ -128,7 +128,7 @@ public:
   //
   RemoteViewerCore(SocketIPv4 *socket,
                    CoreEventsAdapter *adapter,
-                   Logger *logger = 0,
+                   Logger *logger = nullptr,
                    bool sharedFlag = true);
 
   RemoteViewerCore(const RemoteViewerCore &) = delete;

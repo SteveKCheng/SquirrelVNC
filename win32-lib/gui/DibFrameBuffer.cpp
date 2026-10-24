@@ -223,7 +223,7 @@ void DibFrameBuffer::releaseDibSection()
 {
   if (m_dibSection) {
     // m_fb does not own the DIB section's pixels.
-    m_fb.setBuffer(0);
+    m_fb.setBuffer(nullptr);
     m_dibSection.reset();
   }
 }

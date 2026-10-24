@@ -24,7 +24,7 @@
 #include "ZLibBase.h"
 
 ZLibBase::ZLibBase()
-: m_input(0), m_inputSize(0), m_output(0), m_outputSize(0)
+: m_input(nullptr), m_inputSize(0), m_output(0), m_outputSize(0)
 {
 }
 

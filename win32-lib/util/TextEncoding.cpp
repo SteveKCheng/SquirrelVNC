@@ -63,7 +63,7 @@ namespace
     }
     const char *data = reinterpret_cast<const char *>(text.data());
     int size = static_cast<int>(text.size());
-    int length = MultiByteToWideChar(CP_UTF8, flags, data, size, 0, 0);
+    int length = MultiByteToWideChar(CP_UTF8, flags, data, size, nullptr, 0);
     if (length <= 0) {
       return false;
     }
@@ -125,14 +125,14 @@ std::vector<std::byte> TextEncoding::toUtf8(const StringStorage &text)
     throw Exception(_T("Text is too long to convert"));
   }
   int size = static_cast<int>(length);
-  int bytes = WideCharToMultiByte(CP_UTF8, 0, text.getString(), size, 0, 0, 0, 0);
+  int bytes = WideCharToMultiByte(CP_UTF8, 0, text.getString(), size, nullptr, 0, nullptr, nullptr);
   if (bytes <= 0) {
     throw Exception(_T("Cannot convert text to UTF-8"));
   }
   std::vector<std::byte> result(static_cast<size_t>(bytes));
   if (WideCharToMultiByte(CP_UTF8, 0, text.getString(), size,
                           reinterpret_cast<char *>(result.data()), bytes,
-                          0, 0) != bytes) {
+                          nullptr, nullptr) != bytes) {
     throw Exception(_T("Cannot convert text to UTF-8"));
   }
   return result;

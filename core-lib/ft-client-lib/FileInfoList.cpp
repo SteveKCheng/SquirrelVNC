@@ -24,13 +24,13 @@
 #include "FileInfoList.h"
 
 FileInfoList::FileInfoList(FileInfo fileInfo)
-: m_parent(0), m_prev(0)
+: m_parent(nullptr), m_prev(nullptr)
 {
   setFileInfo(fileInfo);
 }
 
 FileInfoList::FileInfoList(const FileInfo *filesInfo, size_t count)
-: m_parent(0), m_prev(0)
+: m_parent(nullptr), m_prev(nullptr)
 {
   setFileInfo(filesInfo[0]);
   appendAfter(this, filesInfo + 1, count - 1);
@@ -86,7 +86,7 @@ FileInfoList *FileInfoList::getRoot()
 {
   // In our list only first element of leaf can has parent
   FileInfoList *first = getFirst();
-  while (first->getParent() != NULL) {
+  while (first->getParent() != nullptr) {
     first = first->getParent()->getFirst();
   }
   // first have no parent, so first is root
@@ -97,7 +97,7 @@ FileInfoList *FileInfoList::getFirst()
 {
   // A loop, not recursion, for the reason given in the destructor.
   FileInfoList *first = this;
-  while (first->getPrev() != NULL) {
+  while (first->getPrev() != nullptr) {
     first = first->getPrev();
   }
   return first;
@@ -135,7 +135,7 @@ void FileInfoList::getAbsolutePath(StringStorage *storage, TCHAR directorySepara
   // added directory separator symbol in the end.
   //
 
-  bool firstHasParent = (first != NULL) && (first->getParent() != NULL);
+  bool firstHasParent = (first != nullptr) && (first->getParent() != nullptr);
 
   if (firstHasParent) {
     FileInfoList *firstParent = first->getParent();

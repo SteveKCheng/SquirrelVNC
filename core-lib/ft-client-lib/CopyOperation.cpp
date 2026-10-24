@@ -25,10 +25,10 @@
 
 CopyOperation::CopyOperation(LogWriter *logWriter)
 : FileTransferOperation(logWriter),
-  m_copyListener(0),
+  m_copyListener(nullptr),
   m_totalBytesToCopy(0),
   m_totalBytesCopied(0),
-  m_toCopy(0)
+  m_toCopy(nullptr)
 {
 }
 

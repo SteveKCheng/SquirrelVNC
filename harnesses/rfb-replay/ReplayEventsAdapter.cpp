@@ -27,7 +27,7 @@
 #include "viewer-core/RemoteViewerCore.h"
 
 ReplayEventsAdapter::ReplayEventsAdapter()
-: m_core(0),
+: m_core(nullptr),
   m_hasEnded(false)
 {
 }
@@ -59,7 +59,7 @@ void ReplayEventsAdapter::onEstablished()
 void ReplayEventsAdapter::onConnected(RfbOutputGate * /*output*/)
 {
   // ServerInit has been read by now, on this thread.
-  if (m_core != 0) {
+  if (m_core != nullptr) {
     StringStorage name = m_core->getRemoteDesktopName();
     addEvent("desktop-name", &name);
   }
