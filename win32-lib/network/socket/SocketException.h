@@ -28,7 +28,7 @@
 
 #include "sockdefs.h"
 
-class SocketException : public Exception
+class SocketException final : public Exception
 {
 public:
   // Creates socket exception object with error value eq to current value

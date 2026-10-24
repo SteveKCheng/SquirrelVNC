@@ -26,7 +26,7 @@
 
 #include "util/CommonHeader.h"
 
-class RegistryKey
+class RegistryKey final
 {
 public:
   RegistryKey(HKEY rootKey, const TCHAR *entry, bool createIfNotExists = true);

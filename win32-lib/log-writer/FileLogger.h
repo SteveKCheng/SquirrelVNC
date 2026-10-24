@@ -28,7 +28,7 @@
 #include "log-writer/Logger.h"
 
 // This class is an implementation of the Logger class to write the log into a file.
-class FileLogger : public Logger
+class FileLogger final : public Logger
 {
 public:
   // @param logDir - a valid path to directory for log file.

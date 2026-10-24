@@ -27,7 +27,7 @@
 #include "util/CommonHeader.h"
 #include "res/resource.h"
 
-class ResourceStrings
+class ResourceStrings final
 {
 public:
   ResourceStrings();

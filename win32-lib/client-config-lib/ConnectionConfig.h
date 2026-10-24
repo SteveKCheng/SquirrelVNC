@@ -35,7 +35,7 @@
 // All methods of class are thead-safe.
 //
 
-class ConnectionConfig
+class ConnectionConfig final
 {
 public:
   static const int NO_CURSOR = 0;

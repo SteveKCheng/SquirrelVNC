@@ -27,7 +27,7 @@
 #include "util/CommonHeader.h"
 #include <CommCtrl.h>
 
-class ToolBar
+class ToolBar final
 {
 public:
   ToolBar();

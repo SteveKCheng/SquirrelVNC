@@ -34,7 +34,7 @@
 
 #include <memory>
 
-class TcpConnection
+class TcpConnection final
 {
 public:
   TcpConnection(LogWriter *logWriter);

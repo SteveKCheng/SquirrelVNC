@@ -32,7 +32,7 @@
 
 class TvnViewer;
 
-class ControlTrayIcon : public NotifyIcon,
+class ControlTrayIcon final : public NotifyIcon,
                         public WindowProcHolder
 {
 public:

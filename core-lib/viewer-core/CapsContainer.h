@@ -48,7 +48,7 @@ public:
 };
 
 // This class is thread-safe.
-class CapsContainer
+class CapsContainer final
 {
 public:
   CapsContainer();

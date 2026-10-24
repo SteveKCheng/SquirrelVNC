@@ -29,7 +29,7 @@
 
 #include <vector>
 
-class RfbSetEncodingsClientMessage : public RfbClientToServerMessage
+class RfbSetEncodingsClientMessage final : public RfbClientToServerMessage
 {
 public:
   RfbSetEncodingsClientMessage(std::vector<int> *encodings);

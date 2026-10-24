@@ -31,7 +31,7 @@
 /**
  * Helper class with only static methods to get strings from resources.
  */
-class StringTable
+class StringTable final
 {
 public:
   /**

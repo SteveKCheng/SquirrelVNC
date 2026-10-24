@@ -33,7 +33,7 @@
 // format.
 //
 
-class FileInfo
+class FileInfo final
 {
 public:
 

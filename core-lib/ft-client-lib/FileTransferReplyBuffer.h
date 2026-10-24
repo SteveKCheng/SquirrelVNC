@@ -38,7 +38,7 @@
 
 #include <vector>
 
-class FileTransferReplyBuffer : public FileTransferEventHandler
+class FileTransferReplyBuffer final : public FileTransferEventHandler
 {
 public:
   FileTransferReplyBuffer(LogWriter *logWriter);

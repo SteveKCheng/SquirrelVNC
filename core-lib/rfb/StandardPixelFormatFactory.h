@@ -26,7 +26,7 @@
 
 #include "rfb/PixelFormat.h"
 
-class StandardPixelFormatFactory
+class StandardPixelFormatFactory final
 {
 public:
   // specifies 16777216 colors, 8bit per Red, 8bit per Green, 8bit per Blue

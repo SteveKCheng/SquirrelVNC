@@ -26,7 +26,7 @@
 
 #include "io-lib/IOException.h"
 
-class EOFException : public IOException
+class EOFException final : public IOException
 {
 public:
   EOFException();

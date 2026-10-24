@@ -39,7 +39,7 @@
 #include "rfb/RfbKeySym.h"
 #include "viewer-core/RemoteViewerCore.h"
 
-class DesktopWindow : public PaintWindow,
+class DesktopWindow final : public PaintWindow,
                       protected RfbKeySymListener
 {
 public:

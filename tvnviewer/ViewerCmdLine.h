@@ -31,7 +31,7 @@
 #include "HelpDialog.h"
 #include "ConnectionData.h"
 
-class ViewerCmdLine {
+class ViewerCmdLine final {
 public:
   ViewerCmdLine(ConnectionData *conData,
                 ConnectionConfig *conConf,

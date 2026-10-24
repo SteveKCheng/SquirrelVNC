@@ -35,7 +35,7 @@
  * thread, and "powercfg /requests" lists it with its reason string.
  * The request is cleared when the object is destroyed or the process exits.
  */
-class DisplayRequest
+class DisplayRequest final
 {
 public:
   DisplayRequest();

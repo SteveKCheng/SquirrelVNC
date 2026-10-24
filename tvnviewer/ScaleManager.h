@@ -26,7 +26,7 @@
 
 #include "region/Rect.h"
 
-class ScaleManager 
+class ScaleManager final 
 {
 public:
   ScaleManager();

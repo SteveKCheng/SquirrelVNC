@@ -26,7 +26,7 @@
 
 #include "DecoderOfRectangle.h"
 
-class RawDecoder : public DecoderOfRectangle
+class RawDecoder final : public DecoderOfRectangle
 {
 public:
   RawDecoder(LogWriter *logWriter);

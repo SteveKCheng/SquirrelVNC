@@ -26,7 +26,7 @@
 
 #include "util/Exception.h"
 
-class CommandLineFormatHelp : public Exception
+class CommandLineFormatHelp final : public Exception
 {
 public:
   CommandLineFormatHelp(const TCHAR *message = _T("Need help dialog"));

@@ -28,7 +28,7 @@
 #include "gui/TextBox.h"
 #include "res/resource.h"
 
-class AuthenticationDialog : public BaseDialog
+class AuthenticationDialog final : public BaseDialog
 {
 public:
   AuthenticationDialog();

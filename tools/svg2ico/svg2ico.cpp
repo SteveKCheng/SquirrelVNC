@@ -97,7 +97,7 @@ struct Options
 
 // Error with a message for the user. HRESULT failures carry the call
 // that failed.
-class Error : public std::runtime_error
+class Error final : public std::runtime_error
 {
 public:
   explicit Error(const std::string &message) : std::runtime_error(message) {}
@@ -230,7 +230,7 @@ void writeFile(const std::wstring &path, const std::vector<BYTE> &data)
   }
 }
 
-class Renderer
+class Renderer final
 {
 public:
   explicit Renderer(const std::vector<BYTE> &svg)

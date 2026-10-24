@@ -30,7 +30,7 @@
 // This class doesn't create any window, it only show/hide that is already
 // contained in existed window.
 
-class ScrollBar
+class ScrollBar final
 {
 public:
   ScrollBar();

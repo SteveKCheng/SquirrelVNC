@@ -30,7 +30,7 @@
 #include "Bitmap.h"
 #include "Brush.h"
 
-class Graphics
+class Graphics final
 {
 public:
   // Creates graphics object with specified device context.

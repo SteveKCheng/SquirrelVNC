@@ -27,7 +27,7 @@
 #include "util/StringStorage.h"
 #include "rfb/HostPath.h"
 
-class ConnectionData
+class ConnectionData final
 {
 public:
   ConnectionData();

@@ -29,7 +29,7 @@
 
 #include <memory>
 
-class RemoteFilesDeleteOperation : public FileTransferOperation
+class RemoteFilesDeleteOperation final : public FileTransferOperation
 {
 public:
 

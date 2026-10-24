@@ -26,7 +26,7 @@
 
 #include "util/CommonHeader.h"
 
-class SystemInformation {
+class SystemInformation final {
 public:
 
   // get rectangle of all desktop area

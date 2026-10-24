@@ -27,7 +27,7 @@
 #include "WinCommandLineArgs.h"
 
 // This class is a primitive command line parser
-class WinProcessCommandLine
+class WinProcessCommandLine final
 {
 public:
   WinProcessCommandLine();

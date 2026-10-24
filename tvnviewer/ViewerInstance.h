@@ -30,7 +30,7 @@
 #include "ViewerVncAuthHandler.h"
 
 
-class ViewerInstance
+class ViewerInstance final
 {
 public:
   // creates the viewer instance by using host:port from condata

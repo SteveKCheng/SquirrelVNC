@@ -26,7 +26,7 @@
 
 #include "util/inttypes.h"
 
-class TunnelDefs
+class TunnelDefs final
 {
 public:
   static const UINT32 NOTUNNEL = 0;

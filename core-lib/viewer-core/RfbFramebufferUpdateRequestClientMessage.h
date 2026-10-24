@@ -27,7 +27,7 @@
 #include "region/Rect.h"
 #include "RfbClientToServerMessage.h"
 
-class RfbFramebufferUpdateRequestClientMessage :
+class RfbFramebufferUpdateRequestClientMessage final :
   public RfbClientToServerMessage
 {
 public:

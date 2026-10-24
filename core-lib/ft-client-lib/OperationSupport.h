@@ -28,7 +28,7 @@
 
 #include <vector>
 
-class OperationSupport
+class OperationSupport final
 {
 public:
   OperationSupport();

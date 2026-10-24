@@ -32,7 +32,7 @@
 // Class manipulating windows HBITMAP object
 // 
 //
-class Bitmap
+class Bitmap final
 {
 public:
   // Creates empty bitmap with specified size.

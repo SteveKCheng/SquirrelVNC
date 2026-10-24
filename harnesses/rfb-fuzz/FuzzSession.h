@@ -48,7 +48,7 @@
 // the two must be kept in step. After the asynchronous rewrite the core's
 // loop can be called directly and this copy goes away.
 //
-class FuzzSession
+class FuzzSession final
 {
 public:
   //

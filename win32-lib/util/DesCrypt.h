@@ -26,7 +26,7 @@
 
 #include "util/inttypes.h"
 
-class DesCrypt
+class DesCrypt final
 {
 public:
   DesCrypt();

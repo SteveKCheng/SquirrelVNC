@@ -26,7 +26,7 @@
 
 #include "AuthHandler.h"
 
-class VncAuthentication
+class VncAuthentication final
 {
 public:
   //

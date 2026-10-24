@@ -4,7 +4,7 @@
 #include "DataInputStream.h"
 #include <vector>
 
-class BufferedInputStream : public InputStream
+class BufferedInputStream final : public InputStream
 {
 public:
 

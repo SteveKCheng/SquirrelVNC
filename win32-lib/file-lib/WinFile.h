@@ -59,7 +59,7 @@ enum FileMode
   FM_TRUNCATE
 };
 
-class WinFile
+class WinFile final
 {
 public:
   WinFile(const TCHAR *pathToFile, DesiredAccess dAcc, FileMode fMode,

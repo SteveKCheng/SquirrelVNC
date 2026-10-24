@@ -27,7 +27,7 @@
 #include "ZLibBase.h"
 #include "ZLibException.h"
 
-class Inflater : public ZLibBase
+class Inflater final : public ZLibBase
 {
 public:
   //

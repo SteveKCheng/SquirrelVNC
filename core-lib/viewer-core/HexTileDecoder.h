@@ -26,7 +26,7 @@
 
 #include "DecoderOfRectangle.h"
 
-class HexTileDecoder : public DecoderOfRectangle
+class HexTileDecoder final : public DecoderOfRectangle
 {
 public:
   HexTileDecoder(LogWriter *logWriter);

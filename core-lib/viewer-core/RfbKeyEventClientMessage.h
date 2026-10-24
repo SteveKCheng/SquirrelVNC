@@ -26,7 +26,7 @@
 
 #include "RfbClientToServerMessage.h"
 
-class RfbKeyEventClientMessage : public RfbClientToServerMessage
+class RfbKeyEventClientMessage final : public RfbClientToServerMessage
 {
 public:
   RfbKeyEventClientMessage(bool downFlag, UINT32 key);

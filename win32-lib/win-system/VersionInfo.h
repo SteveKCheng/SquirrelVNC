@@ -30,7 +30,7 @@
 /**
  * Contains information about executable file version info.
  */
-class VersionInfo
+class VersionInfo final
 {
 public:
   /**

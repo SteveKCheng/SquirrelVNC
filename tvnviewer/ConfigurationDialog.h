@@ -40,7 +40,7 @@
 
 #include "win-system/WindowsApplication.h"
 
-class ConfigurationDialog : public BaseDialog
+class ConfigurationDialog final : public BaseDialog
 {
 public:
   ConfigurationDialog();

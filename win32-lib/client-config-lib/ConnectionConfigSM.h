@@ -26,7 +26,7 @@
 
 #include "config-lib/RegistrySettingsManager.h"
 
-class ConnectionConfigSM : public RegistrySettingsManager
+class ConnectionConfigSM final : public RegistrySettingsManager
 {
 public:
   ConnectionConfigSM(const TCHAR registryPath[],

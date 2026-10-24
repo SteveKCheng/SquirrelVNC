@@ -40,7 +40,7 @@
  * "autoflush on unlock" is removed.
  * @author enikey.
  */
-class RfbOutputGate : public DataOutputStream,
+class RfbOutputGate final : public DataOutputStream,
                       public LocalMutex
 {
 public:

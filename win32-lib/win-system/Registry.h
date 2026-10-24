@@ -26,7 +26,7 @@
 
 #include "RegistryKey.h"
 
-class Registry
+class Registry final
 {
 public:
   static HKEY getCurrentUserKey();

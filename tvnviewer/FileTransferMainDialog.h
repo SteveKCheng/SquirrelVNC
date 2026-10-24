@@ -41,7 +41,7 @@
 
 #include <vector>
 
-class FileTransferMainDialog : public BaseDialog,
+class FileTransferMainDialog final : public BaseDialog,
                                public FileTransferInterface
 {
 public:

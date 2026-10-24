@@ -26,7 +26,7 @@
 
 #include "util/Exception.h"
 
-class ZLibException : public Exception
+class ZLibException final : public Exception
 {
 public:
   ZLibException(const TCHAR *message);

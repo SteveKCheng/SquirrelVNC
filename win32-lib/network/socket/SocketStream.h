@@ -32,7 +32,7 @@
 
 #include "io-lib/IOException.h"
 
-class SocketStream : public Channel
+class SocketStream final : public Channel
 {
 public:
   SocketStream(SocketIPv4 *);

@@ -26,7 +26,7 @@
 
 #include "NewFolderDialog.h"
 
-class FileRenameDialog : public NewFolderDialog
+class FileRenameDialog final : public NewFolderDialog
 {
 public:
   // Creates the dialog with no owner window.

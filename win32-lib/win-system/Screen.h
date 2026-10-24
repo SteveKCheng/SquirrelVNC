@@ -30,7 +30,7 @@
 #include "region/Dimension.h"
 
 // This class get info for a windows desktop.
-class Screen
+class Screen final
 {
 public:
   Screen();

@@ -28,7 +28,7 @@
 
 #include "region/Point.h"
 
-class CopyRectDecoder : public DecoderOfRectangle
+class CopyRectDecoder final : public DecoderOfRectangle
 {
 public:
   CopyRectDecoder(LogWriter *logWriter);

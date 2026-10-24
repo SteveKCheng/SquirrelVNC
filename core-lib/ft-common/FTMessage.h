@@ -110,7 +110,7 @@
  * @note all constants in this class which has _REQUEST prefix is client to server messages,
  * _REPLY prefix - server to client messages.
  */
-class FTMessage {
+class FTMessage final {
 public:
   const static char COMPRESSION_SUPPORT_REQUEST_SIG[];
   const static char COMPRESSION_SUPPORT_REPLY_SIG[];

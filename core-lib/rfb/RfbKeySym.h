@@ -31,7 +31,7 @@
 
 // Translates pressed key to a series of rfb symbols. Gives the series
 // to out by the listener function serial calling.
-class RfbKeySym
+class RfbKeySym final
 {
 public:
   RfbKeySym(RfbKeySymListener *extKeySymListener, LogWriter *log);

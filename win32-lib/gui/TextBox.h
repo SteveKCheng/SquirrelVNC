@@ -26,7 +26,7 @@
 
 #include "Control.h"
 
-class TextBox : public Control
+class TextBox final : public Control
 {
 public:
   ~TextBox() override;

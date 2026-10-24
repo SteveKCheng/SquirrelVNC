@@ -28,7 +28,7 @@
 
 #include "RfbClientToServerMessage.h"
 
-class RfbPointerEventClientMessage : public RfbClientToServerMessage
+class RfbPointerEventClientMessage final : public RfbClientToServerMessage
 {
 public:
   RfbPointerEventClientMessage(const UINT8 buttonMask, const Point *position);

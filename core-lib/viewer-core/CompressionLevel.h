@@ -26,7 +26,7 @@
 
 #include "PseudoDecoder.h"
 
-class CompressionLevel : public PseudoDecoder
+class CompressionLevel final : public PseudoDecoder
 {
 public:
   CompressionLevel(LogWriter *logWriter, int compression);

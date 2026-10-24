@@ -52,7 +52,7 @@
 // destination folder's filelist.
 //
 
-class UploadOperation : public CopyOperation
+class UploadOperation final : public CopyOperation
 {
 public:
 

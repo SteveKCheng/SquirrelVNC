@@ -32,7 +32,7 @@
  * Solves problem with generating formatted message strings width describes
  * user code-space where error occured and windows specific information about WinAPI error.
  */
-class SystemException : public Exception
+class SystemException final : public Exception
 {
 public:
   /**

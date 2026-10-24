@@ -27,7 +27,7 @@
 #include "util/inttypes.h"
 #include <vector>
 
-class VncPassCrypt
+class VncPassCrypt final
 {
 public:
 

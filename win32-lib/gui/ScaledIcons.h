@@ -36,7 +36,7 @@
  * set as class icons, which outlive any one window. The process is system
  * DPI aware, so the sizes do not change while it runs.
  */
-class ScaledIcons
+class ScaledIcons final
 {
 public:
   /**

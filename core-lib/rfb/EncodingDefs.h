@@ -28,7 +28,7 @@
 // Codes for encoding types
 //
 
-class EncodingDefs
+class EncodingDefs final
 {
 public:
   static const int RAW = 0;
@@ -50,7 +50,7 @@ public:
 // Codes for pseudo-encoding types
 //
 
-class PseudoEncDefs
+class PseudoEncDefs final
 {
 public:
   static const int COMPR_LEVEL_0 = -256;

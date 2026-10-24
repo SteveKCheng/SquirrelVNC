@@ -24,7 +24,7 @@
 #ifndef __RFB_VENDOR_DEFS_H_INCLUDED__
 #define __RFB_VENDOR_DEFS_H_INCLUDED__
 
-class VendorDefs
+class VendorDefs final
 {
 public:
   static const char *const STANDARD;

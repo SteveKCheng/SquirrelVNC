@@ -26,7 +26,7 @@
 
 #include "Control.h"
 
-class Trackbar : public Control
+class Trackbar final : public Control
 {
 public:
   Trackbar();

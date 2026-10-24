@@ -24,7 +24,7 @@
 #ifndef _UNICODE_H_
 #define _UNICODE_H_
 
-class Unicode
+class Unicode final
 {
 public:
   static unsigned short SIGNATURE;

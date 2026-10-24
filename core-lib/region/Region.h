@@ -46,7 +46,7 @@ extern "C" {
  * on: a rectangle added is first clamped to the range -32767 to 32767, so
  * a region cannot describe any area beyond that.
  */
-class Region {
+class Region final {
 public:
   /**
    * Creates an empty region.

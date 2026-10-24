@@ -31,7 +31,7 @@
 /**
  * DateTime class.
  */
-class DateTime
+class DateTime final
 {
 public:
   /**

@@ -26,7 +26,7 @@
 
 #include "gui/Menu.h"
 
-class ViewerMenu: public Menu
+class ViewerMenu final: public Menu
 {
 public:
   void loadMenu();

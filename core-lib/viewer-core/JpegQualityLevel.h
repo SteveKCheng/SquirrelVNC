@@ -26,7 +26,7 @@
 
 #include "PseudoDecoder.h"
 
-class JpegQualityLevel : public PseudoDecoder
+class JpegQualityLevel final : public PseudoDecoder
 {
 public:
   JpegQualityLevel(LogWriter *logWriter, int quality);

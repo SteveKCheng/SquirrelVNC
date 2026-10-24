@@ -28,7 +28,7 @@
 #include <commctrl.h>
 #include <vector>
 
-class SpinControl : public Control
+class SpinControl final : public Control
 {
 public:
   SpinControl();

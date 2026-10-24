@@ -29,7 +29,7 @@
 
 // This class is a high level wrap for the Logger class. It helps write log in different
 // log levels by the different functions.
-class LogWriter
+class LogWriter final
 {
 public:
   // The logger argument is a pointer to a Logger object that implements log writing.

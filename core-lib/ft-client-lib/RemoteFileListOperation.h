@@ -31,7 +31,7 @@
 // from remote file system.
 //
 
-class RemoteFileListOperation : public FileTransferOperation
+class RemoteFileListOperation final : public FileTransferOperation
 {
 public:
   RemoteFileListOperation(LogWriter *logWriter, const TCHAR *remotePath);

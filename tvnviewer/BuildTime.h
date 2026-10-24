@@ -29,7 +29,7 @@
 /**
  * Application build time.
  */
-class BuildTime {
+class BuildTime final {
 public:
   /**
    * String that contains application build date and time string (with "Built on" prefix").

@@ -26,7 +26,7 @@
 
 #include "util/StringStorage.h"
 
-class Environment
+class Environment final
 {
 public:
   static const int APPLICATION_DATA_SPECIAL_FOLDER = 0x0; 

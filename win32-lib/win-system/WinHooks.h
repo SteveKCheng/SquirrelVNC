@@ -25,7 +25,7 @@
 #include "win-system/HookEventListener.h"
 
 // Class for intercepting keyboard on low level.
-class WinHooks
+class WinHooks final
 {
 public:
   WinHooks();

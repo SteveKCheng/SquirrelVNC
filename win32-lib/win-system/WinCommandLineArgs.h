@@ -26,7 +26,7 @@
 
 #include "util/CommandLineArgs.h"
 
-class WinCommandLineArgs : public CommandLineArgs
+class WinCommandLineArgs final : public CommandLineArgs
 {
 public:
   WinCommandLineArgs(const TCHAR *cmdLineInWinFormat);

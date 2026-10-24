@@ -43,7 +43,7 @@
  * str() gives the characters as a StdString, and the StdString
  * constructors take one; both move when given an rvalue.
  */
-class StringStorage
+class StringStorage final
 {
 public:
   typedef std::basic_string<TCHAR> StdString;

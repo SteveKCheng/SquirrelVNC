@@ -28,7 +28,7 @@
 
 #include <memory>
 
-class ViewerSettingsManager : public RegistrySettingsManager
+class ViewerSettingsManager final : public RegistrySettingsManager
 {
 public:
   ViewerSettingsManager(const TCHAR registryName[]);

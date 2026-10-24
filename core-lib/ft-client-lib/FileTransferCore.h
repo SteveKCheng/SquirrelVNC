@@ -41,7 +41,7 @@
 
 class FileTransferInterface;
 
-class FileTransferCore : public OperationEventListener,
+class FileTransferCore final : public OperationEventListener,
                          public CopyFileEventListener
 {
 public:

@@ -36,7 +36,7 @@
 #include "gui/Trackbar.h"
 #include "res/resource.h"
 
-class OptionsDialog : public BaseDialog
+class OptionsDialog final : public BaseDialog
 {
 public:
   OptionsDialog();

@@ -44,7 +44,7 @@
 
 #include <memory>
 
-class ViewerWindow : public BaseWindow,
+class ViewerWindow final : public BaseWindow,
                      public CoreEventsAdapter,
                      private HookEventListener
 {

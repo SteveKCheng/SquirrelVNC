@@ -26,7 +26,7 @@
 
 #include "PseudoDecoder.h"
 
-class PointerPosDecoder : public PseudoDecoder
+class PointerPosDecoder final : public PseudoDecoder
 {
 public:
   PointerPosDecoder(LogWriter *logWriter);

@@ -27,7 +27,7 @@
 #include "util/CommonHeader.h"
 #include "gui/PaintWindow.h"
 
-class DeviceContext
+class DeviceContext final
 {
 public:
   // Create device context linked to window DC.

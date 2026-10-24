@@ -33,7 +33,7 @@
  *
  * @author enikey.
  */
-class Shell
+class Shell final
 {
 public:
   /**

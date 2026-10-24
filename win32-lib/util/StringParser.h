@@ -27,7 +27,7 @@
 #include "inttypes.h"
 #include "CommonHeader.h"
 
-class StringParser
+class StringParser final
 {
 public:
   static bool tryParseInt(const TCHAR *str);

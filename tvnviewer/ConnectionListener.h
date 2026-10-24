@@ -28,7 +28,7 @@
 #include "network/TcpServer.h"
 #include "thread/LocalMutex.h"
 
-class ConnectionListener : protected TcpServer
+class ConnectionListener final : protected TcpServer
 {
 public:
   static const TCHAR DEFAULT_HOST[];

@@ -29,7 +29,7 @@
 // VNC authentication for rfb-replay: gives a fixed password instead of
 // asking the user.
 //
-class ReplayAuthHandler : public VncAuthenticationHandler
+class ReplayAuthHandler final : public VncAuthenticationHandler
 {
 public:
   //

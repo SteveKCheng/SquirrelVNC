@@ -32,7 +32,7 @@
 #include "DecoderOfRectangle.h"
 #include "JpegDecompressor.h"
 
-class TightDecoder : public DecoderOfRectangle
+class TightDecoder final : public DecoderOfRectangle
 {
 public:
   TightDecoder(LogWriter *logWriter);

@@ -27,7 +27,7 @@
 #include "rfb/PixelFormat.h"
 #include "RfbClientToServerMessage.h"
 
-class RfbSetPixelFormatClientMessage : public RfbClientToServerMessage
+class RfbSetPixelFormatClientMessage final : public RfbClientToServerMessage
 {
 public:
   RfbSetPixelFormatClientMessage(const PixelFormat *pixelFormat);

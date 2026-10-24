@@ -51,7 +51,7 @@ protected:
   int m_authErrorCode;
 };
 
-class AuthUnknownException : public AuthException 
+class AuthUnknownException final : public AuthException 
 {
 public:
   AuthUnknownException(const TCHAR *message = _T("Error in authentification: ")
@@ -62,7 +62,7 @@ public:
 //
 // This exception is raised when process of authentication is canceled by user.
 //
-class AuthCanceledException : public AuthException
+class AuthCanceledException final : public AuthException
 {
 public:
   AuthCanceledException(const TCHAR *message = _T("Auth is canceled"));

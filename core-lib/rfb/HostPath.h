@@ -26,7 +26,7 @@
 
 #include "util/StringStorage.h"
 
-class HostPath {
+class HostPath final {
 public:
   HostPath();
   HostPath(const TCHAR *path, int defaultPort = 5900);

@@ -32,7 +32,7 @@
 typedef std::list<std::unique_ptr<ViewerInstance> > InstanceList;
 
 // Collector instances.
-class ViewerCollector
+class ViewerCollector final
 {
 public:
   ViewerCollector();

@@ -29,7 +29,7 @@
 
 #include <vector>
 
-class File
+class File final
 {
 public:
 

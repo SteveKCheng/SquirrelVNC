@@ -28,7 +28,7 @@
 
 #include "Bitmap.h"
 
-class Icon
+class Icon final
 {
 public:
   Icon();

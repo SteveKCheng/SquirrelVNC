@@ -29,7 +29,7 @@
 #include "thread/LocalMutex.h"
 #include "thread/AutoLock.h"
 
-template<class T> class SafeVector : public std::vector<T>,
+template<class T> class SafeVector final : public std::vector<T>,
                                      public LocalMutex {
 public:
   ~SafeVector() override { };

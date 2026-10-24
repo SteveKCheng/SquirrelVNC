@@ -26,7 +26,7 @@
 
 #include "util/CommonHeader.h"
 
-class WindowsEvent
+class WindowsEvent final
 {
 public:
   WindowsEvent(const TCHAR *name = 0);

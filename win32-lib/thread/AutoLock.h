@@ -26,7 +26,7 @@
 
 #include "Lockable.h"
 
-class AutoLock
+class AutoLock final
 {
 public:
   AutoLock(Lockable *locker);

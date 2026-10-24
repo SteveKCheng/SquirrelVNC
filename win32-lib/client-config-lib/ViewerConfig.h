@@ -39,7 +39,7 @@
 // Contains base set of viewer configuration options.
 //
 
-class ViewerConfig : public Singleton<ViewerConfig>
+class ViewerConfig final : public Singleton<ViewerConfig>
 {
 public:
   ViewerConfig(const TCHAR registryPath[]);

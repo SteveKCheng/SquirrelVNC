@@ -30,7 +30,7 @@
 
 #include <vector>
 
-class CursorPainter
+class CursorPainter final
 {
 public:
   CursorPainter(FrameBuffer *fb, LogWriter *logWriter);

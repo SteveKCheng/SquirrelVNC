@@ -37,7 +37,7 @@
 // something that can't be received in current client state.
 //
 
-class OperationNotPermittedException : public Exception
+class OperationNotPermittedException final : public Exception
 {
 public:
   OperationNotPermittedException();

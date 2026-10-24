@@ -34,7 +34,7 @@
 #include "ServerMessageListener.h"
 #include "CapabilitiesManager.h"
 
-class FileTransferCapability : public ServerMessageListener
+class FileTransferCapability final : public ServerMessageListener
 {
 public:
   FileTransferCapability(Logger *logger = 0);

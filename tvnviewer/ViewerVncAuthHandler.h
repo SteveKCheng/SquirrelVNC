@@ -27,7 +27,7 @@
 #include "viewer-core/VncAuthenticationHandler.h"
 #include "ConnectionData.h"
 
-class ViewerVncAuthHandler : public VncAuthenticationHandler
+class ViewerVncAuthHandler final : public VncAuthenticationHandler
 {
 public:
   ViewerVncAuthHandler(ConnectionData *connectionData);

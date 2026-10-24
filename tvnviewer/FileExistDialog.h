@@ -28,7 +28,7 @@
 #include "gui/Control.h"
 #include "ft-common/FileInfo.h"
 
-class FileExistDialog : public BaseDialog
+class FileExistDialog final : public BaseDialog
 {
 public:
 

@@ -29,7 +29,7 @@
 #include "sockdefs.h"
 #include "win-system/WsaStartup.h"
 
-class SocketAddressIPv4
+class SocketAddressIPv4 final
 {
 public:
   SocketAddressIPv4();

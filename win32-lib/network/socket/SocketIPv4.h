@@ -41,7 +41,7 @@
  *
  * @fixme refactor this class to avoid usage of SocketAddressIPv4 class.
  */
-class SocketIPv4
+class SocketIPv4 final
 {
 public:
   /**

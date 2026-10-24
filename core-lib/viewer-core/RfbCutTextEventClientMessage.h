@@ -26,7 +26,7 @@
 
 #include "RfbClientToServerMessage.h"
 
-class RfbCutTextEventClientMessage : public RfbClientToServerMessage
+class RfbCutTextEventClientMessage final : public RfbClientToServerMessage
 {
 public:
   RfbCutTextEventClientMessage(const StringStorage *cutText);

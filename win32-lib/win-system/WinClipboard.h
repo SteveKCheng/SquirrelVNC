@@ -26,7 +26,7 @@
 
 #include "util/CommonHeader.h"
 
-class WinClipboard
+class WinClipboard final
 {
 public:
 

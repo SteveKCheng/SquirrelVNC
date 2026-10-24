@@ -27,7 +27,7 @@
 #include "FileTransferOperation.h"
 #include "thread/Thread.h"
 
-class LocalFilesDeleteOperation : public FileTransferOperation,
+class LocalFilesDeleteOperation final : public FileTransferOperation,
                                   private Thread
 {
 public:

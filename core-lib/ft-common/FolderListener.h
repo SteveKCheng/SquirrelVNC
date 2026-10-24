@@ -45,7 +45,7 @@
 // after that get needed information through get methods
 //
 
-class FolderListener
+class FolderListener final
 {
 public:
   FolderListener(const TCHAR *folderPath);

@@ -26,7 +26,7 @@
 
 #include "PseudoDecoder.h"
 
-class DesktopSizeDecoder : public PseudoDecoder
+class DesktopSizeDecoder final : public PseudoDecoder
 {
 public:
   DesktopSizeDecoder(LogWriter *logWriter);

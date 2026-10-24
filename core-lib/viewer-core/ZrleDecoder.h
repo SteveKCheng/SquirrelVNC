@@ -29,7 +29,7 @@
 #include "io-lib/DataInputStream.h"
 #include "util/Inflater.h"
 
-class ZrleDecoder : public DecoderOfRectangle
+class ZrleDecoder final : public DecoderOfRectangle
 {
 public:
   ZrleDecoder(LogWriter *logWriter);

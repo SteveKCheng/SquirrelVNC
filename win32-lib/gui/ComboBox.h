@@ -27,7 +27,7 @@
 #include "util/CommonHeader.h"
 #include "Control.h"
 
-class ComboBox : public Control
+class ComboBox final : public Control
 {
 public:
   ComboBox();

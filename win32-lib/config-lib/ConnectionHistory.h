@@ -35,7 +35,7 @@
  * for user (UI).
  *
  */
-class ConnectionHistory
+class ConnectionHistory final
 {
 public:
   /**

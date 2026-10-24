@@ -46,7 +46,7 @@ class RemoteViewerCore;
 // newline written as \\, \" and \n. Text is UTF-8. tests/gen/rfbgen.py
 // writes the expected lines the same way.
 //
-class ReplayEventsAdapter : public CoreEventsAdapter
+class ReplayEventsAdapter final : public CoreEventsAdapter
 {
 public:
   ReplayEventsAdapter();

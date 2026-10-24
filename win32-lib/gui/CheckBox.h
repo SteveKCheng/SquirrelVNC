@@ -26,7 +26,7 @@
 
 #include "Control.h"
 
-class CheckBox : public Control
+class CheckBox final : public Control
 {
 public:
   bool isChecked();

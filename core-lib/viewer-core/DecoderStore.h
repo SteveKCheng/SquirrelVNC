@@ -32,7 +32,7 @@
 
 #include "log-writer/LogWriter.h"
 
-class DecoderStore
+class DecoderStore final
 {
 public:
   DecoderStore(LogWriter *logWriter);

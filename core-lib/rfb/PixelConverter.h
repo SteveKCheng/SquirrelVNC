@@ -30,7 +30,7 @@
 #include <memory>
 #include <vector>
 
-class PixelConverter
+class PixelConverter final
 {
 public:
   PixelConverter(void);

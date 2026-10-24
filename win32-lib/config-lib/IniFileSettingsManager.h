@@ -46,7 +46,7 @@
 // with '#' are comments, as well as those starting with ';'; and numbers
 // must be whole decimal numbers, or they count as missing.
 //
-class IniFileSettingsManager : public SettingsManager
+class IniFileSettingsManager final : public SettingsManager
 {
 public:
   IniFileSettingsManager(const TCHAR *pathToFile, const TCHAR *appName);

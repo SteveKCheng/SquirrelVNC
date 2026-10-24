@@ -27,7 +27,7 @@
 #include "FileChannel.h"
 #include "WinFile.h"
 
-class WinFileChannel : public FileChannel
+class WinFileChannel final : public FileChannel
 {
 public:
   // Creates a channel with opens or creates a file with desired access.

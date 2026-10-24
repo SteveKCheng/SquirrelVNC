@@ -30,7 +30,7 @@
 /**
  * Input stream for reading data from memory.
  */
-class ByteArrayInputStream : public InputStream
+class ByteArrayInputStream final : public InputStream
 {
 public:
   /**

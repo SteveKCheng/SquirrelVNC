@@ -35,7 +35,7 @@
  * 2) X11 key sym to char.
  * 3) char to X11 key sym.
  */
-class Keymap
+class Keymap final
 {
 public:
   /**

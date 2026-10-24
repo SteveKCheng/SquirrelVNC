@@ -33,7 +33,7 @@
  *
  * Singleton without support of "lazy" initialization.
  */
-class ResourceLoader : public Singleton<ResourceLoader>
+class ResourceLoader final : public Singleton<ResourceLoader>
 {
 public:
   /**

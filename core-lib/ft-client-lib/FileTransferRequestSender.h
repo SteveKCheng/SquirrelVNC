@@ -30,7 +30,7 @@
 
 #include "log-writer/LogWriter.h"
 
-class FileTransferRequestSender
+class FileTransferRequestSender final
 {
 public:
   FileTransferRequestSender(LogWriter *logWriter);

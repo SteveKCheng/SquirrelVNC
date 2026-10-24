@@ -37,7 +37,7 @@
 // File transfer operation class for downloading files (and file trees).
 //
 
-class DownloadOperation : public CopyOperation
+class DownloadOperation final : public CopyOperation
 {
 public:
 

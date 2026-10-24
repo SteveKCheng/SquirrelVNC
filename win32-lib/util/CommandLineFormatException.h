@@ -26,7 +26,7 @@
 
 #include "util/Exception.h"
 
-class CommandLineFormatException : public Exception
+class CommandLineFormatException final : public Exception
 {
 public:
   CommandLineFormatException(const TCHAR *message = _T("Invalid command line format."));

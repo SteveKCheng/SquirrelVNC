@@ -32,7 +32,7 @@
  * Adds bufferization feature to output stream.
  * @remark size of buffer now is fixed and equals to 1400 bytes.
  */
-class BufferedOutputStream : public OutputStream
+class BufferedOutputStream final : public OutputStream
 {
 public:
   /**

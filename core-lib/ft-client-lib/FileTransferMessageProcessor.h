@@ -36,7 +36,7 @@
 #include "OperationNotPermittedException.h"
 #include "FileTransferEventHandler.h"
 
-class FileTransferMessageProcessor : public ListenerContainer<FileTransferEventHandler *>
+class FileTransferMessageProcessor final : public ListenerContainer<FileTransferEventHandler *>
 {
 public:
   FileTransferMessageProcessor();

@@ -26,7 +26,7 @@
 
 #include "util/inttypes.h"
 
-class SecurityDefs
+class SecurityDefs final
 {
 public:
   static const UINT32 INVALID = 0;
@@ -35,7 +35,7 @@ public:
   static const UINT32 TIGHT = 16;
 };
 
-class AuthDefs
+class AuthDefs final
 {
 public:
   static const UINT32 NONE = 1;

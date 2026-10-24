@@ -28,7 +28,7 @@
 #include "gui/TextBox.h"
 #include "res/resource.h"
 
-class HelpDialog : public BaseDialog
+class HelpDialog final : public BaseDialog
 {
 public:
   HelpDialog();

@@ -40,7 +40,7 @@
 
 class TvnViewer;
 
-class LoginDialog : public BaseDialog
+class LoginDialog final : public BaseDialog
 {
 public:
   LoginDialog(TvnViewer *viewer);

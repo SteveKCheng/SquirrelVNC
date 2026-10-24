@@ -26,7 +26,7 @@
 
 #include "PseudoDecoder.h"
 
-class LastRectDecoder : public PseudoDecoder
+class LastRectDecoder final : public PseudoDecoder
 {
 public:
   LastRectDecoder(LogWriter *logWriter);

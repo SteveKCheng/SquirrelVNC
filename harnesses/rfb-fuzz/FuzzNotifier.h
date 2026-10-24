@@ -36,7 +36,7 @@
 // leaking its suspended thread, so one object serves a whole fuzzing run,
 // and clearUpdates() empties its region between inputs.
 //
-class FuzzNotifier : public FbUpdateNotifier
+class FuzzNotifier final : public FbUpdateNotifier
 {
 public:
   //

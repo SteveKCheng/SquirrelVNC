@@ -41,7 +41,7 @@
 // by own hands and frees memory when it's needed.
 //
 
-class FileInfoList
+class FileInfoList final
 {
 public:
 

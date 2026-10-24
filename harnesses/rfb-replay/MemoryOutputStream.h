@@ -31,7 +31,7 @@
 //
 // An OutputStream that collects everything written to it in memory.
 //
-class MemoryOutputStream : public OutputStream
+class MemoryOutputStream final : public OutputStream
 {
 public:
   MemoryOutputStream();

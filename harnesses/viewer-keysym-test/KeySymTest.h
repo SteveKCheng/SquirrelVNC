@@ -27,7 +27,7 @@
 #include <memory>
 #include <vector>
 
-class KeySymTest : public RfbKeySymListener
+class KeySymTest final : public RfbKeySymListener
 {
 public:
   // Opens fileFrom, a test script of key events, for reading, and creates

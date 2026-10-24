@@ -28,7 +28,7 @@
 #include "gui/CheckBox.h"
 #include "res/resource.h"
 
-class FsWarningDialog : public BaseDialog
+class FsWarningDialog final : public BaseDialog
 {
 public:
   FsWarningDialog();

@@ -29,7 +29,7 @@
 
 #include <vector>
 
-class CursorShape
+class CursorShape final
 {
 public:
   CursorShape(): m_mask(0) {}

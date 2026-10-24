@@ -93,7 +93,7 @@ extern "C" const char *__asan_default_options()
 //
 // A Logger that prints the core's log on stderr, up to a level.
 //
-class StderrLogger : public Logger
+class StderrLogger final : public Logger
 {
 public:
   StderrLogger(int maxLevel) : m_maxLevel(maxLevel) {}

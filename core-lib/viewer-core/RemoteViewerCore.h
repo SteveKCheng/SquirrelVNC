@@ -66,7 +66,7 @@
 // Finally, each function of this class may throw exceptions, unless it's
 // explicitly stated that it will never do so.
 //
-class RemoteViewerCore : public CapabilitiesManager,
+class RemoteViewerCore final : public CapabilitiesManager,
                          protected Thread
 {
 public:

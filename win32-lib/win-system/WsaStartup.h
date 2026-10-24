@@ -27,7 +27,7 @@
 #include "util/CommonHeader.h"
 
 // Class that startup at constructor and cleanup at destructor Windows Sockets subsystem.
-class WsaStartup
+class WsaStartup final
 {
 public:
   WsaStartup(BYTE minorVer, BYTE majorVer);

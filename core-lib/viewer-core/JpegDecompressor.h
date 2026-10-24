@@ -35,7 +35,7 @@
 #include <stdio.h>
 #include <jpeglib.h>
 
-class JpegDecompressor
+class JpegDecompressor final
 {
 public:
   static const size_t BYTES_PER_PIXEL = 3;

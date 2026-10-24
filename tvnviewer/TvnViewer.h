@@ -43,7 +43,7 @@ class ViewerCollector;
 class ControlTrayIcon;
 class LoginDialog;
 
-class TvnViewer : public WindowsApplication
+class TvnViewer final : public WindowsApplication
 {
 public:
   TvnViewer(HINSTANCE appInstance,

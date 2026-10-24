@@ -29,7 +29,7 @@
 /**
  * TightVNC server about dialog.
  */
-class AboutDialog : public BaseDialog
+class AboutDialog final : public BaseDialog
 {
 public:
   /**

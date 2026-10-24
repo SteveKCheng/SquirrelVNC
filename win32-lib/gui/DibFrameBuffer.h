@@ -32,7 +32,7 @@
 // This class is a wrapper for a FramBuffer and a DIB section.
 // It changes DIB section proerties by oneself according to FrameBuffer
 // properties (such as width, height and PixelFormat)
-class DibFrameBuffer : public FrameBuffer
+class DibFrameBuffer final : public FrameBuffer
 {
 public:
   DibFrameBuffer();

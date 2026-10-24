@@ -26,7 +26,7 @@
 
 #include "Brush.h"
 
-class SolidBrush : public Brush
+class SolidBrush final : public Brush
 {
 public:
   SolidBrush(COLORREF color);

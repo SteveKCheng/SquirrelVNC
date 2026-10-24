@@ -28,7 +28,7 @@
 
 #include "io-lib/DataInputStream.h"
 
-class RfbInputGate : public DataInputStream
+class RfbInputGate final : public DataInputStream
 {
 public:
   RfbInputGate(Channel *stream);

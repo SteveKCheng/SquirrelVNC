@@ -27,7 +27,7 @@
 #include "gui/ListView.h"
 #include "ft-common/FileInfo.h"
 
-class FileInfoListView : public ListView
+class FileInfoListView final : public ListView
 {
 public:
   FileInfoListView();

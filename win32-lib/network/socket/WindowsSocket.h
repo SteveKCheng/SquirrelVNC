@@ -30,7 +30,7 @@
 //
 // Class that startup and cleanup Windows Sockets subsystem.
 //
-class WindowsSocket
+class WindowsSocket final
 {
 public:
   // Initializes Windows sockets subsystem.

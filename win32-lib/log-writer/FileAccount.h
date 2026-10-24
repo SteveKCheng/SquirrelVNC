@@ -32,7 +32,7 @@
 
 #include <memory>
 
-class FileAccount : public LogDump
+class FileAccount final : public LogDump
 {
 public:
   // @param fileName - is a clear name of a file without path and extension.

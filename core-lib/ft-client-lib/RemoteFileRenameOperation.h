@@ -30,7 +30,7 @@
 // Class used for renaming files on remote file system.
 //
 
-class RemoteFileRenameOperation : public FileTransferOperation
+class RemoteFileRenameOperation final : public FileTransferOperation
 {
 public:
   RemoteFileRenameOperation(LogWriter *logWriter,

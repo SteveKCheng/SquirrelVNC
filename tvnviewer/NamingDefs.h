@@ -26,20 +26,20 @@
 
 #include "util/CommonHeader.h"
 
-class ProductNames
+class ProductNames final
 {
 public:
   static const TCHAR PRODUCT_NAME[];
   static const TCHAR VIEWER_PRODUCT_NAME[];
 };
 
-class RegistryPaths
+class RegistryPaths final
 {
 public:
   static const TCHAR VIEWER_PATH[];
 };
 
-class LogNames
+class LogNames final
 {
 public:
   static const TCHAR VIEWER_LOG_FILE_STUB_NAME[];
@@ -47,13 +47,13 @@ public:
 };
 
 
-class ApplicationNames
+class ApplicationNames final
 {
 public:
   static const TCHAR WINDOW_CLASS_NAME[];
 };
 
-class WindowNames
+class WindowNames final
 {
 public:
   static const TCHAR TVN_WINDOW_CLASS_NAME[];

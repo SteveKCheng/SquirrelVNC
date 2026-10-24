@@ -26,7 +26,7 @@
 
 #include "util/Exception.h"
 
-class OperationNotSupportedException : public Exception
+class OperationNotSupportedException final : public Exception
 {
 public:
   OperationNotSupportedException();

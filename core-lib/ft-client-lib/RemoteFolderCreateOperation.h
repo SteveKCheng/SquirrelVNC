@@ -30,7 +30,7 @@
 // Class that used for creating folder on remote file system.
 //
 
-class RemoteFolderCreateOperation : public FileTransferOperation
+class RemoteFolderCreateOperation final : public FileTransferOperation
 {
 public:
   RemoteFolderCreateOperation(LogWriter *logWriter, const TCHAR *pathToTargetFile);

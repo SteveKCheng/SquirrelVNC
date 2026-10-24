@@ -26,7 +26,7 @@
 
 #include "PseudoDecoder.h"
 
-class RichCursorDecoder : public PseudoDecoder
+class RichCursorDecoder final : public PseudoDecoder
 {
 public:
   RichCursorDecoder(LogWriter *logWriter);

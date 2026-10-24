@@ -31,7 +31,7 @@
 #include "win-system/Screen.h"
 
 // This clas is a primitive wrapper to a DIB section.
-class DibSection
+class DibSection final
 {
 public:
   // Note that if the compatibleWin doesn't specify or is zero the class will create an
