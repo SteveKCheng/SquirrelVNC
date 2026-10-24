@@ -41,6 +41,11 @@ public:
   // default port; a larger number after one colon, or any number after
   // two, is the port itself.
   //
+  // Host names are ASCII letters, digits, '.', '-' and '_', or
+  // internationalised names with characters outside ASCII, which
+  // GetAddrInfoW() converts to Punycode; see isValidHostName() in
+  // HostPath.cpp. An SSH user name is ASCII only.
+  //
   // Returns true on success.  Returns false, and leaves the object empty
   // (isValid() is false), if path is null, empty or longer than
   // m_MAX_PATH_LEN characters, is not of the form above, names an invalid
@@ -95,7 +100,8 @@ private:
 
   //
   // Return true if m_sshHost and m_vncHost are valid, false otherwise. It
-  // checks the lengths and character sets of the strings. m_sshHost may be
+  // checks the lengths and character sets of the strings (lengths in
+  // UTF-16 code units). m_sshHost may be
   // empty, that does not make the function return false. However,
   // m_vncHost is mandatory so the function will return false if it is
   // empty.

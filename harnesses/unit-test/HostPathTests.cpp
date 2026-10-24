@@ -96,6 +96,24 @@ void runHostPathTests()
     { L"bad host", false },
     { L"[::1]", false },
     { L"host\\x", false },
+    // Internationalised names, which GetAddrInfoW() converts to Punycode.
+    { L"b\u00fccher.example", true, L"b\u00fccher.example", 5900, L"", 0 },
+    { L"\u4f8b\u3048.\u30c6\u30b9\u30c8::5901", true,
+      L"\u4f8b\u3048.\u30c6\u30b9\u30c8", 5901, L"", 0 },
+    { L"\U0001F43F.example", true, L"\U0001F43F.example", 5900, L"", 0 },
+    { L"ssh\u00fc/vnc", true, L"vnc", 5900, L"ssh\u00fc", 22 },
+    { L"\u00fcser@ssh/vnc", false },          // a user name is ASCII only
+    { L"a\xD800" L"b", false },                // unpaired surrogates
+    { L"a\xDC00" L"b", false },
+    { L"a\xD800", false },
+    { L"a\u0085b", false },                  // C1 control
+    { L"a\u00a0b", false },                  // no-break space
+    { L"a\u00adb", false },                  // soft hyphen
+    { L"a\u200bb", false },                  // zero-width space
+    { L"a\u202eb", false },                  // right-to-left override
+    { L"a\u3000b", false },                  // ideographic space
+    { L"a\ufeffb", false },                  // zero-width no-break space
+    { L"a\ufffdb", false },                  // replacement character
   };
   for (const Case &c : CASES) {
     checkCase(c);

@@ -25,6 +25,58 @@
 
 #include <tchar.h>
 
+namespace
+{
+  //
+  // Post-conditions: returns true if c, a character outside ASCII, may be
+  // part of a host name: false for control characters, white space,
+  // invisible formatting characters (which could hide what a name looks
+  // like), and the specials block. GetAddrInfoW() rejects whatever else
+  // internationalised names do not allow when it converts the name to
+  // Punycode.
+  //
+  bool isAllowedOutsideAscii(TCHAR c)
+  {
+    unsigned code = static_cast<unsigned>(c);
+    return !(code <= 0x00A0 ||                       // C1 controls, no-break space
+             code == 0x00AD ||                       // soft hyphen
+             code == 0x1680 || code == 0x180E ||
+             (code >= 0x2000 && code <= 0x200F) ||   // spaces, zero widths, marks
+             (code >= 0x2028 && code <= 0x202F) ||   // separators, embeddings
+             (code >= 0x205F && code <= 0x206F) ||   // space, invisible operators
+             code == 0x3000 || code == 0xFEFF ||
+             code >= 0xFFF0);                        // specials, U+FFFD included
+  }
+
+  //
+  // Post-conditions: returns true if the length characters at name form a
+  // host name HostPath accepts: ASCII letters, digits, '.', '-' and '_',
+  // and characters outside ASCII that isAllowedOutsideAscii() allows, with
+  // surrogates only in pairs.
+  //
+  bool isValidHostName(const TCHAR *name, size_t length)
+  {
+    static const TCHAR ASCII_CHARS[] =
+      _T(".-_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+    for (size_t i = 0; i < length; i++) {
+      TCHAR c = name[i];
+      if (static_cast<unsigned>(c) < 0x80) {
+        if (c == _T('\0') || _tcschr(ASCII_CHARS, c) == 0) {
+          return false;
+        }
+      } else if (IS_HIGH_SURROGATE(c)) {
+        if (i + 1 >= length || !IS_LOW_SURROGATE(name[i + 1])) {
+          return false;
+        }
+        i++;
+      } else if (IS_LOW_SURROGATE(c) || !isAllowedOutsideAscii(c)) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
 const size_t HostPath::m_SSH_USER_MAX_CHARS = 32;
 const size_t HostPath::m_SSH_HOST_MAX_CHARS = 255;
 const size_t HostPath::m_SSH_PORT_MAX_CHARS = 5;
@@ -230,7 +282,7 @@ HostPath::validateHostNames() const
     }
 
     if (sshHostLen < 1 || sshHostLen > m_SSH_HOST_MAX_CHARS ||
-        _tcsspn(sshHostPtr, acceptChars) != sshHostLen) {
+        !isValidHostName(sshHostPtr, sshHostLen)) {
       return false;
     }
   }
@@ -240,7 +292,7 @@ HostPath::validateHostNames() const
 
   size_t vncHostLen = m_vncHost.getLength();
   if (vncHostLen < 1 || vncHostLen > m_VNC_HOST_MAX_CHARS ||
-      _tcsspn(m_vncHost.getString(), acceptChars) != vncHostLen) {
+      !isValidHostName(m_vncHost.getString(), vncHostLen)) {
     return false;
   }
 
