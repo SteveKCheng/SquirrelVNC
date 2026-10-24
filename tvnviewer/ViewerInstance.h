@@ -34,13 +34,16 @@ class ViewerInstance
 {
 public:
   // creates the viewer instance by using host:port from condata
+  //
+  // Both constructors copy condata and conConf. The second takes
+  // ownership of socket.
   ViewerInstance(WindowsApplication *application,
-                 ConnectionData *condata,
+                 const ConnectionData *condata,
                  const ConnectionConfig *conConf);
 
   // creates the viewer instance if we have the socket
   ViewerInstance(WindowsApplication *application,
-                 ConnectionData *condata,
+                 const ConnectionData *condata,
                  const ConnectionConfig *conConf,
                  SocketIPv4 *socket);
 

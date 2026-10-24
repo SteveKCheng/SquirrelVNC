@@ -26,6 +26,8 @@
 #include "util/ResourceLoader.h"
 #include "res/resource.h"
 
+#include <memory>
+
 TvnViewer::TvnViewer(HINSTANCE appInstance, const TCHAR *windowClassName,
                      const TCHAR *viewerWindowClassName)
 : WindowsApplication(appInstance, windowClassName),
@@ -133,14 +135,7 @@ void TvnViewer::addInstance(ViewerInstance *viewerInstance)
   m_instances.addInstance(viewerInstance);
 }
 
-void TvnViewer::runInstance(const StringStorage *hostName, const ConnectionConfig *config)
-{
-  ConnectionData *conData = new ConnectionData;
-  conData->setHost(hostName);
-  runInstance(conData, config);
-}
-
-void TvnViewer::runInstance(ConnectionData *conData, const ConnectionConfig *config)
+void TvnViewer::runInstance(const ConnectionData *conData, const ConnectionConfig *config)
 {
   ViewerInstance *viewerInst = new ViewerInstance(this, conData, config);
   viewerInst->start();
@@ -155,15 +150,14 @@ bool TvnViewer::isVisibleLoginDialog() const
 
 void TvnViewer::newConnection(const StringStorage *hostName, const ConnectionConfig *config)
 {
-  ConnectionData *conData = new ConnectionData;
-  conData->setHost(hostName);
-  runInstance(conData, config);
+  ConnectionData conData;
+  conData.setHost(hostName);
+  runInstance(&conData, config);
 }
 
 void TvnViewer::newConnection(const ConnectionData *conData, const ConnectionConfig *config)
 {
-  ConnectionData *copyConData = new ConnectionData(*conData);
-  runInstance(copyConData, config);
+  runInstance(conData, config);
 }
 
 void TvnViewer::showLoginDialog()
@@ -348,9 +342,10 @@ LRESULT CALLBACK TvnViewer::wndProc(HWND hWnd, UINT msg, WPARAM wparam, LPARAM l
         break;
 
       case WM_USER_RECONNECT: {
-        ConnectionData *conData = reinterpret_cast<ConnectionData *>(wparam);
-        ConnectionConfig *conConfig = reinterpret_cast<ConnectionConfig *>(lparam);
-        _this->newConnection(conData, conConfig);
+        // Made with new by ViewerWindow, and freed here.
+        std::unique_ptr<ConnectionData> conData(reinterpret_cast<ConnectionData *>(wparam));
+        std::unique_ptr<ConnectionConfig> conConfig(reinterpret_cast<ConnectionConfig *>(lparam));
+        _this->newConnection(conData.get(), conConfig.get());
         _this->m_instances.decreaseToReconnect();
         break;
       }

@@ -27,7 +27,7 @@
 #include "viewer-core/FileTransferCapability.h"
 
 ViewerInstance::ViewerInstance(WindowsApplication *application,
-                               ConnectionData *condata,
+                               const ConnectionData *condata,
                                const ConnectionConfig *conConf)
 : m_conConf(*conConf),
   m_condata(*condata),
@@ -42,7 +42,7 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
 }
 
 ViewerInstance::ViewerInstance(WindowsApplication *application,
-                               ConnectionData *condata,
+                               const ConnectionData *condata,
                                const ConnectionConfig *conConf,
                                SocketIPv4 *socket)
 : m_conConf(*conConf),

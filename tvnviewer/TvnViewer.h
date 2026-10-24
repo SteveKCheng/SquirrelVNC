@@ -123,8 +123,10 @@ protected:
   void unregisterViewerWindowClass();
   static LRESULT CALLBACK wndProcViewer(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
-  void runInstance(ConnectionData *conData, const ConnectionConfig *config);
-  void runInstance(const StringStorage *hostName, const ConnectionConfig *config);
+  //
+  // Starts a viewer instance for a copy of conData and config.
+  //
+  void runInstance(const ConnectionData *conData, const ConnectionConfig *config);
 
   // This method return true, if login dialog is visible.
   bool isVisibleLoginDialog() const;
