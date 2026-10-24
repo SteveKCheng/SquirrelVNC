@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    Imported after Microsoft.Cpp.targets by make-compile-commands.ps1
+    (ForceImportAfterCppTargets). GetClCommandLines, which Visual Studio
+    uses for IntelliSense, gives the compiler options exactly as a build
+    would, grouped by sources that share them; nothing is compiled.
+    Each line written is: options, tab, sources (';'-separated), tab,
+    working directory.
+  -->
+  <Target Name="SquirrelCompileCommands" DependsOnTargets="GetClCommandLines">
+    <WriteLinesToFile File="$(SquirrelCompileCommandsFile)" Overwrite="false"
+                      Lines="@(ClCommandLines->'%(Identity)&#9;%(Files)&#9;%(WorkingDirectory)')" />
+  </Target>
+</Project>

@@ -13,3 +13,6 @@ obj/
 
 # Python bytecode (tests/gen)
 __pycache__/
+
+# Compilation database for clang-tidy (tools/clang-tidy)
+/compile_commands.json
