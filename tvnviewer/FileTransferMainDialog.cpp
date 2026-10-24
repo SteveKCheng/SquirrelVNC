@@ -756,11 +756,12 @@ void FileTransferMainDialog::initControls()
   m_fileExistDialog.setParent(&m_ctrlThis);
 }
 
-void FileTransferMainDialog::raise(Exception &ex)
+void FileTransferMainDialog::raise(const Exception &ex)
 {
   MessageBox(m_ctrlThis.getWindow(), ex.getMessage(),
              _T("Exception"), MB_OK | MB_ICONERROR);
-  throw ex;
+  // The exception being handled, which is ex.
+  throw;
 }
 
 void FileTransferMainDialog::refreshLocalFileList()

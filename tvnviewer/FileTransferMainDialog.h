@@ -84,7 +84,7 @@ public:
   // Shows error message and throws exception
   //
 
-  void raise(Exception &ex) override;
+  void raise(const Exception &ex) override;
 
 protected:
 

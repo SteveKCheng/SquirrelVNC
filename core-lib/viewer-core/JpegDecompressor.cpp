@@ -122,10 +122,10 @@ void JpegDecompressor::decompress(std::vector<UINT8> &buffer,
     }
     /* Cleanup after the decompression. */
     jpeg_finish_decompress(&m_jpeg.cinfo);
-  } catch (const Exception &ex) {
+  } catch (const Exception &) {
     cleanup();
     init();
-    throw ex;
+    throw;
   }
 }
 

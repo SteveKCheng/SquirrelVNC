@@ -50,9 +50,9 @@ size_t BufferedInputStream::read(void *buffer, size_t len) {
   try {
     m_have = m_input.read(&m_buffer[0], m_buffer.size());
   }
-  catch (Exception &e) { 
+  catch (const Exception &) {
     if (m_buffer.size() == MAX_BUFFER_SIZE) {
-      throw e;
+      throw;
     }
     m_buffer.resize(MAX_BUFFER_SIZE);
     m_have = m_input.read(&m_buffer[0], m_buffer.size());

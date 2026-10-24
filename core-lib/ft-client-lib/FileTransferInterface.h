@@ -70,8 +70,12 @@ public:
   //
   // Shows error message and throws exception
   //
+  // Pre-conditions: called in a handler that caught ex.
+  // Post-conditions: throws: ex itself is rethrown, not a copy of its
+  // Exception part.
+  //
 
-  virtual void raise(Exception &ex) = 0;
+  virtual void raise(const Exception &ex) = 0;
 
 protected:
   FileTransferCore *m_ftCore;

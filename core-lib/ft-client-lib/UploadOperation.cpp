@@ -402,7 +402,7 @@ void UploadOperation::sendFileDataChunk()
     size_t portion = m_fis->read(&buffer.front(), m_bufferSize);
     _ASSERT((UINT32)portion == portion);
     read = (UINT32)portion;
-  } catch (EOFException) {
+  } catch (const EOFException &) {
 
     //
     // End of file.
@@ -414,7 +414,7 @@ void UploadOperation::sendFileDataChunk()
 
     try {
       lastModified = m_file->lastModified();
-    } catch (IOException) { } // try / catch
+    } catch (const IOException &) { } // try / catch
 
     m_sender->sendUploadEndRequest(0, lastModified);
     return ;
@@ -425,18 +425,14 @@ void UploadOperation::sendFileDataChunk()
     return ;
   } // try / catch
 
-  try {
-    m_sender->sendUploadDataRequest(&buffer.front(), read, false);
-    m_totalBytesCopied += read;
+  m_sender->sendUploadDataRequest(&buffer.front(), read, false);
+  m_totalBytesCopied += read;
 
-    // Notify listener, that data chunk is copied
-    if (m_copyListener != NULL) {
-      m_copyListener->dataChunkCopied(m_totalBytesCopied,
-                                      m_totalBytesToCopy);
-    }
-  } catch (IOException &ioEx) {
-    throw ioEx;
-  } // try / catch
+  // Notify listener, that data chunk is copied
+  if (m_copyListener != NULL) {
+    m_copyListener->dataChunkCopied(m_totalBytesCopied,
+                                    m_totalBytesToCopy);
+  }
 }
 
 void UploadOperation::gotoNext()
