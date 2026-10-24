@@ -69,6 +69,11 @@ public:
   // for accepting or declining before calling the print() function.
   //
   virtual bool acceptsLevel(int logLevel) = 0;
+
+protected:
+  // Protected, and so not virtual: implementations cannot be deleted
+  // through this interface.
+  ~Logger() = default;
 };
 
 #endif // _LOGGER_H_

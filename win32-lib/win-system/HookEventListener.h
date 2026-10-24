@@ -28,4 +28,9 @@ class HookEventListener
 {
 public:
   virtual LRESULT onHookProc(int code, WPARAM wParam, LPARAM lParam) = 0;
+
+protected:
+  // Protected, and so not virtual: implementations cannot be deleted
+  // through this interface.
+  ~HookEventListener() = default;
 };

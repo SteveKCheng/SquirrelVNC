@@ -30,7 +30,6 @@ class OperationEventListener
 {
 public:
   OperationEventListener();
-  ~OperationEventListener();
 
   //
   // Must be called by file transfer operation when operation had started
@@ -57,6 +56,11 @@ public:
   //
 
   virtual void ftOpInfoMessage(FileTransferOperation *sender, const TCHAR *message);
+
+protected:
+  // Protected, and so not virtual: implementations cannot be deleted
+  // through this interface.
+  ~OperationEventListener();
 };
 
 #endif

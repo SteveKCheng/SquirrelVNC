@@ -78,6 +78,10 @@ protected:
   virtual int targetFileExists(FileInfo *sourceFileInfo,
                                FileInfo *targetFileInfo,
                                const TCHAR *pathToTargetFile) = 0;
+
+  // Protected, and so not virtual: implementations cannot be deleted
+  // through this interface.
+  ~CopyFileEventListener() = default;
 };
 
 #endif

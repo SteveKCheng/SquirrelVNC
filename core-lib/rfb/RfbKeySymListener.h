@@ -28,6 +28,11 @@ class RfbKeySymListener
 {
 public:
   virtual void onRfbKeySymEvent(unsigned int rfbKeySym, bool down) = 0;
+
+protected:
+  // Protected, and so not virtual: implementations cannot be deleted
+  // through this interface.
+  ~RfbKeySymListener() = default;
 };
 
 #endif // __RFBKEYSYMLISTENER_H__
