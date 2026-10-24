@@ -25,6 +25,7 @@
 #define _JPEG_DECOMPRESSOR_H_
 
 #include <cstdio>
+#include <vector>
 
 #include "region/Rect.h"
 

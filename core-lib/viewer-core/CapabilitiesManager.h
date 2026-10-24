@@ -27,6 +27,8 @@
 #include "util/CommonHeader.h"
 #include "util/inttypes.h"
 
+#include <vector>
+
 class AuthHandler;
 class ServerMessageListener;
 class Decoder;

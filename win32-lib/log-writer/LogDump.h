@@ -26,6 +26,8 @@
 
 #include "util/DateTime.h"
 
+#include <vector>
+
 struct LogEntry
 {
   LogEntry(unsigned int processId,

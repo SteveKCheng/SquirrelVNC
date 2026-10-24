@@ -26,6 +26,8 @@
 
 #include "util/CommonHeader.h"
 
+#include <vector>
+
 class Rect
 {
 public:

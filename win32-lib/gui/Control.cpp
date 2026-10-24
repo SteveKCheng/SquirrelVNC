@@ -23,6 +23,8 @@
 
 #include "Control.h"
 
+#include <vector>
+
 Control::Control()
 : m_hwnd(NULL)
 {

@@ -28,6 +28,8 @@
 #include "rfb/CursorShape.h"
 #include "thread/LocalMutex.h"
 
+#include <vector>
+
 class CursorPainter
 {
 public:

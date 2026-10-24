@@ -25,9 +25,6 @@
 
 #include "winhdr.h"
 #include <string>
-// Not used here since the characters moved to std::basic_string, but about
-// twenty files that use std::vector get it only through this header.
-#include <vector>
 
 /**
  * String of TCHAR, owning its characters: UTF-16 on Windows.

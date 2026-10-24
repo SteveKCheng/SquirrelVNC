@@ -27,6 +27,8 @@
 #include "FrameBuffer.h"
 #include "region/Point.h"
 
+#include <vector>
+
 class PixelConverter
 {
 public:

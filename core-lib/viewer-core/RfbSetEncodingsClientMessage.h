@@ -27,6 +27,8 @@
 #include "RfbClientToServerMessage.h"
 #include "rfb/EncodingDefs.h"
 
+#include <vector>
+
 class RfbSetEncodingsClientMessage : public RfbClientToServerMessage
 {
 public:

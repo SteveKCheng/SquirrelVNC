@@ -24,6 +24,7 @@
 #include "ResourceLoader.h"
 
 #include <crtdbg.h>
+#include <vector>
 
 ResourceLoader::ResourceLoader(HINSTANCE appInst)
 : m_appInstance(appInst)

@@ -23,6 +23,8 @@
 
 #include "Bitmap.h"
 
+#include <vector>
+
 Bitmap::Bitmap(int width, int height)
 : m_bitmap(NULL)
 {

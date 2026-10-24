@@ -24,6 +24,8 @@
 #include "ToolBar.h"
 #include "ScaledIcons.h"
 
+#include <vector>
+
 ToolBar::ToolBar()
 {
   INITCOMMONCONTROLSEX initCtrlEx;

@@ -26,6 +26,7 @@
 
 #include "Control.h"
 #include <commctrl.h>
+#include <vector>
 
 class SpinControl : public Control
 {

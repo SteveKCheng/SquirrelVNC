@@ -23,6 +23,8 @@
 
 #include "WinClipboard.h"
 
+#include <vector>
+
 WinClipboard::WinClipboard(HWND hwnd) 
   : m_hndClipboard(0), m_hWnd(hwnd)
 {

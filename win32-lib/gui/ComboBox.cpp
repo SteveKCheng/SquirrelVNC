@@ -24,6 +24,7 @@
 #include "ComboBox.h"
 
 #include <Windowsx.h>
+#include <vector>
 
 ComboBox::ComboBox()
 {
