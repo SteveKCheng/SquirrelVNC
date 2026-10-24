@@ -31,15 +31,22 @@ class RegistryKey
 public:
   RegistryKey(HKEY rootKey, const TCHAR *entry, bool createIfNotExists = true);
   // Default contructor for a defer initialization.
+  // Post-conditions: no key is open (isOpened() is false).
   RegistryKey();
+
+  // Each object owns its handle, which a copy would close twice.
+  RegistryKey(const RegistryKey &) = delete;
+  RegistryKey &operator=(const RegistryKey &) = delete;
 
 public:
 
   virtual ~RegistryKey();
 
 
-  // Defer initialization. Can be used only when it has been
-  // created by the default constructor.
+  // Defer initialization, for an object created by the default
+  // constructor. Post-conditions: any key open before is closed;
+  // rootKey\entry is open if it exists or, with createIfNotExists, could
+  // be created (isOpened() tells).
   void open(HKEY rootKey, const TCHAR *entry,
             bool createIfNotExists = true);
 
@@ -59,7 +66,12 @@ public:
   // Get value methods
   //
 
+  // Post-conditions: returns true and the value in out if name is a
+  // REG_DWORD value; otherwise returns false and leaves out unchanged.
   bool getValueAsInt32(const TCHAR *name, int *out);
+  // Post-conditions: returns true and the value in out, up to its first
+  // null character, if name is a REG_SZ or REG_EXPAND_SZ value (not
+  // expanded); otherwise returns false and leaves out unchanged.
   bool getValueAsString(const TCHAR *name, StringStorage *out);
 
   // Returns true if key is valid and opened.

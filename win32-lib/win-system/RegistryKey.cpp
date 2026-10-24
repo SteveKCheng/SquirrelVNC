@@ -26,11 +26,15 @@
 
 RegistryKey::RegistryKey(HKEY rootKey, const TCHAR *entry,
                          bool createIfNotExists)
+: m_key(0),
+  m_rootKey(0)
 {
   initialize(rootKey, entry, createIfNotExists);
 }
 
 RegistryKey::RegistryKey()
+: m_key(0),
+  m_rootKey(0)
 {
 }
 
@@ -91,10 +95,17 @@ bool RegistryKey::getValueAsInt32(const TCHAR *name, int *out)
     return false;
   }
 
-  DWORD type = REG_DWORD;
-  DWORD size = 4;
-
-  return RegQueryValueEx(m_key, name, 0, &type, (BYTE *)out, &size) == ERROR_SUCCESS;
+  // The type is checked, or a string of up to four bytes would be read as
+  // a number.
+  DWORD type = 0;
+  DWORD value = 0;
+  DWORD size = sizeof(value);
+  if (RegQueryValueEx(m_key, name, 0, &type, (BYTE *)&value, &size) != ERROR_SUCCESS ||
+      type != REG_DWORD || size != sizeof(value)) {
+    return false;
+  }
+  *out = (int)value;
+  return true;
 }
 
 bool RegistryKey::getValueAsString(const TCHAR *name, StringStorage *out)
@@ -103,16 +114,19 @@ bool RegistryKey::getValueAsString(const TCHAR *name, StringStorage *out)
     return false;
   }
 
-  DWORD type = REG_SZ;
+  DWORD type = 0;
   DWORD size;
 
-  if (RegQueryValueEx(m_key, name, 0, &type, NULL, &size) != ERROR_SUCCESS) {
+  if (RegQueryValueEx(m_key, name, 0, &type, NULL, &size) != ERROR_SUCCESS ||
+      (type != REG_SZ && type != REG_EXPAND_SZ)) {
     return false;
   }
 
   std::vector<TCHAR> buffer(size + 1);
 
-  if (RegQueryValueEx(m_key, name, 0, &type, (BYTE *)&buffer[0], &size) != ERROR_SUCCESS) {
+  // The value may have changed since the size was read.
+  if (RegQueryValueEx(m_key, name, 0, &type, (BYTE *)&buffer[0], &size) != ERROR_SUCCESS ||
+      (type != REG_SZ && type != REG_EXPAND_SZ)) {
     return false;
   }
 
@@ -142,6 +156,8 @@ void RegistryKey::close()
 
 void RegistryKey::initialize(HKEY rootKey, const TCHAR *entry, bool createIfNotExists)
 {
+  // open() may be called on an open key; its handle would leak.
+  close();
   m_rootKey = rootKey;
   m_key = 0;
 
