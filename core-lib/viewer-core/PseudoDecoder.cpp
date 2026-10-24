@@ -31,8 +31,3 @@ PseudoDecoder::PseudoDecoder(LogWriter *logWriter, int encoding)
 PseudoDecoder::~PseudoDecoder()
 {
 }
-
-bool PseudoDecoder::isPseudo() const
-{
-  return true;
-}

@@ -60,8 +60,3 @@ void DecoderOfRectangle::notify(FbUpdateNotifier *fbNotifier,
 {
   fbNotifier->onUpdate(rect);
 }
-
-bool DecoderOfRectangle::isPseudo() const
-{
-  return false;
-}

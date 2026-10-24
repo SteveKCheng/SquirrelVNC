@@ -49,11 +49,6 @@ public:
   int getCode() const;
 
   //
-  // This method return true, if decoder responsible for pseudo encoding.
-  //
-  virtual bool isPseudo() const;
-
-  //
   // This static method return true, if "encoding" is pseudo encoding.
   //
   static bool isPseudo(int encoding);

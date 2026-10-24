@@ -38,11 +38,6 @@ int Decoder::getCode() const
   return m_encoding;
 }
 
-bool Decoder::isPseudo() const
-{
-  return isPseudo(getCode());
-}
-
 bool Decoder::isPseudo(int encoding)
 {
   switch (encoding) {

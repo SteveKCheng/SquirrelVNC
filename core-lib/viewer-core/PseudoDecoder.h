@@ -35,8 +35,6 @@ protected:
 
 public:
   ~PseudoDecoder() override;
-
-  bool isPseudo() const override;
 };
 
 #endif

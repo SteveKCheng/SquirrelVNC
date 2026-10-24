@@ -52,11 +52,6 @@ public:
                        LocalMutex *fbLock,
                        FbUpdateNotifier *fbNotifier);
 
-  //
-  // This method inherited Decoder::isPseudo() and return true.
-  //
-  bool isPseudo() const override;
-
 protected:
   //
   // This method read rectangle-update from input and decode on frameBuffer.
