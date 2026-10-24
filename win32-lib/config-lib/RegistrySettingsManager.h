@@ -40,10 +40,13 @@
 //
 class RegistrySettingsManager : public SettingsManager
 {
-public:
+protected:
+  // Protected: only a subclass makes one.
   // Post-conditions: no key is set; every get and set fails until
   // setRegistryKey() is called.
   RegistrySettingsManager();
+
+public:
   ~RegistrySettingsManager() override;
 
   RegistrySettingsManager(const RegistrySettingsManager &) = delete;

@@ -30,8 +30,11 @@
 
 class NotifyIconWindow
 {
-public:
+protected:
+  // Protected: only a subclass makes one.
   NotifyIconWindow();
+
+public:
   NotifyIconWindow(const NotifyIconWindow &) = delete;
   NotifyIconWindow &operator=(const NotifyIconWindow &) = delete;
   NotifyIconWindow(NotifyIconWindow &&) = delete;

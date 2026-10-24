@@ -28,8 +28,11 @@
 
 class Brush
 {
-public:
+protected:
+  // Protected: only a subclass makes one.
   Brush();
+
+public:
   Brush(const Brush &) = delete;
   Brush &operator=(const Brush &) = delete;
   Brush(Brush &&) = delete;

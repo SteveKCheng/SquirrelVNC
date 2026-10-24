@@ -35,13 +35,15 @@
  */
 class WindowsApplication
 {
-public:
+protected:
   /**
    * Creates WindowsApplication instance.
    * @param appInstance parameter that passed to WinMain.
+   * Protected: only a subclass makes one.
    */
   WindowsApplication(HINSTANCE appInstance, const TCHAR *windowClassName);
 
+public:
   WindowsApplication(const WindowsApplication &) = delete;
   WindowsApplication &operator=(const WindowsApplication &) = delete;
   WindowsApplication(WindowsApplication &&) = delete;

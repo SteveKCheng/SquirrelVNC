@@ -37,9 +37,11 @@
 
 class CopyOperation : public FileTransferOperation
 {
-public:
+protected:
+  // Protected: only a subclass makes one.
   CopyOperation(LogWriter *logWriter);
 
+public:
   ~CopyOperation() override;
 
   // Sets copy event listener

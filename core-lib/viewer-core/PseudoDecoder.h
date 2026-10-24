@@ -28,9 +28,12 @@
 
 class PseudoDecoder : public Decoder
 {
-public:
+protected:
+  // Protected: only a subclass makes one.
   // Post-conditions: getCode() returns encoding.
   PseudoDecoder(LogWriter *logWriter, int encoding);
+
+public:
   ~PseudoDecoder() override;
 
   bool isPseudo() const override;

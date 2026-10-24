@@ -35,8 +35,11 @@
 // FIXME: Add documentation to class.
 class NotifyIcon : public NotifyIconWindow
 {
-public:
+protected:
+  // Protected: only a subclass makes one.
   NotifyIcon(bool showAfterCreation = true);
+
+public:
   NotifyIcon(const NotifyIcon &) = delete;
   NotifyIcon &operator=(const NotifyIcon &) = delete;
   NotifyIcon(NotifyIcon &&) = delete;

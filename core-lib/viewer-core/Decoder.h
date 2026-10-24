@@ -34,10 +34,13 @@
 
 class Decoder
 {
-public:
+protected:
+  // Protected: only a subclass makes one.
   // Post-conditions: getCode() returns encoding, the code of the encoding
   // or pseudo-encoding that this decoder handles.
   Decoder(LogWriter *logWriter, int encoding);
+
+public:
   virtual ~Decoder();
 
   //

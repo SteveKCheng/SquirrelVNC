@@ -31,8 +31,11 @@
 // Each word or expression will be saved at self index.
 class CommandLineArgs
 {
-public:
+protected:
+  // Protected: only a subclass makes one.
   CommandLineArgs();
+
+public:
   virtual ~CommandLineArgs();
 
   // Copies internal argument vector to the out variable.

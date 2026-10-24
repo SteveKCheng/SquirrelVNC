@@ -29,10 +29,13 @@
 
 class ZLibBase
 {
-public:
+protected:
+  // Protected: only a subclass makes one, and destroys it (no virtual
+  // destructor is needed).
   ZLibBase();
   ~ZLibBase();
 
+public:
   void setInput(const char *input, size_t size);
 
   const char *getOutput() const;

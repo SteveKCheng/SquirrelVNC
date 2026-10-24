@@ -41,7 +41,8 @@
 //
 
 template<class T> class Singleton {
-public:
+protected:
+  // Protected: only a subclass makes one.
   Singleton() {
     AutoLock l(&m_instanceMutex);
 
@@ -52,6 +53,7 @@ public:
     }
   }
 
+public:
   Singleton(const Singleton &) = delete;
   Singleton &operator=(const Singleton &) = delete;
   Singleton(Singleton &&) = delete;

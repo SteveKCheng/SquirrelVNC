@@ -40,8 +40,11 @@
 
 class FileTransferEventAdapter : public FileTransferEventHandler
 {
-public:
+protected:
+  // Protected: only a subclass makes one.
   FileTransferEventAdapter();
+
+public:
   ~FileTransferEventAdapter() override;
 
   void onCompressionSupportReply(DataInputStream *input) override;
