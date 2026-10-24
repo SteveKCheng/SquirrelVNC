@@ -26,7 +26,6 @@
 #include "SocketAddressIPv4.h"
 #include "SocketIPv4.h"
 
-#include "thread/AutoLock.h"
 #include "util/ScopeExit.h"
 
 #include <memory>
@@ -34,7 +33,7 @@
 #include <crtdbg.h>
 
 SocketIPv4::SocketIPv4()
-: m_localAddr(NULL), m_peerAddr(NULL), m_isBound(false),
+: m_isBound(false),
   m_wsaStartup(1, 2)
 {
   m_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -52,16 +51,6 @@ SocketIPv4::~SocketIPv4()
 #else
   ::close(m_socket);
 #endif
-
-  AutoLock l(&m_mutex);
-
-  if (m_peerAddr) {
-    delete m_peerAddr;
-  }
-
-  if (m_localAddr) {
-    delete m_localAddr;
-  }
 }
 
 void SocketIPv4::connect(const TCHAR *host, unsigned short port)
@@ -78,14 +67,6 @@ void SocketIPv4::connect(const SocketAddressIPv4 &addr)
   if (::connect(m_socket, (const sockaddr *)&targetSockAddr, addr.getAddrLen()) == SOCKET_ERROR) {
     throw SocketException();
   }
-
-  AutoLock l(&m_mutex);
-
-  if (m_peerAddr) {
-    delete m_peerAddr;
-  }
-
-  m_peerAddr = new SocketAddressIPv4(*(struct sockaddr_in *)&targetSockAddr);
 
   m_isBound = false;
 }
@@ -126,14 +107,6 @@ void SocketIPv4::bind(const SocketAddressIPv4 &addr)
     throw SocketException();
   }
 
-  AutoLock l(&m_mutex);
-
-  if (m_localAddr) {
-    delete m_localAddr;
-  }
-
-  m_localAddr = new SocketAddressIPv4(*(struct sockaddr_in*)&bindSockaddr);
-
   m_isBound = true;
 }
 
@@ -159,8 +132,7 @@ SocketIPv4 *SocketIPv4::accept()
 
   std::unique_ptr<SocketIPv4> accepted(new SocketIPv4());
   accepted->close();
-  // set() takes result even if it then throws, and accepted's destructor
-  // then closes it.
+  // From here accepted owns result, and closes it.
   closeResult.release();
   accepted->set(result);
   return accepted.release();
@@ -168,25 +140,12 @@ SocketIPv4 *SocketIPv4::accept()
 
 void SocketIPv4::set(SOCKET socket)
 {
-  AutoLock l(&m_mutex);
-
 #ifdef _WIN32
   ::closesocket(m_socket);
 #else
   ::close(m_socket);
 #endif
   m_socket = socket;
-
-  // Set local and peer addresses for new socket
-  struct sockaddr_in addr;
-  socklen_t addrlen = sizeof(struct sockaddr_in);
-  if (getsockname(socket, (struct sockaddr *)&addr, &addrlen) == 0) {
-    m_localAddr = new SocketAddressIPv4(addr);
-  }
-
-  if (getpeername(socket, (struct sockaddr *)&addr, &addrlen) == 0) {
-    m_peerAddr = new SocketAddressIPv4(addr);
-  }
 }
 
 SOCKET SocketIPv4::getAcceptedSocket(struct sockaddr_in *addr)

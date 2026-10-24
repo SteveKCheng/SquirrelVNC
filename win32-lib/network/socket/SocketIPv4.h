@@ -33,7 +33,6 @@
 #include "io-lib/Channel.h"
 #include "io-lib/IOException.h"
 #include "win-system/WsaStartup.h"
-#include "thread/LocalMutex.h"
 
 /**
  * IPv4 Socket class.
@@ -140,21 +139,15 @@ protected:
   SOCKET getAcceptedSocket(struct sockaddr_in *addr);
 
   // Closes old socket and sets handler to new one
+  //
+  // Post-conditions: this object owns socket. Cannot fail.
   void set(SOCKET socket);
-
-  /**
-   * Mutex for thread-safety.
-   */
-  LocalMutex m_mutex;
 
   /**
    * WinSock socket.
    */
   SOCKET m_socket;
   bool m_isClosed;
-
-  SocketAddressIPv4 *m_localAddr;
-  SocketAddressIPv4 *m_peerAddr;
 
   /**
    * Flag determinating if socket is server or client socket.
