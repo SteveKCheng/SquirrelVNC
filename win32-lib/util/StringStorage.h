@@ -152,6 +152,12 @@ public:
   void appendString(const TCHAR *string);
 
   /**
+   * Adds string to the end of this string.
+   * @param string string to be added
+   */
+  void appendString(const StringStorage& string);
+
+  /**
    * Adds char to the end of this string.
    * @fixme rename string method to append or appendChar.
    * @param c char to be added; the null character adds nothing.

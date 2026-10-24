@@ -151,10 +151,26 @@ void StringStorage::appendString(const TCHAR *string)
   if (string == 0) {
     return;
   }
+
   // Copied first, as string may point into m_string, which appending may
   // reallocate.
   StdString copy(string);
   m_string += copy;
+}
+
+void StringStorage::appendString(const StringStorage& string)
+{
+  // operator+= on std::basic_string does not seem to allow pointing to itself
+  if (this == &string)
+  {
+    auto len = m_string.length();
+    m_string.resize(2 * len);
+    m_string.copy(m_string.data(), len, len);
+  }
+  else
+  {
+    m_string += string.str();
+  }
 }
 
 void StringStorage::appendChar(TCHAR c)
