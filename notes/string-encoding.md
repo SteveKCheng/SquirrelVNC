@@ -195,7 +195,7 @@ decisions:
   and fails rather than lose it.
 - **Line breaks** in names and values are refused by `setString()`:
   with multi-line values off, SimpleIni would write them as they are.
-- **Tests:** `harnesses/ini-test` (unit tests) and `harnesses/ini-fuzz`
+- **Tests:** `harnesses/unit-test` (unit tests, `IniTests.cpp`) and `harnesses/ini-fuzz`
   (libFuzzer, with seeds in `tests/fuzz-ini/corpus`), both run by
   `run-tests.ps1`; see `testing.md`.
 

@@ -7,7 +7,7 @@
 <#
 .SYNOPSIS
 Runs the replay tests in tests/cases with rfb-replay, the unit tests in
-ini-test, the fuzz inputs in tests/fuzz with rfb-fuzz, and those in
+unit-test, the fuzz inputs in tests/fuzz with rfb-fuzz, and those in
 tests/fuzz-ini with ini-fuzz.
 
 .DESCRIPTION
@@ -19,11 +19,11 @@ of them crashed. This script only runs those commands and counts
 failures, so that CTest can take over when CMake builds the core
 (notes/testing.md).
 
-ini-test is one more command, which runs its own checks and exits with 0
+unit-test is one more command, which runs its own checks and exits with 0
 if all of them passed.
 
 A configuration that lacks one of the programs (ReleaseFuzz has no
-rfb-replay or ini-test) skips its tests.
+rfb-replay or unit-test) skips its tests.
 
 Build the solution first, in the same configuration and platform.
 
@@ -42,10 +42,10 @@ $root = Split-Path -Parent $PSScriptRoot
 $bin = Join-Path $root "bin\$Platform\$Configuration"
 $replay = Join-Path $bin 'rfb-replay.exe'
 $fuzz = Join-Path $bin 'rfb-fuzz.exe'
-$iniTest = Join-Path $bin 'ini-test.exe'
+$unitTest = Join-Path $bin 'unit-test.exe'
 $iniFuzz = Join-Path $bin 'ini-fuzz.exe'
-if (-not (Test-Path $replay) -and -not (Test-Path $fuzz) -and -not (Test-Path $iniTest)) {
-  Write-Error "None of rfb-replay.exe, ini-test.exe and rfb-fuzz.exe is in $bin (build the solution for $Configuration|$Platform first)"
+if (-not (Test-Path $replay) -and -not (Test-Path $fuzz) -and -not (Test-Path $unitTest)) {
+  Write-Error "None of rfb-replay.exe, unit-test.exe and rfb-fuzz.exe is in $bin (build the solution for $Configuration|$Platform first)"
 }
 
 function Get-Reason([int]$code) {
@@ -82,19 +82,19 @@ if (Test-Path $replay) {
   Write-Host "SKIP replay cases: rfb-replay is not built in $Configuration"
 }
 
-if ((Test-Path $iniTest) -and 'ini-test' -like $Filter) {
+if ((Test-Path $unitTest) -and 'unit-test' -like $Filter) {
   $total++
-  $output = & $iniTest 2>&1 | ForEach-Object { "$_" }
+  $output = & $unitTest 2>&1 | ForEach-Object { "$_" }
   $code = $LASTEXITCODE
   if ($code -eq 0) {
-    Write-Host "PASS ini-test"
+    Write-Host "PASS unit-test"
   } else {
-    $failed += 'ini-test'
-    Write-Host "FAIL ini-test ($(Get-Reason $code))"
+    $failed += 'unit-test'
+    Write-Host "FAIL unit-test ($(Get-Reason $code))"
     $output | Where-Object { $_ -notmatch '^PASS ' } | ForEach-Object { Write-Host "     $_" }
   }
-} elseif (-not (Test-Path $iniTest)) {
-  Write-Host "SKIP ini-test: it is not built in $Configuration"
+} elseif (-not (Test-Path $unitTest)) {
+  Write-Host "SKIP unit-test: it is not built in $Configuration"
 }
 
 # Runs a fuzz program once on the corpus and regression inputs in tests\$dirName.

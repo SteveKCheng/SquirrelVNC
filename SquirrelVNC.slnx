@@ -12,7 +12,7 @@
     <BuildDependency Project="core-lib/core-lib.vcxproj" />
     <BuildDependency Project="win32-lib/win32-lib.vcxproj" />
   </Project>
-  <Project Path="harnesses/ini-test/ini-test.vcxproj" Id="e52a2f1c-2b5e-4a18-8d02-c0331ad1bc12">
+  <Project Path="harnesses/unit-test/unit-test.vcxproj" Id="e52a2f1c-2b5e-4a18-8d02-c0331ad1bc12">
     <BuildType Solution="ReleaseFuzz|*" Project="Release" />
     <Build Solution="ReleaseFuzz|*" Project="false" />
     <BuildDependency Project="core-lib/core-lib.vcxproj" />

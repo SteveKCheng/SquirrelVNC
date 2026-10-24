@@ -21,11 +21,11 @@
 //
 
 //
-// ini-test: unit tests of IniFileSettingsManager, the .ini and .vnc file
-// reader and writer. Each check prints PASS or FAIL; the exit code is 0
-// if all passed, 1 otherwise. Files go to a new directory under %TEMP%,
-// removed at the end. See notes/testing.md.
+// Unit tests of IniFileSettingsManager, the .ini and .vnc file reader and
+// writer.
 //
+
+#include "UnitTest.h"
 
 #include "config-lib/IniFileSettingsManager.h"
 #include "util/Exception.h"
@@ -38,18 +38,6 @@
 #include <span>
 #include <string>
 #include <vector>
-
-static int g_failures = 0;
-static int g_checks = 0;
-
-static void check(bool ok, const char *what)
-{
-  g_checks++;
-  if (!ok) {
-    g_failures++;
-  }
-  printf("%s %s\n", ok ? "PASS" : "FAIL", what);
-}
 
 static std::vector<std::byte> bytes(const std::string &text)
 {
@@ -96,7 +84,7 @@ static std::string readBytes(const std::wstring &path)
 }
 
 // Post-conditions: returns the names of the files in directory.
-static std::vector<std::wstring> listFiles(const std::wstring &directory)
+std::vector<std::wstring> listFiles(const std::wstring &directory)
 {
   std::vector<std::wstring> names;
   WIN32_FIND_DATAW found;
@@ -319,36 +307,10 @@ static void testFiles(const std::wstring &dir)
   DeleteFileW(path.c_str());
 }
 
-int wmain()
+void runIniTests(const std::wstring &dir)
 {
-  wchar_t temp[MAX_PATH];
-  if (GetTempPathW(MAX_PATH, temp) == 0) {
-    printf("Cannot find the temporary directory\n");
-    return 2;
-  }
-  std::wstring dir = std::wstring(temp) + L"ini-test-" + std::to_wstring(GetCurrentProcessId());
-  if (!CreateDirectoryW(dir.c_str(), 0)) {
-    printf("Cannot create %ls\n", dir.c_str());
-    return 2;
-  }
-
-  try {
-    testEncodings();
-    testParsing();
-    testSetters();
-    testFiles(dir);
-  } catch (const Exception &e) {
-    printf("FAIL unexpected exception: %ls\n", e.getMessage());
-    g_failures++;
-  }
-
-  for (const std::wstring &name : listFiles(dir)) {
-    std::wstring path = dir + L"\\" + name;
-    SetFileAttributesW(path.c_str(), FILE_ATTRIBUTE_NORMAL);
-    DeleteFileW(path.c_str());
-  }
-  RemoveDirectoryW(dir.c_str());
-
-  printf("\n%d of %d checks passed\n", g_checks - g_failures, g_checks);
-  return g_failures == 0 ? 0 : 1;
+  testEncodings();
+  testParsing();
+  testSetters();
+  testFiles(dir);
 }

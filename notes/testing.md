@@ -414,17 +414,17 @@ VS 2022, and neither needs a desktop.
 - LeakSanitizer does not exist on Windows; leak checking waits for the
   Linux build (`portability.md`).
 
-## ③ Settings files: `ini-test` and `ini-fuzz`
+## ③ Settings files: `unit-test` and `ini-fuzz`
 
 `IniFileSettingsManager` reads and writes `.ini` and `.vnc` files with
 SimpleIni (`string-encoding.md`, "`.ini` files"). A `.vnc` file can come
 from anywhere, so it is tested like the protocol code:
 
-- **`harnesses/ini-test`**, the first unit-test program: checks of the
-  encodings `load()` accepts, the parsing, the setters and saving, each
-  printed as `PASS` or `FAIL`, exit code 0 if all passed. Its files go to
-  a new directory under `%TEMP%`, removed at the end. Built in every
-  configuration but `ReleaseFuzz`.
+- **`harnesses/unit-test`**, the unit-test program, in `IniTests.cpp`:
+  checks of the encodings `load()` accepts, the parsing, the setters and
+  saving, each printed as `PASS` or `FAIL`, exit code 0 if all passed.
+  Its files go to a new directory under `%TEMP%`, removed at the end.
+  Built in every configuration but `ReleaseFuzz`.
 - **`harnesses/ini-fuzz`**, a libFuzzer target built like `rfb-fuzz`
   (libFuzzer in `ReleaseFuzz`, a `main()` that runs files once
   elsewhere). Its input is a file's contents, given to
@@ -483,7 +483,7 @@ Each step is a commit, or a few.
 - **Unit tests** of the pure classes, starting with `Region` (whose
   clamp bug the replay tests could not have caught, as explained at the
   top), as another program in `harnesses/` run by `run-tests.ps1`.
-  The first such program is `ini-test` (below).
+  That program is `unit-test` (below), one source file per class.
 - **Memory growth while fuzzing** (see "Running the fuzzer"). Finding
   out whether decoders allocate without enough limits needs our
   allocations instrumented; a larger job, deferred.
