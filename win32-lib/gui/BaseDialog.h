@@ -111,7 +111,6 @@ protected:
   Control *m_ctrlParent;        // Parent dialog or NULL if no parent
 
   bool m_isModal;
-  bool m_isCreated;
 
   // Large and small icons cached by ScaledIcons for the life of the
   // process, so they are not destroyed.

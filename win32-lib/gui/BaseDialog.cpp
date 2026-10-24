@@ -30,20 +30,18 @@
 #include <crtdbg.h>
 
 BaseDialog::BaseDialog()
-: m_ctrlParent(NULL), m_resourceName(0), m_resourceId(0), m_hicon(0),
-  m_hiconSmall(0)
+  : BaseDialog(static_cast<DWORD>(0))
 {
 }
 
 BaseDialog::BaseDialog(DWORD resourceId)
 : m_ctrlParent(NULL), m_resourceName(0), m_resourceId(resourceId), m_hicon(0),
-  m_hiconSmall(0)
+  m_hiconSmall(0), m_isModal(false)
 {
 }
 
 BaseDialog::BaseDialog(const TCHAR *resourceName)
-: m_ctrlParent(NULL), m_resourceName(0), m_resourceId(0), m_hicon(0),
-  m_hiconSmall(0)
+: BaseDialog(static_cast<DWORD>(0))
 {
   setResourceName(resourceName);
 }
