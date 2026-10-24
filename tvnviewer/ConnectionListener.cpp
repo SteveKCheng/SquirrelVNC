@@ -30,13 +30,18 @@ const TCHAR ConnectionListener::DEFAULT_HOST[] = _T("0.0.0.0");
 
 ConnectionListener::ConnectionListener(WindowsApplication *application,
                                        UINT16 port)
-: TcpServer(DEFAULT_HOST, port, true),
+: TcpServer(DEFAULT_HOST, port),
   m_application(application)
 {
+  // Only now that the members exist, which onAcceptConnection() uses.
+  start();
 }
 
 ConnectionListener::~ConnectionListener() 
 {
+  // Before the members that onAcceptConnection() uses are destroyed.
+  stop();
+
   AutoLock al(&m_connectionsLock);
   while (!m_connections.empty()) {
     SocketIPv4 *socket = m_connections.front();

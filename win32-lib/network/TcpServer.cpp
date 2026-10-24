@@ -26,7 +26,6 @@
 #include "network/socket/SocketAddressIPv4.h"
 
 TcpServer::TcpServer(const TCHAR *bindHost, unsigned short bindPort,
-                     bool autoStart,
                      bool lockAddr)
 : m_bindHost(bindHost), m_bindPort(bindPort)
 {
@@ -38,13 +37,14 @@ TcpServer::TcpServer(const TCHAR *bindHost, unsigned short bindPort,
 
   m_listenSocket.bind(bindAddr);
   m_listenSocket.listen(10);
-
-  if (autoStart) {
-    start();
-  }
 }
 
 TcpServer::~TcpServer()
+{
+  stop();
+}
+
+void TcpServer::stop()
 {
   try { m_listenSocket.shutdown(SD_BOTH); } catch(...) { }
   try { m_listenSocket.close(); } catch (...) { }

@@ -39,21 +39,23 @@ class TcpServer : private Thread
 {
 public:
   /**
-   * Creates new TcpServer that listens for incoming connection after creation.
+   * Creates new TcpServer, bound and listening, whose thread does not
+   * accept connections until the subclass calls start(). (It cannot
+   * start here: the thread calls onAcceptConnection(), of a subclass
+   * that is not constructed yet.)
    * @param bindHost host to bind.
    * @param bindPort port to bind.
-   * @param bool autoStart if true, then server starts listening for incoming connections
-   * in it's own thread, if false, then you must call protected start() method later from subclass.
    * @param lockAddr determinates if need to lock adress to other processes cannot reuse it.
    * @throws Exception if fail to create tcp server.
    */
   TcpServer(const TCHAR *bindHost,
             unsigned short bindPort,
-            bool autoStart = false,
             bool lockAddr = false);
   /**
    * Closes listening socket, terminates tcp server thread and
    * deletes tcp server object.
+   *
+   * Pre-conditions: the subclass's destructor has called stop().
    */
   virtual ~TcpServer();
 
@@ -65,8 +67,19 @@ public:
 protected:
   /**
    * Starts tcp server thread (listen for incoming connections).
+   * Pre-conditions: the subclass is constructed; called once.
    */
   virtual void start();
+
+  /**
+   * Closes the listening socket and waits for the thread to end, if it
+   * was started (one that was not never runs). A subclass calls it first
+   * in its destructor,
+   * before what onAcceptConnection() uses is destroyed.
+   * Post-conditions: onAcceptConnection() is not running, and is not
+   * called again. Calling it again does nothing more.
+   */
+  void stop();
 
   /**
    * Called from tcp server thread when server accepts connection to process it.
