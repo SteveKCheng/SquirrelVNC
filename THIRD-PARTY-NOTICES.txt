@@ -2,5 +2,6 @@ Copyright and licensing for third-party assets
 
   - Mainline code from TightVNC: GPL-2.0
   - Icons from the “Streamline Color” collection: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+  - [SimpleIni](https://github.com/brofield/simpleini), from vcpkg, for .ini and .vnc files: MIT
 
 
