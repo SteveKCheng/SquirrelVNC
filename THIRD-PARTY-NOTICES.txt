@@ -3,5 +3,9 @@ Copyright and licensing for third-party assets
   - Mainline code from TightVNC: GPL-2.0
   - Icons from the “Streamline Color” collection: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
   - [SimpleIni](https://github.com/brofield/simpleini), from vcpkg, for .ini and .vnc files: MIT
+  - [zlib-ng](https://github.com/zlib-ng/zlib-ng), from vcpkg, for zlib-compressed RFB data: [Zlib](https://spdx.org/licenses/Zlib.html)
+  - [libjpeg-turbo](https://libjpeg-turbo.org/), from vcpkg, for JPEG in the Tight encoding:
+    [IJG](https://github.com/libjpeg-turbo/libjpeg-turbo/blob/main/README.ijg), for the libjpeg API used.
+    This software is based in part on the work of the Independent JPEG Group.
 
 
