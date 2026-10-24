@@ -55,11 +55,18 @@ FileInfoList::~FileInfoList()
   // so in destructor it must free allocated memory.
   //
 
+  // Recursion here is as deep as the tree of directories.
   if (m_child != NULL) {
     delete m_child;
   }
-  if (m_next != NULL) {
-    delete m_next;
+  // The following elements are freed in a loop: a list from a server can
+  // hold millions of them, too many to free recursively on the stack.
+  FileInfoList *next = m_next;
+  while (next != NULL) {
+    FileInfoList *following = next->m_next;
+    next->m_next = NULL;
+    delete next;
+    next = following;
   }
 }
 
@@ -73,9 +80,7 @@ void FileInfoList::setNext(FileInfoList *next)
 
 void FileInfoList::setPrev(FileInfoList *prev)
 {
-  if (m_prev != NULL) {
-    delete m_prev;
-  }
+  // The previous element is not owned: it owns this one.
   m_prev = prev;
 }
 
@@ -107,22 +112,21 @@ FileInfoList *FileInfoList::getRoot()
 {
   // In our list only first element of leaf can has parent
   FileInfoList *first = getFirst();
-  // first have no parent, so first is root
-  if (first->getParent() == NULL) {
-    return first;
+  while (first->getParent() != NULL) {
+    first = first->getParent()->getFirst();
   }
-  // continue searching root list
-  return first->getParent()->getRoot();
+  // first have no parent, so first is root
+  return first;
 }
 
 FileInfoList *FileInfoList::getFirst()
 {
-  // If have no prev, than this is first element of leaf
-  if (getPrev() == NULL) {
-    return this;
+  // A loop, not recursion, for the reason given in the destructor.
+  FileInfoList *first = this;
+  while (first->getPrev() != NULL) {
+    first = first->getPrev();
   }
-  // continue searching
-  return getPrev()->getFirst();
+  return first;
 }
 
 FileInfoList *FileInfoList::getNext()

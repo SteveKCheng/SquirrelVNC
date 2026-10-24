@@ -58,6 +58,10 @@ public:
   //
   // Frees memory from next and child lists
   //
+  // Post-conditions: frees the elements after this one, and the children,
+  // using stack space for the depth of the tree, not the length of a list.
+  // The element before this one, if any, is left pointing to it.
+  //
 
   ~FileInfoList();
 
@@ -82,6 +86,7 @@ public:
 
   //
   // Returns top root (beggining of all list tree), cannot be 0, always valid list pointer
+  // getRoot() and getFirst() take no stack space for the length of a list.
   //
 
   FileInfoList *getRoot();
@@ -127,7 +132,10 @@ public:
 
 protected:
 
+  // Frees the old next element, and those after it, and takes ownership
+  // of next.
   void setNext(FileInfoList *next);
+  // prev is not owned, since it owns this element.
   void setPrev(FileInfoList *prev);
 
   static FileInfoList *fromArray(const FileInfo *filesInfo, size_t count);

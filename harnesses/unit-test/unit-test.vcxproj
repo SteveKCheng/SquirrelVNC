@@ -92,6 +92,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DecoderStoreTests.cpp" />
+    <ClCompile Include="FileInfoListTests.cpp" />
     <ClCompile Include="FileTests.cpp" />
     <ClCompile Include="HostPathTests.cpp" />
     <ClCompile Include="IniTests.cpp" />
