@@ -32,6 +32,8 @@
 #include "thread/LocalMutex.h"
 #include "io-lib/BufferedInputStream.h"
 
+#include <memory>
+
 class TcpConnection
 {
 public:
@@ -50,13 +52,19 @@ public:
 private:
   StringStorage m_host;
   UINT16 m_port;
+  // The socket and gates in use: those given to bind(), or those that
+  // connect() made, which are owned by the members below.
   SocketIPv4 *m_socket;
-  bool m_socketOwner;
-  SocketStream *m_socketStream;
-  BufferedInputStream *m_bufInput;
   RfbInputGate *m_input;
   RfbOutputGate *m_output;
-  bool m_RfbGatesOwner;
+
+  // Declared in the order of construction, so that each is destroyed
+  // before the one it uses.
+  std::unique_ptr<SocketIPv4> m_ownSocket;
+  std::unique_ptr<SocketStream> m_socketStream;
+  std::unique_ptr<BufferedInputStream> m_bufInput;
+  std::unique_ptr<RfbInputGate> m_ownInput;
+  std::unique_ptr<RfbOutputGate> m_ownOutput;
 
   bool m_wasBound;
   bool m_wasConnected;
