@@ -35,31 +35,9 @@ BaseDialog::BaseDialog()
 }
 
 BaseDialog::BaseDialog(DWORD resourceId)
-: m_ctrlParent(nullptr), m_resourceName(nullptr), m_resourceId(resourceId), m_hicon(nullptr),
+: m_ctrlParent(nullptr), m_resourceId(resourceId), m_hicon(nullptr),
   m_hiconSmall(nullptr), m_isModal(false)
 {
-}
-
-BaseDialog::BaseDialog(const TCHAR *resourceName)
-: BaseDialog(static_cast<DWORD>(0))
-{
-  setResourceName(resourceName);
-}
-
-BaseDialog::~BaseDialog()
-{
-  if (m_resourceName != nullptr) {
-    free(m_resourceName);
-  }
-}
-
-void BaseDialog::setResourceName(const TCHAR *resourceName)
-{
-  if (m_resourceName != nullptr) {
-    free(m_resourceName);
-  }
-
-  m_resourceName = _tcsdup(resourceName);
 }
 
 void BaseDialog::setResourceId(DWORD id)
@@ -107,7 +85,7 @@ void BaseDialog::create()
     parentWindow = m_ctrlParent->getWindow();
   }
 
-  window = CreateDialogParam(GetModuleHandle(nullptr), getResouceName(),
+  window = CreateDialogParam(GetModuleHandle(nullptr), MAKEINTRESOURCE(m_resourceId),
                              parentWindow, dialogProc, (LPARAM)this);
 
   m_isModal = false;
@@ -122,7 +100,7 @@ int BaseDialog::showModal()
     m_isModal = true;
     HWND parentWindow = (m_ctrlParent != nullptr) ? m_ctrlParent->getWindow() : nullptr;
     result = (int)DialogBoxParam(GetModuleHandle(nullptr),
-                                 getResouceName(),
+                                 MAKEINTRESOURCE(m_resourceId),
                                  parentWindow, dialogProc, (LPARAM)this);
   } else {
     m_ctrlThis.setVisible(true);
@@ -201,14 +179,6 @@ INT_PTR CALLBACK BaseDialog::dialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
   }
 
   return bResult;
-}
-
-TCHAR *BaseDialog::getResouceName()
-{
-  if (m_resourceId != 0) {
-    return MAKEINTRESOURCE(m_resourceId);
-  }
-  return m_resourceName;
 }
 
 void BaseDialog::setControlById(Control &control, DWORD id) 

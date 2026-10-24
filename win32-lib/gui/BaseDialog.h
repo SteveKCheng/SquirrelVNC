@@ -30,18 +30,23 @@
 class BaseDialog
 {
 public:
+  // Constructs a dialog with no resource ID yet.  The derived class must
+  // call setResourceId() before create(), show() or showModal().
   BaseDialog();
+  // Constructs a dialog to be loaded from the DIALOG resource resourceId.
+  // The pre-condition on resourceId is as for setResourceId().
   BaseDialog(DWORD resourceId);
-  BaseDialog(const TCHAR *resourceName);
   BaseDialog(const BaseDialog &) = delete;
   BaseDialog &operator=(const BaseDialog &) = delete;
   BaseDialog(BaseDialog &&) = delete;
   BaseDialog &operator=(BaseDialog &&) = delete;
 
-  virtual ~BaseDialog();
+  virtual ~BaseDialog() = default;
 public:
 
   // Method creates non modal window but not shows it
+  //
+  // Pre-condition: a valid resource ID has been set (see setResourceId()).
   void create();
 
   //
@@ -60,9 +65,13 @@ public:
   void kill(int code);
   // Method sets parent window
   void setParent(Control *ctrlParent);
-  // Set resource name for dialog
-  void setResourceName(const TCHAR *resourceName);
-  // Set resource id for dialog.
+  // Sets the ID of the DIALOG resource, in this executable's module, that
+  // create(), show() and showModal() load the dialog template from.
+  //
+  // Pre-condition: id is in 1..65535, because MAKEINTRESOURCE keeps only
+  // the low 16 bits (and 0 means "not set").  The ID is read only when the
+  // dialog window is created, so changing it afterwards has no effect on
+  // the existing window.
   void setResourceId(DWORD id);
   // Return
   Control *getControl() { return &m_ctrlThis; }
@@ -100,13 +109,9 @@ protected:
 
   static INT_PTR CALLBACK dialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-private:
-  TCHAR *getResouceName();
-
 protected:
 
-  TCHAR *m_resourceName;        // Name of dialog resource
-  DWORD m_resourceId;            // Id of dialog resouce
+  DWORD m_resourceId;            // Id of dialog resource
   Control m_ctrlThis;           // This dialog control
   Control *m_ctrlParent;        // Parent dialog or NULL if no parent
 
