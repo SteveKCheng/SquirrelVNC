@@ -4,9 +4,9 @@ A plan (2026-10-23) to reduce the string classes inherited from TightVNC
 to one, `StringStorage`, and to decode the text that RFB carries
 according to the protocol rather than the Windows ANSI code page.
 
-Status (2026-10-23): the string classes are done (see "Order of
-work"); `StringStorage` is the only one left. The `.ini` files are not
-started.
+Status (2026-10-24): the string classes are done (see "Order of
+work"); `StringStorage` is the only one left. `.ini` files are read and
+written with SimpleIni (see "`.ini` files", "Status").
 
 See also `portability.md` ("TCHAR"), which is the larger, separate
 question of what `TCHAR` and `StringStorage` hold on Linux.
@@ -170,6 +170,38 @@ the name as UTF-16; see "Host name resolution" in
 are in the registry, but the plan (`branding-and-icons.md`) is to move
 them to `%APPDATA%\SquirrelVNC\default.ini`, so `.ini` files become the
 only settings store.
+
+### Status (2026-10-24)
+
+Done for `IniFileSettingsManager`, as planned below, with these
+decisions:
+
+- **Scope:** only the profile functions are replaced; the registry
+  managers stay until `default.ini` replaces them.
+- **`load()` and `save()` are members of `IniFileSettingsManager`, not of
+  `SettingsManager`.** The one writer, saving a session in `ViewerWindow`,
+  writes `[connection]` itself and then calls
+  `ConnectionConfig::saveToStorage()` for `[options]`, so it, not
+  `saveToStorage()`, knows when the document is complete; it calls
+  `save()` at the end, and shows the error if that throws. A
+  `SettingsManager::save()`, doing nothing for the registry, comes with
+  `default.ini`, called where the dialogs commit settings.
+- **The section stays state** (`setApplicationName()`), as before.
+- **A later duplicate key wins** (SimpleIni's behaviour), rather than the
+  first as with the profile functions; `.vnc` files have none. Full
+  compatibility with TightVNC's parsing is not a goal; keeping its key
+  names is.
+- **Saving keeps the file's access control list** with `ReplaceFile()`,
+  and fails rather than lose it.
+- **Line breaks** in names and values are refused by `setString()`:
+  with multi-line values off, SimpleIni would write them as they are.
+- **Tests:** `harnesses/ini-test` (unit tests) and `harnesses/ini-fuzz`
+  (libFuzzer, with seeds in `tests/fuzz-ini/corpus`), both run by
+  `run-tests.ps1`; see `testing.md`.
+
+Before the new reader, `ConnectionConfig::loadFromStorage()` was made to
+validate what it loads (`[SECURITY]`): a `.vnc` file with `scale_den=0`
+crashed the viewer.
 
 ### The Win32 profile functions
 
