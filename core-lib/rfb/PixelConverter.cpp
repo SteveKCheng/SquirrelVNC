@@ -26,14 +26,12 @@
 #include <crtdbg.h>
 
 PixelConverter::PixelConverter(void)
-: m_convertMode(NO_CONVERT),
-  m_dstFrameBuffer(0)
+: m_convertMode(NO_CONVERT)
 {
 }
 
 PixelConverter::~PixelConverter(void)
 {
-  reset();
 }
 
 void PixelConverter::convert(const Rect *rect, FrameBuffer *dstFb,
@@ -121,10 +119,11 @@ PixelConverter::convert(const Rect *rect, const FrameBuffer *srcFb)
   }
 
   const Dimension fbSize = srcFb->getDimension();
-  if (m_dstFrameBuffer == 0) {
+  if (!m_dstFrameBuffer) {
     // No frame buffer allocated - construct new one from the scratch.
-    m_dstFrameBuffer = new FrameBuffer;
-    m_dstFrameBuffer->setProperties(&fbSize, &m_dstFormat);
+    std::unique_ptr<FrameBuffer> frameBuffer = std::make_unique<FrameBuffer>();
+    frameBuffer->setProperties(&fbSize, &m_dstFormat);
+    m_dstFrameBuffer = std::move(frameBuffer);
   } else if (!m_dstFrameBuffer->getDimension().isEqualTo(&fbSize)) {
     // Frame buffer is allocated but its size it wrong - just resize it.
     // Note that if the frame buffer is allocated, its pixel format is
@@ -134,17 +133,14 @@ PixelConverter::convert(const Rect *rect, const FrameBuffer *srcFb)
   }
 
   // Finally, convert pixels.
-  convert(rect, m_dstFrameBuffer, srcFb);
-  return m_dstFrameBuffer;
+  convert(rect, m_dstFrameBuffer.get(), srcFb);
+  return m_dstFrameBuffer.get();
 }
 
 void PixelConverter::reset()
 {
   // Deallocate the framebuffer.
-  if (m_dstFrameBuffer != 0) {
-    delete m_dstFrameBuffer;
-    m_dstFrameBuffer = 0;
-  }
+  m_dstFrameBuffer.reset();
 }
 
 void PixelConverter::setPixelFormats(const PixelFormat *dstPf,

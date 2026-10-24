@@ -57,7 +57,7 @@ public:
   void flush();
 
 protected:
-  DataOutputStream *m_output;
+  DataOutputStream m_output;
 
   char m_buffer[100000];
 

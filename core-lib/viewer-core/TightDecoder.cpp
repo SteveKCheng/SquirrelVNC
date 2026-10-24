@@ -32,20 +32,14 @@ TightDecoder::TightDecoder(LogWriter *logWriter)
 {
   m_encoding = EncodingDefs::TIGHT;
 
-  m_inflater.resize(DECODERS_NUM);
-  for (int i = 0; i < DECODERS_NUM; i++)
-    m_inflater[i] = new Inflater;
+  for (int i = 0; i < DECODERS_NUM; i++) {
+    m_inflater.push_back(std::make_unique<Inflater>());
+  }
   reset();
 }
 
 TightDecoder::~TightDecoder()
 {
-  for (int i = 0; i < DECODERS_NUM; i++) {
-    try {
-      delete m_inflater[i];
-    } catch (...) {
-    }
-  }
 }
 
 void TightDecoder::decode(RfbInputGate *input,
@@ -131,12 +125,9 @@ void TightDecoder::resetDecoders(UINT8 compressionControl)
 
 void TightDecoder::replaceInflater(int i)
 {
-  // Construct the new stream before deleting the old one: if construction
-  // throws, m_inflater[i] must not be left pointing at a deleted object,
-  // which the destructor would delete again.
-  Inflater *fresh = new Inflater;
-  delete m_inflater[i];
-  m_inflater[i] = fresh;
+  // The new stream is made before the old one is freed, so that if that
+  // throws, m_inflater[i] is unchanged.
+  m_inflater[i] = std::make_unique<Inflater>();
 }
 
 int TightDecoder::readCompactSize(RfbInputGate *input)
@@ -282,7 +273,7 @@ void TightDecoder::readCompressedData(RfbInputGate *input,
   if (rawDataLength != 0) {
     input->readFully(&compressed.front(), rawDataLength);
 
-    Inflater *decoder = m_inflater[decoderId];
+    Inflater *decoder = m_inflater[decoderId].get();
     decoder->setInput(&compressed.front(), rawDataLength);
     decoder->setUnpackedSize(expectedLength);
     decoder->inflate();

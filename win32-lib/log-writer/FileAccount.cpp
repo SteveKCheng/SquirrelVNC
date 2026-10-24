@@ -34,8 +34,7 @@ FileAccount::FileAccount(const TCHAR *logDir,
 : LogDump(logHeadEnabled, false),
   m_fileName(fileName),
   m_level(0), // Real initialization must be in the setNewFile() function
-  m_asFirstOpen(true),
-  m_file(0)
+  m_asFirstOpen(true)
 {
   setNewFile(logLevel, logDir);
 }
@@ -43,8 +42,7 @@ FileAccount::FileAccount(const TCHAR *logDir,
 FileAccount::FileAccount(bool logHeadEnabled)
 : LogDump(logHeadEnabled, true), // This constructor enables writing the log to the dump.
   m_level(0), // Real initialization must be in the setNewFile() function
-  m_asFirstOpen(true),
-  m_file(0)
+  m_asFirstOpen(true)
 {
 }
 
@@ -242,11 +240,11 @@ void FileAccount::openFile()
     // Create backup files
     createBackup(5);
     // Creating file
-    m_file = new WinFile(fileName.getString(), F_READ_WRITE, FM_CREATE,
-                         shareToRead);
+    m_file = std::make_unique<WinFile>(fileName.getString(), F_READ_WRITE, FM_CREATE,
+                                       shareToRead);
   } else {
-    m_file = new WinFile(fileName.getString(), F_READ_WRITE, FM_APPEND,
-                         shareToRead);
+    m_file = std::make_unique<WinFile>(fileName.getString(), F_READ_WRITE, FM_APPEND,
+                                       shareToRead);
   }
 
   if (Unicode::isEnabled() && asFirstOpen) {
@@ -268,10 +266,7 @@ void FileAccount::openFile()
 
 void FileAccount::closeFile()
 {
-  if (m_file != 0) {
-    delete m_file;
-    m_file = 0;
-  }
+  m_file.reset();
 }
 
 void FileAccount::addUnicodeSignature()

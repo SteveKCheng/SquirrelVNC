@@ -30,6 +30,8 @@
 #include "file-lib/WinFile.h"
 #include "LogDump.h"
 
+#include <memory>
+
 class FileAccount : public LogDump
 {
 public:
@@ -133,7 +135,7 @@ private:
   StringStorage m_fileName;
   unsigned char m_level;
   bool m_asFirstOpen;
-  WinFile *m_file;
+  std::unique_ptr<WinFile> m_file;
 
   LocalMutex m_logMut;
 };

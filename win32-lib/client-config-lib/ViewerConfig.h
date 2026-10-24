@@ -33,6 +33,8 @@
 
 #include "ConnectionConfig.h"
 
+#include <memory>
+
 //
 // Contains base set of viewer configuration options.
 //
@@ -116,7 +118,7 @@ protected:
   // Log file
   StringStorage m_pathToLogFile;
   StringStorage m_logName;
-  FileLogger *m_logger;
+  std::unique_ptr<FileLogger> m_logger;
   // Connection history
   RegistryKey m_conHistoryKey; // Used by m_conHistory
   ConnectionHistory m_conHistory;

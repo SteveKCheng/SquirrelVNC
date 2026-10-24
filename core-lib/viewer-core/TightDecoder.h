@@ -24,6 +24,7 @@
 #ifndef _TIGHT_DECODER_H_
 #define _TIGHT_DECODER_H_
 
+#include <memory>
 #include <vector>
 
 #include "util/Inflater.h"
@@ -112,7 +113,7 @@ private:
 
   std::vector<UINT8> transformArray(const std::vector<UINT8> &buffer);
 
-  std::vector<Inflater *> m_inflater;
+  std::vector<std::unique_ptr<Inflater> > m_inflater;
   JpegDecompressor m_jpeg;
 
   bool m_isCPixel;

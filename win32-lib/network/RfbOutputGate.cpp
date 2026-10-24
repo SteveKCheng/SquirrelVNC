@@ -26,17 +26,15 @@
 #include <exception>
 
 RfbOutputGate::RfbOutputGate(OutputStream *stream)
-: DataOutputStream(0)
+: DataOutputStream(0),
+  m_tunnel(std::make_unique<BufferedOutputStream>(stream))
 {
-  m_tunnel = new BufferedOutputStream(stream);
-
   // Change real output stream for data output stream to our tunnel.
-  m_outStream = m_tunnel;
+  m_outStream = m_tunnel.get();
 }
 
 RfbOutputGate::~RfbOutputGate()
 {
-  delete m_tunnel;
 }
 
 void RfbOutputGate::flush()

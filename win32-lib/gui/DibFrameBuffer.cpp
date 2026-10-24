@@ -25,7 +25,6 @@
 #include "util/Exception.h"
 
 DibFrameBuffer::DibFrameBuffer()
-: m_dibSection(0)
 {
 }
 
@@ -216,22 +215,22 @@ void *DibFrameBuffer::updateDibSection(const Dimension *newDim,
                                       HWND compatibleWindow)
 {
   releaseDibSection();
-  m_dibSection = new DibSection(pixelFormat, newDim, compatibleWindow);
+  m_dibSection = std::make_unique<DibSection>(pixelFormat, newDim, compatibleWindow);
   return m_dibSection->getBuffer();
 }
 
 void DibFrameBuffer::releaseDibSection()
 {
   if (m_dibSection) {
-    delete m_dibSection;
-    m_dibSection = 0;
+    // m_fb does not own the DIB section's pixels.
     m_fb.setBuffer(0);
+    m_dibSection.reset();
   }
 }
 
 void DibFrameBuffer::checkDibValid()
 {
-  if (m_dibSection == 0) {
+  if (!m_dibSection) {
     throw Exception(_T("Can't set target DC because it is not initialized a DIB section yet"));
   }
 }

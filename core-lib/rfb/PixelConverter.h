@@ -27,6 +27,7 @@
 #include "FrameBuffer.h"
 #include "region/Point.h"
 
+#include <memory>
 #include <vector>
 
 class PixelConverter
@@ -87,7 +88,7 @@ protected:
 
   // An internally maintained frame buffer used by the two-argument version of
   // the convert() function.
-  FrameBuffer *m_dstFrameBuffer;
+  std::unique_ptr<FrameBuffer> m_dstFrameBuffer;
 };
 
 #endif // __RFB_PIXEL_CONVERTER_H_INCLUDED__

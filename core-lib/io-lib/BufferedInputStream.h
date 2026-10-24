@@ -21,7 +21,7 @@ protected:
   const size_t MAX_BUFFER_SIZE;
   const size_t INITIAL_BUFFER_SIZE;
 
-  DataInputStream *m_input;
+  DataInputStream m_input;
 
   std::vector<char> m_buffer;
 

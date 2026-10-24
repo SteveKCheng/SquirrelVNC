@@ -29,6 +29,8 @@
 
 #include "thread/LocalMutex.h"
 
+#include <memory>
+
 /**
  * Gate for writting rfb messages.
  *
@@ -61,9 +63,10 @@ public:
 
 private:
   /**
-   * Tunnel that adds buffering.
+   * Tunnel that adds buffering. On the heap, because its buffer is
+   * 100 KB, and rfb-replay makes a gate on the stack.
    */
-  BufferedOutputStream *m_tunnel;
+  std::unique_ptr<BufferedOutputStream> m_tunnel;
 };
 
 #endif

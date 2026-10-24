@@ -27,6 +27,8 @@
 #include "rfb/FrameBuffer.h"
 #include "win-system/DibSection.h"
 
+#include <memory>
+
 // This class is a wrapper for a FramBuffer and a DIB section.
 // It changes DIB section proerties by oneself according to FrameBuffer
 // properties (such as width, height and PixelFormat)
@@ -131,7 +133,7 @@ private:
   void checkDibValid();
 
   FrameBuffer m_fb;
-  DibSection *m_dibSection;
+  std::unique_ptr<DibSection> m_dibSection;
 };
 
 #endif // __DIBFRAMEBUFFER_H__

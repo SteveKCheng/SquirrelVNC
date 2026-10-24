@@ -35,8 +35,7 @@
 ViewerConfig::ViewerConfig(const TCHAR registryPath[])
 : m_logLevel(0), m_listenPort(5500), m_historyLimit(32),
   m_showToolbar(true), m_promptOnFullscreen(true),
-  m_conHistory(&m_conHistoryKey, m_historyLimit),
-  m_logger(0)
+  m_conHistory(&m_conHistoryKey, m_historyLimit)
 {
   StringStorage registryKey;
   registryKey.format(_T("%s\\History"), registryPath);
@@ -47,12 +46,6 @@ ViewerConfig::ViewerConfig(const TCHAR registryPath[])
 
 ViewerConfig::~ViewerConfig()
 {
-  if (m_logger != 0) {
-    try {
-      delete m_logger;
-    } catch (...) {
-    }
-  }
 }
 
 bool ViewerConfig::loadFromStorage(SettingsManager *storage)
@@ -125,7 +118,7 @@ void ViewerConfig::setLogLevel(int logLevel)
   }
 
   m_logLevel = logLevel;
-  if (m_logger != 0) {
+  if (m_logger) {
     m_logger->changeLogProps(m_pathToLogFile.getString(), static_cast<unsigned char>(m_logLevel));
   }
 }
@@ -146,7 +139,7 @@ void ViewerConfig::setLogDir(StringStorage &logDir)
 {
   AutoLock l(&m_cs);
   m_pathToLogFile = logDir;
-  if (m_logger != 0) {
+  if (m_logger) {
     m_logger->changeLogProps(m_pathToLogFile.getString(), static_cast<unsigned char>(m_logLevel));
   }
 }
@@ -232,15 +225,14 @@ Logger *ViewerConfig::initLog(const TCHAR logDir[], const TCHAR logName[], bool 
   AutoLock l(&m_cs);
   m_pathToLogFile = logFileFolderPath;
 
-  if (m_logger != 0) {
-    delete m_logger;
-  }
-  m_logger = new FileLogger(m_pathToLogFile.getString(), logName,
-                            static_cast<unsigned char>(m_logLevel), false);
-  return m_logger;
+  // The new logger is made before the old one is freed: if that throws,
+  // the old one stays.
+  m_logger = std::make_unique<FileLogger>(m_pathToLogFile.getString(), logName,
+                                          static_cast<unsigned char>(m_logLevel), false);
+  return m_logger.get();
 }
 
 Logger *ViewerConfig::getLogger()
 {
-  return m_logger;
+  return m_logger.get();
 }

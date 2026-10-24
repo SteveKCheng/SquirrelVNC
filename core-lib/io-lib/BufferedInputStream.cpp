@@ -5,17 +5,16 @@
 #include <algorithm>
 
 BufferedInputStream::BufferedInputStream(InputStream *input)
-: m_have(0),
+: m_input(input),
+  m_have(0),
   INITIAL_BUFFER_SIZE(100000),
   MAX_BUFFER_SIZE(10000000),
   m_buffer(INITIAL_BUFFER_SIZE),
   m_pos(0)
 {
-  m_input = new DataInputStream(input);
 }
 
 BufferedInputStream::~BufferedInputStream() {
-  delete m_input;
 }
 
 size_t BufferedInputStream::available() {
@@ -44,19 +43,19 @@ size_t BufferedInputStream::read(void *buffer, size_t len) {
   }  
   // FIXME: available() sometimes does not work for POCO 
   // Websocket (always for secure connection).
-  size_t need = m_input->available();
+  size_t need = m_input.available();
   if (need > INITIAL_BUFFER_SIZE) {
     m_buffer.resize(std::min(need, MAX_BUFFER_SIZE));
   }
   try {
-    m_have = m_input->read(&m_buffer[0], m_buffer.size());
+    m_have = m_input.read(&m_buffer[0], m_buffer.size());
   }
   catch (Exception &e) { 
     if (m_buffer.size() == MAX_BUFFER_SIZE) {
       throw e;
     }
     m_buffer.resize(MAX_BUFFER_SIZE);
-    m_have = m_input->read(&m_buffer[0], m_buffer.size());
+    m_have = m_input.read(&m_buffer[0], m_buffer.size());
   }
   size_t remain = std::min(m_have, len - copied);
   memcpy(&buf[copied], &m_buffer[0], remain);
