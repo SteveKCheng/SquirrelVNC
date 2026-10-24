@@ -26,16 +26,13 @@
 #include <vector>
 
 WinClipboard::WinClipboard(HWND hwnd) 
-  : m_hndClipboard(0), m_hWnd(hwnd)
+  : m_hWnd(hwnd)
 {
 }
 
 WinClipboard::~WinClipboard() 
 {
-  if (m_hndClipboard) {
-    EmptyClipboard();
-    GlobalFree(m_hndClipboard);
-  }
+  // Nothing to free: text put on the clipboard belongs to the system.
 }
 
 void WinClipboard::setHWnd(HWND hwnd)
@@ -51,27 +48,34 @@ bool WinClipboard::getString(StringStorage *str)
   if (sizeof(TCHAR) == 1) {
     strType = CF_TEXT;
   }
-  int uFormat = GetPriorityClipboardFormat(&strType, sizeof(UINT));
+  // The size is the number of formats in the list.
+  int uFormat = GetPriorityClipboardFormat(&strType, 1);
 
   if (uFormat == 0 || uFormat == -1) {
      return false;
   }
-  if (OpenClipboard(m_hWnd)) {
-     HANDLE hndData = GetClipboardData(uFormat); 
-
-     if (hndData) {
-        TCHAR *szData = (TCHAR *)GlobalLock(hndData); 
-        StringStorage nativeClipboard = szData;
-        //str->setString(szData);
-        GlobalUnlock(hndData); 
-        CloseClipboard();
-        *str = removeCR(&nativeClipboard);
-        return true;
-      }
-    CloseClipboard();
+  if (!OpenClipboard(m_hWnd)) {
     return false;
   }
-  return false;
+  bool isOk = false;
+  StringStorage nativeClipboard;
+  HANDLE hndData = GetClipboardData(uFormat);
+  if (hndData != 0) {
+    const TCHAR *data = static_cast<const TCHAR *>(GlobalLock(hndData));
+    if (data != 0) {
+      // The text should end with a null character, but whoever put it
+      // there may not have done so: read no further than its memory.
+      size_t length = _tcsnlen(data, GlobalSize(hndData) / sizeof(TCHAR));
+      nativeClipboard = StringStorage(StringStorage::StdString(data, length));
+      GlobalUnlock(hndData);
+      isOk = true;
+    }
+  }
+  CloseClipboard();
+  if (isOk) {
+    *str = removeCR(&nativeClipboard);
+  }
+  return isOk;
 }
 
 bool WinClipboard::setString(const StringStorage *serverClipboard)
@@ -83,24 +87,35 @@ bool WinClipboard::setString(const StringStorage *serverClipboard)
   if (sizeof(TCHAR) == 1) {
      dataType = CF_TEXT;
   }
-  int strLength = static_cast<int>(nativeClipboard.getLength()) + 1;
-  int dataSize = strLength * sizeof(TCHAR);
+  // With the terminating null character.
+  size_t dataSize = (nativeClipboard.getLength() + 1) * sizeof(TCHAR);
 
-  if (OpenClipboard(m_hWnd)) {
-     if (m_hndClipboard) {
-         EmptyClipboard();
-         GlobalFree(m_hndClipboard);
-      }
-      m_hndClipboard = GlobalAlloc(GMEM_MOVEABLE, dataSize);
-      TCHAR* dst = (TCHAR*)GlobalLock(m_hndClipboard);
-      if (dst)
-        CopyMemory(dst, nativeClipboard.getString(), dataSize);
-      GlobalUnlock(m_hndClipboard);
-      SetClipboardData(dataType, m_hndClipboard);
-      CloseClipboard();
-      return true;
+  HGLOBAL hndData = GlobalAlloc(GMEM_MOVEABLE, dataSize);
+  if (hndData == 0) {
+    return false;
   }
-  return false;
+  TCHAR *dst = static_cast<TCHAR *>(GlobalLock(hndData));
+  if (dst == 0) {
+    GlobalFree(hndData);
+    return false;
+  }
+  CopyMemory(dst, nativeClipboard.getString(), dataSize);
+  GlobalUnlock(hndData);
+
+  if (!OpenClipboard(m_hWnd)) {
+    GlobalFree(hndData);
+    return false;
+  }
+  // EmptyClipboard() makes m_hWnd the owner, which SetClipboardData()
+  // needs, and removes the other formats of what was there before.
+  bool isOk = EmptyClipboard() && SetClipboardData(dataType, hndData) != 0;
+  CloseClipboard();
+  // Only once SetClipboardData() succeeds does the memory belong to the
+  // system, which then frees it when the clipboard is next emptied.
+  if (!isOk) {
+    GlobalFree(hndData);
+  }
+  return isOk;
 }
 
 StringStorage WinClipboard::addCR(const StringStorage *str)

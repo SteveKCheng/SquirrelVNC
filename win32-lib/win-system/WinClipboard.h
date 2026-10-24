@@ -35,10 +35,22 @@ public:
 
   void setHWnd(HWND hwnd);
   
-  // get string from windows clipboard
+  //
+  // Post-conditions: returns true and sets *str to the text on the
+  // clipboard, with CR+LF as LF, up to its first null character or the
+  // end of the clipboard's memory; returns false, leaving *str unchanged,
+  // if there is no text or the clipboard cannot be opened.
+  //
   bool getString(StringStorage *str);
 
-  // update windows clipboard
+  //
+  // Puts the text of str on the clipboard, with LF as CR+LF, in place of
+  // all its contents.
+  //
+  // Post-conditions: returns true if the clipboard holds the text; false,
+  // leaving the clipboard unchanged, if it could not be put there. The
+  // memory given to the clipboard then belongs to the system.
+  //
   bool setString(const StringStorage *str);
 
 protected:
@@ -52,7 +64,6 @@ protected:
   // function replaced LF to CR+LF. If before LF already is CR, this not added second
   StringStorage addCR(const StringStorage *str);
 
-  HANDLE m_hndClipboard;
   HWND m_hWnd;
 };
 
