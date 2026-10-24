@@ -1021,12 +1021,18 @@ bool ViewerWindow::onAuthError(WPARAM wParam)
       if (!m_conData->isIncoming()) {
         // Retry connect to remote host.
         m_requiresReconnect = true;
-        ConnectionData *connectionData = new ConnectionData(*m_conData);
+        std::unique_ptr<ConnectionData> connectionData =
+          std::make_unique<ConnectionData>(*m_conData);
         connectionData->resetPassword();
-        ConnectionConfig *connectionConfig = new ConnectionConfig(*m_conConf);
-        m_application->postMessage(TvnViewer::WM_USER_RECONNECT,
-                                   (WPARAM)connectionData,
-                                   (LPARAM)connectionConfig);
+        std::unique_ptr<ConnectionConfig> connectionConfig =
+          std::make_unique<ConnectionConfig>(*m_conConf);
+        // The handler of the message takes them over, once it is posted.
+        if (m_application->postMessage(TvnViewer::WM_USER_RECONNECT,
+                                       (WPARAM)connectionData.get(),
+                                       (LPARAM)connectionConfig.get())) {
+          (void)connectionData.release();
+          (void)connectionConfig.release();
+        }
       }
     }
   }

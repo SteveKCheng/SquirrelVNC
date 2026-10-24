@@ -98,9 +98,9 @@ void WindowsApplication::shutdown()
   PostMessage(m_mainWindow, WM_CLOSE, 0, 0);
 }
 
-void WindowsApplication::postMessage(UINT message, WPARAM wParam, LPARAM lParam)
+bool WindowsApplication::postMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
-  PostMessage(m_mainWindow, message, wParam, lParam);
+  return PostMessage(m_mainWindow, message, wParam, lParam) != 0;
 }
 
 void WindowsApplication::addModelessDialog(HWND dialogWindow)

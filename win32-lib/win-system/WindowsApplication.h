@@ -63,8 +63,10 @@ public:
 
   /**
    * Posts message to main window.
+   * Post-conditions: returns true if it was posted (PostMessage() did not
+   * fail); a message that was not is never handled.
    */
-  virtual void postMessage(UINT message, WPARAM wParam = 0, LPARAM lParam = 0);
+  virtual bool postMessage(UINT message, WPARAM wParam = 0, LPARAM lParam = 0);
 
   /**
    * Adds modeless dialog to application modeless dialog list to

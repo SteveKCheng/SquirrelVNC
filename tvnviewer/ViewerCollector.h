@@ -26,9 +26,10 @@
 
 #include "thread/LocalMutex.h"
 #include <list>
+#include <memory>
 #include "ViewerInstance.h"
 
-typedef std::list<ViewerInstance *> InstanceList;
+typedef std::list<std::unique_ptr<ViewerInstance> > InstanceList;
 
 // Collector instances.
 class ViewerCollector
@@ -37,8 +38,8 @@ public:
   ViewerCollector();
   virtual ~ViewerCollector();
 
-  // Adds instance to a self list.
-  void addInstance(ViewerInstance *instance);
+  // Adds instance to a self list, which owns it from then on.
+  void addInstance(std::unique_ptr<ViewerInstance> instance);
 
   // Forces terminates all instances, waits until they dies and than
   // delete them from memory and thread list.

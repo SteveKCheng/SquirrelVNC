@@ -34,10 +34,10 @@ ViewerCollector::~ViewerCollector()
   destroyAllInstances();
 }
 
-void ViewerCollector::addInstance(ViewerInstance *viewerInstance)
+void ViewerCollector::addInstance(std::unique_ptr<ViewerInstance> viewerInstance)
 {
   AutoLock l(&m_lockObj);
-  m_instances.push_back(viewerInstance);
+  m_instances.push_back(std::move(viewerInstance));
 }
 
 void ViewerCollector::deleteDeadInstances()
@@ -46,12 +46,11 @@ void ViewerCollector::deleteDeadInstances()
 
   InstanceList::iterator iter = m_instances.begin();
   while (iter != m_instances.end()) {
-    ViewerInstance *instance = *iter;
+    ViewerInstance *instance = iter->get();
     if (instance->isStopped()) {
       if (instance->requiresReconnect()) {
         ++m_countToReconnect;
       }
-      delete instance;
       iter = m_instances.erase(iter);
     } else {
       iter++;

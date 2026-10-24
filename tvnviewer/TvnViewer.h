@@ -142,7 +142,7 @@ protected:
   HACCEL m_hAccelTable;
 
 private:
-  void addInstance(ViewerInstance *viewerInstance);
+  void addInstance(std::unique_ptr<ViewerInstance> viewerInstance);
 
   bool m_isListening;
   

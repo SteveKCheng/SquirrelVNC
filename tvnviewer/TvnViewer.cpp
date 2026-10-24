@@ -126,17 +126,18 @@ void TvnViewer::stopListening()
   }
 }
 
-void TvnViewer::addInstance(ViewerInstance *viewerInstance)
+void TvnViewer::addInstance(std::unique_ptr<ViewerInstance> viewerInstance)
 {
-  m_instances.addInstance(viewerInstance);
+  m_instances.addInstance(std::move(viewerInstance));
 }
 
 void TvnViewer::runInstance(const ConnectionData *conData, const ConnectionConfig *config)
 {
-  ViewerInstance *viewerInst = new ViewerInstance(this, conData, config);
+  std::unique_ptr<ViewerInstance> viewerInst =
+    std::make_unique<ViewerInstance>(this, conData, config);
   viewerInst->start();
 
-  addInstance(viewerInst);
+  addInstance(std::move(viewerInst));
 }
 
 bool TvnViewer::isVisibleLoginDialog() const
@@ -283,12 +284,13 @@ void TvnViewer::newListeningConnection()
   if (m_conListener) {
     std::unique_ptr<SocketIPv4> socket = m_conListener->getNewConnection();
     while (socket) {
-      ViewerInstance *viewerInst = new ViewerInstance(this,
-                                                      &connectionData,
-                                                      &connectionConfig,
-                                                      std::move(socket));
+      std::unique_ptr<ViewerInstance> viewerInst =
+        std::make_unique<ViewerInstance>(this,
+                                         &connectionData,
+                                         &connectionConfig,
+                                         std::move(socket));
       viewerInst->start();
-      addInstance(viewerInst);
+      addInstance(std::move(viewerInst));
 
       socket = m_conListener->getNewConnection();
     }
