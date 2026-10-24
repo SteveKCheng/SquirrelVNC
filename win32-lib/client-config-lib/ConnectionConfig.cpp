@@ -150,7 +150,7 @@ bool ConnectionConfig::isUsing8BitColor()
   return m_use8BitColor;
 }
 
-void ConnectionConfig::setCustomCompressionLevel(int level)
+int ConnectionConfig::clampLevel(int level)
 {
   // level in interval [0..9]
   // if compression is disable, then level is -1.
@@ -158,6 +158,12 @@ void ConnectionConfig::setCustomCompressionLevel(int level)
     level = 0;
   if (level > 9)
     level = 9;
+  return level;
+}
+
+void ConnectionConfig::setCustomCompressionLevel(int level)
+{
+  level = clampLevel(level);
 
   {
     AutoLock l(&m_cs);
@@ -167,12 +173,7 @@ void ConnectionConfig::setCustomCompressionLevel(int level)
 
 void ConnectionConfig::setJpegCompressionLevel(int level)
 {
-  // level in interval [0..9]
-  // if jpeg compression is disable, then level is -1.
-  if (level < -1)
-      level = 0;
-  if (level > 9)
-    level = 9;
+  level = clampLevel(level);
 
   {
     AutoLock l(&m_cs);
@@ -272,21 +273,37 @@ int ConnectionConfig::getScaleDenominator()
   return m_scaleDenominator;
 }
 
+void ConnectionConfig::normalizeScale(int *n, int *d)
+{
+  if ((*n < 1) || (*d < 1)) {
+    *n = *d = 1;
+  }
+
+  // In floating point, so that this cannot overflow.
+  double percent = (*n * 100.0) / *d;
+  if (percent > 400) {
+    *n = 400;
+    *d = 100;
+  } else if (percent < 1) {
+    // (n * 100) / d would be 0, which the scaling code divides by.
+    *n = 1;
+    *d = 100;
+  } else if (*n > MAX_SCALE_TERM || *d > MAX_SCALE_TERM) {
+    // n * 100 could overflow; the viewer scales by whole percents anyway.
+    // percent >= 1, so this is at least 1.
+    *n = static_cast<int>(percent + 0.5);
+    *d = 100;
+  }
+
+  int g = gcd(*n, *d);
+
+  *n /= g;
+  *d /= g;
+}
+
 void ConnectionConfig::setScale(int n, int d)
 {
-  if ((n < 1) || (d < 1)) {
-    n = d = 1;
-  }
-
-  if ((n * 100.0) / d > 400) {
-    n = 400;
-    d = 100;
-  }
-
-  int g = gcd(n, d);
-
-  n /= g;
-  d /= g;
+  normalizeScale(&n, &d);
 
   {
     AutoLock l(&m_cs);
@@ -355,18 +372,25 @@ bool ConnectionConfig::isIgnoringShapeUpdates()
   return m_ignoreShapeUpdates;
 }
 
-void ConnectionConfig::setLocalCursorShape(int cursorShape)
+bool ConnectionConfig::isValidLocalCursorShape(int cursorShape)
 {
   switch (cursorShape) {
   case NO_CURSOR:
   case DOT_CURSOR:
   case NORMAL_CURSOR:
   case SMALL_CURSOR:
-    break;
+    return true;
   default:
+    return false;
+  } // switch
+}
+
+void ConnectionConfig::setLocalCursorShape(int cursorShape)
+{
+  if (!isValidLocalCursorShape(cursorShape)) {
     cursorShape = DOT_CURSOR;
     _ASSERT(FALSE);
-  } // switch
+  }
 
   {
     AutoLock l(&m_cs);
@@ -449,11 +473,20 @@ bool ConnectionConfig::loadFromStorage(SettingsManager *sm)
 
   TEST_FAIL(sm->getInt(_T("local_cursor_shape"),   &m_localCursor), loadAllOk);
 
+  // The values above may come from a .vnc file from anywhere: make them
+  // valid as the setters do. Without this, scale_den=0 divided by zero.
+  m_customCompressionLevel = clampLevel(m_customCompressionLevel);
+  m_jpegCompressionLevel = clampLevel(m_jpegCompressionLevel);
+  normalizeScale(&m_scaleNumerator, &m_scaleDenominator);
+  if (!isValidLocalCursorShape(m_localCursor)) {
+    m_localCursor = DOT_CURSOR;
+  }
+
   return loadAllOk;
 }
 
 // Greatest common denominator, by Euclid
-int ConnectionConfig::gcd(int a, int b) const
+int ConnectionConfig::gcd(int a, int b)
 {
   if (a < b) {
     return gcd(b, a);

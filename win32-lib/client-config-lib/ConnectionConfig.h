@@ -75,11 +75,13 @@ public:
   // Sets custom compression level.
   // Remark: if level is equals to -1 than custom compression
   // will be disabled.
+  // Post: the level is clampLevel(level).
   void setCustomCompressionLevel(int level);
 
   // Sets jpeg compression level.
   // Remark: if level is equals to -1 than custom compression
   // will be disabled.
+  // Post: the level is clampLevel(level).
   void setJpegCompressionLevel(int level);
 
   // Returns custom compression level or -1 if custom compression is disabled.
@@ -121,6 +123,7 @@ public:
   int getScaleDenominator();
 
   // Sets scale in percent relative to original
+  // Post: the scale is n / d as normalizeScale() makes it.
   void setScale(int n, int d);
 
   //
@@ -157,6 +160,8 @@ public:
   bool isIgnoringShapeUpdates();
 
   // Sets local cursor shape
+  // Pre: cursorShape is one of the *_CURSOR values (asserted in debug).
+  // Post: the shape is cursorShape, or DOT_CURSOR if it is not valid.
   void setLocalCursorShape(int cursorShape);
   // Gets local cursor shape
   int getLocalCursorShape();
@@ -172,10 +177,30 @@ public:
   // Deserialize connection configuration from storage.
   // Return true if was no errors during deserializing,
   // false otherwise.
+  // The storage may be a .vnc file from anywhere, so the values are made
+  // valid as the setters make them: a missing value keeps the current one,
+  // and an invalid one is clamped or replaced by the default.
   bool loadFromStorage(SettingsManager *sm);
 private:
   // FIXME: Move this method away from here.
-  int gcd(int a, int b) const;
+  // Pre: a >= 0 and b >= 0.
+  static int gcd(int a, int b);
+
+  // Post: returns level clamped to -1..9; below -1 gives 0, as the
+  // setters always did.
+  static int clampLevel(int level);
+
+  // Post: *n / *d is the scale given, or 1 / 1 if either was below 1,
+  // clamped to 1% .. 400%, in lowest terms, with *n and *d at most
+  // MAX_SCALE_TERM, rounding to a whole percent where they were larger.
+  // So *n * 100 cannot overflow an int, and (*n * 100) / *d is at least 1,
+  // which the scaling code divides by.
+  static void normalizeScale(int *n, int *d);
+
+  // Post: returns true if cursorShape is one of the *_CURSOR values.
+  static bool isValidLocalCursorShape(int cursorShape);
+
+  static const int MAX_SCALE_TERM = 10000;
 
 protected:
 
