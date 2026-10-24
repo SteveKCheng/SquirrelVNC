@@ -86,7 +86,7 @@ void StringStorage::setString(const TCHAR *string)
   m_string = std::move(copy);
 }
 
-const TCHAR *StringStorage::getString() const
+_Ret_z_ const TCHAR *StringStorage::getString() const
 {
   return m_string.c_str();
 }
@@ -239,7 +239,7 @@ void StringStorage::toLowerCase()
   }
 }
 
-void StringStorage::format(const TCHAR *format, ...)
+void StringStorage::format(_Printf_format_string_ const TCHAR *format, ...)
 {
   va_list vl;
 
