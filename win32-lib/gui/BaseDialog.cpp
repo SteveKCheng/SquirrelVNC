@@ -30,17 +30,17 @@
 #include <crtdbg.h>
 
 BaseDialog::BaseDialog()
-  : BaseDialog(static_cast<DWORD>(0))
+  : BaseDialog(0)
 {
 }
 
-BaseDialog::BaseDialog(DWORD resourceId)
+BaseDialog::BaseDialog(WORD resourceId)
 : m_ctrlParent(nullptr), m_resourceId(resourceId), m_hicon(nullptr),
   m_hiconSmall(nullptr), m_isModal(false)
 {
 }
 
-void BaseDialog::setResourceId(DWORD id)
+void BaseDialog::setResourceId(WORD id)
 {
   m_resourceId = id;
 }

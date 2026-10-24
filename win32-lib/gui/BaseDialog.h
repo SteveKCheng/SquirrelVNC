@@ -35,7 +35,7 @@ public:
   BaseDialog();
   // Constructs a dialog to be loaded from the DIALOG resource resourceId.
   // The pre-condition on resourceId is as for setResourceId().
-  BaseDialog(DWORD resourceId);
+  explicit BaseDialog(WORD resourceId);
   BaseDialog(const BaseDialog &) = delete;
   BaseDialog &operator=(const BaseDialog &) = delete;
   BaseDialog(BaseDialog &&) = delete;
@@ -68,11 +68,11 @@ public:
   // Sets the ID of the DIALOG resource, in this executable's module, that
   // create(), show() and showModal() load the dialog template from.
   //
-  // Pre-condition: id is in 1..65535, because MAKEINTRESOURCE keeps only
-  // the low 16 bits (and 0 means "not set").  The ID is read only when the
-  // dialog window is created, so changing it afterwards has no effect on
-  // the existing window.
-  void setResourceId(DWORD id);
+  // Pre-condition: id is not 0, which means "not set".  (The type is WORD
+  // because integer resource IDs are 16-bit: MAKEINTRESOURCE keeps only
+  // the low 16 bits.)  The ID is read only when the dialog window is
+  // created, so changing it afterwards has no effect on the existing window.
+  void setResourceId(WORD id);
   // Return
   Control *getControl() { return &m_ctrlThis; }
   // Setup control by ID
@@ -111,7 +111,7 @@ protected:
 
 protected:
 
-  DWORD m_resourceId;            // Id of dialog resource
+  WORD m_resourceId;             // Id of dialog resource
   Control m_ctrlThis;           // This dialog control
   Control *m_ctrlParent;        // Parent dialog or NULL if no parent
 
