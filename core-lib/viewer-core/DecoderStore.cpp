@@ -35,15 +35,10 @@ DecoderStore::DecoderStore(LogWriter *logWriter)
 
 DecoderStore::~DecoderStore()
 {
+  // The decoders are freed with m_decoders.
   try {
-    for (std::map<INT32, std::pair<int, Decoder *> >::iterator i = m_decoders.begin();
-         i != m_decoders.end();
-         i++) {
-      m_logWriter->detail(_T("Decoder '%d' destroyed"), i->second.second->getCode());
-      try {
-        delete i->second.second;
-      } catch (...) {
-      }
+    for (const auto &decoder : m_decoders) {
+      m_logWriter->detail(_T("Decoder '%d' destroyed"), decoder.first);
     }
   } catch (...) {
   }
@@ -51,8 +46,9 @@ DecoderStore::~DecoderStore()
 
 Decoder *DecoderStore::getDecoder(INT32 decoderId)
 {
-  if (m_decoders.count(decoderId))
-    return m_decoders[decoderId].second;
+  auto found = m_decoders.find(decoderId);
+  if (found != m_decoders.end())
+    return found->second.second.get();
   else
     return 0;
 }
@@ -63,9 +59,7 @@ std::vector<INT32> DecoderStore::getDecoderIds()
   // in first position is preffered encoding.
   std::vector<std::pair<int, INT32> > decoders;
 
-  for (std::map<INT32, std::pair <int, Decoder *> >::iterator i = m_decoders.begin();
-       i != m_decoders.end();
-       i++) {
+  for (auto i = m_decoders.begin(); i != m_decoders.end(); i++) {
     // preferred encoding is skipping
     if (i->first != m_preferredEncoding) {
       // copy rect is allowed?
@@ -75,7 +69,7 @@ std::vector<INT32> DecoderStore::getDecoderIds()
   }
   std::sort(decoders.begin(), decoders.end(), std::greater<std::pair<int,INT32> >());
   std::vector<INT32> sortedDecoders;
-  std::map<INT32, std::pair<int, Decoder *> >::iterator priorityEnc = m_decoders.find(m_preferredEncoding);
+  auto priorityEnc = m_decoders.find(m_preferredEncoding);
   if (priorityEnc != m_decoders.end())
     sortedDecoders.push_back(priorityEnc->first);
   for (std::vector<std::pair<INT32, int> >::iterator i = decoders.begin();
@@ -88,24 +82,18 @@ std::vector<INT32> DecoderStore::getDecoderIds()
   return sortedDecoders;
 }
 
-bool DecoderStore::addDecoder(Decoder *decoder, int priority)
+bool DecoderStore::addDecoder(std::unique_ptr<Decoder> decoder, int priority)
 {
-  m_logWriter->detail(_T("Decoder %d added"), decoder->getCode());
-  if (m_decoders.count(decoder->getCode()) == 0) {
-    m_decoders[decoder->getCode()] = std::make_pair(priority, decoder);
-    return true;
-  }
-  delete decoder;
-  return false;
+  INT32 code = decoder->getCode();
+  m_logWriter->detail(_T("Decoder %d added"), code);
+  // Does nothing, and decoder is freed, if the code is already there.
+  return m_decoders.try_emplace(code, priority, std::move(decoder)).second;
 }
 
 bool DecoderStore::removeDecoder(INT32 decoderId)
 {
-  if (m_decoders.count(decoderId)) {
-    m_logWriter->detail(_T("Decoder '%d' destroyed (removed from list)"),
-                        m_decoders[decoderId].second->getCode());
-    delete m_decoders[decoderId].second;
-    m_decoders.erase(decoderId);
+  if (m_decoders.erase(decoderId) != 0) {
+    m_logWriter->detail(_T("Decoder '%d' destroyed (removed from list)"), decoderId);
     return true;
   }
   return false;

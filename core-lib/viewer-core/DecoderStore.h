@@ -25,6 +25,7 @@
 #define _DECODER_STORE_H_
 
 #include <map>
+#include <memory>
 #include <vector>
 
 #include "Decoder.h"
@@ -41,12 +42,11 @@ public:
   std::vector<INT32> getDecoderIds();
   
   //
-  // Pre-conditions: newDecoder was made with new (not new[]), and the
-  // caller gives up ownership of it.
+  // Pre-conditions: newDecoder is not empty.
   // Post-conditions: returns true, and keeps newDecoder, if no decoder of
   // its code was stored; otherwise destroys newDecoder and returns false.
   //
-  bool addDecoder(Decoder *newDecoder, int priority);
+  bool addDecoder(std::unique_ptr<Decoder> newDecoder, int priority);
   // return true, if deleting is complete
   // return false, if decoder not exist
   bool removeDecoder(INT32 decoderId);
@@ -57,7 +57,8 @@ public:
 private:
   LogWriter *m_logWriter;
 
-  std::map<INT32, std::pair<int, Decoder*> > m_decoders;
+  // For each code, the decoder's priority and the decoder.
+  std::map<INT32, std::pair<int, std::unique_ptr<Decoder> > > m_decoders;
   INT32 m_preferredEncoding;
   bool m_allowCopyRect;
 };

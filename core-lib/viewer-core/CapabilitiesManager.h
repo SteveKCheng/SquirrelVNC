@@ -27,6 +27,7 @@
 #include "util/CommonHeader.h"
 #include "util/inttypes.h"
 
+#include <memory>
 #include <vector>
 
 class AuthHandler;
@@ -73,8 +74,10 @@ public:
   // This function add encoding capability and decoder handler.
   // Parameter "priorityEncoding" define priority of encoding.
   // Encoding send to order in decrease of priority.
+  // The decoder is owned from then on, and goes to the decoder store
+  // if the server enables the encoding.
   //
-  virtual void addEncodingCapability(Decoder *decoder,
+  virtual void addEncodingCapability(std::unique_ptr<Decoder> decoder,
                                      int priorityEncoding,
                                      UINT32 code,
                                      const char *vendorSignature,

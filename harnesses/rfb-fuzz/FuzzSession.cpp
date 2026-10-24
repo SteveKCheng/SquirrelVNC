@@ -67,16 +67,16 @@ void FuzzSession::run(const UINT8 *data, size_t size)
   // New decoders for each input, so that their state (the zlib streams of
   // Tight and ZRLE) starts fresh. Mirrors RemoteViewerCore::init().
   DecoderStore decoderStore(&m_logWriter);
-  decoderStore.addDecoder(new RawDecoder(&m_logWriter), 0);
-  decoderStore.addDecoder(new CopyRectDecoder(&m_logWriter), 10);
-  decoderStore.addDecoder(new RreDecoder(&m_logWriter), 1);
-  decoderStore.addDecoder(new HexTileDecoder(&m_logWriter), 4);
-  decoderStore.addDecoder(new TightDecoder(&m_logWriter), 9);
-  decoderStore.addDecoder(new ZrleDecoder(&m_logWriter), 9);
-  decoderStore.addDecoder(new DesktopSizeDecoder(&m_logWriter), -1);
-  decoderStore.addDecoder(new LastRectDecoder(&m_logWriter), -1);
-  decoderStore.addDecoder(new PointerPosDecoder(&m_logWriter), -1);
-  decoderStore.addDecoder(new RichCursorDecoder(&m_logWriter), -1);
+  decoderStore.addDecoder(std::make_unique<RawDecoder>(&m_logWriter), 0);
+  decoderStore.addDecoder(std::make_unique<CopyRectDecoder>(&m_logWriter), 10);
+  decoderStore.addDecoder(std::make_unique<RreDecoder>(&m_logWriter), 1);
+  decoderStore.addDecoder(std::make_unique<HexTileDecoder>(&m_logWriter), 4);
+  decoderStore.addDecoder(std::make_unique<TightDecoder>(&m_logWriter), 9);
+  decoderStore.addDecoder(std::make_unique<ZrleDecoder>(&m_logWriter), 9);
+  decoderStore.addDecoder(std::make_unique<DesktopSizeDecoder>(&m_logWriter), -1);
+  decoderStore.addDecoder(std::make_unique<LastRectDecoder>(&m_logWriter), -1);
+  decoderStore.addDecoder(std::make_unique<PointerPosDecoder>(&m_logWriter), -1);
+  decoderStore.addDecoder(std::make_unique<RichCursorDecoder>(&m_logWriter), -1);
 
   // A new frame buffer for each input too: before ServerInit it is empty.
   FrameBuffer frameBuffer;

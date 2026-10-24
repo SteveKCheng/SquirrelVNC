@@ -422,7 +422,7 @@ public:
                                       const char *nameSignature,
                                       const StringStorage description = _T(""));
 
-  virtual void addEncodingCapability(Decoder *decoder,
+  virtual void addEncodingCapability(std::unique_ptr<Decoder> decoder,
                                      int priorityEncoding,
                                      UINT32 code,
                                      const char *vendorSignature,
@@ -655,7 +655,7 @@ private:
   //
   // This method add pair <code, decoder> to map m_decoderHandlers.
   //
-  void registerDecoderHandler(const UINT32 code, Decoder *decoder, int priority);
+  void registerDecoderHandler(const UINT32 code, std::unique_ptr<Decoder> decoder, int priority);
 
   LogWriter m_logWriter;
 
@@ -684,7 +684,8 @@ private:
   std::map<UINT32, ServerMessageListener *> m_serverMsgHandlers;
 
   CapsContainer m_encodingCaps;
-  std::map<UINT32, Decoder *> m_decoderHandlers;
+  // Moved to m_decoderStore when the server enables the encoding.
+  std::map<UINT32, std::unique_ptr<Decoder> > m_decoderHandlers;
   std::map<UINT32, int> m_decoderPriority;
 
   // This flag is set after call start().

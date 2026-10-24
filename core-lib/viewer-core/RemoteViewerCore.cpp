@@ -127,17 +127,17 @@ RemoteViewerCore::RemoteViewerCore(RfbInputGate *input, RfbOutputGate *output,
 
 void RemoteViewerCore::init()
 {
-  m_decoderStore.addDecoder(new RawDecoder(&m_logWriter), 0);
-  m_decoderStore.addDecoder(new CopyRectDecoder(&m_logWriter), 10);
-  m_decoderStore.addDecoder(new RreDecoder(&m_logWriter), 1);
-  m_decoderStore.addDecoder(new HexTileDecoder(&m_logWriter), 4);
-  m_decoderStore.addDecoder(new TightDecoder(&m_logWriter), 9);
-  m_decoderStore.addDecoder(new ZrleDecoder(&m_logWriter), 9);
+  m_decoderStore.addDecoder(std::make_unique<RawDecoder>(&m_logWriter), 0);
+  m_decoderStore.addDecoder(std::make_unique<CopyRectDecoder>(&m_logWriter), 10);
+  m_decoderStore.addDecoder(std::make_unique<RreDecoder>(&m_logWriter), 1);
+  m_decoderStore.addDecoder(std::make_unique<HexTileDecoder>(&m_logWriter), 4);
+  m_decoderStore.addDecoder(std::make_unique<TightDecoder>(&m_logWriter), 9);
+  m_decoderStore.addDecoder(std::make_unique<ZrleDecoder>(&m_logWriter), 9);
 
-  m_decoderStore.addDecoder(new DesktopSizeDecoder(&m_logWriter), -1);
-  m_decoderStore.addDecoder(new LastRectDecoder(&m_logWriter), -1);
-  m_decoderStore.addDecoder(new PointerPosDecoder(&m_logWriter), -1);
-  m_decoderStore.addDecoder(new RichCursorDecoder(&m_logWriter), -1);
+  m_decoderStore.addDecoder(std::make_unique<DesktopSizeDecoder>(&m_logWriter), -1);
+  m_decoderStore.addDecoder(std::make_unique<LastRectDecoder>(&m_logWriter), -1);
+  m_decoderStore.addDecoder(std::make_unique<PointerPosDecoder>(&m_logWriter), -1);
+  m_decoderStore.addDecoder(std::make_unique<RichCursorDecoder>(&m_logWriter), -1);
   m_input = 0;
   m_output = 0;
 
@@ -465,7 +465,7 @@ void RemoteViewerCore::setCompressionLevel(int newLevel)
       newLevel > CompressionLevel::COMPRESSION_LEVEL_MAX)
     return;
 
-  needUpdate |= m_decoderStore.addDecoder(new CompressionLevel(&m_logWriter, newLevel), -1);
+  needUpdate |= m_decoderStore.addDecoder(std::make_unique<CompressionLevel>(&m_logWriter, newLevel), -1);
   if (needUpdate) {
     sendEncodings();
   }
@@ -485,7 +485,7 @@ void RemoteViewerCore::setJpegQualityLevel(int newLevel)
       newLevel > JpegQualityLevel::JPEG_QUALITY_LEVEL_MAX)
     return;
 
-  needUpdate |= m_decoderStore.addDecoder(new JpegQualityLevel(&m_logWriter, newLevel), -1);
+  needUpdate |= m_decoderStore.addDecoder(std::make_unique<JpegQualityLevel>(&m_logWriter, newLevel), -1);
   if (needUpdate) {
     sendEncodings();
   }
@@ -495,8 +495,8 @@ void RemoteViewerCore::enableCursorShapeUpdates(bool enabled)
 {
   bool needUpdate = false;
   if (enabled) {
-    needUpdate |= m_decoderStore.addDecoder(new RichCursorDecoder(&m_logWriter), -1);
-    needUpdate |= m_decoderStore.addDecoder(new PointerPosDecoder(&m_logWriter), -1);
+    needUpdate |= m_decoderStore.addDecoder(std::make_unique<RichCursorDecoder>(&m_logWriter), -1);
+    needUpdate |= m_decoderStore.addDecoder(std::make_unique<PointerPosDecoder>(&m_logWriter), -1);
   } else {
     needUpdate |= m_decoderStore.removeDecoder(PseudoEncDefs::RICH_CURSOR);
     needUpdate |= m_decoderStore.removeDecoder(PseudoEncDefs::POINTER_POS);
@@ -1438,8 +1438,11 @@ void RemoteViewerCore::readCapabilities()
 
   // Add active encoding-capabilities in DecoderStore.
   for (size_t i = 0; i < m_encodingCaps.numEnabled(); i++) {
-    m_decoderStore.addDecoder(m_decoderHandlers[m_encodingCaps.getByOrder(i)],
-                              m_decoderPriority[m_encodingCaps.getByOrder(i)]);
+    UINT32 code = m_encodingCaps.getByOrder(i);
+    auto handler = m_decoderHandlers.find(code);
+    if (handler != m_decoderHandlers.end() && handler->second) {
+      m_decoderStore.addDecoder(std::move(handler->second), m_decoderPriority[code]);
+    }
   }
 }
 
@@ -1493,7 +1496,7 @@ void RemoteViewerCore::addClientMsgCapability(UINT32 code,
   m_clientMsgCaps.add(code, vendorSignature, nameSignature, description);
 }
 
-void RemoteViewerCore::addEncodingCapability(Decoder *decoder,
+void RemoteViewerCore::addEncodingCapability(std::unique_ptr<Decoder> decoder,
                                              int priorityEncoding,
                                              UINT32 code,
                                              const char *vendorSignature,
@@ -1501,7 +1504,7 @@ void RemoteViewerCore::addEncodingCapability(Decoder *decoder,
                                              const StringStorage description)
 {
   m_encodingCaps.add(code, vendorSignature, nameSignature, description);
-  registerDecoderHandler(code, decoder, priorityEncoding);
+  registerDecoderHandler(code, std::move(decoder), priorityEncoding);
 }
 
 void RemoteViewerCore::getEnabledClientMsgCapabilities(std::vector<UINT32> *codes) const
@@ -1529,9 +1532,9 @@ void RemoteViewerCore::registerMessageListener(UINT32 code, ServerMessageListene
   m_serverMsgHandlers[code] = listener;
 }
 
-void RemoteViewerCore::registerDecoderHandler(UINT32 code, Decoder *decoder, int priority)
+void RemoteViewerCore::registerDecoderHandler(UINT32 code, std::unique_ptr<Decoder> decoder, int priority)
 {
-  m_decoderHandlers[code] = decoder;
+  m_decoderHandlers[code] = std::move(decoder);
   m_decoderPriority[code] = priority;
 }
 

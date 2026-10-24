@@ -38,15 +38,15 @@ void runDecoderStoreTests()
   LogWriter logWriter(0);
   DecoderStore store(&logWriter);
 
-  check(store.addDecoder(new RawDecoder(&logWriter), 0),
+  check(store.addDecoder(std::make_unique<RawDecoder>(&logWriter), 0),
         "DecoderStore adds a decoder");
   check(store.getDecoder(EncodingDefs::RAW) != 0,
         "DecoderStore finds the decoder added");
-  check(store.addDecoder(new RichCursorDecoder(&logWriter), -1),
+  check(store.addDecoder(std::make_unique<RichCursorDecoder>(&logWriter), -1),
         "DecoderStore adds a pseudo-decoder");
   // As RemoteViewerCore::enableCursorShapeUpdates() does when the
   // decoder is already there: the new one is destroyed.
-  check(!store.addDecoder(new RichCursorDecoder(&logWriter), -1),
+  check(!store.addDecoder(std::make_unique<RichCursorDecoder>(&logWriter), -1),
         "DecoderStore refuses a second decoder of the same code");
   check(store.removeDecoder(EncodingDefs::RAW), "DecoderStore removes a decoder");
   check(store.getDecoder(EncodingDefs::RAW) == 0,
