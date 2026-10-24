@@ -38,7 +38,7 @@
     <BuildDependency Project="core-lib/core-lib.vcxproj" />
     <BuildDependency Project="win32-lib/win32-lib.vcxproj" />
   </Project>
-  <Project Path="viewer-keysym-test/viewer-keysym-test.vcxproj" Id="10b3f744-b1b4-41fa-90d5-bc630cb19b6b">
+  <Project Path="harnesses/viewer-keysym-test/viewer-keysym-test.vcxproj" Id="10b3f744-b1b4-41fa-90d5-bc630cb19b6b">
     <BuildType Solution="ReleaseFuzz|*" Project="Release" />
     <Build Solution="ReleaseFuzz|*" Project="false" />
     <BuildDependency Project="core-lib/core-lib.vcxproj" />
