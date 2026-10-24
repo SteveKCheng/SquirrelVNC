@@ -46,5 +46,6 @@ void runHostPathTests();
 void runDecoderStoreTests();
 void runFileTests(const std::wstring &dir);
 void runFileInfoListTests();
+void runScopeExitTests();
 
 #endif // _UNIT_TEST_H_

@@ -64,6 +64,7 @@ int wmain()
     runDecoderStoreTests();
     runFileTests(dir);
     runFileInfoListTests();
+    runScopeExitTests();
   } catch (const Exception &e) {
     printf("FAIL unexpected exception: %ls\n", e.getMessage());
     g_failures++;

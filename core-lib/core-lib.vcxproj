@@ -182,6 +182,7 @@
     <ClCompile Include="ft-client-lib\UploadOperation.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="util\ScopeExit.h" />
     <ClInclude Include="region\Dimension.h" />
     <ClInclude Include="region\Point.h" />
     <ClInclude Include="region\Rect.h" />

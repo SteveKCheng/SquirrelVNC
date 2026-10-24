@@ -19,6 +19,9 @@
     <Filter Include="viewer-core">
       <UniqueIdentifier>{efef4d93-652d-5fae-bb4e-cd6a7cbe593f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="util">
+      <UniqueIdentifier>{5c25ae08-ee4c-4b99-9429-e40e7e5c6210}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="region\Region.cpp">
@@ -280,6 +283,9 @@
     </ClInclude>
     <ClInclude Include="region\Region.h">
       <Filter>region</Filter>
+    </ClInclude>
+    <ClInclude Include="util\ScopeExit.h">
+      <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="region\x11region.h">
       <Filter>region</Filter>
