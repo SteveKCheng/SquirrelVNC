@@ -29,16 +29,32 @@
 
 #include "SettingsManager.h"
 
+#include <memory>
+
+//
+// Settings as the values of one registry key.
+//
+// Each name is a value name directly in the key (a backslash in it is
+// part of the name, not a path to a subkey). Integers, and so booleans,
+// UINTs and bytes, are REG_DWORD values; strings are REG_SZ.
+//
 class RegistrySettingsManager : public SettingsManager
 {
 public:
+  // Post-conditions: no key is set; every get and set fails until
+  // setRegistryKey() is called.
   RegistrySettingsManager();
-  RegistrySettingsManager(HKEY rootKey, const TCHAR *entry, SECURITY_ATTRIBUTES *sa = 0);
   virtual ~RegistrySettingsManager();
 
-public:
+  RegistrySettingsManager(const RegistrySettingsManager &) = delete;
+  RegistrySettingsManager &operator=(const RegistrySettingsManager &) = delete;
 
-  void setRegistryKey(HKEY rootKey, const TCHAR *entry, SECURITY_ATTRIBUTES *sa = 0);
+  //
+  // Post-conditions: the settings are the values of rootKey\entry, which
+  // is created if it does not exist. If it cannot be opened or created,
+  // every get and set fails.
+  //
+  void setRegistryKey(HKEY rootKey, const TCHAR *entry);
 
   virtual bool getString(const TCHAR *name, StringStorage *value);
   virtual bool setString(const TCHAR *name, const TCHAR *value);
@@ -54,11 +70,8 @@ public:
   virtual bool getByte(const TCHAR *name, char *value);
   virtual bool setByte(const TCHAR *name, char value);
 
-protected:
-  RegistryKey *m_key;
-
-  void extractKeyName(const TCHAR *key, StringStorage *folder);
-  void extractValueName(const TCHAR *key, StringStorage *keyName);
+private:
+  std::unique_ptr<RegistryKey> m_key;
 };
 
 #endif

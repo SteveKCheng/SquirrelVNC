@@ -22,85 +22,28 @@
 //
 
 #include "RegistrySettingsManager.h"
-#include "util/StringParser.h"
-#include <vector>
 
 RegistrySettingsManager::RegistrySettingsManager()
-: m_key(0)
 {
-}
-
-RegistrySettingsManager::RegistrySettingsManager(HKEY rootKey, const TCHAR *entry, SECURITY_ATTRIBUTES *sa)
-: m_key(0)
-{
-  setRegistryKey(rootKey, entry, sa);
 }
 
 RegistrySettingsManager::~RegistrySettingsManager()
 {
-  if (m_key != NULL) {
-    delete m_key;
-  }
 }
 
-void RegistrySettingsManager::setRegistryKey(HKEY rootKey, const TCHAR *entry, SECURITY_ATTRIBUTES *sa)
+void RegistrySettingsManager::setRegistryKey(HKEY rootKey, const TCHAR *entry)
 {
-  if (m_key != 0) {
-    delete m_key;
-  }
-
-  m_key = new RegistryKey(rootKey, entry, true, sa);
-}
-
-void RegistrySettingsManager::extractKeyName(const TCHAR *key, StringStorage *folder)
-{
-  std::vector<TCHAR> folderString(_tcslen(key) + 1);
-  memcpy(&folderString.front(), key, folderString.size() * sizeof(TCHAR));
-  TCHAR *token = _tcsrchr(&folderString.front(), _T('\\'));
-  if (token != NULL) {
-    *token = _T('\0');
-    folder->setString(&folderString.front());
-  } else {
-    folder->setString(_T(""));
-  }
-}
-
-void RegistrySettingsManager::extractValueName(const TCHAR *key, StringStorage *keyName)
-{
-  std::vector<TCHAR> nameString(_tcslen(key) + 1);
-  memcpy(&nameString.front(), key, nameString.size() * sizeof(TCHAR));
-  TCHAR *token = _tcsrchr(&nameString.front(), _T('\\'));
-  if (token != NULL) {
-    keyName->setString(++token);
-  } else {
-    keyName->setString((TCHAR *)key);
-  }
+  m_key = std::make_unique<RegistryKey>(rootKey, entry, true);
 }
 
 bool RegistrySettingsManager::getString(const TCHAR *name, StringStorage *value)
 {
-  StringStorage keyName;
-  StringStorage valueName;
-
-  extractKeyName(name, &keyName);
-  extractValueName(name, &valueName);
-
-  RegistryKey subKey(m_key, keyName.getString(), false);
-
-  return subKey.getValueAsString(valueName.getString(), value);
+  return m_key && m_key->getValueAsString(name, value);
 }
 
 bool RegistrySettingsManager::setString(const TCHAR *name, const TCHAR *value)
 {
-  StringStorage keyName;
-  StringStorage valueName;
-
-  extractKeyName(name, &keyName);
-  extractValueName(name, &valueName);
-
-  RegistryKey subKey(m_key, keyName.getString(), false);
-
-  return subKey.setValueAsString(name, value);
+  return m_key && m_key->setValueAsString(name, value);
 }
 
 bool RegistrySettingsManager::getBoolean(const TCHAR *name, bool *value)
@@ -125,28 +68,12 @@ bool RegistrySettingsManager::setUINT(const TCHAR *name, UINT value)
 
 bool RegistrySettingsManager::getInt(const TCHAR *name, int *value)
 {
-  StringStorage keyName;
-  StringStorage valueName;
-
-  extractKeyName(name, &keyName);
-  extractValueName(name, &valueName);
-
-  RegistryKey subKey(m_key, keyName.getString(), false);
-
-  return subKey.getValueAsInt32(valueName.getString(), value);
+  return m_key && m_key->getValueAsInt32(name, value);
 }
 
 bool RegistrySettingsManager::setInt(const TCHAR *name, int value)
 {
-  StringStorage keyName;
-  StringStorage valueName;
-
-  extractKeyName(name, &keyName);
-  extractValueName(name, &valueName);
-
-  RegistryKey subKey(m_key, keyName.getString(), false);
-
-  return subKey.setValueAsInt32(name, value);
+  return m_key && m_key->setValueAsInt32(name, value);
 }
 
 bool RegistrySettingsManager::getByte(const TCHAR *name, char *value)
