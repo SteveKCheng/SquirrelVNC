@@ -61,6 +61,7 @@ int wmain()
   try {
     runIniTests(dir);
     runHostPathTests();
+    runDecoderStoreTests();
   } catch (const Exception &e) {
     printf("FAIL unexpected exception: %ls\n", e.getMessage());
     g_failures++;

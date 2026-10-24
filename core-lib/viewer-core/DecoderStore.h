@@ -40,8 +40,12 @@ public:
   Decoder *getDecoder(INT32 decoderId);
   std::vector<INT32> getDecoderIds();
   
-  // return true, if adding is complete
-  // return false, if decoder already exist
+  //
+  // Pre-conditions: newDecoder was made with new (not new[]), and the
+  // caller gives up ownership of it.
+  // Post-conditions: returns true, and keeps newDecoder, if no decoder of
+  // its code was stored; otherwise destroys newDecoder and returns false.
+  //
   bool addDecoder(Decoder *newDecoder, int priority);
   // return true, if deleting is complete
   // return false, if decoder not exist
