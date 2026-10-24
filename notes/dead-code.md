@@ -275,3 +275,33 @@ git diff -U0 --diff-filter=M 630df21~1 20956d9 -- '*.cpp' | grep '^-[^-/ {}#	]'
   desktop in TightVNC's demo version. Everything that used them was
   inside `#ifdef _DEMO_VERSION_`, which nothing defines, so only an empty
   object was ever built. Found through its C4238 warnings at `/W4`.
+- **Settings storage** (`ff2b65d`, `700623c`, `9f7ab25`), after the
+  `.ini` files moved to SimpleIni (`string-encoding.md`). The viewer's
+  settings go through `SettingsManager` only as ints, booleans and bytes
+  (`ConnectionConfig`, `ViewerConfig`), and the `.vnc` code adds
+  strings and `setUINT()`; nothing else was called.
+  - **`SettingsManager`** and both implementations: `isOk()`,
+    `keyExist()`, `deleteKey()`, `getLong()`/`setLong()`, `getUINT()`
+    and `getBinaryData()`/`setBinaryData()`. In
+    `IniFileSettingsManager` the `long` and binary ones were stubs that
+    asserted.
+  - **`RegistrySettingsManager`:** the constructor taking a key and
+    `SECURITY_ATTRIBUTES`, that parameter of `setRegistryKey()`, and
+    `extractKeyName()`/`extractValueName()`, which split a name at its
+    last backslash into a subkey and a value name. No name has a
+    backslash, and the setters wrote the whole name rather than the
+    value name, so such a name would not have read back. Names are now
+    value names in the manager's key.
+  - **`RegistryKey`:** the 64-bit and binary values,
+    `deleteSubKeyTree()` (which also reported failure for a key without
+    subkeys), `getSubKeyNames()` and `enumKey()`, the constructors from
+    another `RegistryKey` or a bare `HKEY`, `open()` from another
+    `RegistryKey`, and the `SECURITY_ATTRIBUTES` parameters, which were
+    always null. What remains is what `ConnectionHistory`, `ViewerConfig`
+    and `RegistrySettingsManager` use.
+  - **`Registry`:** the value-type constants (`STRING_TYPE` and so on)
+    and its friendship with `RegistryKey`.
+
+  When the registry gives way to `default.ini`, `RegistryKey`,
+  `Registry`, `RegistrySettingsManager` and its two subclasses
+  (`ViewerSettingsManager`, `ConnectionConfigSM`) can go entirely.
