@@ -27,7 +27,6 @@
 
 #include "sockdefs.h"
 #include "SocketAddressIPv4.h"
-#include "SocketAddressIPv4.h"
 #include "SocketException.h"
 
 SocketAddressIPv4::SocketAddressIPv4()
