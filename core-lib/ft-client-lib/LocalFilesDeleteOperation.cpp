@@ -98,8 +98,10 @@ bool LocalFilesDeleteOperation::deleteFile(File *file)
   StringStorage pathToTargetFile;
   file->getPath(&pathToTargetFile);
 
-  // Remove files in directory first
-  if (file->isDirectory()) {
+  // Remove files in directory first. A link to a directory (a symbolic
+  // link or a junction) is removed as it is: what it points to is not
+  // part of what is deleted.
+  if (file->isDirectory() && !file->isLink()) {
     std::vector<StringStorage> files;
 
     if (file->list(&files)) {

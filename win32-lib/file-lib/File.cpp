@@ -117,6 +117,19 @@ bool File::isDirectory() const
   return false;
 }
 
+bool File::isLink() const
+{
+  // FindFirstFile() describes the link itself, not its target; for a
+  // reparse point, dwReserved0 holds its tag.
+  WIN32_FIND_DATA fileInfo;
+  if (!getFileInfo(&fileInfo) ||
+      (fileInfo.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) == 0) {
+    return false;
+  }
+  return fileInfo.dwReserved0 == IO_REPARSE_TAG_SYMLINK ||
+         fileInfo.dwReserved0 == IO_REPARSE_TAG_MOUNT_POINT;
+}
+
 void File::getPath(StringStorage *pathname) const
 {
   *pathname = m_pathName;

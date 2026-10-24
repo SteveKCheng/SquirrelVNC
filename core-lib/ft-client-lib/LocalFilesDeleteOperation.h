@@ -48,7 +48,9 @@ private:
 
   //
   // Deletes file, and first the files in it if it is a directory; a
-  // directory that cannot be listed is reported with notifyError().
+  // directory that cannot be listed is reported with notifyError(). A
+  // symbolic link or junction is deleted itself, without what it points
+  // to.
   //
   // Post-conditions: returns true if file was removed; false, after
   // notifyError(), if it could not be, or if the operation is terminating.

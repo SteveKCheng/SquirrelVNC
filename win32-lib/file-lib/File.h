@@ -79,6 +79,16 @@ public:
   bool isDirectory() const;
 
   /**
+  Tests whether this pathname names a symbolic link or a junction (a mount
+  point), to a file or a directory, rather than what the link points to.
+  Other reparse points, such as cloud-file placeholders, hold their own
+  contents and are not links.
+  Post-conditions: returns false if the file does not exist. remove()
+  removes the link itself, not its target.
+  */
+  bool isLink() const;
+
+  /**
   Returns full path to file or directory.
   @param pathname out parameter for path to file or directory.
   */

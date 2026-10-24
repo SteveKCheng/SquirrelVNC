@@ -29,6 +29,7 @@
 #include "file-lib/File.h"
 
 #include <algorithm>
+#include <stdlib.h>
 
 void runFileTests(const std::wstring &dir)
 {
@@ -59,6 +60,32 @@ void runFileTests(const std::wstring &dir)
   check(!File((dir + L"\\missing").c_str()).list(&unchanged) &&
         unchanged.size() == 1 && unchanged[0].isEqualTo(_T("x")),
         "File::list fails on a missing directory, leaving the list");
+
+  // A junction, which mklink makes without administrator rights (a
+  // symbolic link would need a privilege or developer mode).
+  std::wstring target = dir + L"\\target";
+  std::wstring targetFile = target + L"\\kept.txt";
+  std::wstring link = dir + L"\\link";
+  CreateDirectoryW(target.c_str(), 0);
+  HANDLE kept = CreateFileW(targetFile.c_str(), GENERIC_WRITE, 0, 0, CREATE_NEW,
+                            FILE_ATTRIBUTE_NORMAL, 0);
+  if (kept != INVALID_HANDLE_VALUE) {
+    CloseHandle(kept);
+  }
+  std::wstring mklink = L"mklink /J \"" + link + L"\" \"" + target + L"\" >nul";
+  bool made = _wsystem(mklink.c_str()) == 0;
+  check(made && File(link.c_str()).isLink() && File(link.c_str()).isDirectory(),
+        "File::isLink is true for a junction to a directory");
+  check(!File(target.c_str()).isLink() && !File(targetFile.c_str()).isLink(),
+        "File::isLink is false for a directory and a file");
+  check(!File((dir + L"\\missing").c_str()).isLink(),
+        "File::isLink is false for a missing file");
+  check(File(link.c_str()).remove() && !File(link.c_str()).exists() &&
+        File(targetFile.c_str()).exists(),
+        "File::remove removes a junction, not what it points to");
+  RemoveDirectoryW(link.c_str());
+  DeleteFileW(targetFile.c_str());
+  RemoveDirectoryW(target.c_str());
 
   std::vector<StringStorage> roots;
   bool rootsOk = File::listRoots(&roots) && !roots.empty();
