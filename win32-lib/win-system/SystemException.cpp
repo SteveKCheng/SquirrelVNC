@@ -62,22 +62,46 @@ void SystemException::createMessage(const TCHAR *userMessage, int errcode)
 
   // Get description of windows specific error.
 
-  bool formatMessageOk = true;
+  bool formatMessageOk = false;
 
-  TCHAR buffer[1024 * 10] = {0};
+  // Use a dynamically-allocated buffer for FormatMessage.
+  // 
+  // A stack-based buffer, with reasonable capacity, would 
+  // trigger Microsoft code-analysis warning C6262: 
+  // "Function uses N bytes of stack".  It is too much work
+  // to suppress the warning when we need to keep 
+  // the dynamically-allocated strings anyway.
+  //
+  // Without C++23's std::basic_string<T>::resize_and_rewrite,
+  // we are forced to re-initialize the buffer each time, 
+  // unfortunately.  In practice, system messages are not very long.
+  StringStorage::StdString buffer{};
+  buffer.resize(64);
+  
+  while (true)
+  {
+    auto numChars = FormatMessage(
+      FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+      NULL,
+      errcode,
+      MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
+      buffer.data(),
+      static_cast<DWORD>(buffer.size()),  // buffer will not exceed 128KB
+      NULL);
 
-  if (FormatMessage(
-    FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-    NULL,
-    errcode,
-    MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
-    (LPTSTR)&buffer[0],
-    sizeof(buffer) / sizeof(TCHAR),
-    NULL) == 0) {
-     formatMessageOk = false;
+    if (numChars != 0 || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+    {
+      buffer.resize(numChars);
+      formatMessageOk = (numChars != 0);
+      break;
+    }
+
+    // FormatMessage will not allow buffers bigger than 128KB so
+    // we do not need an additional stopping condition.
+    buffer.resize(2 * buffer.size());
   }
 
-  StringStorage windowsErrorDescription(buffer);
+  StringStorage windowsErrorDescription{ std::move(buffer) };
 
   // Remove bad characters.
 
@@ -92,9 +116,11 @@ void SystemException::createMessage(const TCHAR *userMessage, int errcode)
   // Create system error part of message.
 
   if (formatMessageOk) {
-    m_systemMessage.format(_T("%s (error code %d)"),
-      windowsErrorDescription.getString(),
-      errcode);
+    m_systemMessage = StringStorage{ std::move(windowsErrorDescription) };
+    StringStorage errCodeStr;
+    errCodeStr.format(_T("(error code %d)"), errcode);
+    m_systemMessage.appendChar(_T(' '));
+    m_systemMessage.appendString(errCodeStr);
   } else {
     m_systemMessage.format(_T("Error code %d"), errcode);
   }
