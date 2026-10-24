@@ -41,9 +41,6 @@ FrameBuffer::FrameBuffer(void)
 
 FrameBuffer::~FrameBuffer(void)
 {
-  if (m_buffer != 0) {
-    delete []m_buffer;
-  }
 }
 
 bool FrameBuffer::assignProperties(const FrameBuffer *srcFrameBuffer)
@@ -553,11 +550,8 @@ int FrameBuffer::getBufferSize() const
 
 bool FrameBuffer::resizeBuffer()
 {
-  if (m_buffer != 0) {
-    delete []m_buffer;
-  }
-  if ((m_buffer = new UINT8[getBufferSize()]) == 0) {
-    return false;
-  }
+  // Allocated before the old buffer is freed, which it then replaces.
+  m_ownBuffer = std::make_unique_for_overwrite<UINT8[]>(getBufferSize());
+  m_buffer = m_ownBuffer.get();
   return true;
 }

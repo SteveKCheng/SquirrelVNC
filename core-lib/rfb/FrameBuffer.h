@@ -27,6 +27,8 @@
 #include "region/Dimension.h"
 #include "rfb/PixelFormat.h"
 
+#include <memory>
+
 // FIXME: Move implementation to the .cpp file.
 
 class FrameBuffer
@@ -121,7 +123,17 @@ public:
   // Return the number of bytes occupied by one pixel (can be 1, 2 or 4).
   virtual UINT8 getBytesPerPixel() const;
 
-  virtual void setBuffer(void *newBuffer) { m_buffer = newBuffer; }
+  // Uses newBuffer as the pixels, for a frame buffer whose memory belongs
+  // to something else (a DIB section).
+  // Pre-conditions: newBuffer is 0, or holds getBufferSize() bytes for as
+  // long as it is used; it is not owned, and not freed here.
+  // Post-conditions: getBuffer() is newBuffer; a buffer that this frame
+  // buffer allocated is freed.
+  virtual void setBuffer(void *newBuffer)
+  {
+    m_ownBuffer.reset();
+    m_buffer = newBuffer;
+  }
   virtual inline void *getBuffer() const { return m_buffer; }
 
   // Return a pointer to the pixel data specified by the coordinates of that
@@ -135,6 +147,9 @@ public:
                                              m_pixelFormat.bitsPerPixel / 8; }
 
 protected:
+  // Post-conditions: getBuffer() is a new buffer of getBufferSize() bytes,
+  // owned by this frame buffer, with undefined contents; returns true. If
+  // allocating it throws, the old buffer is left.
   bool resizeBuffer();
   void clipRect(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
                 const int srcX, const int srcY,
@@ -151,7 +166,9 @@ protected:
   Dimension m_dimension;
 
   PixelFormat m_pixelFormat;
+  // The pixels: m_ownBuffer's, or a buffer given to setBuffer().
   void *m_buffer;
+  std::unique_ptr<UINT8[]> m_ownBuffer;
 };
 
 #endif // __FRAMEBUFFER_H__
