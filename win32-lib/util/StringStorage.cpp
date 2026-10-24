@@ -19,7 +19,6 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //-------------------------------------------------------------------------
-//
 
 #include "StringStorage.h"
 #include "CommonHeader.h"
@@ -29,10 +28,11 @@
 #include <crtdbg.h>
 
 #include <algorithm>
+#include <utility>
+#include <vector>
 
 StringStorage::StringStorage()
 {
-  setString(_T(""));
 }
 
 StringStorage::StringStorage(const TCHAR *string)
@@ -41,8 +41,15 @@ StringStorage::StringStorage(const TCHAR *string)
 }
 
 StringStorage::StringStorage(const StringStorage &stringBuffer)
+: m_string(stringBuffer.m_string)
 {
-  *this = stringBuffer;
+}
+
+StringStorage::StringStorage(StringStorage &&other) noexcept
+: m_string(std::move(other.m_string))
+{
+  // A moved-from std::basic_string is only valid; make it empty.
+  other.m_string.clear();
 }
 
 StringStorage::~StringStorage()
@@ -54,85 +61,57 @@ void StringStorage::setString(const TCHAR *string)
   if (string == 0) {
     string = _T("");
   }
-
-  size_t length = _tcslen(string);
-  if (length == SIZE_MAX)
-    throw Exception(_T("String too large"));
-  resizeBuffer(length + 1);
-  // memmove because string may point into this object's own buffer, as in
-  // self-assignment; shrinking the vector does not reallocate it.
-  memmove(m_buffer.data(), string, getSize());
-}
-
-void StringStorage::resizeBuffer(size_t newSize)
-{
-  m_buffer.resize(newSize);
-
-#ifdef _DEBUG
-  m_readableString = m_buffer.data();
-#endif
+  // Copied first, as string may point into m_string.
+  std::basic_string<TCHAR> copy(string);
+  m_string = std::move(copy);
 }
 
 const TCHAR *StringStorage::getString() const
 {
-  return m_buffer.data();
+  return m_string.c_str();
 }
 
 size_t StringStorage::getLength() const
 {
-  return m_buffer.size() - 1;
+  return m_string.size();
 }
 
 size_t StringStorage::getSize() const
 {
-  return m_buffer.size() * sizeof(TCHAR);
+  return (m_string.size() + 1) * sizeof(TCHAR);
 }
 
 bool StringStorage::isEmpty() const
 {
-  return getLength() == 0;
+  return m_string.empty();
 }
 
 bool StringStorage::endsWith(TCHAR postfix) const
 {
-  if (isEmpty()) {
-    return false;
-  }
-  TCHAR lastCharacter = m_buffer[getLength() - 1];
-  return (lastCharacter == postfix);
+  return !m_string.empty() && m_string.back() == postfix;
 }
 
 bool StringStorage::beginsWith(TCHAR prefix) const
 {
-  if (isEmpty()) {
-    return false;
-  }
-  TCHAR firstCharacter = m_buffer[0];
-  return (firstCharacter == prefix);
+  return !m_string.empty() && m_string.front() == prefix;
 }
 
 void StringStorage::getSubstring(StringStorage *substr,
                                  size_t startIndex,
                                  size_t endIndex) const
 {
-  endIndex++; // to simplify calculations
-  startIndex = std::min(startIndex, getLength());
-  endIndex = std::min(endIndex, getLength());
+  size_t length = getLength();
+  endIndex++; // to simplify calculations; SIZE_MAX wraps to 0
+  startIndex = std::min(startIndex, length);
+  endIndex = std::min(endIndex, length);
   if (endIndex < startIndex) {
     endIndex = startIndex;
   }
 
-  size_t length = endIndex - startIndex;
-  _ASSERT(length <= getLength());
-  if (length == SIZE_MAX)
-    throw Exception(_T("String too large"));
-
-  std::vector<TCHAR> autoBuffer(length + 1);
-  TCHAR *buffer = autoBuffer.data();
-  memcpy(buffer, &m_buffer[startIndex], length * sizeof(TCHAR));
-  buffer[length] = '\0';
-
-  substr->setString(buffer);
+  // startIndex <= length, so substr() does not throw. Made before the
+  // assignment, as substr may be this object.
+  std::basic_string<TCHAR> result = m_string.substr(startIndex, endIndex - startIndex);
+  substr->m_string = std::move(result);
 }
 
 void StringStorage::appendString(const TCHAR *string)
@@ -140,101 +119,62 @@ void StringStorage::appendString(const TCHAR *string)
   if (string == 0) {
     return;
   }
-  StringStorage src(string);
-
-  BufferType::iterator to = m_buffer.begin() + getLength();
-  BufferType::iterator fromFirst = src.m_buffer.begin();
-  BufferType::iterator fromLast = src.m_buffer.begin() + src.getLength();
-
-  m_buffer.insert(to, fromFirst, fromLast);
+  // Copied first, as string may point into m_string, which appending may
+  // reallocate.
+  std::basic_string<TCHAR> copy(string);
+  m_string += copy;
 }
 
 void StringStorage::appendChar(TCHAR c)
 {
-  TCHAR string[2] = {c, _T('\0') };
-
-  appendString(string);
+  // The null character would end the string; as appendString() of a
+  // one-character string, it adds nothing.
+  if (c != _T('\0')) {
+    m_string.push_back(c);
+  }
 }
 
 bool StringStorage::isEqualTo(const StringStorage *other) const
 {
-  return isEqualTo(other->getString());
+  return m_string == other->m_string;
 }
 
 bool StringStorage::isEqualTo(const TCHAR *other) const
 {
-  if (other == 0 && getString() == 0) {
-    return true;
-  }
-  if (other == 0 && getString() != 0) {
+  if (other == 0) {
     return false;
   }
-  if (getString() == 0 && other != 0) {
-    return false;
-  }
-  return _tcscmp(getString(), other) == 0;
+  // Compares up to other's terminator; m_string has no null character, so
+  // this is _tcscmp() == 0.
+  return m_string == other;
 }
 
-size_t StringStorage::findChar(const TCHAR c)
+size_t StringStorage::findChar(const TCHAR c) const
 {
-  size_t length = getLength();
-  for (size_t i = 0; i < length; i++) {
-    if (m_buffer[i] == c) {
-      return i;
-    }
-  }
-  return (size_t)-1;
+  return m_string.find(c);
 }
 
-size_t StringStorage::findLast(const TCHAR c)
+size_t StringStorage::findLast(const TCHAR c) const
 {
-  for (size_t i = getLength() - 1; i + 1 != 0; i--) {
-    if (m_buffer[i] == c) {
-      return i;
-    }
-  }
-  return (size_t)-1;
+  return m_string.rfind(c);
 }
 
 void StringStorage::removeChars(const TCHAR badCharacters[], size_t count)
 {
-  size_t j = 0;
-  size_t length = getLength();
-
-  for (size_t i = 0; i < length; i++) {
-    TCHAR each = m_buffer[i];
-    bool badCharacter = false;
-    for (size_t k = 0; k < count; k++) {
-      if (each == badCharacters[k]) {
-        badCharacter = true;
-        break;
-      }
-    }
-    if (!badCharacter) {
-      m_buffer[j++] = each;
-    }
-  }
-
-  m_buffer[j] = _T('\0');
-  m_buffer.resize(j + 1);
+  std::erase_if(m_string, [badCharacters, count](TCHAR each) {
+    return std::find(badCharacters, badCharacters + count, each) != badCharacters + count;
+  });
 }
 
 void StringStorage::remove(size_t startIndex, size_t count)
 {
-  // Not startIndex + count > getLength(), which can wrap around: with
-  // startIndex 1 and count SIZE_MAX the sum is 0, and the memmove below
-  // would write past the end of the buffer.
+  // Not startIndex + count > getLength(), which can wrap around.
   bool isFailed = startIndex > getLength() || count > getLength() - startIndex;
   _ASSERT(!isFailed);
   if (isFailed) {
     throw Exception(_T("An incorrect StringStorage::remove() usage"));
   }
-  BufferType newBuffer = m_buffer;
-
-  size_t copyCount = getSize() - (startIndex + count) * sizeof(TCHAR);
-  // The ranges overlap whenever more than count characters follow.
-  memmove(&newBuffer[startIndex], &newBuffer[startIndex + count], copyCount);
-  setString(newBuffer.data());
+  m_string.erase(startIndex, count);
 }
 
 void StringStorage::truncate(size_t count)
@@ -246,30 +186,23 @@ void StringStorage::truncate(size_t count)
 
 TCHAR *StringStorage::find(const TCHAR *substr)
 {
-  return _tcsstr(m_buffer.data(), substr);
+  size_t position = m_string.find(substr);
+  if (position == std::basic_string<TCHAR>::npos) {
+    return 0;
+  }
+  return m_string.data() + position;
 }
 
-// FIXME: Use C functions.
-size_t StringStorage::findOneOf(const TCHAR *string)
+size_t StringStorage::findOneOf(const TCHAR *string) const
 {
-  size_t length = getLength();
-  size_t argLength = _tcslen(string);
-  for (size_t i = 0; i < length; i++) {
-    for (size_t j = 0; j < argLength; j++) {
-      if (m_buffer[i] == string[j]) {
-        return i;
-      }
-    }
-  }
-  return (size_t)-1;
+  return m_string.find_first_of(string);
 }
 
 void StringStorage::toLowerCase()
 {
-  size_t length = getLength();
-  for (size_t i = 0; i < length; i++) {
-    if (_istalpha(m_buffer[i]) != 0) {
-      m_buffer[i] = _totlower(m_buffer[i]);
+  for (TCHAR &c : m_string) {
+    if (_istalpha(c) != 0) {
+      c = _totlower(c);
     }
   }
 }
@@ -285,16 +218,29 @@ void StringStorage::format(const TCHAR *format, ...)
     throw Exception(_T("Cannot format string"));
   }
 
-  resizeBuffer((size_t)count + 1);
-
+  std::vector<TCHAR> buffer((size_t)count + 1);
   va_start(vl, format);
-  _vstprintf_s(m_buffer.data(), (size_t)count + 1, format, vl);
+  _vstprintf_s(buffer.data(), buffer.size(), format, vl);
   va_end(vl);
+
+  // Up to the first null character, which is the terminator unless %c
+  // wrote one.
+  setString(buffer.data());
 }
 
-void StringStorage::operator= (const StringStorage &other)
+StringStorage &StringStorage::operator= (const StringStorage &other)
 {
-  setString(other.getString());
+  m_string = other.m_string;
+  return *this;
+}
+
+StringStorage &StringStorage::operator= (StringStorage &&other) noexcept
+{
+  if (this != &other) {
+    m_string = std::move(other.m_string);
+    other.m_string.clear();
+  }
+  return *this;
 }
 
 bool StringStorage::operator == (const StringStorage &str) const
@@ -304,10 +250,11 @@ bool StringStorage::operator == (const StringStorage &str) const
 
 bool StringStorage::operator < (const StringStorage &str) const
 {
-  return _tcscmp(getString(), str.getString()) < 0;
+  // Neither has a null character, so this orders as _tcscmp() does.
+  return m_string < str.m_string;
 }
 
-void StringStorage::operator += (const TCHAR* str) 
+void StringStorage::operator += (const TCHAR* str)
 {
   appendString(str);
 }

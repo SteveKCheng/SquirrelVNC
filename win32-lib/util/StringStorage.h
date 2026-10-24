@@ -19,22 +19,28 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //-------------------------------------------------------------------------
-//
 
 #ifndef _STRING_BUFFER_H_
 #define _STRING_BUFFER_H_
 
 #include "winhdr.h"
+#include <string>
+// Not used here since the characters moved to std::basic_string, but about
+// twenty files that use std::vector get it only through this header.
 #include <vector>
 
 /**
- * String of TCHAR, owning its characters.
+ * String of TCHAR, owning its characters: UTF-16 on Windows.
  *
- * The buffer always holds the characters followed by a terminating null
- * character, so it is never empty, even for the empty string.  Every member
- * function keeps this so: those that can fail throw and leave the string
- * unchanged.  getString() therefore always returns a valid, null-terminated
- * string, and getLength() is one less than the number of elements.
+ * The characters are kept in a std::basic_string<TCHAR>.  A StringStorage
+ * never contains a null character: every way of setting or adding text
+ * takes a null-terminated string, or stops at the first null character, so
+ * getString() and getLength() always describe the same text, and the
+ * comparisons give the same results as the C string functions would.
+ * Members that can fail throw and leave the string unchanged, unless they
+ * say otherwise.
+ *
+ * Moving from a StringStorage leaves it empty.
  */
 class StringStorage
 {
@@ -47,7 +53,7 @@ public:
   /**
   Creates new string storage with specified string that will be
   copied to buffer of this string storage.
-  @param string string to copy.
+  @param string string to copy; null for the empty string.
   */
   StringStorage(const TCHAR *string);
 
@@ -57,15 +63,16 @@ public:
   StringStorage(const StringStorage &stringBuffer);
 
   /**
-  Class destructor.
-  */
-  virtual ~StringStorage();
+   * Move constructor.  Post-condition: other is empty.
+   */
+  StringStorage(StringStorage &&other) noexcept;
+
+  ~StringStorage();
 
   // Sets this string to a copy of string, which may be null for the empty
   // string.  string may point into this object's own characters (but is
-  // then invalidated, as for any change).  Throws Exception if string is
-  // too long for its length plus terminator to be counted in a size_t.
-  virtual void setString(const TCHAR *string);
+  // then invalidated, as for any change).
+  void setString(const TCHAR *string);
 
   /**
    * Returns the characters as a null-terminated string.
@@ -75,7 +82,7 @@ public:
    */
   _Ret_z_ const TCHAR *getString() const;
 
-    // Returns length of string (in characters, not including terminating null character).
+  // Returns length of string (in characters, not including terminating null character).
   size_t getLength() const;
 
   // Returns size of string in bytes, including terminating null character.
@@ -88,14 +95,14 @@ public:
   /**
    * Tests if string ends with specified character.
    * @param postfix char to test.
-   * @return true if string ends with postfix.
+   * @return true if string ends with postfix; false if it is empty.
    */
   bool endsWith(TCHAR postfix) const;
 
   /**
    * Tests if string begins with specified character.
    * @param prefix char to test.
-   * @return true if string begins with prefix.
+   * @return true if string begins with prefix; false if it is empty.
    */
   bool beginsWith(TCHAR prefix) const;
 
@@ -104,64 +111,73 @@ public:
    * another StringStorage object. endIndex is included, so the maximum length
    * can be calculated as (endIndex - startIndex + 1). The destination may be
    * the same object as the source.
+   *
+   * Unlike std::basic_string::substr(), this never throws for indexes out of
+   * range: both are clamped to the length, and an end before the start gives
+   * the empty string.  endIndex SIZE_MAX gives the empty string too, as
+   * endIndex + 1 wraps to 0; callers that pass getLength() - 1 or
+   * getLength() - 2 for a short string rely on that.
    */
-  // Returns a new string that is a getSubstring of this string
   void getSubstring(StringStorage *substr, size_t startIndex,
                     size_t endIndex) const;
 
   /**
    * Adds string to the end of this string.
-   * @param string string to be added.
+   * @param string string to be added; null adds nothing.  It may point into
+   *   this object's own characters.
    */
   void appendString(const TCHAR *string);
 
   /**
    * Adds char to the end of this string.
    * @fixme rename string method to append or appendChar.
-   * @param c char to be added.
+   * @param c char to be added; the null character adds nothing.
    */
   void appendChar(TCHAR c);
 
   /**
    * Checks if this string are equals to other.
    * @param other other string.
-   * @return true if strings are equal.
-   * @remark if both strings are 0 (not set) then returns true.
+   * @return true if strings are equal; false if other is null.
    */
   bool isEqualTo(const TCHAR *other) const;
 
   /**
    * Checks if string contained by this storage equals to string in other storage.
-   * @remark see overload of isEqualTo method.
+   * @param other must not be null.
    */
   bool isEqualTo(const StringStorage *other) const;
 
   //
   // Return a pointer to the first occurrence of a search substr in the
-  // internall string or
-  // zero otherwise.
+  // internal string, or zero otherwise. An empty substr is found at the
+  // start. The pointer is valid until this string is changed or destroyed;
+  // characters may be changed through it, but not to the null character.
+  // Pre-conditions: substr is not null.
   //
   TCHAR *find(const TCHAR *substr);
 
   //
   // Returns first position of character in string if found,
+  // -1 otherwise (always for the null character).
+  //
+
+  size_t findChar(const TCHAR c) const;
+
+  //
+  // Returns first position of any character that string argument have,
   // -1 otherwise.
+  // Pre-conditions: string is not null.
   //
 
-  size_t findChar(const TCHAR c);
-
-  //
-  // Returns first position of any character that string argument have.
-  //
-
-  size_t findOneOf(const TCHAR *string);
+  size_t findOneOf(const TCHAR *string) const;
 
   /**
    * Finds last position of specified character in this string.
    * @param c character to find.
    * @return last position of character in this string or -1 if not found.
    */
-  size_t findLast(const TCHAR c);
+  size_t findLast(const TCHAR c) const;
 
   /**
    * Removes characters from string.
@@ -174,17 +190,20 @@ public:
   // unchanged if this throws.
   // Throws Exception if startIndex + count > length (computed without
   // overflow) in the release configuration and throws an ASSERTION FAILED
-  // message in the debug configuration.
+  // message in the debug configuration.  (std::basic_string::erase()
+  // instead clamps count.)
   void remove(size_t startIndex, size_t count);
 
   /**
    * Truncates string.
-   * @param count count of characters to remove from the end of string.
+   * @param count count of characters to remove from the end of string; at
+   *   most the whole string is removed.
    */
   void truncate(size_t count);
 
   //
-  // Converts string notated by this container to lower case
+  // Converts string notated by this container to lower case, as the C
+  // runtime's current locale converts each character (_totlower()).
   //
 
   void toLowerCase();
@@ -197,31 +216,24 @@ public:
    *   outside the program, such as text from the server or the message of an
    *   exception: pass any such text as an argument for %s.  The arguments
    *   must match it as for printf; the code analyser (/analyze) checks this.
+   *   If the result contains a null character (%c with 0), the string ends
+   *   before it.
    * @throws Exception if the CRT cannot format the string.  This string is
    *   then left unchanged.
    */
   void format(_Printf_format_string_ const TCHAR *format, ...);
 
-  //
-  // Overload operator = for container copying
-  //
+  StringStorage &operator = (const StringStorage &other);
 
-  void operator = (const StringStorage &other);
+  // Post-condition: other is empty, unless it is this object.
+  StringStorage &operator = (StringStorage &&other) noexcept;
 
   bool operator == (const StringStorage &str) const;
   bool operator < (const StringStorage &str) const;
   void operator += (const TCHAR* str);
 
 private:
-  typedef std::vector<TCHAR> BufferType;
-  BufferType m_buffer;
-
-  void resizeBuffer(size_t newSize);
-
-  // This simplify to read the buffer string
-#ifdef _DEBUG
-  TCHAR *m_readableString;
-#endif
+  std::basic_string<TCHAR> m_string;
 };
 
 #endif
