@@ -41,15 +41,15 @@ FileTransferCore::FileTransferCore(LogWriter *logWriter,
 : m_logWriter(logWriter),
   m_state(NOTHING_STATE),
   m_sender(sender), m_replyBuffer(replyBuffer),
-  m_fileTransferListeners(ftListeners),
-  m_currentOperation(0)
+  m_fileTransferListeners(ftListeners)
 {
 }
 
 FileTransferCore::~FileTransferCore()
 {
-  if (m_currentOperation != NULL) {
-    delete m_currentOperation;
+  // Not left in the listeners when it is freed.
+  if (m_currentOperation) {
+    m_fileTransferListeners->removeListener(m_currentOperation.get());
   }
 }
 
@@ -182,26 +182,24 @@ void FileTransferCore::ftOpInfoMessage(FileTransferOperation * /* sender */,
   m_ftInterface->onFtOpInfo(message);
 }
 
-void FileTransferCore::executeOperation(FileTransferOperation *newOperation)
-    
+void FileTransferCore::executeOperation(std::unique_ptr<FileTransferOperation> newOperation)
 {
   //
   // Cleanup, free previous operation
   //
 
-  if (m_currentOperation != NULL) {
+  if (m_currentOperation) {
     m_currentOperation->removeListener(this);
-    m_fileTransferListeners->removeListener(m_currentOperation);
-    delete m_currentOperation;
+    m_fileTransferListeners->removeListener(m_currentOperation.get());
   }
 
-  m_currentOperation = newOperation;
+  m_currentOperation = std::move(newOperation);
 
   m_currentOperation->setRequestSender(m_sender);
   m_currentOperation->setReplyBuffer(m_replyBuffer);
   m_currentOperation->addListener(this);
 
-  m_fileTransferListeners->addListener(m_currentOperation);
+  m_fileTransferListeners->addListener(m_currentOperation.get());
 
   try {
     m_currentOperation->start();
@@ -217,13 +215,14 @@ void FileTransferCore::downloadOperation(const FileInfo *filesToDownload,
 {
   m_state = DOWNLOAD_STATE;
 
-  DownloadOperation *dOp = new DownloadOperation(m_logWriter,
-                                                 filesToDownload,
-                                                 filesCount,
-                                                 pathToTargetRoot,
-                                                 pathToSourceRoot);
+  std::unique_ptr<DownloadOperation> dOp =
+    std::make_unique<DownloadOperation>(m_logWriter,
+                                        filesToDownload,
+                                        filesCount,
+                                        pathToTargetRoot,
+                                        pathToSourceRoot);
   dOp->setCopyProcessListener(this);
-  executeOperation(dOp);
+  executeOperation(std::move(dOp));
 }
 
 void FileTransferCore::uploadOperation(const FileInfo *filesToDownload,
@@ -233,13 +232,14 @@ void FileTransferCore::uploadOperation(const FileInfo *filesToDownload,
 {
   m_state = UPLOAD_STATE;
 
-  UploadOperation *uOp = new UploadOperation(m_logWriter,
-                                             filesToDownload,
-                                             filesCount,
-                                             pathToSourceRoot,
-                                             pathToTargetRoot);
+  std::unique_ptr<UploadOperation> uOp =
+    std::make_unique<UploadOperation>(m_logWriter,
+                                      filesToDownload,
+                                      filesCount,
+                                      pathToSourceRoot,
+                                      pathToTargetRoot);
   uOp->setCopyProcessListener(this);
-  executeOperation(uOp);
+  executeOperation(std::move(uOp));
 }
 
 void FileTransferCore::localFilesDeleteOperation(const FileInfo *filesToDelete,
@@ -247,9 +247,9 @@ void FileTransferCore::localFilesDeleteOperation(const FileInfo *filesToDelete,
                                                  const TCHAR *pathToTargetRoot)
 {
   m_state = LOCAL_REMOVE_STATE;
-  executeOperation(new LocalFilesDeleteOperation(m_logWriter,
-                                                 filesToDelete, filesCount,
-                                                 pathToTargetRoot));
+  executeOperation(std::make_unique<LocalFilesDeleteOperation>(m_logWriter,
+                                                               filesToDelete, filesCount,
+                                                               pathToTargetRoot));
 }
 
 void FileTransferCore::remoteFilesDeleteOperation(const FileInfo *filesInfoToDelete,
@@ -257,18 +257,18 @@ void FileTransferCore::remoteFilesDeleteOperation(const FileInfo *filesInfoToDel
                                                  const TCHAR *pathToTargetRoot)
 {
   m_state = REMOVE_STATE;
-  executeOperation(new RemoteFilesDeleteOperation(m_logWriter,
-                                                  filesInfoToDelete, filesCount,
-                                                  pathToTargetRoot));
+  executeOperation(std::make_unique<RemoteFilesDeleteOperation>(m_logWriter,
+                                                                filesInfoToDelete, filesCount,
+                                                                pathToTargetRoot));
 }
 
 void FileTransferCore::remoteFolderCreateOperation(FileInfo file, const TCHAR *pathToTargetRoot)
 {
     m_state = MKDIR_STATE;
 
-    executeOperation(new RemoteFolderCreateOperation(m_logWriter,
-                                                     file,
-                                                     pathToTargetRoot));
+    executeOperation(std::make_unique<RemoteFolderCreateOperation>(m_logWriter,
+                                                                   file,
+                                                                   pathToTargetRoot));
 }
 void FileTransferCore::remoteFileRenameOperation(FileInfo sourceFileInfo,
                                                  FileInfo targetFileInfo,
@@ -276,16 +276,16 @@ void FileTransferCore::remoteFileRenameOperation(FileInfo sourceFileInfo,
 {
   m_state = RENAME_STATE;
 
-  executeOperation(new RemoteFileRenameOperation(m_logWriter,
-                                                 sourceFileInfo,
-                                                 targetFileInfo,
-                                                 pathToTargetRoot));
+  executeOperation(std::make_unique<RemoteFileRenameOperation>(m_logWriter,
+                                                               sourceFileInfo,
+                                                               targetFileInfo,
+                                                               pathToTargetRoot));
 }
 
 void FileTransferCore::remoteFileListOperation(const TCHAR *pathToFile)
 {
   m_state = FILE_LIST_STATE;
-  executeOperation(new RemoteFileListOperation(m_logWriter, pathToFile));
+  executeOperation(std::make_unique<RemoteFileListOperation>(m_logWriter, pathToFile));
 }
 
 void FileTransferCore::terminateCurrentOperation()
@@ -330,5 +330,5 @@ bool FileTransferCore::isNothingState()
 void FileTransferCore::onOperationFinished()
 {
   // Operation is finished, remove it from file transfer message handlers
-  m_fileTransferListeners->removeListener(m_currentOperation);
+  m_fileTransferListeners->removeListener(m_currentOperation.get());
 }

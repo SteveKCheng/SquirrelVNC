@@ -37,6 +37,8 @@
 
 #include "FileTransferInterface.h"
 
+#include <memory>
+
 class FileTransferInterface;
 
 class FileTransferCore : public OperationEventListener,
@@ -136,7 +138,7 @@ protected:
   // Remark: only one file operation can be executed at one time
   //
 
-  FileTransferOperation *m_currentOperation;
+  std::unique_ptr<FileTransferOperation> m_currentOperation;
   //
   // File transfer message listener container.
   //
@@ -182,8 +184,10 @@ protected:
   // common file transfer operation parameters to new operation, made
   // new operation current and executes it.
   //
+  // Pre-conditions: newOperation is not empty.
+  //
 
-  void executeOperation(FileTransferOperation *newOperation);
+  void executeOperation(std::unique_ptr<FileTransferOperation> newOperation);
   //
   // Avaliable m_state values
   // FIXME: Maybe make m_state enumeration?
