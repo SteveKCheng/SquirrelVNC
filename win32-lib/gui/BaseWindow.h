@@ -63,8 +63,11 @@ public:
   void setWindowText(const StringStorage *text);
 
   // loadIcon()
-  // Set the icon of application where id can be from resource or handle HICON
-  void loadIcon(DWORD id);
+  // Sets the class icons (large and small) of the window from the icon
+  // resource id in the executable.
+  //
+  // Pre-condition: the window has been created.
+  void loadIcon(WORD id);
 
   // setParent()
   // Making child window by changing parent of the window
@@ -103,7 +106,7 @@ private:
   // This function may be implement in child class.
   // Here is stub function, always returned false.
   virtual bool onCommand(WPARAM wParam, LPARAM lParam);
-  virtual bool onNotify(int idCtrl, LPNMHDR pnmh);
+  virtual bool onNotify(WORD idCtrl, LPNMHDR pnmh);
   virtual bool onSysCommand(WPARAM wParam, LPARAM lParam);
   virtual bool onMessage(UINT message, WPARAM wParam, LPARAM lParam) = 0;
   virtual bool onMouse(unsigned char mouseButtons, unsigned short wheelSpeed, POINT position);

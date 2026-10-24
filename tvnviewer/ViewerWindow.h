@@ -88,7 +88,7 @@ protected:
   bool onSize(WPARAM wParam, LPARAM lParam);
   bool onCreate(LPCREATESTRUCT lps);
   bool onCommand(WPARAM wParam, LPARAM lParam) override;
-  bool onNotify(int idCtrl, LPNMHDR pnmh) override;
+  bool onNotify(WORD idCtrl, LPNMHDR pnmh) override;
   bool onSysCommand(WPARAM wParam, LPARAM lParam) override;
   bool onClose();
   bool onDestroy();

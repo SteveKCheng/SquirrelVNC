@@ -36,7 +36,7 @@ public:
 
 protected:
   BOOL onInitDialog() override;
-  BOOL onCommand(UINT controlID, UINT notificationID) override;
+  BOOL onCommand(WORD controlID, UINT notificationID) override;
 
   CheckBox m_fsWarning;
 };

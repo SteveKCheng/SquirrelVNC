@@ -59,14 +59,14 @@ public:
    * @param [out] string storage for string from resources.
    * @return true if string is loaded, false otherwise.
    */
-  bool loadString(UINT id, StringStorage *string);
+  bool loadString(WORD id, StringStorage *string);
 
   /**
    * Loads accelerator from resources.
    * @param [in] id identifier of accelerator in resource file.
    * @return handle of accelerator if it's loaded.
    */
-  HACCEL loadAccelerator(UINT id);
+  HACCEL loadAccelerator(WORD id);
 
   /**
    * Loads standart cursor.
@@ -76,10 +76,10 @@ public:
   HCURSOR loadStandardCursor(const TCHAR *id);
   /**
    * Loads cursor from resources.
-   * @param [in] id identifier of accelerator in resource file.
+   * @param [in] id identifier of cursor in resource file.
    * @return handle of cursor if it's loaded.
    */
-  HCURSOR loadCursor(UINT id);
+  HCURSOR loadCursor(WORD id);
 
 protected:
   /**

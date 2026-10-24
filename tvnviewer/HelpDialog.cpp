@@ -41,7 +41,7 @@ BOOL HelpDialog::onInitDialog()
   return TRUE;
 }
 
-BOOL HelpDialog::onCommand(UINT controlID, UINT /* notificationID */)
+BOOL HelpDialog::onCommand(WORD controlID, UINT /* notificationID */)
 {
   if (controlID == IDOK) {
     kill(1);

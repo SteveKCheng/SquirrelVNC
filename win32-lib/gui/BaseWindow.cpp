@@ -69,17 +69,12 @@ bool BaseWindow::createWindow(const StringStorage *windowName, DWORD style, HWND
   return true;
 }
 
-void BaseWindow::loadIcon(DWORD id)
+void BaseWindow::loadIcon(WORD id)
 {
-  m_hicon = nullptr;
-  if (IS_INTRESOURCE(id)) {
-    m_hicon = ScaledIcons::getLarge(id);
-    SetClassLongPtr(m_hWnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(m_hicon));
-    SetClassLongPtr(m_hWnd, GCLP_HICONSM,
-                    reinterpret_cast<LONG_PTR>(ScaledIcons::getSmall(id)));
-  } else {
-    SetClassLongPtr(m_hWnd, GCLP_HICON, static_cast<LONG_PTR>(id));
-  }
+  m_hicon = ScaledIcons::getLarge(id);
+  SetClassLongPtr(m_hWnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(m_hicon));
+  SetClassLongPtr(m_hWnd, GCLP_HICONSM,
+                  reinterpret_cast<LONG_PTR>(ScaledIcons::getSmall(id)));
 }
 
 bool BaseWindow::destroyWindow()
@@ -158,7 +153,7 @@ bool BaseWindow::onCommand(WPARAM /* wParam */, LPARAM /* lParam */)
   return false;
 }
 
-bool BaseWindow::onNotify(int /* idCtrl */, LPNMHDR /* pnmh */)
+bool BaseWindow::onNotify(WORD /* idCtrl */, LPNMHDR /* pnmh */)
 {
   return false;
 }
@@ -174,7 +169,7 @@ bool BaseWindow::wndProc(UINT message, WPARAM wParam, LPARAM lParam)
     case WM_COMMAND:
       return onCommand(wParam, lParam);
     case WM_NOTIFY:
-      return onNotify((int)wParam, (LPNMHDR)lParam);
+      return onNotify(LOWORD(wParam), (LPNMHDR)lParam);
     case WM_SYSCOMMAND:
       return onSysCommand(wParam, lParam);
     case WM_LBUTTONDOWN:

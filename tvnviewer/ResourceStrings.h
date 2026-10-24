@@ -35,7 +35,7 @@ public:
 
   bool isValid(int res); 
   // this function returns string as it is stored
-  StringStorage getStrRes(int strRes); 
+  StringStorage getStrRes(WORD strRes);
 
 protected:
   int m_min, m_max;

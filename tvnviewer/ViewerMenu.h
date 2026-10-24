@@ -39,12 +39,14 @@ protected:
 
   typedef struct {
     int menu_id;
-    int menu_param;
+    WORD menu_param;
   } menu_item;
 
 private:
   void makeSeparator();
-  void menuItem(int id);
+  // Inserts the item with command ID id, labelled by the string
+  // resource of the same ID.
+  void menuItem(WORD id);
   void findStartIndex();
 };
 

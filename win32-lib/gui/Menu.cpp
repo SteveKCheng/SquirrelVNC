@@ -94,7 +94,7 @@ bool Menu::insertMenuItem(UINT uItem, BOOL fByPosition, LPCMENUITEMINFO lpmii)
   return !!InsertMenuItem(m_menu, uItem, fByPosition, lpmii);
 }
 
-bool Menu::enableMenuItem(UINT uID, UINT uEnable)
+bool Menu::enableMenuItem(WORD uID, UINT uEnable)
 {
   _ASSERT(m_menu != 0);
 
@@ -108,7 +108,7 @@ Menu::~Menu()
   }
 }
 
-int Menu::findMenuItem(UINT uID)
+int Menu::findMenuItem(WORD uID)
 {
   _ASSERT(m_menu != 0);
 
@@ -120,7 +120,7 @@ int Menu::findMenuItem(UINT uID)
   return -1;
 }
 
-bool Menu::appendMenu(StringStorage strVal, UINT uID)
+bool Menu::appendMenu(StringStorage strVal, WORD uID)
 {
   return appendMenu(MF_STRING, uID, strVal.getString());
 }
@@ -130,7 +130,7 @@ bool Menu::appendSeparator()
   return appendMenu(MF_MENUBREAK, 0, nullptr);
 }
 
-bool Menu::insertMenuItem(UINT uItem, StringStorage strVal, UINT uID)
+bool Menu::insertMenuItem(UINT uItem, StringStorage strVal, WORD uID)
 {
   MENUITEMINFO mii;
 
@@ -143,7 +143,7 @@ bool Menu::insertMenuItem(UINT uItem, StringStorage strVal, UINT uID)
   return insertMenuItem(uItem, TRUE, (LPMENUITEMINFO)&mii);
 }
 
-bool Menu::checkedMenuItem(UINT uID, bool bEnable)
+bool Menu::checkedMenuItem(WORD uID, bool bEnable)
 {
   _ASSERT(m_menu != 0);
 
@@ -166,7 +166,7 @@ bool Menu::insertSeparator(UINT uItem)
   return insertMenuItem(uItem, TRUE, (LPMENUITEMINFO)&mii);
 }
 
-bool Menu::setDefaultItem(UINT uID)
+bool Menu::setDefaultItem(WORD uID)
 {
   _ASSERT(m_menu != 0);
 

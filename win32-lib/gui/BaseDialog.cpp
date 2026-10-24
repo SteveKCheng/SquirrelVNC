@@ -128,7 +128,7 @@ bool BaseDialog::isCreated()
   return !!IsWindow(m_ctrlThis.getWindow());
 }
 
-BOOL BaseDialog::onDrawItem(WPARAM /* controlID */, LPDRAWITEMSTRUCT /* dis */)
+BOOL BaseDialog::onDrawItem(WORD /* controlID */, LPDRAWITEMSTRUCT /* dis */)
 {
   return TRUE;
 }
@@ -174,14 +174,14 @@ INT_PTR CALLBACK BaseDialog::dialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     bResult = _this->onDestroy();
     break;
   case WM_DRAWITEM:
-    bResult = _this->onDrawItem(wParam, (LPDRAWITEMSTRUCT)lParam);
+    bResult = _this->onDrawItem(LOWORD(wParam), (LPDRAWITEMSTRUCT)lParam);
     break;
   }
 
   return bResult;
 }
 
-void BaseDialog::setControlById(Control &control, DWORD id) 
+void BaseDialog::setControlById(Control &control, WORD id) 
 {
   control = GetDlgItem(m_ctrlThis.getWindow(), id);
 }
@@ -194,7 +194,7 @@ void BaseDialog::updateIcon()
   }
 }
 
-void BaseDialog::loadIcon(DWORD id)
+void BaseDialog::loadIcon(WORD id)
 {
   m_hicon = ScaledIcons::getLarge(id);
   m_hiconSmall = ScaledIcons::getSmall(id);
@@ -205,7 +205,7 @@ bool BaseDialog::setForeground()
   return m_ctrlThis.setForeground();
 }
 
-BOOL BaseDialog::onNotify(UINT /* controlID */, LPARAM /* data */)
+BOOL BaseDialog::onNotify(WORD /* controlID */, LPARAM /* data */)
 {
   return FALSE;
 }

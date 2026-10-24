@@ -100,12 +100,12 @@ BOOL AboutDialog::onInitDialog()
   return FALSE;
 }
 
-BOOL AboutDialog::onNotify(UINT /* controlID */, LPARAM /* data */)
+BOOL AboutDialog::onNotify(WORD /* controlID */, LPARAM /* data */)
 {
   return FALSE;
 }
 
-BOOL AboutDialog::onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis)
+BOOL AboutDialog::onDrawItem(WORD controlID, LPDRAWITEMSTRUCT dis)
 {
   if (controlID == IDC_LOGO) {
     ScaledIcons::drawCentered(dis, IDI_APPICON);
@@ -113,7 +113,7 @@ BOOL AboutDialog::onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis)
   return TRUE;
 }
 
-BOOL AboutDialog::onCommand(UINT controlID, UINT /* notificationID */)
+BOOL AboutDialog::onCommand(WORD controlID, UINT /* notificationID */)
 {
   switch (controlID) {
   case IDCANCEL:

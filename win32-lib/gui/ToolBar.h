@@ -55,13 +55,20 @@ public:
   // consecutive ids starting from firstId, one per button. They are
   // loaded at the size of small icons for the current DPI. firstId
   // is also the toolbar's control id.
-  void loadIcons(UINT firstId, int count);
+  //
+  // Pre-condition: called once, before attachToolBar(); count >= 0 and
+  // firstId + count - 1 <= 0xFFFF, as resource IDs are 16-bit.
+  void loadIcons(WORD firstId, int count);
 
   // setButtonsRange()
   // If we want to catch the message from toolbar that some buttons
   // are pressed then we must set a range for message, we pass only
   // first item, and next is id+1 and so on.
-  void setButtonsRange(DWORD id);
+  //
+  // Pre-condition: called before attachToolBar(); 0 means the buttons send
+  // no commands; otherwise id + (number of buttons) - 1 <= 0xFFFF, since
+  // WM_COMMAND carries 16-bit command IDs.
+  void setButtonsRange(WORD id);
 
   // attachToolBar()
   // This one will create and attach toolbar window to 
@@ -73,11 +80,11 @@ public:
   /////////////////////////////////////////////////////////
 
   // checkButton() checks or unchecks a given button in a toolbar control.
-  bool checkButton(int idButton, bool check);
+  bool checkButton(WORD idButton, bool check);
 
   // enableButton() enables or disables the specified button 
   // in the toolbar.
-  bool enableButton(int idButton, bool enable);
+  bool enableButton(WORD idButton, bool enable);
 
   // getButtonRect() gets the bounding rectangle of a button in a toolbar.
   bool getButtonRect(int nIndex, LPRECT buttonRect);
@@ -101,12 +108,12 @@ public:
   int getHeight();
 
   // getState() gets button state
-  LRESULT getState(int idButton);
+  LRESULT getState(WORD idButton);
 
 private:
-  int m_initialStr;
+  WORD m_initialStr;
   int m_numberTB;
-  DWORD m_id;
+  WORD m_id;
   int m_width, m_height;
   HWND m_hWndToolbar;
   HIMAGELIST m_imageList;

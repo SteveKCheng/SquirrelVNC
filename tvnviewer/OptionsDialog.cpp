@@ -49,7 +49,7 @@ void OptionsDialog::setConnected()
   m_connected = true;
 }
 
-BOOL OptionsDialog::onCommand(UINT controlID, UINT notificationID)
+BOOL OptionsDialog::onCommand(WORD controlID, UINT notificationID)
 {
   if (controlID == IDOK) {
     if (onOkPressed()) {

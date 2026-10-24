@@ -31,7 +31,7 @@ namespace {
 
 struct IconKey
 {
-  UINT id;
+  WORD id;
   int width;
   int height;
 
@@ -63,17 +63,17 @@ std::map<IconKey, HICON> &cache()
 
 } // namespace
 
-HICON ScaledIcons::getLarge(UINT id)
+HICON ScaledIcons::getLarge(WORD id)
 {
   return get(id, GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON));
 }
 
-HICON ScaledIcons::getSmall(UINT id)
+HICON ScaledIcons::getSmall(WORD id)
 {
   return get(id, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON));
 }
 
-HICON ScaledIcons::get(UINT id, int width, int height)
+HICON ScaledIcons::get(WORD id, int width, int height)
 {
   AutoLock al(&cacheLock());
   IconKey key = { id, width, height };
@@ -94,7 +94,7 @@ HICON ScaledIcons::get(UINT id, int width, int height)
   return icon;
 }
 
-void ScaledIcons::drawCentered(const DRAWITEMSTRUCT *dis, UINT id)
+void ScaledIcons::drawCentered(const DRAWITEMSTRUCT *dis, WORD id)
 {
   HWND parent = GetParent(dis->hwndItem);
   HBRUSH background = reinterpret_cast<HBRUSH>(

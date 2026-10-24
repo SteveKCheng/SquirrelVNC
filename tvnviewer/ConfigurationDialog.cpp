@@ -40,7 +40,7 @@ void ConfigurationDialog::setListenerOfUpdate(WindowsApplication *application)
   m_application = application;
 }
 
-BOOL ConfigurationDialog::onCommand(UINT controlID, UINT notificationID)
+BOOL ConfigurationDialog::onCommand(WORD controlID, UINT notificationID)
 {
   if (controlID == IDC_EVERBLVL) {
     if (notificationID == EN_CHANGE) {

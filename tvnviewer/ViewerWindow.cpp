@@ -920,14 +920,16 @@ void ViewerWindow::doUnFullScr()
   m_dsktWnd.setWinKeyIgnore(true);
 }
 
-bool ViewerWindow::onNotify(int /* idCtrl */, LPNMHDR pnmh)
+bool ViewerWindow::onNotify(WORD /* idCtrl */, LPNMHDR pnmh)
 {
   ResourceLoader *rLoader = ResourceLoader::getInstance();
   LPTOOLTIPTEXT toolTipText = reinterpret_cast<LPTOOLTIPTEXT>(pnmh);
   if (toolTipText->hdr.code != TTN_NEEDTEXT) {
     return false;
   }
-  int resId = static_cast<int>(toolTipText->hdr.idFrom);
+  // The tooltip is for a toolbar button, whose command ID (16-bit, as
+  // setButtonsRange() requires) is also its string resource ID.
+  WORD resId = static_cast<WORD>(toolTipText->hdr.idFrom);
   rLoader->loadString(resId, &m_strToolTip);
   toolTipText->lpszText = const_cast<TCHAR *>(m_strToolTip.getString());
   return true;

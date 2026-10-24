@@ -32,7 +32,7 @@ void ViewerMenu::makeSeparator()
   m_startIndex++;
 }
 
-void ViewerMenu::menuItem(int id)
+void ViewerMenu::menuItem(WORD id)
 {
   StringStorage helpString;
   ResourceLoader *rLoader = ResourceLoader::getInstance();

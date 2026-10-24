@@ -27,7 +27,7 @@
 #include <vector>
 
 ToolBar::ToolBar()
-: m_initialStr(-1),
+: m_initialStr(0),
   m_numberTB(0),
   m_id(0),
   m_width(0),
@@ -57,7 +57,7 @@ void ToolBar::setViewAutoButtons(int iButton, int style)
   m_autoButtons[iButton] = style;
 }
 
-void ToolBar::loadIcons(UINT firstId, int count)
+void ToolBar::loadIcons(WORD firstId, int count)
 {
   _ASSERT(m_imageList == 0);
   // The toolbar's buttons are sized to fit the images.
@@ -66,13 +66,15 @@ void ToolBar::loadIcons(UINT firstId, int count)
   m_imageList = ImageList_Create(m_width, m_height, ILC_COLOR32, count, 0);
   for (int i = 0; i < count; i++) {
     // The image list copies the icon, which stays in ScaledIcons' cache.
-    ImageList_AddIcon(m_imageList, ScaledIcons::get(firstId + i, m_width, m_height));
+    // In range by the pre-condition.
+    WORD id = static_cast<WORD>(firstId + i);
+    ImageList_AddIcon(m_imageList, ScaledIcons::get(id, m_width, m_height));
   }
   m_numberTB = count;
   m_id = firstId;
 }
 
-void ToolBar::setButtonsRange(DWORD id)
+void ToolBar::setButtonsRange(WORD id)
 {
   m_initialStr = id;
 }
@@ -124,7 +126,7 @@ void ToolBar::attachToolBar(HWND hwnd)
   SendMessage(m_hWndToolbar, TB_SETINDENT, 4, 0);
 }
 
-bool ToolBar::enableButton(int idButton, bool enable)
+bool ToolBar::enableButton(WORD idButton, bool enable)
 {
   LRESULT result = SendMessage(m_hWndToolbar, TB_ENABLEBUTTON,
                                idButton, MAKELONG(enable, 0));
@@ -181,14 +183,14 @@ bool ToolBar::isVisible()
   return !!(style & WS_VISIBLE);
 }
 
-bool ToolBar::checkButton(int idButton, bool check)
+bool ToolBar::checkButton(WORD idButton, bool check)
 {
   LRESULT result = SendMessage(m_hWndToolbar, TB_CHECKBUTTON, 
           idButton, MAKELONG(check, 0));
   return !!result;
 }
 
-LRESULT ToolBar::getState(int idButton) 
+LRESULT ToolBar::getState(WORD idButton)
 {
   LRESULT result = SendMessage(m_hWndToolbar, TB_GETSTATE, 
                    idButton, 0);

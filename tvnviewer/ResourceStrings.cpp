@@ -44,7 +44,7 @@ bool ResourceStrings::isValid(int res)
   return false;
 }
 
-StringStorage ResourceStrings::getStrRes(int strRes) 
+StringStorage ResourceStrings::getStrRes(WORD strRes)
 {
   ResourceLoader *rLoader = ResourceLoader::getInstance();
 

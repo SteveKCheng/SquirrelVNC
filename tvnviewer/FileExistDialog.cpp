@@ -94,12 +94,12 @@ BOOL FileExistDialog::onInitDialog()
   return TRUE;
 }
 
-BOOL FileExistDialog::onNotify(UINT /* controlID */, LPARAM /* data */)
+BOOL FileExistDialog::onNotify(WORD /* controlID */, LPARAM /* data */)
 {
   return TRUE;
 }
 
-BOOL FileExistDialog::onCommand(UINT controlID, UINT /* notificationID */)
+BOOL FileExistDialog::onCommand(WORD controlID, UINT /* notificationID */)
 {
   switch (controlID) {
   case IDC_OVERWRITE_BUTTON:

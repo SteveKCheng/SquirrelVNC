@@ -154,7 +154,7 @@ void LoginDialog::onAbout()
   m_viewer->postMessage(TvnViewer::WM_USER_ABOUT);
 }
 
-BOOL LoginDialog::onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis)
+BOOL LoginDialog::onDrawItem(WORD controlID, LPDRAWITEMSTRUCT dis)
 {
   if (controlID == IDC_LOGO) {
     ScaledIcons::drawCentered(dis, IDI_APPICON);
@@ -162,7 +162,7 @@ BOOL LoginDialog::onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis)
   return TRUE;
 }
 
-BOOL LoginDialog::onCommand(UINT controlID, UINT notificationID)
+BOOL LoginDialog::onCommand(WORD controlID, UINT notificationID)
 {
   switch (controlID) {
   case IDC_CSERVER:

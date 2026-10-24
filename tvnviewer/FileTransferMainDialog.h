@@ -93,8 +93,8 @@ protected:
   //
 
   BOOL onInitDialog() override;
-  BOOL onNotify(UINT controlID, LPARAM data) override;
-  BOOL onCommand(UINT controlID, UINT notificationID) override;
+  BOOL onNotify(WORD controlID, LPARAM data) override;
+  BOOL onCommand(WORD controlID, UINT notificationID) override;
   BOOL onDestroy() override;
 
   void onMessageReceived(UINT uMsg, WPARAM wParam, LPARAM lParam) override;

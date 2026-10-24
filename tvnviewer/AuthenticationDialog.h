@@ -40,7 +40,7 @@ public:
   void setHostName(const StringStorage *hostname);
 
 protected:
-  BOOL onCommand(UINT controlID, UINT notificationID) override;
+  BOOL onCommand(WORD controlID, UINT notificationID) override;
   BOOL onInitDialog() override;
 
   TextBox m_password;

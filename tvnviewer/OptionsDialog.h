@@ -70,7 +70,7 @@ protected:
   CheckBox m_nlocal;
 
   void onMessageReceived(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
-  BOOL onCommand(UINT controlID, UINT notificationID) override;
+  BOOL onCommand(WORD controlID, UINT notificationID) override;
   BOOL onInitDialog() override;
 
   ConnectionConfig *m_conConfig;

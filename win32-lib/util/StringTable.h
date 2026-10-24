@@ -43,12 +43,12 @@ public:
    * (or assertion check will fail), cause this method used it.
    * @fixme stub.
    */
-  static const TCHAR *getString(UINT id);
+  static const TCHAR *getString(WORD id);
 
 private:
   StringTable();
 
-  static std::map<UINT, StringStorage> _cache;
+  static std::map<WORD, StringStorage> _cache;
 };
 
 #endif

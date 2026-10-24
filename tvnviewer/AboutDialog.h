@@ -65,17 +65,17 @@ protected:
    * Inherited from BaseDialog.
    * Does nothing.
    */
-  BOOL onNotify(UINT controlID, LPARAM data) override;
+  BOOL onNotify(WORD controlID, LPARAM data) override;
   /**
    * Inherited from BaseDialog.
    * Handles buttons events.
    */
-  BOOL onCommand(UINT controlID, UINT notificationID) override;
+  BOOL onCommand(WORD controlID, UINT notificationID) override;
   /**
    * Inherited from BaseDialog.
    * Draws the logo.
    */
-  BOOL onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis) override;
+  BOOL onDrawItem(WORD controlID, LPDRAWITEMSTRUCT dis) override;
   /**
    * Inherited from BaseDialog.
    * Does nothing.

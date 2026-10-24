@@ -36,8 +36,8 @@ public:
   Icon(Bitmap *bitmap);
   Icon(Bitmap *bitmap, Bitmap *mask);
   // Small icon from the resources (see ScaledIcons), for the
-  // notification area.
-  Icon(DWORD icon);
+  // notification area.  icon is the ID of an icon resource.
+  explicit Icon(WORD icon);
   Icon(const Icon &) = delete;
   Icon &operator=(const Icon &) = delete;
   Icon(Icon &&) = delete;

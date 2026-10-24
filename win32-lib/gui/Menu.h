@@ -46,18 +46,25 @@ public:
   void createPopupMenu();
   
   int getMenuItemCount();
-  bool appendMenu(StringStorage strVal, UINT uID); 
+  // Every uID below is a menu command ID, which is 16-bit since
+  // WM_COMMAND carries it in LOWORD(wParam); uItem is a position.
+  // Pre-condition for all but the creation methods: a menu is set.
+
+  bool appendMenu(StringStorage strVal, WORD uID);
   bool appendSeparator();
 
-  bool insertMenuItem(UINT uItem, StringStorage strVal, UINT uID);
+  bool insertMenuItem(UINT uItem, StringStorage strVal, WORD uID);
   bool insertSeparator(UINT uItem);
 
-  bool enableMenuItem(UINT uID, UINT uEnable);
-  bool checkedMenuItem(UINT uID, bool bEnable);
+  // uEnable takes MF_ENABLED, MF_GRAYED or MF_DISABLED, but not
+  // MF_BYPOSITION, since uID is a command ID.
+  bool enableMenuItem(WORD uID, UINT uEnable);
+  bool checkedMenuItem(WORD uID, bool bEnable);
 
-  int findMenuItem(UINT uID);
+  // Returns the position of the item with command ID uID, or -1.
+  int findMenuItem(WORD uID);
 
-  bool setDefaultItem(UINT uID);
+  bool setDefaultItem(WORD uID);
 
   void operator= (HMENU hmenu)
   {

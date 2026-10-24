@@ -89,7 +89,7 @@ BOOL FileTransferMainDialog::onInitDialog()
   return TRUE;
 }
 
-BOOL FileTransferMainDialog::onNotify(UINT controlID, LPARAM data)
+BOOL FileTransferMainDialog::onNotify(WORD controlID, LPARAM data)
 {
   LPNMHDR nmhdr = (LPNMHDR)data;
   switch (controlID) {
@@ -151,7 +151,7 @@ BOOL FileTransferMainDialog::onNotify(UINT controlID, LPARAM data)
   return TRUE;
 }
 
-BOOL FileTransferMainDialog::onCommand(UINT controlID, UINT /* notificationID */)
+BOOL FileTransferMainDialog::onCommand(WORD controlID, UINT /* notificationID */)
 {
   switch (controlID) {
   case IDCANCEL:

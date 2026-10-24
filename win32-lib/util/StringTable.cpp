@@ -24,13 +24,13 @@
 #include "StringTable.h"
 #include "ResourceLoader.h"
 
-std::map<UINT, StringStorage> StringTable::_cache;
+std::map<WORD, StringStorage> StringTable::_cache;
 
 StringTable::StringTable()
 {
 }
 
-const TCHAR *StringTable::getString(UINT id)
+const TCHAR *StringTable::getString(WORD id)
 {
   if (_cache.find(id) == _cache.end()) {
     StringStorage string;

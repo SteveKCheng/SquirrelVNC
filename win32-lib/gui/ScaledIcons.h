@@ -35,6 +35,9 @@
  * LoadIcon() returns, so callers must not destroy them. This lets them be
  * set as class icons, which outlive any one window. The process is system
  * DPI aware, so the sizes do not change while it runs.
+ *
+ * Every id is the integer ID of an icon resource in the executable; the
+ * result is null if there is no such icon.
  */
 class ScaledIcons final
 {
@@ -42,25 +45,25 @@ public:
   /**
    * Icon for a window's title bar and Alt+Tab (SM_CXICON x SM_CYICON).
    */
-  static HICON getLarge(UINT id);
+  static HICON getLarge(WORD id);
 
   /**
    * Icon for the title bar, taskbar and notification area
    * (SM_CXSMICON x SM_CYSMICON).
    */
-  static HICON getSmall(UINT id);
+  static HICON getSmall(WORD id);
 
   /**
    * Icon of the given size in pixels. Falls back to LoadIcon() if the
    * icon cannot be loaded at that size.
    */
-  static HICON get(UINT id, int width, int height);
+  static HICON get(WORD id, int width, int height);
 
   /**
    * Draws the icon centred in an owner-drawn static control, as large as
    * fits, on the background the parent gives static controls.
    */
-  static void drawCentered(const DRAWITEMSTRUCT *dis, UINT id);
+  static void drawCentered(const DRAWITEMSTRUCT *dis, WORD id);
 };
 
 #endif // _SCALED_ICONS_H_

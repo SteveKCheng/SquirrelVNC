@@ -40,7 +40,7 @@ HICON ResourceLoader::loadIcon(const TCHAR *iconName)
   return LoadIcon(m_appInstance, iconName);
 }
 
-bool ResourceLoader::loadString(UINT id, StringStorage *string)
+bool ResourceLoader::loadString(WORD id, StringStorage *string)
 {
   _ASSERT(string != 0);
   string->setString(_T("(Undef)"));
@@ -65,7 +65,7 @@ bool ResourceLoader::loadString(UINT id, StringStorage *string)
     LPVOID lockRes = LockResource(hGlobal);
 
     WCHAR *lpStr = reinterpret_cast<WCHAR *>(lockRes);
-    for (UINT i = 0; i < (id % 16); i++) {
+    for (int i = 0; i < (id % 16); i++) {
       lpStr += 1 + static_cast<UINT16>(lpStr[0]);
     }
 
@@ -85,7 +85,7 @@ bool ResourceLoader::loadString(UINT id, StringStorage *string)
   return true;
 }
 
-HACCEL ResourceLoader::loadAccelerator(UINT id)
+HACCEL ResourceLoader::loadAccelerator(WORD id)
 {
   return LoadAccelerators(m_appInstance,
                           MAKEINTRESOURCE(id)); 
@@ -96,7 +96,7 @@ HCURSOR ResourceLoader::loadStandardCursor(const TCHAR *id)
   return LoadCursor(nullptr, id);
 }
 
-HCURSOR ResourceLoader::loadCursor(UINT id)
+HCURSOR ResourceLoader::loadCursor(WORD id)
 {
   return LoadCursor(m_appInstance, MAKEINTRESOURCE(id));
 }

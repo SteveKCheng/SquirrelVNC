@@ -61,8 +61,8 @@ public:
 
 protected:
   BOOL onInitDialog() override;
-  BOOL onCommand(UINT controlID, UINT notificationID) override;
-  BOOL onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis) override;
+  BOOL onCommand(WORD controlID, UINT notificationID) override;
+  BOOL onDrawItem(WORD controlID, LPDRAWITEMSTRUCT dis) override;
   bool m_isListening;
 
   Control m_listening;

@@ -76,9 +76,15 @@ public:
   // Return
   Control *getControl() { return &m_ctrlThis; }
   // Setup control by ID
-  void setControlById(Control &control, DWORD id);
-  // Icon manipulation 
-  void loadIcon(DWORD id);
+  //
+  // Pre-condition: the dialog window has been created.  Post-condition:
+  // control refers to the child with ID id, or to no window if there is none.
+  void setControlById(Control &control, WORD id);
+  // Icon manipulation
+  //
+  // loadIcon() takes the ID of an icon resource in the executable, and
+  // takes effect when the dialog window is next created, or on updateIcon().
+  void loadIcon(WORD id);
   void updateIcon();
 
   // Puts this control foreground and activates it
@@ -91,8 +97,11 @@ protected:
   //
 
   virtual BOOL onInitDialog() = 0;
-  virtual BOOL onNotify(UINT controlID, LPARAM data);
-  virtual BOOL onCommand(UINT controlID, UINT notificationID) = 0;
+  // Control IDs here are 16-bit, as WM_COMMAND carries them in
+  // LOWORD(wParam); dialogProc() takes the same low word for WM_NOTIFY
+  // and WM_DRAWITEM.
+  virtual BOOL onNotify(WORD controlID, LPARAM data);
+  virtual BOOL onCommand(WORD controlID, UINT notificationID) = 0;
   BOOL onClose();
   virtual BOOL onDestroy();
 
@@ -100,7 +109,7 @@ protected:
   // This methods can be overrided by child classes.
   //
 
-  virtual BOOL onDrawItem(WPARAM controlID, LPDRAWITEMSTRUCT dis);
+  virtual BOOL onDrawItem(WORD controlID, LPDRAWITEMSTRUCT dis);
   virtual void onMessageReceived(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
   //

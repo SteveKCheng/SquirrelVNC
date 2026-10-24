@@ -47,7 +47,7 @@ Icon::Icon(Bitmap *bitmap, Bitmap *mask)
   fromBitmap(bitmap, mask);
 }
 
-Icon::Icon(DWORD icon)
+Icon::Icon(WORD icon)
 : m_hasOwnIcon(false)
 {
   m_icon = ScaledIcons::getSmall(icon);
