@@ -26,9 +26,8 @@
 #include <algorithm>
 
 HexTileDecoder::HexTileDecoder(LogWriter *logWriter)
-: DecoderOfRectangle(logWriter)
+: DecoderOfRectangle(logWriter, EncodingDefs::HEXTILE)
 {
-  m_encoding = EncodingDefs::HEXTILE;
 }
 
 HexTileDecoder::~HexTileDecoder()

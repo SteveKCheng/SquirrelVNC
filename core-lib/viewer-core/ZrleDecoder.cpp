@@ -29,9 +29,8 @@
 #include <algorithm>
 
 ZrleDecoder::ZrleDecoder(LogWriter *logWriter)
-: DecoderOfRectangle(logWriter)
+: DecoderOfRectangle(logWriter, EncodingDefs::ZRLE)
 {
-  m_encoding = EncodingDefs::ZRLE;
 }
 
 ZrleDecoder::~ZrleDecoder()

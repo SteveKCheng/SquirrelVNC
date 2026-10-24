@@ -27,10 +27,9 @@
 #include "rfb/StandardPixelFormatFactory.h"
 
 TightDecoder::TightDecoder(LogWriter *logWriter)
-: DecoderOfRectangle(logWriter),
+: DecoderOfRectangle(logWriter, EncodingDefs::TIGHT),
   m_isCPixel(false)
 {
-  m_encoding = EncodingDefs::TIGHT;
 
   for (int i = 0; i < DECODERS_NUM; i++) {
     m_inflater.push_back(std::make_unique<Inflater>());

@@ -23,8 +23,8 @@
 
 #include "PseudoDecoder.h"
 
-PseudoDecoder::PseudoDecoder(LogWriter *logWriter)
-: Decoder(logWriter)
+PseudoDecoder::PseudoDecoder(LogWriter *logWriter, int encoding)
+: Decoder(logWriter, encoding)
 {
 }
 

@@ -29,7 +29,8 @@
 class PseudoDecoder : public Decoder
 {
 public:
-  PseudoDecoder(LogWriter *logWriter);
+  // Post-conditions: getCode() returns encoding.
+  PseudoDecoder(LogWriter *logWriter, int encoding);
   ~PseudoDecoder() override;
 
   bool isPseudo() const override;

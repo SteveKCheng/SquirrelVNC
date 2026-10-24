@@ -24,9 +24,8 @@
 #include "CompressionLevel.h"
 
 CompressionLevel::CompressionLevel(LogWriter *logWriter, int compression)
-: PseudoDecoder(logWriter)
+: PseudoDecoder(logWriter, levelToEncoding(compression))
 {
-  m_encoding = levelToEncoding(compression);
 }
 
 CompressionLevel::~CompressionLevel()

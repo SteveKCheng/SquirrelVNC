@@ -24,9 +24,8 @@
 #include "CopyRectDecoder.h"
 
 CopyRectDecoder::CopyRectDecoder(LogWriter *logWriter)
-: DecoderOfRectangle(logWriter)
+: DecoderOfRectangle(logWriter, EncodingDefs::COPYRECT)
 {
-  m_encoding = EncodingDefs::COPYRECT;
 }
 
 CopyRectDecoder::~CopyRectDecoder()

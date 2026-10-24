@@ -24,9 +24,8 @@
 #include "PointerPosDecoder.h"
 
 PointerPosDecoder::PointerPosDecoder(LogWriter *logWriter)
-: PseudoDecoder(logWriter)
+: PseudoDecoder(logWriter, PseudoEncDefs::POINTER_POS)
 {
-  m_encoding = PseudoEncDefs::POINTER_POS;
 }
 
 PointerPosDecoder::~PointerPosDecoder()

@@ -31,7 +31,8 @@ class FbUpdateNotifier;
 class DecoderOfRectangle : public Decoder
 {
 public:
-  DecoderOfRectangle(LogWriter *logWriter);
+  // Post-conditions: getCode() returns encoding.
+  DecoderOfRectangle(LogWriter *logWriter, int encoding);
   ~DecoderOfRectangle() override;
 
   //

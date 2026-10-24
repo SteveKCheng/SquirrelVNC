@@ -24,9 +24,8 @@
 #include "LastRectDecoder.h"
 
 LastRectDecoder::LastRectDecoder(LogWriter *logWriter)
-: PseudoDecoder(logWriter)
+: PseudoDecoder(logWriter, PseudoEncDefs::LAST_RECT)
 {
-  m_encoding = PseudoEncDefs::LAST_RECT;
 }
 
 LastRectDecoder::~LastRectDecoder()

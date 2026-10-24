@@ -35,7 +35,9 @@
 class Decoder
 {
 public:
-  Decoder(LogWriter *logWriter);
+  // Post-conditions: getCode() returns encoding, the code of the encoding
+  // or pseudo-encoding that this decoder handles.
+  Decoder(LogWriter *logWriter, int encoding);
   virtual ~Decoder();
 
   //
@@ -56,7 +58,7 @@ public:
 protected:
   LogWriter *m_logWriter;
 
-  int m_encoding;
+  const int m_encoding;
 };
 
 #endif
