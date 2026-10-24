@@ -56,7 +56,7 @@ public:
   /**
    * Deletes and closes socket.
    */
-  virtual ~SocketIPv4();
+  ~SocketIPv4();
 
   /**
    * Connects to remote host.

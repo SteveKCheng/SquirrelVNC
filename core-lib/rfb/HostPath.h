@@ -30,7 +30,7 @@ class HostPath {
 public:
   HostPath();
   HostPath(const TCHAR *path, int defaultPort = 5900);
-  virtual ~HostPath();
+  ~HostPath();
 
   //
   // Parses path, which names a VNC server and optionally an SSH host to

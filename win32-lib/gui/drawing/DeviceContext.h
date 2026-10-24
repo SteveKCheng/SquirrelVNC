@@ -40,7 +40,7 @@ public:
   DeviceContext &operator=(DeviceContext &&) = delete;
 
   // Destroys device context.
-  virtual ~DeviceContext();
+  ~DeviceContext();
 
 private:
   // Initialize class from PaintWindow

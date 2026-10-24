@@ -43,7 +43,7 @@ public:
   //
   // This method return true, if server support File Transfer.
   //
-  virtual bool isEnabled();
+  bool isEnabled();
 
   //
   // This method must called from event onConnected() in CoreEventsAdapter.
@@ -55,14 +55,14 @@ public:
   //
   void onServerMessage(UINT32 code, DataInputStream *input) override;
 
-  virtual FileTransferCore *getCore();
-  virtual void setInterface(FileTransferInterface *ftInterface);
+  FileTransferCore *getCore();
+  void setInterface(FileTransferInterface *ftInterface);
 
   //
   // This method must be called before call RemoteViewerCore::start(),
   // otherwise FT will no worked.
   //
-  virtual void addCapabilities(CapabilitiesManager *capabilitiesManager);
+  void addCapabilities(CapabilitiesManager *capabilitiesManager);
 
 protected:
   LogWriter m_logWriter;

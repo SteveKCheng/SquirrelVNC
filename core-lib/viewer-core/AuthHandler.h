@@ -90,7 +90,7 @@ public:
   //
   // This method return type of authentication (m_id).
   //
-  virtual int getType() const;
+  int getType() const;
 
 private:
   int m_id;

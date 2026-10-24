@@ -43,7 +43,7 @@ public:
   TcpConnection(TcpConnection &&) = delete;
   TcpConnection &operator=(TcpConnection &&) = delete;
 
-  virtual ~TcpConnection();
+  ~TcpConnection();
 
   void bind(const TCHAR *host, UINT16 port);
   void bind(SocketIPv4 *socket);

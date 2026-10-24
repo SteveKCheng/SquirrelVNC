@@ -85,13 +85,13 @@ public:
 
   // Stores a log message to the log file if level is less or equal than
   // the log verbosity level.
-  virtual void print(unsigned int processId,
-                     unsigned int threadId,
-                     const DateTime *dt,
-                     int level,
-                     const TCHAR *message);
+  void print(unsigned int processId,
+             unsigned int threadId,
+             const DateTime *dt,
+             int level,
+             const TCHAR *message);
 
-  virtual bool acceptsLevel(int logLevel);
+  bool acceptsLevel(int logLevel);
 
 protected:
   void flush(unsigned int processId,

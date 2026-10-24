@@ -41,7 +41,7 @@ public:
   //
   // This method return encoding of this Decoder.
   //
-  virtual int getCode() const;
+  int getCode() const;
 
   //
   // This method return true, if decoder responsible for pseudo encoding.

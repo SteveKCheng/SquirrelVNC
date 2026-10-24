@@ -41,7 +41,7 @@ public:
   ViewerCollector(ViewerCollector &&) = delete;
   ViewerCollector &operator=(ViewerCollector &&) = delete;
 
-  virtual ~ViewerCollector();
+  ~ViewerCollector();
 
   // Adds instance to a self list, which owns it from then on.
   void addInstance(std::unique_ptr<ViewerInstance> instance);

@@ -40,7 +40,7 @@ public:
   bool operator==(const Dimension &other) { return isEqualTo(&other); }
   bool operator!=(const Dimension &other) { return !isEqualTo(&other); }
 
-  virtual ~Dimension(void) {}
+  ~Dimension(void) {}
 
   Rect getRect() const
   { 

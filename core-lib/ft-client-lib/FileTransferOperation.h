@@ -89,7 +89,7 @@ protected:
   // Returns value of m_isTerminating flag
   //
 
-  virtual bool isTerminating();
+  bool isTerminating();
 
   //
   // Some helper methods that will be used by child classes.

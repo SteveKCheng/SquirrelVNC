@@ -34,7 +34,7 @@ public:
   OperationSupport();
   OperationSupport(const std::vector<UINT32> &clientCodes,
                    const std::vector<UINT32> &serverCodes);
-  virtual ~OperationSupport();
+  ~OperationSupport();
 
   bool isFileListSupported() const;
   bool isUploadSupported() const;

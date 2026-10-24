@@ -64,7 +64,7 @@ public:
   // a session of the DIB section later.
   // The compatibleWindow handle can be zero then the function will take a DC of entire desktop.
   // Note that other function that can change properties will throw Exception().
-  virtual void setProperties(const Dimension *newDim,
+  void setProperties(const Dimension *newDim,
     const PixelFormat *pixelFormat, HWND compatibleWindow);
 
   // This function changes the target DC. In default target DC is a DC that has been

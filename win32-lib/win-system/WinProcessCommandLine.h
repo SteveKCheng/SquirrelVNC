@@ -31,7 +31,7 @@ class WinProcessCommandLine
 {
 public:
   WinProcessCommandLine();
-  virtual ~WinProcessCommandLine();
+  ~WinProcessCommandLine();
 
   // returns the number of arguments in command line
   // for example, program: help

@@ -37,7 +37,7 @@ public:
   VncPassCrypt(VncPassCrypt &&) = delete;
   VncPassCrypt &operator=(VncPassCrypt &&) = delete;
 
-  virtual ~VncPassCrypt();
+  ~VncPassCrypt();
 
   static const int VNC_PASSWORD_SIZE = 8;
 

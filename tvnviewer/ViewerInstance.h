@@ -52,7 +52,7 @@ public:
   ViewerInstance(ViewerInstance &&) = delete;
   ViewerInstance &operator=(ViewerInstance &&) = delete;
 
-  virtual ~ViewerInstance();
+  ~ViewerInstance();
 
   bool requiresReconnect() const;
   bool isStopped() const;

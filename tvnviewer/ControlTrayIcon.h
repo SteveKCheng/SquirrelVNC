@@ -53,34 +53,34 @@ protected:
   //
   // Show login-dialog after click "New connection..." in pop-up menu of tray icon
   //
-  virtual void onNewConnection();
+  void onNewConnection();
   
   //
   // Show dialog with connection options after click
   // "Options for incoming connection..." in pop-up menu of tray icon
   //
-  virtual void onListeningOptions();
+  void onListeningOptions();
 
   //
   // Show dialog with configuration of viewer
   //
-  virtual void onConfiguration();
+  void onConfiguration();
   
   //
   // Show about-dialog of viewer
   //
-  virtual void onAboutViewer();
+  void onAboutViewer();
 
   //
   // Stopping of listening daemon after click
   // "Close listening daemon" in pop-up menu of tray icon
   //
-  virtual void onCloseListeningDaemon();
+  void onCloseListeningDaemon();
 
   //
   // Show login-dialog after click on tray icon
   //
-  virtual void onShowMainWindow();
+  void onShowMainWindow();
 
   Icon m_icon;
   Menu m_menu;

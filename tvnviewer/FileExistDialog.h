@@ -45,7 +45,7 @@ public:
   ~FileExistDialog() override;
 
   // Override BaseDialog method
-  virtual int showModal();
+  int showModal();
 
   void setFilesInfo(FileInfo *existingFileInfo, FileInfo *newFileInfo,
                     const TCHAR *pathToFileCaption);

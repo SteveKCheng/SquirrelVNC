@@ -52,7 +52,7 @@ public:
   // be stored to a file.
   FileLogger(bool logHeadEnabled);
 
-  virtual ~FileLogger();
+  ~FileLogger();
 
   // This function must to call after the constructor with postponed initialization.
   // Between the constructor and this function calling all log lines stores in

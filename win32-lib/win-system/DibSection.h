@@ -46,7 +46,7 @@ public:
   DibSection(DibSection &&) = delete;
   DibSection &operator=(DibSection &&) = delete;
 
-  virtual ~DibSection();
+  ~DibSection();
 
   // This function changes the target DC. In default target DC is a DC that has been
   // got from a compatible window on object creation. This function can be call many times.

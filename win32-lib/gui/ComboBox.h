@@ -67,7 +67,7 @@ public:
   LPARAM getItemData(int index) const;
 
   // Sets text associated with combo box item with specified index
-  virtual void getItemText(int index, StringStorage *storage) const;
+  void getItemText(int index, StringStorage *storage) const;
 
   // Returns current selected item index
   int getSelectedItemIndex();

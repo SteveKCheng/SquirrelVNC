@@ -52,7 +52,7 @@ class CapsContainer
 {
 public:
   CapsContainer();
-  virtual ~CapsContainer();
+  ~CapsContainer();
 
   //
   // Add information about a particular capability into the object. There are

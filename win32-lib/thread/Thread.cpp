@@ -41,7 +41,6 @@ DWORD WINAPI Thread::threadProc(LPVOID pThread)
 {
   Thread *_this = ((Thread *)pThread);
   try {
-    _this->initByDerived();
     _this->execute();
   } catch (Exception &) {
     /*Log::error(_T("Abnormal thread termination.")
@@ -52,11 +51,6 @@ DWORD WINAPI Thread::threadProc(LPVOID pThread)
   }
   _this->m_active = false;
   return 0;
-}
-
-void Thread::initByDerived()
-{
-  // If is needed this function will be inherited by a derived class.
 }
 
 bool Thread::wait()

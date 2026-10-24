@@ -57,7 +57,7 @@ public:
   // Method hides window
   void hide();
   // Method closes dialog
-  virtual void kill(int code);
+  void kill(int code);
   // Method sets parent window
   void setParent(Control *ctrlParent);
   // Set resource name for dialog
@@ -84,7 +84,7 @@ protected:
   virtual BOOL onInitDialog();
   virtual BOOL onNotify(UINT controlID, LPARAM data);
   virtual BOOL onCommand(UINT controlID, UINT notificationID);
-  virtual BOOL onClose();
+  BOOL onClose();
   virtual BOOL onDestroy();
 
   //

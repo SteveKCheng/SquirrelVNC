@@ -47,7 +47,7 @@ public:
   Bitmap &operator=(Bitmap &&) = delete;
 
   // Destroys bitmap object.
-  virtual ~Bitmap();
+  ~Bitmap();
 
   // Returns bitmap width.
   int getWidth() const;

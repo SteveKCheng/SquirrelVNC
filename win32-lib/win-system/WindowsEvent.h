@@ -35,7 +35,7 @@ public:
   WindowsEvent(WindowsEvent &&) = delete;
   WindowsEvent &operator=(WindowsEvent &&) = delete;
 
-  virtual ~WindowsEvent();
+  ~WindowsEvent();
 
   void notify();
   void waitForEvent(DWORD milliseconds = INFINITE);

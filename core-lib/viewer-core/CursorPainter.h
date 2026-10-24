@@ -39,7 +39,7 @@ public:
   CursorPainter(CursorPainter &&) = delete;
   CursorPainter &operator=(CursorPainter &&) = delete;
 
-  virtual ~CursorPainter();
+  ~CursorPainter();
 
   // this functions is thread-safe for private data of cursor, but need external lock of frame buffer
   Rect hideCursor();

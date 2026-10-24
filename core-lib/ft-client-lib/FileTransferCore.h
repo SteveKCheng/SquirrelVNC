@@ -63,7 +63,7 @@ public:
   FileTransferCore(FileTransferCore &&) = delete;
   FileTransferCore &operator=(FileTransferCore &&) = delete;
 
-  virtual ~FileTransferCore();
+  ~FileTransferCore();
 
   void setInterface(FileTransferInterface *ftInterface);
 

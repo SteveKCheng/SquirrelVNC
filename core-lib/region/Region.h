@@ -67,7 +67,7 @@ public:
   /**
    * The destructor.
    */
-  virtual ~Region();
+  ~Region();
 
   /**
    * Clears the region so that it will consist of zero rectangles.

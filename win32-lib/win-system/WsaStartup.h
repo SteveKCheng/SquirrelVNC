@@ -36,7 +36,7 @@ public:
   WsaStartup(WsaStartup &&) = delete;
   WsaStartup &operator=(WsaStartup &&) = delete;
 
-  virtual ~WsaStartup();
+  ~WsaStartup();
 
 private:
 };

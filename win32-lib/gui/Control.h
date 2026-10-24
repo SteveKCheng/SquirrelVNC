@@ -55,15 +55,15 @@ public:
   // Changes enable state of this control
   //
 
-  virtual void setEnabled(bool enabled);
+  void setEnabled(bool enabled);
 
   //
   // Sets text associated with window
   //
 
-  virtual void setText(const TCHAR *text);
-  virtual void setSignedInt(int value);
-  virtual void setUnsignedInt(unsigned int value);
+  void setText(const TCHAR *text);
+  void setSignedInt(int value);
+  void setUnsignedInt(unsigned int value);
 
   //
   // Sets input focus to this control
@@ -87,7 +87,7 @@ public:
   // Checks if this control is active (not disabled)
   //
 
-  virtual bool isEnabled();
+  bool isEnabled();
 
   //
   // Invalidates control
@@ -99,7 +99,7 @@ public:
   // Gets text associated with window
   //
 
-  virtual void getText(StringStorage *storage);
+  void getText(StringStorage *storage);
 
   //
   // Gets HWND associated with this control

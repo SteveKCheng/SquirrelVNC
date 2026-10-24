@@ -30,7 +30,7 @@ class DesCrypt
 {
 public:
   DesCrypt();
-  virtual ~DesCrypt();
+  ~DesCrypt();
 
   // Encrypt the given buffer.
   // The sizes of both "dst" and "src" must be multiples of 8.

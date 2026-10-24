@@ -36,7 +36,7 @@ public:
   // Creates graphics object with specified device context.
   Graphics(DeviceContext *dc);
   // Graphics class destructor.
-  virtual ~Graphics();
+  ~Graphics();
 
   // Draws filled rect.
   void fillRect(int l, int t, int r, int b, const Brush *brush);

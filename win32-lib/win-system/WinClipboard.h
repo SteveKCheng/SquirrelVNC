@@ -31,7 +31,7 @@ class WinClipboard
 public:
 
   WinClipboard(HWND hwnd);
-  virtual ~WinClipboard();
+  ~WinClipboard();
 
   void setHWnd(HWND hwnd);
   

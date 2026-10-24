@@ -43,7 +43,7 @@ public:
   Icon(Icon &&) = delete;
   Icon &operator=(Icon &&) = delete;
 
-  virtual ~Icon();
+  ~Icon();
 
   HICON getHICON();
 

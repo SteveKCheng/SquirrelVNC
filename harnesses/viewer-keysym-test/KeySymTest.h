@@ -41,7 +41,7 @@ public:
   KeySymTest(KeySymTest &&) = delete;
   KeySymTest &operator=(KeySymTest &&) = delete;
 
-  virtual ~KeySymTest();
+  ~KeySymTest();
 
   int run();
 

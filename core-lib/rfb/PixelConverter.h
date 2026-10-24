@@ -34,15 +34,15 @@ class PixelConverter
 {
 public:
   PixelConverter(void);
-  virtual ~PixelConverter(void);
+  ~PixelConverter(void);
 
   // Convert pixels for the specified `rect' from `srcFb' to `dstFb'.
   // The pixel formats of `srcFb' and `dstFb' must be identical to the formats
   // set by the most recent setPixelFormats() call. The source and destination
   // framebuffers must be of the same size. The entire rectangle referenced by
   // `rect' must be within the frame buffer boundaries.
-  virtual void convert(const Rect *rect, FrameBuffer *dstFb,
-                       const FrameBuffer *srcFb) const;
+  void convert(const Rect *rect, FrameBuffer *dstFb,
+               const FrameBuffer *srcFb) const;
 
   // Convert pixels for the specified `rect' from `srcFb' to the internal
   // PixelConverter's frame buffer and return a pointer to that frame buffer.
@@ -55,13 +55,13 @@ public:
   // not vary from call to call. It checks if the frame buffer size has
   // changed since the previous call and reallocates the frame buffer if
   // necessary.
-  virtual const FrameBuffer *convert(const Rect *rect,
-                                     const FrameBuffer *srcFb);
+  const FrameBuffer *convert(const Rect *rect,
+                             const FrameBuffer *srcFb);
 
   // FIXME: Review the argument order for each function of PixelConverter.
   // FIXME: Review the argument names for each function of PixelConverter.
-  virtual void setPixelFormats(const PixelFormat *dstPf,
-                               const PixelFormat *srcPf);
+  void setPixelFormats(const PixelFormat *dstPf,
+                       const PixelFormat *srcPf);
 
 protected:
   void reset();

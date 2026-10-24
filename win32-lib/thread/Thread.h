@@ -140,10 +140,6 @@ private:
    */
   static DWORD WINAPI threadProc(LPVOID pThread);
 
-  // This function calling before call a derived execute() function to
-  // perform any additional action.
-  virtual void initByDerived();
-
 private:
   /**
    * Win32 thread handle.

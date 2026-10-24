@@ -35,7 +35,7 @@ class RfbKeySym
 {
 public:
   RfbKeySym(RfbKeySymListener *extKeySymListener, LogWriter *log);
-  virtual ~RfbKeySym();
+  ~RfbKeySym();
 
   // This function doesn't distinguish between left and right modifiers.
   // virtKey must be in the key map's translation table, as the modifiers
@@ -103,10 +103,10 @@ private:
   void sendMappedKey(unsigned char virtKey, bool down);
 
   // Send one key event (Alt translated to Meta if Scroll Lock is on).
-  virtual void sendKeySymEvent(unsigned int rfbKeySym, bool down);
+  void sendKeySymEvent(unsigned int rfbKeySym, bool down);
 
   // Send one key event (Alt not translated to Meta).
-  virtual void sendVerbatimKeySymEvent(unsigned int rfbKeySym, bool down);
+  void sendVerbatimKeySymEvent(unsigned int rfbKeySym, bool down);
 
   // helper functions
   WCHAR GettingCharFromCtrlSymbol(WCHAR ctrlSymbol);

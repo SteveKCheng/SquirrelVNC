@@ -47,7 +47,7 @@ public:
   /**
    * Destructor.
    */
-  virtual ~ConnectionHistory();
+  ~ConnectionHistory();
 
   /**
    * Sets connection history entries limit and truncates history

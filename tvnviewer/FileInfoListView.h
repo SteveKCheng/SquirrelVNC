@@ -38,7 +38,7 @@ public:
 
   ~FileInfoListView() override;
 
-  virtual void setWindow(HWND hwnd);
+  void setWindow(HWND hwnd);
 
   //
   // Adds new item to FileInfoListView

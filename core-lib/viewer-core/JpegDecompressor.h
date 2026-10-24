@@ -46,7 +46,7 @@ public:
   JpegDecompressor(JpegDecompressor &&) = delete;
   JpegDecompressor &operator=(JpegDecompressor &&) = delete;
 
-  virtual ~JpegDecompressor();
+  ~JpegDecompressor();
 
   /*
    * Decompress JPEG data from the given buffer. Image size must be known in

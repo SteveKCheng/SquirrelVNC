@@ -36,7 +36,7 @@ public:
   ToolBar(ToolBar &&) = delete;
   ToolBar &operator=(ToolBar &&) = delete;
 
-  virtual ~ToolBar();
+  ~ToolBar();
 
   static const int TB_Style_sep = 0;
   static const int TB_Style_gap = 1;

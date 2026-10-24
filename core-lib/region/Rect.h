@@ -38,7 +38,7 @@ public:
   Rect(int width, int height) { setRect(0, 0, width, height); }
   Rect(const RECT *rect) {fromWindowsRect(rect);}
 
-  virtual ~Rect(void) {}
+  ~Rect(void) {}
   
   int left;
   int top;

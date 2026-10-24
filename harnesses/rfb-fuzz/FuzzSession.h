@@ -62,7 +62,7 @@ public:
   // Pre-conditions: notifier outlives this object, and is never started.
   //
   FuzzSession(FuzzNotifier *notifier);
-  virtual ~FuzzSession();
+  ~FuzzSession();
 
   //
   // Read the whole input.

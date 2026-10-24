@@ -76,8 +76,8 @@ protected:
   //
   // This method notify fbNotifier about update of rect.
   //
-  virtual void notify(FbUpdateNotifier *fbNotifier,
-                      const Rect *rect);
+  void notify(FbUpdateNotifier *fbNotifier,
+              const Rect *rect);
 };
 
 #endif

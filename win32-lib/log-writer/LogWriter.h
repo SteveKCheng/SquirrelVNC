@@ -35,7 +35,7 @@ public:
   // The logger argument is a pointer to a Logger object that implements log writing.
   // It can be zero, in this case no log is writing.
   LogWriter(Logger *logger);
-  virtual ~LogWriter();
+  ~LogWriter();
 
   // All the functions below that take fmt and arguments format them as printf
   // does, and pass the result to the Logger if it accepts the level.

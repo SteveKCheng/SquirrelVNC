@@ -71,7 +71,7 @@ public:
   WinFile(WinFile &&) = delete;
   WinFile &operator=(WinFile &&) = delete;
 
-  virtual ~WinFile();
+  ~WinFile();
 
   // Opens or creates pathToFile, as fMode says, for the access dAcc.  The
   // file is shared with other openers for reading only if shareToRead is
@@ -96,10 +96,10 @@ public:
   void close();
 
   // @throw exception on a system error.
-  virtual size_t read(void *buff, size_t count);
+  size_t read(void *buff, size_t count);
 
   // @throw exception on a system error.
-  virtual size_t write(const void *buff, size_t count);
+  size_t write(const void *buff, size_t count);
 
   // Return true if object is valid. The object will be valid if
   // after by default constructor creation the initialize function has been
@@ -117,7 +117,7 @@ public:
   // file: 0 if the pointer is at or past the end, and SIZE_MAX if the count
   // does not fit in a size_t (files over 4 GiB on Win32).
   // @throw IOException on a system error.
-  virtual size_t available();
+  size_t available();
 
 private:
   HANDLE m_hFile;

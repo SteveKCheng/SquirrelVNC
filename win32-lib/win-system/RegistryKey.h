@@ -42,7 +42,7 @@ public:
 
 public:
 
-  virtual ~RegistryKey();
+  ~RegistryKey();
 
 
   // Defer initialization, for an object created by the default

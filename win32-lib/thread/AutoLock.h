@@ -35,7 +35,7 @@ public:
   AutoLock(AutoLock &&) = delete;
   AutoLock &operator=(AutoLock &&) = delete;
 
-  virtual ~AutoLock();
+  ~AutoLock();
 
 protected:
   Lockable *m_locker;

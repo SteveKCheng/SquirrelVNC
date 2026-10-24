@@ -44,7 +44,7 @@ public:
   DisplayRequest(DisplayRequest &&) = delete;
   DisplayRequest &operator=(DisplayRequest &&) = delete;
 
-  virtual ~DisplayRequest();
+  ~DisplayRequest();
 
   /**
    * Activates the request. Does nothing if it is already active.

@@ -69,7 +69,7 @@ protected:
    * Starts tcp server thread (listen for incoming connections).
    * Pre-conditions: the subclass is constructed; called once.
    */
-  virtual void start();
+  void start();
 
   /**
    * Closes the listening socket and waits for the thread to end, if it
