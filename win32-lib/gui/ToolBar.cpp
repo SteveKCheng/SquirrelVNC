@@ -27,16 +27,19 @@
 #include <vector>
 
 ToolBar::ToolBar()
+: m_initialStr(-1),
+  m_numberTB(0),
+  m_id(0),
+  m_width(0),
+  m_height(0),
+  m_hWndToolbar(0),
+  m_imageList(0)
 {
   INITCOMMONCONTROLSEX initCtrlEx;
 
   initCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
   initCtrlEx.dwICC  = ICC_BAR_CLASSES;
   InitCommonControlsEx(&initCtrlEx);
-
-  m_hWndToolbar = 0;
-  m_imageList = 0;
-  m_initialStr = -1;
 }
 
 ToolBar::~ToolBar()

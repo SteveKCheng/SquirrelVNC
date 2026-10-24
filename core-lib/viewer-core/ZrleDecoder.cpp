@@ -29,7 +29,8 @@
 #include <algorithm>
 
 ZrleDecoder::ZrleDecoder(LogWriter *logWriter)
-: DecoderOfRectangle(logWriter, EncodingDefs::ZRLE)
+: DecoderOfRectangle(logWriter, EncodingDefs::ZRLE),
+  m_bytesPerPixel(0)
 {
 }
 
@@ -84,6 +85,10 @@ void ZrleDecoder::decode(RfbInputGate *input,
     } else /*for other cases*/{
       m_bytesPerPixel = 4;
     }
+  } else {
+    // PixelFormat::isValid() allows no other size, but m_bytesPerPixel
+    // must not be left from an earlier rectangle.
+    throw Exception(_T("ZRLE decoding is not supported for this pixel size"));
   }
 
   for (int y = dstRect->top; y < dstRect->bottom; y += TILE_SIZE) {

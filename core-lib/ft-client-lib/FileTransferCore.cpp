@@ -41,7 +41,8 @@ FileTransferCore::FileTransferCore(LogWriter *logWriter,
 : m_logWriter(logWriter),
   m_state(NOTHING_STATE),
   m_sender(sender), m_replyBuffer(replyBuffer),
-  m_fileTransferListeners(ftListeners)
+  m_fileTransferListeners(ftListeners),
+  m_ftInterface(0)
 {
 }
 

@@ -24,7 +24,9 @@
 #include "PaintWindow.h"
 
 PaintWindow::PaintWindow()
- : m_bIsDraw(false)
+ : m_bIsDraw(false),
+   m_paintStruct(),
+   m_hdc(0)
 {
 }
 

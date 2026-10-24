@@ -25,6 +25,7 @@
 
 BufferedOutputStream::BufferedOutputStream(OutputStream *output)
 : m_output(output),
+  m_buffer(),
   m_dataLength(0)
 {
 }

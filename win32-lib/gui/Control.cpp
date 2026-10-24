@@ -26,12 +26,14 @@
 #include <vector>
 
 Control::Control()
-: m_hwnd(NULL)
+: m_hwnd(NULL),
+  m_defWindowProc(NULL)
 {
 }
 
 Control::Control(HWND hwnd)
-: m_hwnd(hwnd)
+: m_hwnd(hwnd),
+  m_defWindowProc(NULL)
 {
 }
 

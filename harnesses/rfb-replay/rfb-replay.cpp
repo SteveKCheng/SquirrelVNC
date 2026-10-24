@@ -123,27 +123,22 @@ struct Options
   StringStorage outFile;
   StringStorage eventsFile;
   StringStorage ppmFile;
-  StringStorage password;
-  bool isPasswordGiven;
-  UINT64 maxPixels;
-  DWORD timeoutMs;
-  int logLevel;
+  StringStorage password = _T("password");
+  bool isPasswordGiven = false;
+  UINT64 maxPixels = 4096 * 4096;
+  DWORD timeoutMs = 30 * 1000;
+  int logLevel = 1;
 };
 
 //
 // Parse the command line.
 //
+// Pre-conditions: options holds the defaults (a new Options).
 // Post-conditions: returns true and fills options if the command line is
 // valid; otherwise prints the problem and the usage, and returns false.
 //
 static bool parseOptions(int argc, TCHAR *argv[], Options *options)
 {
-  options->password = _T("password");
-  options->isPasswordGiven = false;
-  options->maxPixels = 4096 * 4096;
-  options->timeoutMs = 30 * 1000;
-  options->logLevel = 1;
-
   for (int i = 1; i < argc; i++) {
     const TCHAR *arg = argv[i];
     bool hasValue = i + 1 < argc;
