@@ -23,6 +23,7 @@
 
 #include "WinCommandLineArgs.h"
 #include "util/Exception.h"
+#include "util/ScopeExit.h"
 
 WinCommandLineArgs::WinCommandLineArgs(const TCHAR *cmdLineInWinFormat)
 {
@@ -35,14 +36,13 @@ WinCommandLineArgs::WinCommandLineArgs(const TCHAR *cmdLineInWinFormat)
     if(argList == 0) {
       throw Exception(_T("Invalid command line"));
     }
+    ScopeExit freeArgList([&] { LocalFree(argList); });
     for(int i = 0; i < nArgs; i++) {
       StringStorage arg(argList[i]);
       if (arg.getLength() > 0) {
         m_args.push_back(arg);
       }
     }
-
-    LocalFree(argList);
   }
 }
 

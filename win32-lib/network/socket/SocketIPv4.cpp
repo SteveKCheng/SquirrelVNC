@@ -27,6 +27,9 @@
 #include "SocketIPv4.h"
 
 #include "thread/AutoLock.h"
+#include "util/ScopeExit.h"
+
+#include <memory>
 
 #include <crtdbg.h>
 
@@ -146,25 +149,21 @@ SocketIPv4 *SocketIPv4::accept()
   struct sockaddr_in addr;
 
   SOCKET result = getAcceptedSocket(&addr);
-
-  SocketIPv4 *accepted;
-
-  try {
-    accepted = new SocketIPv4(); 
-    accepted->close();
-  } catch(...) {
-    // Cleanup and throw further
+  ScopeExit closeResult([&] {
 #ifdef _WIN32
     ::closesocket(result);
 #else
     ::close(result);
 #endif
-    throw SocketException();
-  }
+  });
 
-  // Fall out with exception, no need to check if accepted is NULL
+  std::unique_ptr<SocketIPv4> accepted(new SocketIPv4());
+  accepted->close();
+  // set() takes result even if it then throws, and accepted's destructor
+  // then closes it.
+  closeResult.release();
   accepted->set(result);
-  return accepted; // Valid and initialized
+  return accepted.release();
 }
 
 void SocketIPv4::set(SOCKET socket)

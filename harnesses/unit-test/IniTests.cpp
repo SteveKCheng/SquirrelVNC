@@ -29,6 +29,7 @@
 
 #include "config-lib/IniFileSettingsManager.h"
 #include "util/Exception.h"
+#include "util/ScopeExit.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -74,12 +75,12 @@ static std::string readBytes(const std::wstring &path)
   if (_wfopen_s(&file, path.c_str(), L"rb") != 0) {
     return "(cannot open)";
   }
+  ScopeExit closeFile([&] { fclose(file); });
   char buffer[4096];
   size_t count;
   while ((count = fread(buffer, 1, sizeof(buffer), file)) > 0) {
     data.append(buffer, count);
   }
-  fclose(file);
   return data;
 }
 
@@ -92,12 +93,12 @@ std::vector<std::wstring> listFiles(const std::wstring &directory)
   if (search == INVALID_HANDLE_VALUE) {
     return names;
   }
+  ScopeExit closeSearch([&] { FindClose(search); });
   do {
     if (!(found.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
       names.push_back(found.cFileName);
     }
   } while (FindNextFileW(search, &found));
-  FindClose(search);
   return names;
 }
 

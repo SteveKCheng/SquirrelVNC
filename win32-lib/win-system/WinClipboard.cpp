@@ -22,6 +22,7 @@
 //
 
 #include "WinClipboard.h"
+#include "util/ScopeExit.h"
 
 #include <vector>
 
@@ -57,25 +58,22 @@ bool WinClipboard::getString(StringStorage *str)
   if (!OpenClipboard(m_hWnd)) {
     return false;
   }
-  bool isOk = false;
-  StringStorage nativeClipboard;
+  ScopeExit closeClipboard([&] { CloseClipboard(); });
   HANDLE hndData = GetClipboardData(uFormat);
-  if (hndData != 0) {
-    const TCHAR *data = static_cast<const TCHAR *>(GlobalLock(hndData));
-    if (data != 0) {
-      // The text should end with a null character, but whoever put it
-      // there may not have done so: read no further than its memory.
-      size_t length = _tcsnlen(data, GlobalSize(hndData) / sizeof(TCHAR));
-      nativeClipboard = StringStorage(StringStorage::StdString(data, length));
-      GlobalUnlock(hndData);
-      isOk = true;
-    }
+  if (hndData == 0) {
+    return false;
   }
-  CloseClipboard();
-  if (isOk) {
-    *str = removeCR(&nativeClipboard);
+  const TCHAR *data = static_cast<const TCHAR *>(GlobalLock(hndData));
+  if (data == 0) {
+    return false;
   }
-  return isOk;
+  ScopeExit unlockData([&] { GlobalUnlock(hndData); });
+  // The text should end with a null character, but whoever put it there
+  // may not have done so: read no further than its memory.
+  size_t length = _tcsnlen(data, GlobalSize(hndData) / sizeof(TCHAR));
+  StringStorage nativeClipboard(StringStorage::StdString(data, length));
+  *str = removeCR(&nativeClipboard);
+  return true;
 }
 
 bool WinClipboard::setString(const StringStorage *serverClipboard)
@@ -94,28 +92,27 @@ bool WinClipboard::setString(const StringStorage *serverClipboard)
   if (hndData == 0) {
     return false;
   }
+  // Released once SetClipboardData() succeeds: the memory then belongs to
+  // the system, which frees it when the clipboard is next emptied.
+  ScopeExit freeData([&] { GlobalFree(hndData); });
   TCHAR *dst = static_cast<TCHAR *>(GlobalLock(hndData));
   if (dst == 0) {
-    GlobalFree(hndData);
     return false;
   }
   CopyMemory(dst, nativeClipboard.getString(), dataSize);
   GlobalUnlock(hndData);
 
   if (!OpenClipboard(m_hWnd)) {
-    GlobalFree(hndData);
     return false;
   }
+  ScopeExit closeClipboard([&] { CloseClipboard(); });
   // EmptyClipboard() makes m_hWnd the owner, which SetClipboardData()
   // needs, and removes the other formats of what was there before.
-  bool isOk = EmptyClipboard() && SetClipboardData(dataType, hndData) != 0;
-  CloseClipboard();
-  // Only once SetClipboardData() succeeds does the memory belong to the
-  // system, which then frees it when the clipboard is next emptied.
-  if (!isOk) {
-    GlobalFree(hndData);
+  if (!EmptyClipboard() || SetClipboardData(dataType, hndData) == 0) {
+    return false;
   }
-  return isOk;
+  freeData.release();
+  return true;
 }
 
 StringStorage WinClipboard::addCR(const StringStorage *str)

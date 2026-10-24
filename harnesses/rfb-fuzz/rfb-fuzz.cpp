@@ -34,6 +34,7 @@
 #include "log-writer/LogWriter.h"
 #include "rfb/FrameBuffer.h"
 #include "thread/LocalMutex.h"
+#include "util/ScopeExit.h"
 
 #include "FuzzNotifier.h"
 #include "FuzzSession.h"
@@ -85,6 +86,7 @@ int _tmain(int argc, TCHAR *argv[])
       _ftprintf(stderr, _T("Cannot open %s\n"), argv[i]);
       return 2;
     }
+    ScopeExit closeFile([&] { fclose(file); });
     std::vector<uint8_t> data;
     uint8_t buffer[65536];
     size_t count;
@@ -92,7 +94,6 @@ int _tmain(int argc, TCHAR *argv[])
       data.insert(data.end(), buffer, buffer + count);
     }
     bool ok = ferror(file) == 0;
-    fclose(file);
     if (!ok) {
       _ftprintf(stderr, _T("Cannot read %s\n"), argv[i]);
       return 2;

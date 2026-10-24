@@ -22,6 +22,7 @@
 //
 
 #include "Shell.h"
+#include "util/ScopeExit.h"
 
 #include <shlobj.h>
 
@@ -60,28 +61,25 @@ void Shell::showInFolder(const TCHAR *file, const TCHAR *folder)
   if (FAILED(hrInit) && hrInit != RPC_E_CHANGED_MODE) {
     throw SystemException(hrInit);
   }
+  ScopeExit uninitialize([&] {
+    if (SUCCEEDED(hrInit)) {
+      CoUninitialize();
+    }
+  });
 
   // Fails if the path does not exist.
   PIDLIST_ABSOLUTE pidl = ILCreateFromPath(file);
   if (pidl == NULL) {
     pidl = ILCreateFromPath(folder);
   }
-
-  HRESULT hr = E_FAIL;
-  if (pidl != NULL) {
-    // With no child items, the item that pidl names is selected in its
-    // parent folder.
-    hr = SHOpenFolderAndSelectItems(pidl, 0, NULL, 0);
-    ILFree(pidl);
-  }
-
-  if (SUCCEEDED(hrInit)) {
-    CoUninitialize();
-  }
-
   if (pidl == NULL) {
     throw SystemException(_T("Cannot find the folder to show"));
   }
+  ScopeExit freePidl([&] { ILFree(pidl); });
+
+  // With no child items, the item that pidl names is selected in its
+  // parent folder.
+  HRESULT hr = SHOpenFolderAndSelectItems(pidl, 0, NULL, 0);
   if (FAILED(hr)) {
     throw SystemException(hr);
   }

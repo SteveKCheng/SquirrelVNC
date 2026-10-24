@@ -24,6 +24,7 @@
 #include "File.h"
 
 #include "util/DateTime.h"
+#include "util/ScopeExit.h"
 #include <crtdbg.h>
 
 TCHAR File::s_separatorChar = _T('\\');
@@ -172,6 +173,7 @@ bool File::list(std::vector<StringStorage> *fileList) const
   if (hfile == INVALID_HANDLE_VALUE) {
     return false;
   }
+  ScopeExit closeFind([&] { FindClose(hfile); });
 
   do {
 
@@ -187,8 +189,6 @@ bool File::list(std::vector<StringStorage> *fileList) const
     names.push_back(StringStorage(findFileData.cFileName));
 
   } while (FindNextFile(hfile, &findFileData));
-
-  FindClose(hfile);
 
   *fileList = std::move(names);
   return true;
@@ -267,6 +267,7 @@ bool File::setLastModified(INT64 time)
   if (hfile == INVALID_HANDLE_VALUE) {
     return false;
   }
+  ScopeExit closeFile([&] { CloseHandle(hfile); });
 
   //
   // Convert unix time to windows file time structure
@@ -278,14 +279,7 @@ bool File::setLastModified(INT64 time)
 
   dt.toFileTime(&ft);
 
-  if (SetFileTime(hfile, NULL, NULL, &ft) == FALSE) {
-    CloseHandle(hfile);
-    return false;
-  }
-
-  CloseHandle(hfile);
-
-  return true;
+  return SetFileTime(hfile, NULL, NULL, &ft) != FALSE;
 }
 
 bool File::truncate()

@@ -23,6 +23,7 @@
 
 #include "DibSection.h"
 #include "win-system/SystemException.h"
+#include "util/ScopeExit.h"
 
 DibSection::DibSection(const PixelFormat *pf, const Dimension *dim, HWND compatibleWin)
 : m_isOwnTargetDC(false),
@@ -34,12 +35,10 @@ DibSection::DibSection(const PixelFormat *pf, const Dimension *dim, HWND compati
   m_srcOffsetY(0),
   m_buffer(0)
 {
-  try {
-    openDIBSection(pf, dim, compatibleWin);
-  } catch (...) {
-    closeDIBSection();
-    throw;
-  }
+  // The destructor does not run if the constructor throws.
+  ScopeExit closeOnFailure([&] { closeDIBSection(); });
+  openDIBSection(pf, dim, compatibleWin);
+  closeOnFailure.release();
 }
 
 DibSection::~DibSection()

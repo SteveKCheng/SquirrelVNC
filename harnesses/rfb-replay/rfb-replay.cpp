@@ -32,6 +32,7 @@
 #include "network/RfbInputGate.h"
 #include "network/RfbOutputGate.h"
 #include "util/Exception.h"
+#include "util/ScopeExit.h"
 #include "util/TextEncoding.h"
 #include "viewer-core/RemoteViewerCore.h"
 
@@ -200,6 +201,11 @@ static bool readFile(const StringStorage &path, std::vector<char> *data)
     _ftprintf(stderr, _T("Cannot open %s\n"), path.getString());
     return false;
   }
+  ScopeExit closeFile([&] {
+    if (!isStdin) {
+      fclose(file);
+    }
+  });
 
   data->clear();
   char buffer[65536];
@@ -208,9 +214,6 @@ static bool readFile(const StringStorage &path, std::vector<char> *data)
     data->insert(data->end(), buffer, buffer + count);
   }
   bool ok = ferror(file) == 0;
-  if (!isStdin) {
-    fclose(file);
-  }
   if (!ok) {
     _ftprintf(stderr, _T("Cannot read %s\n"), path.getString());
   }

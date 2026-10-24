@@ -23,6 +23,7 @@
 
 #include "Screen.h"
 #include "util/Exception.h"
+#include "util/ScopeExit.h"
 #include "win-system/Environment.h"
 
 Screen::Screen()
@@ -59,6 +60,7 @@ void Screen::getBMI(BMI *bmi)
   if (screenDC == NULL) {
     throw Exception(_T("Can't get a screen DC"));
   }
+  ScopeExit releaseDC([&] { ReleaseDC(0, screenDC); });
   // The bitmap belongs to the DC, so it is not deleted.
   HBITMAP hbm = (HBITMAP)GetCurrentObject(screenDC, OBJ_BITMAP);
 
@@ -72,14 +74,11 @@ void Screen::getBMI(BMI *bmi)
   if (isOk && bmi->bmiHeader.biCompression == BI_BITFIELDS) {
     isOk = GetDIBits(screenDC, hbm, 0, 0, NULL, (LPBITMAPINFO)bmi, DIB_RGB_COLORS) != 0;
   }
-  // The error is read before ReleaseDC() can change it.
-  StringStorage errMess;
   if (!isOk) {
+    // The error is read, and the exception made, before releaseDC calls
+    // ReleaseDC(), which can change the error.
+    StringStorage errMess;
     Environment::getErrStr(_T("Can't get a DIBits"), &errMess);
-  }
-
-  ReleaseDC(0, screenDC);
-  if (!isOk) {
     throw Exception(errMess.getString());
   }
 }

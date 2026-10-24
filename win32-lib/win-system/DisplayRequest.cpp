@@ -23,6 +23,7 @@
 #include "DisplayRequest.h"
 #include "SystemException.h"
 #include "thread/AutoLock.h"
+#include "util/ScopeExit.h"
 
 DisplayRequest::DisplayRequest()
 : m_request(INVALID_HANDLE_VALUE)
@@ -52,12 +53,13 @@ void DisplayRequest::activate(const TCHAR *reason)
   if (request == INVALID_HANDLE_VALUE) {
     throw SystemException(_T("Cannot create a power request"));
   }
+  // The exception below is made, reading GetLastError(), before this
+  // closes the request.
+  ScopeExit closeRequest([&] { CloseHandle(request); });
   if (!PowerSetRequest(request, PowerRequestDisplayRequired)) {
-    // Construct the exception first: it reads GetLastError().
-    SystemException e(_T("Cannot set a display-required power request"));
-    CloseHandle(request);
-    throw e;
+    throw SystemException(_T("Cannot set a display-required power request"));
   }
+  closeRequest.release();
   m_request = request;
 }
 

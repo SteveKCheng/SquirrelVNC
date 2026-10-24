@@ -23,6 +23,7 @@
 #include "IniFileSettingsManager.h"
 
 #include "util/Exception.h"
+#include "util/ScopeExit.h"
 #include "util/TextEncoding.h"
 #include "win-system/SystemException.h"
 
@@ -47,6 +48,7 @@ namespace
     if (file == INVALID_HANDLE_VALUE) {
       return false;
     }
+    ScopeExit closeFile([&] { CloseHandle(file); });
     bool ok = false;
     LARGE_INTEGER size;
     if (GetFileSizeEx(file, &size) && size.QuadPart >= 0 &&
@@ -63,7 +65,6 @@ namespace
         done += count;
       }
     }
-    CloseHandle(file);
     return ok;
   }
 
@@ -266,28 +267,30 @@ void IniFileSettingsManager::save()
     throw SystemException(_T("Cannot create a file to save the settings"));
   }
 
-  HANDLE file = CreateFile(tempPath, GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
-                           FILE_ATTRIBUTE_NORMAL, 0);
-  if (file == INVALID_HANDLE_VALUE) {
-    SystemException error(_T("Cannot open a file to save the settings"));
-    DeleteFile(tempPath);
-    throw error;
-  }
-  size_t done = 0;
-  bool ok = true;
-  while (ok && done < text.size()) {
-    DWORD count = 0;
-    DWORD chunk = static_cast<DWORD>(std::min<size_t>(text.size() - done, 1 << 20));
-    ok = WriteFile(file, text.data() + done, chunk, &count, 0) != 0;
-    done += count;
-  }
-  // Written through before it replaces the old file.
-  ok = ok && FlushFileBuffers(file) != 0;
-  DWORD writeError = ok ? 0 : GetLastError();
-  CloseHandle(file);
-  if (!ok) {
-    DeleteFile(tempPath);
-    throw SystemException(_T("Cannot write the settings"), writeError);
+  // Each exception below is made, reading GetLastError(), before this
+  // deletes the file; it is released once the file has taken its place.
+  ScopeExit deleteTemp([&] { DeleteFile(tempPath); });
+
+  {
+    HANDLE file = CreateFile(tempPath, GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
+                             FILE_ATTRIBUTE_NORMAL, 0);
+    if (file == INVALID_HANDLE_VALUE) {
+      throw SystemException(_T("Cannot open a file to save the settings"));
+    }
+    // Closed at the end of this block, before the file is moved.
+    ScopeExit closeFile([&] { CloseHandle(file); });
+    size_t done = 0;
+    bool ok = true;
+    while (ok && done < text.size()) {
+      DWORD count = 0;
+      DWORD chunk = static_cast<DWORD>(std::min<size_t>(text.size() - done, 1 << 20));
+      ok = WriteFile(file, text.data() + done, chunk, &count, 0) != 0;
+      done += count;
+    }
+    // Written through before it replaces the old file.
+    if (!ok || !FlushFileBuffers(file)) {
+      throw SystemException(_T("Cannot write the settings"));
+    }
   }
 
   const TCHAR *target = m_pathToFile.getString();
@@ -296,21 +299,20 @@ void IniFileSettingsManager::save()
     // so a file the user made private stays private; without
     // REPLACEFILE_IGNORE_MERGE_ERRORS it fails rather than lose them.
     if (ReplaceFile(target, tempPath, 0, 0, 0, 0)) {
+      deleteTemp.release();
       return;
     }
     DWORD error = GetLastError();
     if (error != ERROR_UNABLE_TO_MOVE_REPLACEMENT_2) {
-      DeleteFile(tempPath);
       throw SystemException(_T("Cannot replace the settings file"), error);
     }
     // The old file was moved aside, under a name of the system's, but the
     // new one could not take its place: try once more to put it there.
   }
   if (!MoveFileEx(tempPath, target, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
-    SystemException error(_T("Cannot save the settings file"));
-    DeleteFile(tempPath);
-    throw error;
+    throw SystemException(_T("Cannot save the settings file"));
   }
+  deleteTemp.release();
 }
 
 bool IniFileSettingsManager::getString(const TCHAR *name, StringStorage *storage)

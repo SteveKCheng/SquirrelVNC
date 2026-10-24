@@ -23,6 +23,7 @@
 
 #include "KeySymTest.h"
 #include "util/Exception.h"
+#include "util/ScopeExit.h"
 #include "util/StringParser.h"
 
 const TCHAR KeySymTest::VALID_WORD_LETTERS[] = _T("zyxwvutsrqponmlkjihgfedcba")
@@ -39,21 +40,24 @@ KeySymTest::KeySymTest(const TCHAR *fileFrom, const TCHAR *fileTo)
   m_log(0)
 {
   // The destructor does not run if this throws, so whatever has been
-  // opened or allocated is released before each throw.
+  // opened or allocated is released by a guard.
   errno_t error = _tfopen_s(&m_fFrom, m_fromFileName.getString(), _T("rt,ccs=UNICODE"));
   if (error != 0) {
     StringStorage errMess;
     errMess.format(_T("Cannot open the %s file (error %d)"), m_fromFileName.getString(), error);
     throw Exception(errMess.getString());
   }
+  ScopeExit closeFrom([&] { fclose(m_fFrom); });
   error = _tfopen_s(&m_fTo, m_toFileName.getString(), _T("wt,ccs=UNICODE"));
   if (error != 0) {
-    fclose(m_fFrom);
     StringStorage errMess;
     errMess.format(_T("Cannot open the %s file (error %d)"), m_toFileName.getString(), error);
     throw Exception(errMess.getString());
   }
+  ScopeExit closeTo([&] { fclose(m_fTo); });
   m_rfbKeySym = new RfbKeySym(this, &m_log);
+  closeTo.release();
+  closeFrom.release();
 }
 
 KeySymTest::~KeySymTest()
