@@ -8,6 +8,12 @@
     <Platform Name="x64" />
   </Configurations>
   <Project Path="core-lib/core-lib.vcxproj" Id="8b4d2c61-7f3a-4e0b-9c15-2a6e5d7b3f01" />
+  <Project Path="harnesses/ini-test/ini-test.vcxproj" Id="e52a2f1c-2b5e-4a18-8d02-c0331ad1bc12">
+    <BuildType Solution="ReleaseFuzz|*" Project="Release" />
+    <Build Solution="ReleaseFuzz|*" Project="false" />
+    <BuildDependency Project="core-lib/core-lib.vcxproj" />
+    <BuildDependency Project="win32-lib/win32-lib.vcxproj" />
+  </Project>
   <Project Path="harnesses/rfb-fuzz/rfb-fuzz.vcxproj" Id="5609793c-b4f8-4977-9f98-72a7d530823b">
     <BuildDependency Project="core-lib/core-lib.vcxproj" />
     <BuildDependency Project="win32-lib/win32-lib.vcxproj" />

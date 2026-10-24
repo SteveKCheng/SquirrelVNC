@@ -6,8 +6,8 @@
 
 <#
 .SYNOPSIS
-Runs the replay tests in tests/cases with rfb-replay, and the fuzz inputs
-in tests/fuzz with rfb-fuzz.
+Runs the replay tests in tests/cases with rfb-replay, the unit tests in
+ini-test, and the fuzz inputs in tests/fuzz with rfb-fuzz.
 
 .DESCRIPTION
 Each case is one command, rfb-replay --check, which compares the client's
@@ -18,8 +18,11 @@ of them crashed. This script only runs those commands and counts
 failures, so that CTest can take over when CMake builds the core
 (notes/testing.md).
 
+ini-test is one more command, which runs its own checks and exits with 0
+if all of them passed.
+
 A configuration that lacks one of the programs (ReleaseFuzz has no
-rfb-replay) skips its tests.
+rfb-replay or ini-test) skips its tests.
 
 Build the solution first, in the same configuration and platform.
 
@@ -38,8 +41,9 @@ $root = Split-Path -Parent $PSScriptRoot
 $bin = Join-Path $root "bin\$Platform\$Configuration"
 $replay = Join-Path $bin 'rfb-replay.exe'
 $fuzz = Join-Path $bin 'rfb-fuzz.exe'
-if (-not (Test-Path $replay) -and -not (Test-Path $fuzz)) {
-  Write-Error "Neither rfb-replay.exe nor rfb-fuzz.exe is in $bin (build the solution for $Configuration|$Platform first)"
+$iniTest = Join-Path $bin 'ini-test.exe'
+if (-not (Test-Path $replay) -and -not (Test-Path $fuzz) -and -not (Test-Path $iniTest)) {
+  Write-Error "None of rfb-replay.exe, ini-test.exe and rfb-fuzz.exe is in $bin (build the solution for $Configuration|$Platform first)"
 }
 
 function Get-Reason([int]$code) {
@@ -74,6 +78,21 @@ if (Test-Path $replay) {
   }
 } else {
   Write-Host "SKIP replay cases: rfb-replay is not built in $Configuration"
+}
+
+if ((Test-Path $iniTest) -and 'ini-test' -like $Filter) {
+  $total++
+  $output = & $iniTest 2>&1 | ForEach-Object { "$_" }
+  $code = $LASTEXITCODE
+  if ($code -eq 0) {
+    Write-Host "PASS ini-test"
+  } else {
+    $failed += 'ini-test'
+    Write-Host "FAIL ini-test ($(Get-Reason $code))"
+    $output | Where-Object { $_ -notmatch '^PASS ' } | ForEach-Object { Write-Host "     $_" }
+  }
+} elseif (-not (Test-Path $iniTest)) {
+  Write-Host "SKIP ini-test: it is not built in $Configuration"
 }
 
 if (Test-Path $fuzz) {
