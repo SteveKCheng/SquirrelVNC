@@ -309,6 +309,15 @@ void FileTransferMainDialog::onMkDirRemoteButtonClick()
   }
 }
 
+std::vector<FileInfo> FileTransferMainDialog::getSelectedFilesInfo(FileInfoListView *listView)
+{
+  std::vector<FileInfo> filesInfo;
+  for (int index : listView->getSelectedItemsIndexes()) {
+    filesInfo.push_back(*reinterpret_cast<FileInfo *>(listView->getItemData(index)));
+  }
+  return filesInfo;
+}
+
 void FileTransferMainDialog::onRemoveRemoteButtonClick()
 {
   unsigned int siCount = m_remoteFileListView.getSelectedItemsCount();
@@ -320,31 +329,20 @@ void FileTransferMainDialog::onRemoveRemoteButtonClick()
     return ;
   }
 
-  int *indexes = new int[siCount];
-  FileInfo *filesInfo = new FileInfo[siCount];
-
-  m_remoteFileListView.getSelectedItemsIndexes(indexes);
-  for (unsigned int i = 0; i < siCount; i++) {
-    FileInfo *fileInfo = reinterpret_cast<FileInfo *>(m_remoteFileListView.getItemData(indexes[i]));
-    filesInfo[i] = *fileInfo;
-  }
+  std::vector<FileInfo> filesInfo = getSelectedFilesInfo(&m_remoteFileListView);
 
   if (MessageBox(m_ctrlThis.getWindow(),
                  _T("Do you wish to delete the selected files?"),
                  _T("Delete Files"),
                  MB_YESNO | MB_ICONQUESTION) != IDYES) {
-    delete[] indexes;
-    delete[] filesInfo;
     return ;
   }
 
   StringStorage remoteFolder;
   m_remoteCurFolderTextBox.getText(&remoteFolder);
 
-  m_ftCore->remoteFilesDeleteOperation(filesInfo, siCount,
+  m_ftCore->remoteFilesDeleteOperation(filesInfo.data(), filesInfo.size(),
                                        remoteFolder.getString());
-  delete[] indexes;
-  delete[] filesInfo;
 }
 
 void FileTransferMainDialog::onRefreshRemoteButtonClick()
@@ -469,32 +467,21 @@ void FileTransferMainDialog::onRemoveLocalButtonClick()
     return ;
   }
 
-  int *indexes = new int[siCount];
-  FileInfo *filesInfo = new FileInfo[siCount];
-
-  m_localFileListView.getSelectedItemsIndexes(indexes);
-  for (unsigned int i = 0; i < siCount; i++) {
-    FileInfo *fileInfo = reinterpret_cast<FileInfo *>(m_localFileListView.getItemData(indexes[i]));
-    filesInfo[i] = *fileInfo;
-  }
+  std::vector<FileInfo> filesInfo = getSelectedFilesInfo(&m_localFileListView);
 
   if (MessageBox(m_ctrlThis.getWindow(),
                  _T("Do you wish to delete the selected files?"),
                  _T("Delete Files"),
                  MB_YESNO | MB_ICONQUESTION) != IDYES) {
-    delete[] indexes;
-    delete[] filesInfo;
     return ;
   }
 
   StringStorage localFolder;
   getPathToCurrentLocalFolder(&localFolder);
 
-  m_ftCore->localFilesDeleteOperation(filesInfo, siCount,
+  m_ftCore->localFilesDeleteOperation(filesInfo.data(), filesInfo.size(),
                                       localFolder.getString());
 
-  delete[] indexes;
-  delete[] filesInfo;
 }
 
 void FileTransferMainDialog::onRefreshLocalButtonClick()
@@ -513,21 +500,12 @@ void FileTransferMainDialog::onUploadButtonClick()
     return ;
   }
 
-  int *indexes = new int[siCount];
-  FileInfo *filesInfo = new FileInfo[siCount];
-
-  m_localFileListView.getSelectedItemsIndexes(indexes);
-  for (unsigned int i = 0; i < siCount; i++) {
-    FileInfo *fileInfo = reinterpret_cast<FileInfo *>(m_localFileListView.getItemData(indexes[i]));
-    filesInfo[i] = *fileInfo;
-  }
+  std::vector<FileInfo> filesInfo = getSelectedFilesInfo(&m_localFileListView);
 
   if (MessageBox(m_ctrlThis.getWindow(),
                  _T("Do you wish to upload the selected files?"),
                  _T("Upload Files"),
                  MB_YESNO | MB_ICONQUESTION) != IDYES) {
-    delete[] indexes;
-    delete[] filesInfo;
     return ;
   }
 
@@ -540,11 +518,9 @@ void FileTransferMainDialog::onUploadButtonClick()
 
   m_fileExistDialog.resetDialogResultValue();
 
-  m_ftCore->uploadOperation(filesInfo, siCount,
+  m_ftCore->uploadOperation(filesInfo.data(), filesInfo.size(),
                             localFolder.getString(),
                             remoteFolder.getString());
-  delete[] indexes;
-  delete[] filesInfo;
 }
 
 void FileTransferMainDialog::onDownloadButtonClick()
@@ -558,21 +534,12 @@ void FileTransferMainDialog::onDownloadButtonClick()
     return ;
   }
 
-  int *indexes = new int[siCount];
-  FileInfo *filesInfo = new FileInfo[siCount];
-
-  m_remoteFileListView.getSelectedItemsIndexes(indexes);
-  for (unsigned int i = 0; i < siCount; i++) {
-    FileInfo *fileInfo = reinterpret_cast<FileInfo *>(m_remoteFileListView.getItemData(indexes[i]));
-    filesInfo[i] = *fileInfo;
-  }
+  std::vector<FileInfo> filesInfo = getSelectedFilesInfo(&m_remoteFileListView);
 
   if (MessageBox(m_ctrlThis.getWindow(),
                  _T("Do you wish to download the selected files?"),
                  _T("Download Files"),
                  MB_YESNO | MB_ICONQUESTION) != IDYES) {
-    delete[] indexes;
-    delete[] filesInfo;
     return ;
   }
 
@@ -584,12 +551,10 @@ void FileTransferMainDialog::onDownloadButtonClick()
 
   m_fileExistDialog.resetDialogResultValue();
 
-  m_ftCore->downloadOperation(filesInfo, siCount,
+  m_ftCore->downloadOperation(filesInfo.data(), filesInfo.size(),
                               localFolder.getString(),
                               remoteFolder.getString());
 
-  delete[] indexes;
-  delete[] filesInfo;
 }
 
 void FileTransferMainDialog::moveUpLocalFolder()

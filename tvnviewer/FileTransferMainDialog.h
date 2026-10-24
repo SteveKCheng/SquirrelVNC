@@ -149,6 +149,12 @@ protected:
 private:
 
   //
+  // Post-conditions: returns copies of the file info of the items
+  // selected in listView, in their order there.
+  //
+  static std::vector<FileInfo> getSelectedFilesInfo(FileInfoListView *listView);
+
+  //
   // Enables or disables all controls from m_controlsToBlock list
   //
 

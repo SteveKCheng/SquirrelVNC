@@ -243,7 +243,7 @@ void FileTransferCore::uploadOperation(const FileInfo *filesToDownload,
 }
 
 void FileTransferCore::localFilesDeleteOperation(const FileInfo *filesToDelete,
-                                                 UINT32 filesCount,
+                                                 size_t filesCount,
                                                  const TCHAR *pathToTargetRoot)
 {
   m_state = LOCAL_REMOVE_STATE;

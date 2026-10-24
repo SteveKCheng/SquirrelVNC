@@ -74,7 +74,7 @@ public:
                        const TCHAR *pathToSourceRoot,
                        const TCHAR *pathToTargetRoot);
   void localFilesDeleteOperation(const FileInfo *filesToDelete,
-                                 UINT32 filesCount,
+                                 size_t filesCount,
                                  const TCHAR *pathToTargetRoot);
   void remoteFilesDeleteOperation(const FileInfo *filesInfoToDelete,
                                   size_t filesCount,

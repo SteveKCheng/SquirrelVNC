@@ -28,6 +28,8 @@
 #include <commctrl.h>
 #include "Control.h"
 
+#include <vector>
+
 //
 // TODO: Maybe use class for this?
 //
@@ -136,10 +138,11 @@ public:
   unsigned int getSelectedItemsCount();
 
   //
-  // Sets selected list view index to output indexes array
+  // Post-conditions: returns the indexes of the selected items, in their
+  // order in the list.
   //
 
-  void getSelectedItemsIndexes(int *indexes);
+  std::vector<int> getSelectedItemsIndexes();
 
 protected:
 

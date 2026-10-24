@@ -27,6 +27,8 @@
 #include "util/inttypes.h"
 #include "ft-common/FileInfo.h"
 
+#include <vector>
+
 //
 // This class is used to easy listing files from specified directory
 // or system root to array of FileInfo[].
@@ -62,8 +64,7 @@ public:
 
 protected:
   StringStorage m_folderPath;
-  FileInfo *m_filesInfo;
-  UINT32 m_filesCount;
+  std::vector<FileInfo> m_filesInfo;
 };
 
 #endif

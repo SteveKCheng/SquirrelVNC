@@ -219,13 +219,14 @@ unsigned int ListView::getSelectedItemsCount()
   return ListView_GetSelectedCount(m_hwnd);
 }
 
-void ListView::getSelectedItemsIndexes(int *indexes)
+std::vector<int> ListView::getSelectedItemsIndexes()
 {
-  int i = -1;
-  for (unsigned int j = 0; j < getSelectedItemsCount(); j++) {
-    i = ListView_GetNextItem(m_hwnd, i, LVNI_SELECTED);
-    indexes[j] = i;
+  std::vector<int> indexes;
+  for (int i = ListView_GetNextItem(m_hwnd, -1, LVNI_SELECTED); i != -1;
+       i = ListView_GetNextItem(m_hwnd, i, LVNI_SELECTED)) {
+    indexes.push_back(i);
   }
+  return indexes;
 }
 
 void ListView::sort(int columnIndex, PFNLVCOMPARE compareItem)

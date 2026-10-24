@@ -32,7 +32,7 @@ UploadOperation::UploadOperation(LogWriter *logWriter,
                                  const TCHAR *pathToTargetRoot)
 : CopyOperation(logWriter),
   m_file(0), m_fis(0), m_gotoChild(false), m_gotoParent(false), m_firstUpload(true),
-  m_remoteFilesInfo(0), m_remoteFilesCount(0), m_bufferSize(20000)
+  m_bufferSize(20000)
 {
   m_pathToSourceRoot.setString(pathToSourceRoot);
   m_pathToTargetRoot.setString(pathToTargetRoot);
@@ -49,7 +49,7 @@ UploadOperation::UploadOperation(LogWriter *logWriter,
                                  const TCHAR *pathToTargetRoot)
 : CopyOperation(logWriter),
   m_file(0), m_fis(0), m_gotoChild(false), m_gotoParent(false), m_firstUpload(true),
-  m_remoteFilesInfo(0), m_remoteFilesCount(0), m_bufferSize(20000)
+  m_bufferSize(20000)
 {
   m_pathToSourceRoot.setString(pathToSourceRoot);
   m_pathToTargetRoot.setString(pathToTargetRoot);
@@ -72,7 +72,6 @@ UploadOperation::~UploadOperation()
   if (m_file != NULL) {
     delete m_file;
   }
-  releaseRemoteFilesInfo();
 }
 
 void UploadOperation::start()
@@ -323,7 +322,7 @@ void UploadOperation::processFile()
   UINT64 initialFileOffset = 0;
 
   // Search if file already exists on remote machine
-  for (UINT32 i = 0; i < m_remoteFilesCount; i++) {
+  for (size_t i = 0; i < m_remoteFilesInfo.size(); i++) {
     FileInfo *localFileInfo = m_toCopy->getFileInfo();
     FileInfo *remoteFileInfo = &m_remoteFilesInfo[i];
 
@@ -513,24 +512,9 @@ void UploadOperation::gotoNext(bool fake)
   } // if / else
 } // void
 
-void UploadOperation::releaseRemoteFilesInfo()
+void UploadOperation::initRemoteFiles(const FileInfo *remoteFilesInfo, UINT32 count)
 {
-  if (m_remoteFilesInfo != NULL) {
-    delete[] m_remoteFilesInfo;
-    m_remoteFilesInfo = NULL;
-  }
-  m_remoteFilesCount = 0;
-}
-
-void UploadOperation::initRemoteFiles(FileInfo *remoteFilesInfo, UINT32 count)
-{
-  releaseRemoteFilesInfo();
-
-  m_remoteFilesCount = count;
-  m_remoteFilesInfo = new FileInfo[count];
-  for (UINT32 i = 0; i < count; i++) {
-    m_remoteFilesInfo[i] = remoteFilesInfo[i];
-  }
+  m_remoteFilesInfo.assign(remoteFilesInfo, remoteFilesInfo + count);
 }
 
 void UploadOperation::notifyFailedToUpload(const TCHAR *errorDescription)

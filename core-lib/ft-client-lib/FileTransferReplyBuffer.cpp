@@ -29,7 +29,6 @@
 FileTransferReplyBuffer::FileTransferReplyBuffer(LogWriter *logWriter)
 : m_logWriter(logWriter),
   m_isCompressionSupported(false),
-  m_filesInfoCount(0), m_filesInfo(NULL),
   m_downloadBufferSize(0), 
   m_downloadFileFlags(0), m_downloadLastModified(0),
   m_dirSize(0)
@@ -39,9 +38,6 @@ FileTransferReplyBuffer::FileTransferReplyBuffer(LogWriter *logWriter)
 
 FileTransferReplyBuffer::~FileTransferReplyBuffer()
 {
-  if (m_filesInfo != NULL) {
-    delete[] m_filesInfo;
-  }
 }
 
 void FileTransferReplyBuffer::getLastErrorMessage(StringStorage *storage)
@@ -56,12 +52,13 @@ bool FileTransferReplyBuffer::isCompressionSupported()
 
 UINT32 FileTransferReplyBuffer::getFilesInfoCount()
 {
-  return m_filesInfoCount;
+  // The count read from the server is a UINT32.
+  return static_cast<UINT32>(m_filesInfo.size());
 }
 
 FileInfo *FileTransferReplyBuffer::getFilesInfo()
 {
-  return m_filesInfo;
+  return m_filesInfo.data();
 }
 
 UINT32 FileTransferReplyBuffer::getDownloadBufferSize()
@@ -117,12 +114,7 @@ void FileTransferReplyBuffer::onFileListReply(DataInputStream *input)
                                            buffer.size());
     DataInputStream filesInfoReader(&memoryInputStream);
 
-    if (m_filesInfo != 0) {
-      delete[] m_filesInfo;
-      m_filesInfo = 0;
-    }
-    // Keep the count consistent with m_filesInfo if reading fails below.
-    m_filesInfoCount = 0;
+    m_filesInfo.clear();
 
     UINT32 filesInfoCount = filesInfoReader.readUInt32();
     // Each entry takes at least 22 bytes (size, time, flags and the length
@@ -132,12 +124,9 @@ void FileTransferReplyBuffer::onFileListReply(DataInputStream *input)
     if (filesInfoCount > (buffer.size() - 4) / MIN_ENTRY_SIZE) {
       throw IOException(_T("File list is shorter than its count of files"));
     }
-    if (filesInfoCount != 0) {
-      m_filesInfo = new FileInfo[filesInfoCount];
-      m_filesInfoCount = filesInfoCount;
-    }
+    m_filesInfo.resize(filesInfoCount);
 
-    for (UINT32 i = 0; i < m_filesInfoCount; i++) {
+    for (UINT32 i = 0; i < filesInfoCount; i++) {
       FileInfo *fileInfo = &m_filesInfo[i];
 
       fileInfo->setSize(filesInfoReader.readUInt64());
@@ -153,7 +142,7 @@ void FileTransferReplyBuffer::onFileListReply(DataInputStream *input)
     m_logWriter->info(_T("Received file list reply: \n")
                       _T("\t files count = %u\n")
                       _T("\t use compression = %d\n"),
-                      m_filesInfoCount, compressionLevel);
+                      filesInfoCount, compressionLevel);
   } else {
     m_logWriter->info(_T("Received file list reply is not read: ")
                       _T("compressed buffer is empty"));

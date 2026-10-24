@@ -36,6 +36,8 @@
 
 #include "log-writer/LogWriter.h"
 
+#include <vector>
+
 class FileTransferReplyBuffer : public FileTransferEventHandler
 {
 public:
@@ -46,6 +48,8 @@ public:
 
   bool isCompressionSupported();
 
+  // The list of the last file list reply: getFilesInfo() points to
+  // getFilesInfoCount() entries, valid until the next reply.
   UINT32 getFilesInfoCount();
   FileInfo *getFilesInfo();
 
@@ -61,11 +65,10 @@ public:
   //
 
   virtual void onCompressionSupportReply(DataInputStream *input);
-  // Reads a file list reply into m_filesInfo and m_filesInfoCount, replacing
-  // the previous list.  If this throws, the previous list is gone and the new
-  // one may be partly read: m_filesInfoCount always counts the entries that
-  // m_filesInfo holds, but some may be left empty.  The count the server
-  // sends is rejected if the data is too short to hold that many entries.
+  // Reads a file list reply into m_filesInfo, replacing the previous list.
+  // If this throws, the previous list is gone and the new one may be partly
+  // read: some entries may be left empty.  The count the server sends is
+  // rejected if the data is too short to hold that many entries.
   virtual void onFileListReply(DataInputStream *input);
   virtual void onMd5DataReply(DataInputStream *input);
 
@@ -133,8 +136,7 @@ protected:
   bool m_isCompressionSupported;
 
   // File list reply
-  UINT32 m_filesInfoCount;
-  FileInfo *m_filesInfo;
+  std::vector<FileInfo> m_filesInfo;
 
   // Last request message failed reply
   StringStorage m_lastErrorMessage;

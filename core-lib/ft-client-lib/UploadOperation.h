@@ -31,6 +31,8 @@
 #include "CopyOperation.h"
 #include "util/DateTime.h"
 
+#include <vector>
+
 //
 // File transfer operation class for uploading files (and file trees).
 //
@@ -164,12 +166,10 @@ protected:
   void sendFileDataChunk();
 
   //
-  // Helper methods to control m_remoteFilesInfo, m_remoteFilesCount
-  // members.
+  // Pre-conditions: remoteFilesInfo points to count entries.
+  // Post-conditions: m_remoteFilesInfo holds copies of them.
   //
-
-  void releaseRemoteFilesInfo();
-  void initRemoteFiles(FileInfo *remoteFilesInfo, UINT32 count);
+  void initRemoteFiles(const FileInfo *remoteFilesInfo, UINT32 count);
 
   // Helper method that creates message and notify listeners
   void notifyFailedToUpload(const TCHAR *errorDescription);
@@ -186,8 +186,7 @@ protected:
 
   // File list of remote directory where we uploading
   // current file now
-  FileInfo *m_remoteFilesInfo;
-  UINT32 m_remoteFilesCount;
+  std::vector<FileInfo> m_remoteFilesInfo;
 
   //
   // Helper members of 'Remote file list trick'

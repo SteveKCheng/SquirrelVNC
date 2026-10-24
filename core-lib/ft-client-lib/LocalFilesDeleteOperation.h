@@ -31,9 +31,11 @@ class LocalFilesDeleteOperation : public FileTransferOperation,
                                   private Thread
 {
 public:
+  // Pre-conditions: filesToDelete points to filesCount entries, which are
+  // copied.
   LocalFilesDeleteOperation(LogWriter *logWriter,
                             const FileInfo *filesToDelete,
-                            UINT32 filesCount,
+                            size_t filesCount,
                             const TCHAR *pathToTargetRoot);
   virtual ~LocalFilesDeleteOperation();
 
@@ -56,7 +58,6 @@ private:
 protected:
   StringStorage m_pathToTargetRoot;
   std::vector<FileInfo> m_filesToDelete;
-  UINT32 m_filesCount;
 };
 
 #endif

@@ -25,32 +25,29 @@
 #include <vector>
 
 FolderListener::FolderListener(const TCHAR *folderPath)
-: m_filesInfo(NULL), m_filesCount(0)
 {
   m_folderPath.setString(folderPath);
 }
 
 FolderListener::~FolderListener()
 {
-  if (m_filesInfo != NULL) {
-    delete[] m_filesInfo;
-  }
 }
 
 const FileInfo *FolderListener::getFilesInfo() const
 {
-  return m_filesInfo;
+  return m_filesInfo.data();
 }
 
 UINT32 FolderListener::getFilesCount() const
 {
-  return m_filesCount;
+  // File::list() cannot return more than a UINT32 of names.
+  return static_cast<UINT32>(m_filesInfo.size());
 }
 
 bool FolderListener::list()
 {
   std::vector<StringStorage> fileNameList;
-  m_filesCount = 0;
+  m_filesInfo.clear();
 
   if (!m_folderPath.isEmpty()) {
     File folder(m_folderPath.getString());
@@ -62,15 +59,9 @@ bool FolderListener::list()
     File::listRoots(&fileNameList);
   }
 
-  if (m_filesInfo != NULL) {
-    delete[] m_filesInfo;
-    m_filesInfo = NULL;
-  }
+  m_filesInfo.resize(fileNameList.size());
 
-  m_filesInfo = new FileInfo[fileNameList.size()];
-  m_filesCount = static_cast<UINT32>(fileNameList.size());
-
-  for (UINT32 i = 0; i < m_filesCount; i++) {
+  for (size_t i = 0; i < m_filesInfo.size(); i++) {
 
     const TCHAR *fileName = fileNameList[i].getString();
     const TCHAR *folderName = m_folderPath.getString();

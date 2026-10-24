@@ -26,14 +26,11 @@
 
 LocalFilesDeleteOperation::LocalFilesDeleteOperation(LogWriter *logWriter,
                                                      const FileInfo *filesToDelete,
-                                                     UINT32 filesCount,
+                                                     size_t filesCount,
                                                      const TCHAR *pathToTargetRoot)
 : FileTransferOperation(logWriter)
 {
-  m_filesToDelete.resize(filesCount);
-  for (UINT32 i = 0; i < filesCount; i++) {
-    m_filesToDelete[i] = filesToDelete[i];
-  }
+  m_filesToDelete.assign(filesToDelete, filesToDelete + filesCount);
   m_pathToTargetRoot.setString(pathToTargetRoot);
 }
 
