@@ -24,12 +24,12 @@
 #ifndef __RFB_HOST_PATH_H_INCLUDED__
 #define __RFB_HOST_PATH_H_INCLUDED__
 
-// FIXME: Convert to TCHAR.
+#include "util/StringStorage.h"
 
 class HostPath {
 public:
   HostPath();
-  HostPath(const char *path, int defaultPort = 5900);
+  HostPath(const TCHAR *path, int defaultPort = 5900);
   virtual ~HostPath();
 
   //
@@ -42,19 +42,21 @@ public:
   // two, is the port itself.
   //
   // Returns true on success.  Returns false, and leaves the object empty
-  // (isValid() is false), if path is null, empty or too long, is not of
-  // the form above, names an invalid host, or gives a port above 65535.
+  // (isValid() is false), if path is null, empty or longer than
+  // m_MAX_PATH_LEN characters, is not of the form above, names an invalid
+  // host, or gives a port above 65535.
   //
-  bool set(const char *path);
+  bool set(const TCHAR *path);
 
-  bool isValid() const               { return (m_path != 0); }
-  bool isSshHostSpecified() const    { return (m_sshHost != 0); }
+  bool isValid() const               { return !m_path.isEmpty(); }
+  bool isSshHostSpecified() const    { return !m_sshHost.isEmpty(); }
 
-  const char* get() const            { return m_path; }
-  const char* getSshHost() const     { return m_sshHost; }
-  const int getSshPort() const       { return m_sshPort; }
-  const char* getVncHost() const     { return m_vncHost; }
-  const int getVncPort() const       { return m_vncPort; }
+  // Each returns the empty string if the part is not set.
+  const StringStorage &get() const        { return m_path; }
+  const StringStorage &getSshHost() const { return m_sshHost; }
+  const int getSshPort() const            { return m_sshPort; }
+  const StringStorage &getVncHost() const { return m_vncHost; }
+  const int getVncPort() const            { return m_vncPort; }
 
 private:
   static const size_t m_SSH_USER_MAX_CHARS;
@@ -65,10 +67,10 @@ private:
   static const int m_MAX_PORT;
   static const size_t m_MAX_PATH_LEN;
 
-  char* m_path;
-  char* m_sshHost;
+  StringStorage m_path;
+  StringStorage m_sshHost;
   int m_sshPort;
-  char* m_vncHost;
+  StringStorage m_vncHost;
   int m_vncPort;
 
   //
@@ -92,11 +94,11 @@ private:
   void parsePath(size_t results[]) const;
 
   //
-  // Return true if m_sshHost[] and m_vncHost[] strings are valid,
-  // false otherwise. It checks the lengths and character sets of the
-  // strings. m_sshHost may be a null pointer, that does not make the
-  // function return false. However, m_vncHost[] string is mandatory
-  // so the function will return false if m_vncHost is a null pointer.
+  // Return true if m_sshHost and m_vncHost are valid, false otherwise. It
+  // checks the lengths and character sets of the strings. m_sshHost may be
+  // empty, that does not make the function return false. However,
+  // m_vncHost is mandatory so the function will return false if it is
+  // empty.
   //
   bool validateHostNames() const;
 

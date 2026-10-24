@@ -91,6 +91,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="HostPathTests.cpp" />
     <ClCompile Include="IniTests.cpp" />
     <ClCompile Include="unit-test.cpp" />
   </ItemGroup>

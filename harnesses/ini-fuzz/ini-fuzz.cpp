@@ -32,6 +32,7 @@
 
 #include "client-config-lib/ConnectionConfig.h"
 #include "config-lib/IniFileSettingsManager.h"
+#include "rfb/HostPath.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -58,6 +59,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
       ini.getInt(name, &number);
       ini.getBoolean(name, &flag);
     }
+  }
+
+  // As ViewerCmdLine::parseOptionsFile() gives the host to ConnectionData,
+  // whose HostPath parses it.
+  ini.setApplicationName(_T("connection"));
+  StringStorage host;
+  if (ini.getString(_T("host"), &host)) {
+    HostPath hostPath(host.getString());
   }
 
   // As ViewerCmdLine::parseOptionsFile() loads the options.

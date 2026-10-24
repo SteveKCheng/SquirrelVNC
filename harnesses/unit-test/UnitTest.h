@@ -42,5 +42,6 @@ std::vector<std::wstring> listFiles(const std::wstring &directory);
 // The suites. dir is an empty directory for files, removed afterwards.
 //
 void runIniTests(const std::wstring &dir);
+void runHostPathTests();
 
 #endif // _UNIT_TEST_H_

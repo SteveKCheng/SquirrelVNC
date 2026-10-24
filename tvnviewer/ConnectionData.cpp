@@ -32,18 +32,6 @@
 #include "util/VncPassCrypt.h"
 #include "viewer-core/VncAuthentication.h"
 
-//
-// Post-conditions: returns text from HostPath, which holds UTF-8, or an
-// empty string for null (as HostPath returns when it holds no path).
-//
-static StringStorage fromHostPath(const char *text)
-{
-  if (text == 0) {
-    return StringStorage();
-  }
-  return TextEncoding::fromUtf8(std::as_bytes(std::span(text, strlen(text))));
-}
-
 ConnectionData::ConnectionData()
 : m_isEmpty(true),
   m_isSetPassword(false),
@@ -59,7 +47,7 @@ ConnectionData::ConnectionData(const ConnectionData &connectionData)
   m_hasPlainPassword(false)
 {
   if (!connectionData.isEmpty()) {
-    m_hostPath.set(connectionData.m_hostPath.get());
+    m_hostPath.set(connectionData.m_hostPath.get().getString());
   }
   if (m_isSetPassword) {
     m_defaultPassword = connectionData.m_defaultPassword;
@@ -101,10 +89,7 @@ void ConnectionData::setHost(const StringStorage *host)
   TCHAR spaceChar[] = _T(" \t\n\r");
   chompedString.removeChars(spaceChar, sizeof(spaceChar)/sizeof(TCHAR));
 
-  std::vector<std::byte> hostUtf8 = TextEncoding::toUtf8(chompedString);
-  hostUtf8.push_back(std::byte{0});
-
-  m_hostPath.set(reinterpret_cast<const char *>(hostUtf8.data()));
+  m_hostPath.set(chompedString.getString());
   m_isEmpty = false;
 }
 
@@ -188,12 +173,12 @@ void ConnectionData::setPlainPassword(const StringStorage *password)
 
 StringStorage ConnectionData::getHost() const
 {
-  return fromHostPath(m_hostPath.get());
+  return m_hostPath.get();
 }
 
 void ConnectionData::getReducedHost(StringStorage *strHost) const
 {
-  *strHost = fromHostPath(m_hostPath.getVncHost());
+  *strHost = m_hostPath.getVncHost();
 }
 
 int ConnectionData::getPort() const

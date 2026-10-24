@@ -21,9 +21,9 @@
 //-------------------------------------------------------------------------
 //
 
-#include <string.h>
-#include <stdlib.h>
 #include "HostPath.h"
+
+#include <tchar.h>
 
 const size_t HostPath::m_SSH_USER_MAX_CHARS = 32;
 const size_t HostPath::m_SSH_HOST_MAX_CHARS = 255;
@@ -38,20 +38,14 @@ const size_t HostPath::m_MAX_PATH_LEN =
   HostPath::m_VNC_HOST_MAX_CHARS + HostPath::m_VNC_PORT_MAX_CHARS + 5);
 
 HostPath::HostPath()
-  : m_path(0),
-    m_sshHost(0),
-    m_sshPort(0),
-    m_vncHost(0),
+  : m_sshPort(0),
     m_vncPort(0),
     m_defaultPort(5900)
 {
 }
 
-HostPath::HostPath(const char *path, int defaultPort)
-  : m_path(0),
-    m_sshHost(0),
-    m_sshPort(0),
-    m_vncHost(0),
+HostPath::HostPath(const TCHAR *path, int defaultPort)
+  : m_sshPort(0),
     m_vncPort(0),
     m_defaultPort(defaultPort)
 {
@@ -60,26 +54,25 @@ HostPath::HostPath(const char *path, int defaultPort)
 
 HostPath::~HostPath()
 {
-  clear();
 }
 
 bool
-HostPath::set(const char *path)
+HostPath::set(const TCHAR *path)
 {
   // Forget previous path if one was set earlier.
   clear();
 
-  // Check the path length and save a copy for this object.
+  // Check the path length and save a copy for this object. One character
+  // more than the limit is looked at, so that a longer path is rejected
+  // rather than cut short.
   if (path == 0) {
     return false;
   }
-  size_t pathLen = strnlen(path, m_MAX_PATH_LEN);
+  size_t pathLen = _tcsnlen(path, m_MAX_PATH_LEN + 1);
   if (pathLen < 1 || pathLen > m_MAX_PATH_LEN) {
     return false;
   }
-  m_path = new char[pathLen + 1];
-  memcpy(m_path, path, pathLen);
-  m_path[pathLen] = '\0';
+  m_path.setString(path);
 
   // Perform initial parsing and checking of the path.
   size_t tokens[4];
@@ -89,7 +82,7 @@ HostPath::set(const char *path)
     clear();
     return false;
   }
-  const char *tokenStart = m_path;
+  const TCHAR *tokenStart = m_path.getString();
 
   // Handle SSH host name.
   if (tokens[0] != 0) {
@@ -98,9 +91,7 @@ HostPath::set(const char *path)
       clear();
       return false;
     }
-    m_sshHost = new char[hostLen + 1];
-    memcpy(m_sshHost, tokenStart, hostLen);
-    m_sshHost[hostLen] = '\0';
+    m_sshHost = StringStorage(StringStorage::StdString(tokenStart, hostLen));
     m_sshPort = 22;
     tokenStart += tokens[0];
 
@@ -109,12 +100,12 @@ HostPath::set(const char *path)
       size_t portLen = tokens[1] - 1;
       if (portLen < 1 ||
           portLen > m_SSH_PORT_MAX_CHARS ||
-          *tokenStart != ':' ||
-          strspn(tokenStart + 1, "0123456789") != portLen) {
+          *tokenStart != _T(':') ||
+          _tcsspn(tokenStart + 1, _T("0123456789")) != portLen) {
         clear();
         return false;
       }
-      m_sshPort = atoi(tokenStart + 1);
+      m_sshPort = _ttoi(tokenStart + 1);
       if (m_sshPort > m_MAX_PORT) {
         clear();
         return false;
@@ -126,20 +117,16 @@ HostPath::set(const char *path)
   }
 
   // Handle VNC host name.
-  const char* hostStart = tokenStart;
-  size_t hostLen = tokens[2];
   if (tokens[2] == 0) {
-    hostStart = "localhost";
-    hostLen = 9; // strlen("localhost")
+    m_vncHost.setString(_T("localhost"));
   } else {
+    size_t hostLen = tokens[2];
     if (hostLen > m_VNC_HOST_MAX_CHARS) {
       clear();
       return false;
     }
+    m_vncHost = StringStorage(StringStorage::StdString(tokenStart, hostLen));
   }
-  m_vncHost = new char[hostLen + 1];
-  memcpy(m_vncHost, hostStart, hostLen);
-  m_vncHost[hostLen] = '\0';
   tokenStart += tokens[2];
 
   // Handle VNC display or port number.
@@ -147,23 +134,23 @@ HostPath::set(const char *path)
     m_vncPort = m_defaultPort;
   } else {
     size_t portLen = tokens[3] - 1;
-    if (portLen < 1 || *tokenStart != ':') {
+    if (portLen < 1 || *tokenStart != _T(':')) {
       clear();
       return false;
     }
-    const char* portStart = tokenStart + 1;
-    bool twoColons = (*portStart == ':');
+    const TCHAR* portStart = tokenStart + 1;
+    bool twoColons = (*portStart == _T(':'));
     if (twoColons) {
       portStart++;
       portLen--;
     }
     if (portLen < 1 ||
         portLen > m_VNC_PORT_MAX_CHARS ||
-        strspn(portStart, "0123456789") != portLen) {
+        _tcsspn(portStart, _T("0123456789")) != portLen) {
       clear();
       return false;
     }
-    m_vncPort = atoi(portStart);
+    m_vncPort = _ttoi(portStart);
     if (!twoColons && m_vncPort >= 0 && m_vncPort <= 99) {
       m_vncPort += m_defaultPort;
     }
@@ -185,18 +172,9 @@ HostPath::set(const char *path)
 void
 HostPath::clear()
 {
-  if (m_path != 0) {
-    delete[] m_path;
-    m_path = 0;
-  }
-  if (m_sshHost != 0) {
-    delete[] m_sshHost;
-    m_sshHost = 0;
-  }
-  if (m_vncHost != 0) {
-    delete[] m_vncHost;
-    m_vncHost = 0;
-  }
+  m_path.setString(_T(""));
+  m_sshHost.setString(_T(""));
+  m_vncHost.setString(_T(""));
   m_sshPort = 0;
   m_vncPort = 0;
 }
@@ -206,62 +184,63 @@ HostPath::parsePath(size_t results[]) const
 {
   memset(results, 0, 4 * sizeof(size_t));
 
-  if (m_path == 0)
+  if (m_path.isEmpty())
     return;
 
-  const char* vncHostStart = m_path;
+  const TCHAR* path = m_path.getString();
+  const TCHAR* vncHostStart = path;
 
-  const char* slashPtr = strchr(m_path, '/');
+  const TCHAR* slashPtr = _tcschr(path, _T('/'));
   if (slashPtr != 0) {
-    results[0] = strcspn(m_path, ":/");
-    results[1] = (slashPtr - m_path) - results[0];
+    results[0] = _tcscspn(path, _T(":/"));
+    results[1] = (slashPtr - path) - results[0];
     vncHostStart = slashPtr + 1;
   }
 
-  const char *colonPtr = strchr(vncHostStart, ':');
+  const TCHAR *colonPtr = _tcschr(vncHostStart, _T(':'));
   if (colonPtr != 0) {
     results[2] = colonPtr - vncHostStart;
-    results[3] = strnlen(colonPtr, m_MAX_PATH_LEN);
+    results[3] = _tcsnlen(colonPtr, m_MAX_PATH_LEN);
   } else {
-    results[2] = strnlen(vncHostStart, m_MAX_PATH_LEN);
+    results[2] = _tcsnlen(vncHostStart, m_MAX_PATH_LEN);
   }
 }
 
 bool
 HostPath::validateHostNames() const
 {
-  const char* acceptChars =
-    ".-_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890";
+  const TCHAR* acceptChars =
+    _T(".-_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890");
 
-  if (m_sshHost != 0) {
-    const char* sshHostPtr = m_sshHost;
-    size_t sshHostLen = strlen(m_sshHost);
+  if (!m_sshHost.isEmpty()) {
+    const TCHAR* sshHostPtr = m_sshHost.getString();
+    size_t sshHostLen = m_sshHost.getLength();
 
-    const char *sobakaPtr = strchr(m_sshHost, '@');
+    const TCHAR *sobakaPtr = _tcschr(sshHostPtr, _T('@'));
     if (sobakaPtr != 0) {
-      const char* sshUserPtr = m_sshHost;
-      size_t sshUserLen = sobakaPtr - m_sshHost;
+      const TCHAR* sshUserPtr = sshHostPtr;
+      size_t sshUserLen = sobakaPtr - sshHostPtr;
       sshHostPtr = sobakaPtr + 1;
       sshHostLen = sshHostLen - sshUserLen - 1;
 
       if (sshUserLen < 1 || sshUserLen > m_SSH_USER_MAX_CHARS ||
-          strspn(sshUserPtr, acceptChars) != sshUserLen) {
+          _tcsspn(sshUserPtr, acceptChars) != sshUserLen) {
         return false;
       }
     }
 
     if (sshHostLen < 1 || sshHostLen > m_SSH_HOST_MAX_CHARS ||
-        strspn(sshHostPtr, acceptChars) != sshHostLen) {
+        _tcsspn(sshHostPtr, acceptChars) != sshHostLen) {
       return false;
     }
   }
 
-  if (m_vncHost == 0)
+  if (m_vncHost.isEmpty())
     return false;
 
-  size_t vncHostLen = strlen(m_vncHost);
+  size_t vncHostLen = m_vncHost.getLength();
   if (vncHostLen < 1 || vncHostLen > m_VNC_HOST_MAX_CHARS ||
-      strspn(m_vncHost, acceptChars) != vncHostLen) {
+      _tcsspn(m_vncHost.getString(), acceptChars) != vncHostLen) {
     return false;
   }
 
