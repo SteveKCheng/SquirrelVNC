@@ -1,15 +1,21 @@
 # Plan: string encoding and string classes
 
-A plan (2026-10-23) to reduce the string classes inherited from TightVNC
-to one, `StringStorage`, and to decode the text that RFB carries
-according to the protocol rather than the Windows ANSI code page.
-
-Status (2026-10-24): the string classes are done (see "Order of
-work"); `StringStorage` is the only one left. `.ini` files are read and
-written with SimpleIni (see "`.ini` files", "Status").
+**Plan (2026-10-23)**: This note describes a plan to reduce the string 
+classes inherited from TightVNC to one, `StringStorage`, and to decode the text 
+that RFB carries according to the protocol rather than the Windows ANSI 
+code page.  
 
 See also `portability.md` ("TCHAR"), which is the larger, separate
 question of what `TCHAR` and `StringStorage` hold on Linux.
+
+**Status (2026-10-24)**: The plan has been implemented.  For the current 
+SquirrelVNC, the information in this note is mostly historical and 
+kept for reference.
+
+Highlights: 
+
+  - custom string classes with the sole exception of `StringStorage` have been removed
+  - `.ini` files are read and written with SimpleIni (see "`.ini` files", "Status").
 
 ## Starting point
 
@@ -48,7 +54,7 @@ same code page.
 
 ## Decisions
 
-| Text | Today | Planned |
+| Text | TightVNC | SquirrelVNC |
 |---|---|---|
 | Desktop name (ServerInit) | ACP | UTF-8 if valid, otherwise Latin-1 |
 | 3.8 authentication failure reason | UTF-8 | UTF-8 if valid, otherwise Latin-1 |
@@ -322,11 +328,12 @@ characters in a `std::basic_string` and moves (2026-10-24).
 
 ## Logging
 
-`RemoteViewerCore::sendCutTextEvent` logged the clipboard text at
+`RemoteViewerCore::sendCutTextEvent` had logged the clipboard text at
 detail level, and both `receiveServerCutText` functions logged it at
-debug level, so copied passwords could end up in log files. These lines
-now log the length only, in a `[SECURITY]` commit of its own
-(2026-10-23).
+debug level, so copied passwords could end up in log files. 
+
+Those lines now log the length only, and that change has been 
+implemented in revision `1f8ff3fe`.
 
 ## Order of work
 
