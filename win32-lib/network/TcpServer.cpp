@@ -68,16 +68,15 @@ void TcpServer::start()
 void TcpServer::execute()
 {
   while (!isTerminating()) {
-    SocketIPv4 *clientSocket = NULL;
+    std::unique_ptr<SocketIPv4> clientSocket;
 
     try {
       clientSocket = m_listenSocket.accept();
     } catch (...) {
-      clientSocket = NULL;
     }
 
-    if (clientSocket != NULL) {
-      onAcceptConnection(clientSocket);
+    if (clientSocket) {
+      onAcceptConnection(std::move(clientSocket));
     } else {
       break ;
     }

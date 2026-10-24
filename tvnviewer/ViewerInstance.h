@@ -45,7 +45,7 @@ public:
   ViewerInstance(WindowsApplication *application,
                  const ConnectionData *condata,
                  const ConnectionConfig *conConf,
-                 SocketIPv4 *socket);
+                 std::unique_ptr<SocketIPv4> socket);
 
   virtual ~ViewerInstance();
 
@@ -60,12 +60,14 @@ public:
 protected:
   ConnectionData m_condata;
   ConnectionConfig m_conConf;
+  // The connection accepted when listening, or empty. Declared before the
+  // core, which uses it, so that it outlives the core.
+  std::unique_ptr<SocketIPv4> m_socket;
 
   ViewerWindow m_viewerWnd;
   RemoteViewerCore m_viewerCore;
   ViewerVncAuthHandler m_vncAuthHandler;
   FileTransferCapability m_fileTransfer;
-  SocketIPv4 *m_socket;
 };
 
 #endif

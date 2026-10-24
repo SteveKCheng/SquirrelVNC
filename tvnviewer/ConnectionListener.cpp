@@ -40,14 +40,8 @@ ConnectionListener::ConnectionListener(WindowsApplication *application,
 ConnectionListener::~ConnectionListener() 
 {
   // Before the members that onAcceptConnection() uses are destroyed.
+  // The connections not taken are closed with m_connections.
   stop();
-
-  AutoLock al(&m_connectionsLock);
-  while (!m_connections.empty()) {
-    SocketIPv4 *socket = m_connections.front();
-    delete socket;
-    m_connections.pop_front();
-  }
 }
 
 UINT16 ConnectionListener::getBindPort() const
@@ -55,19 +49,19 @@ UINT16 ConnectionListener::getBindPort() const
   return TcpServer::getBindPort();
 }
 
-void ConnectionListener::onAcceptConnection(SocketIPv4 *socket)
+void ConnectionListener::onAcceptConnection(std::unique_ptr<SocketIPv4> socket)
 {
   AutoLock al(&m_connectionsLock);
-  m_connections.push_front(socket);
+  m_connections.push_front(std::move(socket));
   m_application->postMessage(TvnViewer::WM_USER_NEW_LISTENING);
 }
 
-SocketIPv4 *ConnectionListener::getNewConnection()
+std::unique_ptr<SocketIPv4> ConnectionListener::getNewConnection()
 {
   AutoLock al(&m_connectionsLock);
-  SocketIPv4 *socket = 0;
+  std::unique_ptr<SocketIPv4> socket;
   if (!m_connections.empty()) {
-    socket = m_connections.front();
+    socket = std::move(m_connections.front());
     m_connections.pop_front();
   }
   return socket;

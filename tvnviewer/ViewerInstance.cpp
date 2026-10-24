@@ -31,7 +31,6 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
                                const ConnectionConfig *conConf)
 : m_conConf(*conConf),
   m_condata(*condata),
-  m_socket(0),
   m_viewerWnd(application,
               &m_condata,
               &m_conConf,
@@ -44,10 +43,10 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
 ViewerInstance::ViewerInstance(WindowsApplication *application,
                                const ConnectionData *condata,
                                const ConnectionConfig *conConf,
-                               SocketIPv4 *socket)
+                               std::unique_ptr<SocketIPv4> socket)
 : m_conConf(*conConf),
   m_condata(*condata),
-  m_socket(socket),
+  m_socket(std::move(socket)),
   m_viewerWnd(application,
               &m_condata,
               &m_conConf,
@@ -60,18 +59,18 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
 
 ViewerInstance::~ViewerInstance()
 {
-  if (m_socket != 0) {
-    m_socket->shutdown(SD_BOTH);
+  if (m_socket) {
+    // shutdown() throws if it fails (the connection may be gone), and
+    // nothing may leave a destructor.
+    try {
+      m_socket->shutdown(SD_BOTH);
+    } catch (...) {
+    }
     m_socket->close();
   }
 
   m_viewerCore.stop();
   m_viewerCore.waitTermination();
-
-  if (m_socket != 0) {
-    delete m_socket;
-    m_socket = NULL;
-  }
 }
 
 void ViewerInstance::waitViewer()
@@ -106,7 +105,7 @@ void ViewerInstance::start()
   m_fileTransfer.addCapabilities(&m_viewerCore);
 
   if (m_socket) {
-    m_viewerCore.start(m_socket,
+    m_viewerCore.start(m_socket.get(),
                        &m_viewerWnd, m_conConf.getSharedFlag());
   } else {
     StringStorage strHost;

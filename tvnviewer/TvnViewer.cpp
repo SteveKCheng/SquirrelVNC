@@ -281,12 +281,12 @@ void TvnViewer::newListeningConnection()
   connectionConfig.loadFromStorage(&ccsm);
 
   if (m_conListener) {
-    SocketIPv4 *socket = m_conListener->getNewConnection();
-    while (socket != 0) {
+    std::unique_ptr<SocketIPv4> socket = m_conListener->getNewConnection();
+    while (socket) {
       ViewerInstance *viewerInst = new ViewerInstance(this,
                                                       &connectionData,
                                                       &connectionConfig,
-                                                      socket);
+                                                      std::move(socket));
       viewerInst->start();
       addInstance(viewerInst);
 

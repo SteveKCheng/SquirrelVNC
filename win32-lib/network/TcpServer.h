@@ -83,9 +83,10 @@ protected:
 
   /**
    * Called from tcp server thread when server accepts connection to process it.
-   * @param socket incoming connection socket.
+   * @param socket incoming connection socket, not empty, given to the
+   * subclass.
    */
-  virtual void onAcceptConnection(SocketIPv4 *socket) = 0;
+  virtual void onAcceptConnection(std::unique_ptr<SocketIPv4> socket) = 0;
 
   /**
    * Inherited from Thread class.

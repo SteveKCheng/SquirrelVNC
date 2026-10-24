@@ -34,6 +34,8 @@
 #include "io-lib/IOException.h"
 #include "win-system/WsaStartup.h"
 
+#include <memory>
+
 /**
  * IPv4 Socket class.
  *
@@ -98,7 +100,7 @@ public:
    * @throws SocketException on fail.
    * @return newly allocated socket that contain incoming connections.
    */
-  SocketIPv4 *accept();
+  std::unique_ptr<SocketIPv4> accept();
 
   /**
    * Sends data to socket.

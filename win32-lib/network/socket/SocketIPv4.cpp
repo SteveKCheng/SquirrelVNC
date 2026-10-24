@@ -117,7 +117,7 @@ void SocketIPv4::listen(int backlog)
   }
 }
 
-SocketIPv4 *SocketIPv4::accept()
+std::unique_ptr<SocketIPv4> SocketIPv4::accept()
 {
   struct sockaddr_in addr;
 
@@ -135,7 +135,7 @@ SocketIPv4 *SocketIPv4::accept()
   // From here accepted owns result, and closes it.
   closeResult.release();
   accepted->set(result);
-  return accepted.release();
+  return accepted;
 }
 
 void SocketIPv4::set(SOCKET socket)

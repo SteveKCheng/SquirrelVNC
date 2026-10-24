@@ -41,14 +41,15 @@ public:
   virtual ~ConnectionListener();
 
   // this method return pointer to new listening connection, if him is exist, and 0 if isn't
-  SocketIPv4 *getNewConnection();
+  // Post-conditions: the connection returned is given to the caller.
+  std::unique_ptr<SocketIPv4> getNewConnection();
 
   UINT16 getBindPort() const;
 protected:
-  void onAcceptConnection(SocketIPv4 *socket);
+  void onAcceptConnection(std::unique_ptr<SocketIPv4> socket);
 
   WindowsApplication *m_application;
-  std::list<SocketIPv4 *> m_connections;
+  std::list<std::unique_ptr<SocketIPv4> > m_connections;
   LocalMutex m_connectionsLock;
 };
 
