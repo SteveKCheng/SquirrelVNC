@@ -22,3 +22,10 @@ It will take a while to address all the problems, so:
   6. If asked to write new code, and you're unsure of pre-conditions or post-conditions for some internal
      functionality, check more thoroughly and do not just blindly copy existing code patterns.
 
+## Building
+
+  - To save time, unless specifically required otherwise, you may only build these project configurations:
+    - `Debug` `Win32`. 32-bit x86 is not a first-tier platform for SquirrelVNC; this is only to catch errors on C/C++ types that switch between 32-bit and 64-bit.
+    - `Debug` `Win64`. Makes sure any conditionally-compiled code for Debug builds do work; also not something we need to run normally.
+    - `ReleaseAsan` `Win64`.  Main configuration for iterative development and running console-based test programs.
+
