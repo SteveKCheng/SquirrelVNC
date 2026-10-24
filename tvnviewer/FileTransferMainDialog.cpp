@@ -34,19 +34,17 @@
 #include <stdio.h>
 
 FileTransferMainDialog::FileTransferMainDialog(FileTransferCore *core)
-: FileTransferInterface(core)
+: FileTransferInterface(core),
+  m_fakeMoveUpFolder(0, 0, FileInfo::DIRECTORY, _T(".."))
 {
   setResourceId(ftclient_mainDialog);
 
   m_lastSentFileListPath.setString(_T(""));
   m_lastReceivedFileListPath.setString(_T(""));
-
-  m_fakeMoveUpFolder = new FileInfo(0, 0, FileInfo::DIRECTORY, _T(".."));
 }
 
 FileTransferMainDialog::~FileTransferMainDialog()
 {
-  delete m_fakeMoveUpFolder;
 }
 
 void FileTransferMainDialog::setProgress(double progress)
@@ -790,7 +788,7 @@ void FileTransferMainDialog::tryListLocalFolder(const TCHAR *pathToFile)
 
     // Add ".." folder and if not root
     if (!isRoot) {
-      m_localFileListView.addItem(0, m_fakeMoveUpFolder);
+      m_localFileListView.addItem(0, &m_fakeMoveUpFolder);
     }
     // Set label text
     m_localCurFolderTextBox.setText(pathToFile);
@@ -903,7 +901,7 @@ void FileTransferMainDialog::setNothingState()
 
   // Add fake ".." folder if not root
   if (!isRoot) {
-    m_remoteFileListView.addItem(0, m_fakeMoveUpFolder);
+    m_remoteFileListView.addItem(0, &m_fakeMoveUpFolder);
   }
 }
 

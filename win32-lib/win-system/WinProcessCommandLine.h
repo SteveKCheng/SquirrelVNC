@@ -51,8 +51,6 @@ public:
   bool getOption(size_t index, StringStorage* strOut);
 
 protected:
-  WinCommandLineArgs *m_wcla;
-
   std::vector<StringStorage> m_strParam;
   std::vector<std::pair<StringStorage, StringStorage>> m_strParams;
 

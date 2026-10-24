@@ -32,7 +32,6 @@ TvnViewer::TvnViewer(HINSTANCE appInstance, const TCHAR *windowClassName,
                      const TCHAR *viewerWindowClassName)
 : WindowsApplication(appInstance, windowClassName),
   m_viewerWindowClassName(viewerWindowClassName),
-  m_conListener(0),
   m_hAccelTable(0),
   m_logWriter(ViewerConfig::getInstance()->getLogger()),
   m_isListening(false)
@@ -47,8 +46,8 @@ TvnViewer::TvnViewer(HINSTANCE appInstance, const TCHAR *windowClassName,
   ResourceLoader *rLoader = ResourceLoader::getInstance();
   m_hAccelTable = rLoader->loadAccelerator(IDR_ACCEL_APP_KEYS);
 
-  m_trayIcon = new ControlTrayIcon(this);
-  m_loginDialog = new LoginDialog(this);
+  m_trayIcon = std::make_unique<ControlTrayIcon>(this);
+  m_loginDialog = std::make_unique<LoginDialog>(this);
 }
 
 TvnViewer::~TvnViewer()
@@ -56,8 +55,10 @@ TvnViewer::~TvnViewer()
   m_logWriter.info(_T("Viewer collector: destroy all instances"));
   m_instances.destroyAllInstances();
 
-  delete m_loginDialog;
-  delete m_trayIcon;
+  // Before the window class is unregistered and WinSock shut down.
+  m_loginDialog.reset();
+  m_trayIcon.reset();
+  stopListeningServer();
 
   unregisterViewerWindowClass();
 
@@ -68,10 +69,10 @@ TvnViewer::~TvnViewer()
 void TvnViewer::startListeningServer(const int listeningPort)
 {
   try {
-    if (m_conListener != 0) {
+    if (m_conListener) {
       throw Exception(_T("Listening Server already started"));
     }
-    m_conListener = new ConnectionListener(this, static_cast<UINT16>(listeningPort));
+    m_conListener = std::make_unique<ConnectionListener>(this, static_cast<UINT16>(listeningPort));
   } catch (const Exception &ex) {
     m_isListening = false;
     m_logWriter.error(_T("Error in start listening: %s"), ex.getMessage());
@@ -84,14 +85,9 @@ void TvnViewer::startListeningServer(const int listeningPort)
 
 void TvnViewer::stopListeningServer()
 {
-  try {
-    if (m_conListener != 0) {
-      delete m_conListener;
-    }
-  } catch (const Exception &ex) {
-    m_logWriter.error(_T("Error of delete m_conListener: %s"), ex.getMessage());
-  }
-  m_conListener = 0;
+  // A destructor cannot throw (it is noexcept), so there is nothing to
+  // catch here.
+  m_conListener.reset();
 }
 
 void TvnViewer::restartListeningServer()
@@ -284,7 +280,7 @@ void TvnViewer::newListeningConnection()
   ConnectionConfigSM ccsm(RegistryPaths::VIEWER_PATH, _T(".listen"));
   connectionConfig.loadFromStorage(&ccsm);
 
-  if (m_conListener != 0) {
+  if (m_conListener) {
     SocketIPv4 *socket = m_conListener->getNewConnection();
     while (socket != 0) {
       ViewerInstance *viewerInst = new ViewerInstance(this,

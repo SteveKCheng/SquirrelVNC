@@ -27,8 +27,8 @@ WinProcessCommandLine::WinProcessCommandLine()
 {
   std::vector<StringStorage> out;
 
-  m_wcla = new WinCommandLineArgs(GetCommandLine());
-  m_wcla->getArgVector(&out);
+  WinCommandLineArgs commandLineArgs(GetCommandLine());
+  commandLineArgs.getArgVector(&out);
   for (size_t i = 0; i < out.size(); i++) {
     if (out[i].getString()[0] != _T('-')) {
       m_strParam.push_back(out[i]);
@@ -103,7 +103,4 @@ bool WinProcessCommandLine::getOption(size_t index, StringStorage* strOut)
 
 WinProcessCommandLine::~WinProcessCommandLine()
 {
-  if (m_wcla) {
-    delete m_wcla;
-  }
 }

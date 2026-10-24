@@ -55,7 +55,7 @@ KeySymTest::KeySymTest(const TCHAR *fileFrom, const TCHAR *fileTo)
     throw Exception(errMess.getString());
   }
   ScopeExit closeTo([&] { fclose(m_fTo); });
-  m_rfbKeySym = new RfbKeySym(this, &m_log);
+  m_rfbKeySym = std::make_unique<RfbKeySym>(this, &m_log);
   closeTo.release();
   closeFrom.release();
 }
@@ -64,7 +64,6 @@ KeySymTest::~KeySymTest()
 {
   fclose(m_fFrom);
   fclose(m_fTo);
-  delete m_rfbKeySym;
 }
 
 int KeySymTest::run()

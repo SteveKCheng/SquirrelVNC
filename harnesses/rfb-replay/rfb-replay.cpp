@@ -47,6 +47,7 @@
 #include <stdlib.h>
 
 #include <algorithm>
+#include <memory>
 #include <string.h>
 #include <string>
 #include <vector>
@@ -436,14 +437,14 @@ int _tmain(int argc, TCHAR *argv[])
   RfbInputGate inputGate(&inputStream);
   RfbOutputGate outputGate(&outputStream);
 
-  // The core is never destroyed if the session times out (see below), so
-  // it lives on the heap.
-  RemoteViewerCore *core = new RemoteViewerCore(&logger);
+  // The core is never destroyed if the session times out (see below), or
+  // fails, so it lives on the heap.
+  std::unique_ptr<RemoteViewerCore> core = std::make_unique<RemoteViewerCore>(&logger);
   std::vector<char> ppm;
   try {
     core->setMaxFrameBufferPixels(options.maxPixels);
-    authHandler.addAuthCapability(core);
-    adapter.setCore(core);
+    authHandler.addAuthCapability(core.get());
+    adapter.setCore(core.get());
     core->start(&inputGate, &outputGate, &adapter, true);
 
     if (!adapter.waitForEnd(options.timeoutMs)) {
@@ -461,9 +462,12 @@ int _tmain(int argc, TCHAR *argv[])
     ppm = frameBufferToPpm(&frameBuffer);
   } catch (const Exception &e) {
     _ftprintf(stderr, _T("Error: %s\n"), e.getMessage());
+    // Its thread may still be running: destroying it would wait.
+    (void)core.release();
     return EXIT_ERROR;
   }
-  delete core;
+  // Before the output is read: the core's thread writes it.
+  core.reset();
 
   std::vector<char> out = outputStream.getData();
   std::string eventLog = adapter.getEventLog();

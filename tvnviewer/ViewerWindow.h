@@ -42,6 +42,8 @@
 #include "win-system/WindowsApplication.h"
 #include "win-system/WinHooks.h"
 
+#include <memory>
+
 class ViewerWindow : public BaseWindow,
                      public CoreEventsAdapter,
                      private HookEventListener
@@ -138,7 +140,7 @@ protected:
   WindowsApplication *m_application;
   RemoteViewerCore *m_viewerCore;
   FileTransferCapability *m_fileTransfer;
-  FileTransferMainDialog *m_ftDialog;
+  std::unique_ptr<FileTransferMainDialog> m_ftDialog;
   DesktopWindow m_dsktWnd;
   StringStorage m_strToolTip;
   ToolBar m_toolbar;

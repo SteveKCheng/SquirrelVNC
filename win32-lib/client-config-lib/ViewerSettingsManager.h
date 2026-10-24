@@ -26,18 +26,22 @@
 
 #include "config-lib/RegistrySettingsManager.h"
 
+#include <memory>
+
 class ViewerSettingsManager : public RegistrySettingsManager
 {
 public:
   ViewerSettingsManager(const TCHAR registryName[]);
   virtual ~ViewerSettingsManager();
 
+  // Post-conditions: getInstance() gives a new instance for registryName;
+  // the old one, if any, is destroyed.
   static void initInstance(const TCHAR registryName[]);
 
   static SettingsManager *getInstance();
 
 protected:
-  static SettingsManager *s_instance;
+  static std::unique_ptr<SettingsManager> s_instance;
 };
 
 #endif

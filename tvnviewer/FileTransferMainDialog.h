@@ -276,7 +276,7 @@ protected:
   // File info of ".." fake folder
   //
 
-  FileInfo *m_fakeMoveUpFolder;
+  FileInfo m_fakeMoveUpFolder;
 
 private:
 

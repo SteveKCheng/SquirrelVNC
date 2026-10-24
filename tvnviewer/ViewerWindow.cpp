@@ -42,7 +42,6 @@ ViewerWindow::ViewerWindow(WindowsApplication *application,
   m_conConf(conConf),
   m_scale(100),
   m_isFullScr(false),
-  m_ftDialog(0),
   m_viewerCore(0),
   m_fileTransfer(0),
   m_conData(conData),
@@ -84,13 +83,7 @@ ViewerWindow::~ViewerWindow()
   // Unregistration of keyboard hook.
   m_winHooks.unregisterKeyboardHook(this);
 
-  if (m_ftDialog != 0) {
-    try {
-      delete m_ftDialog;
-    } catch (...) {
-    }
-    m_ftDialog = 0;
-  }
+  m_ftDialog.reset();
 }
 
 void ViewerWindow::setFileTransfer(FileTransferCapability *ft)
@@ -790,18 +783,17 @@ void ViewerWindow::showFileTransferDialog()
   LRESULT iState = m_toolbar.getState(IDS_TB_TRANSFER);
   if (iState) {
     // FIXME: FT check it
-    if (m_ftDialog != 0) {
+    if (m_ftDialog) {
       if (!m_ftDialog->isCreated()) {
         _ASSERT(m_fileTransfer != 0);
         m_fileTransfer->setInterface(0);
-        delete m_ftDialog;
-        m_ftDialog = 0;
+        m_ftDialog.reset();
       }
     }
-    if (m_ftDialog == 0) {
+    if (!m_ftDialog) {
       _ASSERT(m_fileTransfer != 0);
-      m_ftDialog = new FileTransferMainDialog(m_fileTransfer->getCore());
-      m_fileTransfer->setInterface(m_ftDialog);
+      m_ftDialog = std::make_unique<FileTransferMainDialog>(m_fileTransfer->getCore());
+      m_fileTransfer->setInterface(m_ftDialog.get());
     }
     m_ftDialog->show();
     HWND dialogWnd = m_ftDialog->getControl()->getWindow();
@@ -943,7 +935,7 @@ bool ViewerWindow::onNotify(int /* idCtrl */, LPNMHDR pnmh)
 
 bool ViewerWindow::onClose()
 {
-  if (m_ftDialog != 0 && m_ftDialog->isCreated()) {
+  if (m_ftDialog && m_ftDialog->isCreated()) {
     if (!m_ftDialog->tryClose()) {
       return true;
     }

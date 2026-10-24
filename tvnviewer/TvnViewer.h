@@ -37,6 +37,7 @@
 #include "thread/AutoLock.h"
 
 #include <map>
+#include <memory>
 
 class ViewerCollector;
 class ControlTrayIcon;
@@ -151,9 +152,9 @@ private:
   ConfigurationDialog m_configurationDialog;
   OptionsDialog m_optionsDialog;
 
-  LoginDialog *m_loginDialog;
-  ControlTrayIcon *m_trayIcon;
-  ConnectionListener *m_conListener;
+  std::unique_ptr<LoginDialog> m_loginDialog;
+  std::unique_ptr<ControlTrayIcon> m_trayIcon;
+  std::unique_ptr<ConnectionListener> m_conListener;
 
   WNDCLASS m_viewerWndClass;
 };

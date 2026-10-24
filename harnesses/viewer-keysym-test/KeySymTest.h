@@ -24,6 +24,7 @@
 #pragma once
 
 #include "rfb/RfbKeySym.h"
+#include <memory>
 #include <vector>
 
 class KeySymTest : public RfbKeySymListener
@@ -56,7 +57,7 @@ private:
 
   void changeKbdLayout(HKL hkl);
 
-  RfbKeySym *m_rfbKeySym;
+  std::unique_ptr<RfbKeySym> m_rfbKeySym;
   StringStorage m_fromFileName;
   StringStorage m_toFileName;
   FILE *m_fFrom;

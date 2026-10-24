@@ -26,7 +26,7 @@
 #include "util/Exception.h"
 #include "win-system/Registry.h"
 
-SettingsManager *ViewerSettingsManager::s_instance = 0;
+std::unique_ptr<SettingsManager> ViewerSettingsManager::s_instance;
 
 ViewerSettingsManager::ViewerSettingsManager(const TCHAR registryName[])
 : RegistrySettingsManager()
@@ -42,15 +42,13 @@ ViewerSettingsManager::~ViewerSettingsManager()
 
 void ViewerSettingsManager::initInstance(const TCHAR registryName[])
 {
-  if (s_instance != 0)
-    delete s_instance;
-  s_instance = new ViewerSettingsManager(registryName);
+  s_instance = std::make_unique<ViewerSettingsManager>(registryName);
 }
 
 SettingsManager *ViewerSettingsManager::getInstance()
 {
-  if (s_instance == 0) {
+  if (!s_instance) {
     throw Exception(_T("Instance of viewer settings manager is 0"));
   }
-  return s_instance;
+  return s_instance.get();
 }
