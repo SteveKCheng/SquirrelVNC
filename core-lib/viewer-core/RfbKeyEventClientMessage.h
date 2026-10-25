@@ -32,7 +32,7 @@ public:
   RfbKeyEventClientMessage(bool downFlag, UINT32 key);
   ~RfbKeyEventClientMessage() override;
 
-  void send(RfbOutputGate *output) override;
+  void send(RfbOutputGate &output) override;
 
 private:
   UINT32 m_key;

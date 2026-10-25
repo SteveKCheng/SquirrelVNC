@@ -40,7 +40,7 @@ public:
   // Throws Exception if the text is too long for the 32-bit size, before
   // anything is written; otherwise whatever writing throws.
   //
-  void send(RfbOutputGate *output) override;
+  void send(RfbOutputGate &output) override;
 
   //
   // Sends the text as TightVNC's ClientCutTextUtf8 message: its size in
@@ -53,7 +53,7 @@ public:
   // 32-bit size, before anything is written; otherwise whatever writing
   // throws.
   //
-  void sendUtf8(RfbOutputGate *output);
+  void sendUtf8(RfbOutputGate &output);
 
 private:
   StringStorage m_cutText;

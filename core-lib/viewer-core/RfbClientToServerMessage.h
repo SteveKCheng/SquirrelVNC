@@ -34,7 +34,7 @@ public:
   RfbClientToServerMessage();
   virtual ~RfbClientToServerMessage();
 
-  virtual void send(RfbOutputGate *output) = 0;
+  virtual void send(RfbOutputGate &output) = 0;
 };
 
 #endif

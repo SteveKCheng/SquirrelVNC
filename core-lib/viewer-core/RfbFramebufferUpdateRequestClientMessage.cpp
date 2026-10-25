@@ -34,14 +34,14 @@ RfbFramebufferUpdateRequestClientMessage::~RfbFramebufferUpdateRequestClientMess
 {
 }
 
-void RfbFramebufferUpdateRequestClientMessage::send(RfbOutputGate * output)
+void RfbFramebufferUpdateRequestClientMessage::send(RfbOutputGate & output)
 {
-  AutoLock al(output);
-  output->writeUInt8(ClientMsgDefs::FB_UPDATE_REQUEST);
-  output->writeUInt8(m_incremental);
-  output->writeUInt16(static_cast<UINT16>(m_rect.left));
-  output->writeUInt16(static_cast<UINT16>(m_rect.top));
-  output->writeUInt16(static_cast<UINT16>(m_rect.getWidth()));
-  output->writeUInt16(static_cast<UINT16>(m_rect.getHeight()));
-  output->flush();
+  AutoLock al(&output);
+  output.writeUInt8(ClientMsgDefs::FB_UPDATE_REQUEST);
+  output.writeUInt8(m_incremental);
+  output.writeUInt16(static_cast<UINT16>(m_rect.left));
+  output.writeUInt16(static_cast<UINT16>(m_rect.top));
+  output.writeUInt16(static_cast<UINT16>(m_rect.getWidth()));
+  output.writeUInt16(static_cast<UINT16>(m_rect.getHeight()));
+  output.flush();
 }

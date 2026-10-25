@@ -307,7 +307,7 @@ bool RemoteViewerCore::updatePixelFormat()
   }
 
   RfbSetPixelFormatClientMessage pixelFormatMessage(pxFormat);
-  pixelFormatMessage.send(m_output);
+  pixelFormatMessage.send(*m_output);
 
   return true;
 }
@@ -359,7 +359,7 @@ void RemoteViewerCore::sendFbUpdateRequest(bool incremental)
   }
 
   RfbFramebufferUpdateRequestClientMessage fbUpdReq(isIncremental, updateRect);
-  fbUpdReq.send(m_output);
+  fbUpdReq.send(*m_output);
   m_logWriter.debug(_T("Frame buffer update request is sent"));
 }
 
@@ -373,7 +373,7 @@ void RemoteViewerCore::sendKeyboardEvent(bool downFlag, UINT32 key)
 
   m_logWriter.detail(_T("Sending key event: %d, %u..."), downFlag, key);
   RfbKeyEventClientMessage keyMessage(downFlag, key);
-  keyMessage.send(m_output);
+  keyMessage.send(*m_output);
   m_logWriter.debug(_T("Key event: %d, %u is sent"), downFlag, key);
 }
 
@@ -390,7 +390,7 @@ void RemoteViewerCore::sendPointerEvent(UINT8 buttonMask,
                      static_cast<int>(buttonMask), position.x, position.y);
   // send position to server
   RfbPointerEventClientMessage pointerMessage(buttonMask, position);
-  pointerMessage.send(m_output);
+  pointerMessage.send(*m_output);
   // update position
   m_fbUpdateNotifier.updatePointerPos(position);
 
@@ -412,12 +412,12 @@ void RemoteViewerCore::sendCutTextEvent(const StringStorage &cutText)
     // The clipboard may hold passwords, so only its length is logged.
     m_logWriter.detail(_T("Sending UTF-8 clipboard cut text (%zu characters)..."),
                        cutText.getLength());
-    cutTextMessage.sendUtf8(m_output);
+    cutTextMessage.sendUtf8(*m_output);
   }
   else {
     m_logWriter.detail(_T("Sending clipboard cut text (%zu characters)..."),
                        cutText.getLength());
-    cutTextMessage.send(m_output);
+    cutTextMessage.send(*m_output);
   }
   m_logWriter.debug(_T("Clipboard cut text is sent"));
 }
@@ -1548,7 +1548,7 @@ void RemoteViewerCore::sendEncodings()
 
   std::vector<INT32> decoderIds = m_decoderStore.getDecoderIds();
   RfbSetEncodingsClientMessage encodingsMessage(&decoderIds);
-  encodingsMessage.send(m_output);
+  encodingsMessage.send(*m_output);
 }
 
 std::vector<Rect> RemoteViewerCore::getDesktops()

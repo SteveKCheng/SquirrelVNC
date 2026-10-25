@@ -33,12 +33,12 @@ RfbKeyEventClientMessage::~RfbKeyEventClientMessage()
 {
 }
 
-void RfbKeyEventClientMessage::send(RfbOutputGate *output)
+void RfbKeyEventClientMessage::send(RfbOutputGate &output)
 {
-  AutoLock al(output);
-  output->writeUInt8(ClientMsgDefs::KEYBOARD_EVENT);
-  output->writeUInt8(m_downFlag);
-  output->writeUInt16(0); // padding
-  output->writeUInt32(m_key);
-  output->flush();
+  AutoLock al(&output);
+  output.writeUInt8(ClientMsgDefs::KEYBOARD_EVENT);
+  output.writeUInt8(m_downFlag);
+  output.writeUInt16(0); // padding
+  output.writeUInt32(m_key);
+  output.flush();
 }

@@ -35,7 +35,7 @@ public:
   RfbSetEncodingsClientMessage(std::vector<int> *encodings);
   ~RfbSetEncodingsClientMessage() override;
 
-  void send(RfbOutputGate *output) override;
+  void send(RfbOutputGate &output) override;
 
 private:
   std::vector<int> m_encodings;

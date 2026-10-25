@@ -33,20 +33,20 @@ RfbSetEncodingsClientMessage::~RfbSetEncodingsClientMessage()
 {
 }
 
-void RfbSetEncodingsClientMessage::send(RfbOutputGate *output)
+void RfbSetEncodingsClientMessage::send(RfbOutputGate &output)
 {
-  AutoLock al(output);
-  output->writeUInt8(ClientMsgDefs::SET_ENCODINGS);
-  output->writeUInt8(0); // padding 1 byte
+  AutoLock al(&output);
+  output.writeUInt8(ClientMsgDefs::SET_ENCODINGS);
+  output.writeUInt8(0); // padding 1 byte
 
   // output count of encoding and out code of all encodings
-  output->writeUInt16(static_cast<UINT16>(m_encodings.size()));
+  output.writeUInt16(static_cast<UINT16>(m_encodings.size()));
 
   for (std::vector<int>::iterator i = m_encodings.begin();
        i != m_encodings.end();
        i++) {
-    output->writeInt32(*i);
+    output.writeInt32(*i);
   }
 
-  output->flush();
+  output.flush();
 }

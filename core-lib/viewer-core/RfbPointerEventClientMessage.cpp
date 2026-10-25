@@ -35,12 +35,12 @@ RfbPointerEventClientMessage::~RfbPointerEventClientMessage()
 {
 }
 
-void RfbPointerEventClientMessage::send(RfbOutputGate *output)
+void RfbPointerEventClientMessage::send(RfbOutputGate &output)
 {
-  AutoLock al(output);
-  output->writeUInt8(ClientMsgDefs::POINTER_EVENT);
-  output->writeUInt8(m_buttonMask);
-  output->writeUInt16(m_xPos);
-  output->writeUInt16(m_yPos);
-  output->flush();
+  AutoLock al(&output);
+  output.writeUInt8(ClientMsgDefs::POINTER_EVENT);
+  output.writeUInt8(m_buttonMask);
+  output.writeUInt16(m_xPos);
+  output.writeUInt16(m_yPos);
+  output.flush();
 }

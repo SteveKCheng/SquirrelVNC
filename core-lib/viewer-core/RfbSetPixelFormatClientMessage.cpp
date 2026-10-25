@@ -47,28 +47,28 @@ RfbSetPixelFormatClientMessage::~RfbSetPixelFormatClientMessage()
  * 3 -     - padding
  */
 
-void RfbSetPixelFormatClientMessage::send(RfbOutputGate *output)
+void RfbSetPixelFormatClientMessage::send(RfbOutputGate &output)
 {
-  AutoLock al(output);
-  output->writeUInt8(ClientMsgDefs::SET_PIXEL_FORMAT);
+  AutoLock al(&output);
+  output.writeUInt8(ClientMsgDefs::SET_PIXEL_FORMAT);
   // padding 3 bytes
-  output->writeUInt16(0);
-  output->writeUInt8(0);
+  output.writeUInt16(0);
+  output.writeUInt8(0);
 
   // send pixel format
-  output->writeUInt8(static_cast<UINT8>(m_pixelFormat.bitsPerPixel));
-  output->writeUInt8(static_cast<UINT8>(m_pixelFormat.colorDepth));
-  output->writeUInt8(m_pixelFormat.bigEndian);
-  output->writeUInt8(true); // true color is always true
-  output->writeUInt16(m_pixelFormat.redMax);
-  output->writeUInt16(m_pixelFormat.greenMax);
-  output->writeUInt16(m_pixelFormat.blueMax);
-  output->writeUInt8(static_cast<UINT8>(m_pixelFormat.redShift));
-  output->writeUInt8(static_cast<UINT8>(m_pixelFormat.greenShift));
-  output->writeUInt8(static_cast<UINT8>(m_pixelFormat.blueShift));
-  output->writeUInt8(0); // padding bytes (3)
-  output->writeUInt8(0);
-  output->writeUInt8(0);
+  output.writeUInt8(static_cast<UINT8>(m_pixelFormat.bitsPerPixel));
+  output.writeUInt8(static_cast<UINT8>(m_pixelFormat.colorDepth));
+  output.writeUInt8(m_pixelFormat.bigEndian);
+  output.writeUInt8(true); // true color is always true
+  output.writeUInt16(m_pixelFormat.redMax);
+  output.writeUInt16(m_pixelFormat.greenMax);
+  output.writeUInt16(m_pixelFormat.blueMax);
+  output.writeUInt8(static_cast<UINT8>(m_pixelFormat.redShift));
+  output.writeUInt8(static_cast<UINT8>(m_pixelFormat.greenShift));
+  output.writeUInt8(static_cast<UINT8>(m_pixelFormat.blueShift));
+  output.writeUInt8(0); // padding bytes (3)
+  output.writeUInt8(0);
+  output.writeUInt8(0);
 
-  output->flush();
+  output.flush();
 }

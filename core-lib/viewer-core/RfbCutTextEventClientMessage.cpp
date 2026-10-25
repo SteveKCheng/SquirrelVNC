@@ -38,7 +38,7 @@ RfbCutTextEventClientMessage::~RfbCutTextEventClientMessage()
 {
 }
 
-void RfbCutTextEventClientMessage::send(RfbOutputGate *output)
+void RfbCutTextEventClientMessage::send(RfbOutputGate &output)
 {
   // Latin-1, as the specification says.
   std::vector<std::byte> cutTextLatin1 = TextEncoding::toLatin1(m_cutText);
@@ -47,17 +47,17 @@ void RfbCutTextEventClientMessage::send(RfbOutputGate *output)
   }
   UINT32 length = static_cast<UINT32>(cutTextLatin1.size());
 
-  AutoLock al(output);
-  output->writeUInt8(ClientMsgDefs::CLIENT_CUT_TEXT);
-  output->writeUInt8(0); // padding 3 bytes
-  output->writeUInt8(0);
-  output->writeUInt8(0);
-  output->writeUInt32(length);
-  output->writeFully(cutTextLatin1.data(), length);
-  output->flush();
+  AutoLock al(&output);
+  output.writeUInt8(ClientMsgDefs::CLIENT_CUT_TEXT);
+  output.writeUInt8(0); // padding 3 bytes
+  output.writeUInt8(0);
+  output.writeUInt8(0);
+  output.writeUInt32(length);
+  output.writeFully(cutTextLatin1.data(), length);
+  output.flush();
 }
 
-void RfbCutTextEventClientMessage::sendUtf8(RfbOutputGate *output)
+void RfbCutTextEventClientMessage::sendUtf8(RfbOutputGate &output)
 {
   std::vector<std::byte> cutTextUtf8 = TextEncoding::toUtf8(m_cutText);
   if (cutTextUtf8.size() > UINT32_MAX) {
@@ -65,9 +65,9 @@ void RfbCutTextEventClientMessage::sendUtf8(RfbOutputGate *output)
   }
   UINT32 length = static_cast<UINT32>(cutTextUtf8.size());
 
-  AutoLock al(output);
-  output->writeUInt32(ClientMsgDefs::CLIENT_CUT_TEXT_UTF8);
-  output->writeUInt32(length);
-  output->writeFully(cutTextUtf8.data(), length);
-  output->flush();
+  AutoLock al(&output);
+  output.writeUInt32(ClientMsgDefs::CLIENT_CUT_TEXT_UTF8);
+  output.writeUInt32(length);
+  output.writeFully(cutTextUtf8.data(), length);
+  output.flush();
 }
