@@ -117,7 +117,6 @@
     <ClCompile Include="NamingDefs.cpp" />
     <ClCompile Include="NewFolderDialog.cpp" />
     <ClCompile Include="OptionsDialog.cpp" />
-    <ClCompile Include="ResourceStrings.cpp" />
     <ClCompile Include="ScaleManager.cpp" />
     <ClCompile Include="TvnViewer.cpp" />
     <ClCompile Include="ViewerCmdLine.cpp" />
@@ -148,7 +147,6 @@
     <ClInclude Include="NewFolderDialog.h" />
     <ClInclude Include="OptionsDialog.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="ResourceStrings.h" />
     <ClInclude Include="ScaleManager.h" />
     <ClInclude Include="TvnViewer.h" />
     <ClInclude Include="ViewerCmdLine.h" />

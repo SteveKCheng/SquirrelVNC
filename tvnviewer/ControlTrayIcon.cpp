@@ -22,8 +22,8 @@
 //
 
 #include "ControlTrayIcon.h"
-#include "ResourceStrings.h"
 #include "gui/BaseWindow.h"
+#include "util/StringTable.h"
 
 UINT ControlTrayIcon::WM_USER_TASKBAR;
 
@@ -33,16 +33,15 @@ ControlTrayIcon::ControlTrayIcon(TvnViewer *viewerApplication)
   m_inWindowProc(false),
   m_icon(IDI_APPICON)
 {
-  ResourceStrings resStr;
   m_menu.createPopupMenu();
-  m_menu.appendMenu(resStr.getStrRes(IDS_TB_NEWCONNECTION), IDS_NEW_CONN);
+  m_menu.appendMenu(StringTable::getString(IDS_TB_NEWCONNECTION), IDS_NEW_CONN);
   m_menu.appendSeparator();
-  m_menu.appendMenu(resStr.getStrRes(IDS_LISTENING_OPTIONS), IDS_LISTENING_OPTIONS);
-  m_menu.appendMenu(resStr.getStrRes(IDS_CONFIG), IDS_CONFIG);
+  m_menu.appendMenu(StringTable::getString(IDS_LISTENING_OPTIONS), IDS_LISTENING_OPTIONS);
+  m_menu.appendMenu(StringTable::getString(IDS_CONFIG), IDS_CONFIG);
   m_menu.appendSeparator();
-  m_menu.appendMenu(resStr.getStrRes(IDS_ABOUT_VIEWER), IDS_ABOUT_VIEWER);
+  m_menu.appendMenu(StringTable::getString(IDS_ABOUT_VIEWER), IDS_ABOUT_VIEWER);
   m_menu.appendSeparator();
-  m_menu.appendMenu(resStr.getStrRes(IDS_CLOSE), IDS_CLOSE);
+  m_menu.appendMenu(StringTable::getString(IDS_CLOSE), IDS_CLOSE);
   m_menu.setDefaultItem(IDS_NEW_CONN);
 
   setWindowProcHolder(this);
