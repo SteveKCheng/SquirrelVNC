@@ -265,7 +265,7 @@ bool FuzzSession::readFbUpdateRectangle()
                               m_frameBuffer, m_rectangleFb, rect, &m_fbLock,
                               m_notifier);
   } else {
-    readPseudoEncoding(&rect, encodingType);
+    readPseudoEncoding(rect, encodingType);
   }
   return false;
 }
@@ -273,13 +273,13 @@ bool FuzzSession::readFbUpdateRectangle()
 // Mirrors RemoteViewerCore::processPseudoEncoding(), with the calls the
 // core makes on FbUpdateNotifier made on the CursorPainter directly, as
 // the notifier does.
-void FuzzSession::readPseudoEncoding(const Rect *rect, int encodingType)
+void FuzzSession::readPseudoEncoding(const Rect &rect, int encodingType)
 {
   switch (encodingType) {
   case PseudoEncDefs::DESKTOP_SIZE:
     {
       AutoLock al(&m_fbLock);
-      Dimension dimension(*rect);
+      Dimension dimension(rect);
       PixelFormat pixelFormat = m_frameBuffer->getPixelFormat();
       setFrameBuffer(dimension, pixelFormat);
     }
@@ -287,8 +287,8 @@ void FuzzSession::readPseudoEncoding(const Rect *rect, int encodingType)
 
   case PseudoEncDefs::RICH_CURSOR:
     {
-      UINT16 width = static_cast<UINT16>(rect->getWidth());
-      UINT16 height = static_cast<UINT16>(rect->getHeight());
+      UINT16 width = static_cast<UINT16>(rect.getWidth());
+      UINT16 height = static_cast<UINT16>(rect.getHeight());
       UINT8 bytesPerPixel = m_frameBuffer->getBytesPerPixel();
 
       if (width > ViewerBufferSize::MAX_CURSOR_SIZE ||
@@ -308,7 +308,7 @@ void FuzzSession::readPseudoEncoding(const Rect *rect, int encodingType)
         bitmask.resize(bitmaskLen);
         m_input->readFully(&bitmask.front(), bitmaskLen);
       }
-      Point hotSpot(rect->left, rect->top);
+      Point hotSpot(rect.left, rect.top);
 
       // FbUpdateNotifier::setNewCursor()
       AutoLock al(&m_fbLock);
@@ -318,7 +318,7 @@ void FuzzSession::readPseudoEncoding(const Rect *rect, int encodingType)
 
   case PseudoEncDefs::POINTER_POS:
     {
-      Point position(rect->left, rect->top);
+      Point position(rect.left, rect.top);
       // FbUpdateNotifier::updatePointerPos()
       m_cursorPainter->updatePointerPos(position);
     }

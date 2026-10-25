@@ -82,7 +82,7 @@ private:
   bool readMessage();
   void readFbUpdate();
   bool readFbUpdateRectangle();
-  void readPseudoEncoding(const Rect *rect, int encodingType);
+  void readPseudoEncoding(const Rect &rect, int encodingType);
   void skipBytes(size_t length);
 
   FuzzNotifier *m_notifier;

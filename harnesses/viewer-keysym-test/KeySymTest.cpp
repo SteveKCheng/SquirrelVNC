@@ -76,8 +76,8 @@ int KeySymTest::run()
     removeComments(&line, &comment);
     // Split to words
     StringStorage word1, word2;
-    if (getWord(&line, &linePos, &word1) &&
-        getWord(&line, &linePos, &word2)) {
+    if (getWord(line, &linePos, &word1) &&
+        getWord(line, &linePos, &word2)) {
       if (word1.isEqualTo(_T("kbdlayout"))) {
         // Try parse word2 as a hexadecimal value
         unsigned int hkbdLayout = 0;
@@ -160,20 +160,20 @@ void KeySymTest::removeComments(StringStorage *line,
   line->truncate(line->getLength() - commentStartPos);
 }
 
-bool KeySymTest::getWord(const StringStorage *line,
+bool KeySymTest::getWord(const StringStorage &line,
                          size_t *pos,
                          StringStorage *word)
 {
-  if (*pos >= line->getLength()) {
+  if (*pos >= line.getLength()) {
     return false;
   }
-  size_t wordStartPos = _tcscspn(line->getString() + *pos, VALID_WORD_LETTERS);
+  size_t wordStartPos = _tcscspn(line.getString() + *pos, VALID_WORD_LETTERS);
   wordStartPos += *pos;
-  size_t wordEndPos = _tcsspn(line->getString() + wordStartPos,
+  size_t wordEndPos = _tcsspn(line.getString() + wordStartPos,
                               VALID_WORD_LETTERS);
   wordEndPos += wordStartPos;
   // Truncate the string
-  line->getSubstring(word, wordStartPos, wordEndPos - 1);
+  line.getSubstring(word, wordStartPos, wordEndPos - 1);
 
   *pos = wordEndPos;
   return true;

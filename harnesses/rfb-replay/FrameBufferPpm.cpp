@@ -29,10 +29,10 @@ static char scaleComponent(UINT32 value, UINT32 max)
   return static_cast<char>((value * 255 + max / 2) / max);
 }
 
-std::vector<char> frameBufferToPpm(const FrameBuffer *fb)
+std::vector<char> frameBufferToPpm(const FrameBuffer &fb)
 {
-  const Dimension dim = fb->getDimension();
-  const PixelFormat pf = fb->getPixelFormat();
+  const Dimension dim = fb.getDimension();
+  const PixelFormat pf = fb.getPixelFormat();
   const int bytesPerPixel = pf.bitsPerPixel / 8;
 
   char header[64];
@@ -43,7 +43,7 @@ std::vector<char> frameBufferToPpm(const FrameBuffer *fb)
 
   for (int y = 0; y < dim.height; y++) {
     for (int x = 0; x < dim.width; x++) {
-      const UINT8 *bytes = static_cast<const UINT8 *>(fb->getBufferPtr(x, y));
+      const UINT8 *bytes = static_cast<const UINT8 *>(fb.getBufferPtr(x, y));
       UINT32 pixel = 0;
       for (int i = 0; i < bytesPerPixel; i++) {
         int shift = pf.bigEndian ? 8 * (bytesPerPixel - 1 - i) : 8 * i;

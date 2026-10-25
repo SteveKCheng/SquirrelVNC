@@ -39,6 +39,6 @@
 // valid (PixelFormat::isValid()), so every maximum is at least 1.
 // Post-conditions: returns the whole PPM file.
 //
-std::vector<char> frameBufferToPpm(const FrameBuffer *fb);
+std::vector<char> frameBufferToPpm(const FrameBuffer &fb);
 
 #endif // _FRAME_BUFFER_PPM_H_

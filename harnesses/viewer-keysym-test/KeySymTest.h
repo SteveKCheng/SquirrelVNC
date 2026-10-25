@@ -58,7 +58,7 @@ private:
   // pos in - position to start search a word, out - position to start search
   // for next word.
   // Returns true if word has been found.
-  bool getWord(const StringStorage *line, size_t *pos, StringStorage *word);
+  bool getWord(const StringStorage &line, size_t *pos, StringStorage *word);
 
   void changeKbdLayout(HKL hkl);
 
