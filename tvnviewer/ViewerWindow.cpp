@@ -1177,7 +1177,7 @@ void ViewerWindow::onError(const Exception *exception)
   postMessage(WM_USER_ERROR);
 }
 
-void ViewerWindow::onFrameBufferUpdate(const FrameBuffer &fb, const Rect *rect)
+void ViewerWindow::onFrameBufferUpdate(const FrameBuffer &fb, const Rect &rect)
 {
   m_dsktWnd.updateFramebuffer(fb, rect);
 }

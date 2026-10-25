@@ -104,7 +104,7 @@ Rect CursorPainter::hideCursor()
   }
 
   m_logWriter->debug(_T("Erasing cursor..."));
-  m_fb->copyFrom(&erase, m_cursorOverlay, 0, 0);
+  m_fb->copyFrom(erase, m_cursorOverlay, 0, 0);
 
   return erase;
 }
@@ -131,7 +131,7 @@ Rect CursorPainter::showCursor()
     Rect overlayRect = m_cursor.getDimension().getRect();
     overlayRect.move(corner.x, corner.y);
 
-    m_fb->overlay(&overlayRect, *m_cursor.getPixels(), 0, 0, m_cursor.getMask());
+    m_fb->overlay(overlayRect, *m_cursor.getPixels(), 0, 0, m_cursor.getMask());
 
     m_isExist = true;
     return overlayRect;

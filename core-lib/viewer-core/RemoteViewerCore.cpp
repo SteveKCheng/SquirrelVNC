@@ -1085,7 +1085,7 @@ bool RemoteViewerCore::receiveFbUpdateRectangle()
   if (encodingType == PseudoEncDefs::LAST_RECT)
     return true;
   if (!Decoder::isPseudo(encodingType)) {
-    if (!m_frameBuffer.getDimension().getRect().intersection(&rect).isEqualTo(&rect)) {
+    if (!m_frameBuffer.getDimension().getRect().intersection(rect).isEqualTo(rect)) {
       throw Exception(_T("Error in protocol: incorrect size of rectangle"));
     }
 
@@ -1095,7 +1095,7 @@ bool RemoteViewerCore::receiveFbUpdateRectangle()
 
       DecoderOfRectangle *rectangleDecoder = dynamic_cast<DecoderOfRectangle *>(decoder);
       rectangleDecoder->process(m_input,
-                                &m_frameBuffer, &m_rectangleFb, &rect, &m_fbLock,
+                                &m_frameBuffer, &m_rectangleFb, rect, &m_fbLock,
                                 &m_fbUpdateNotifier);
 
       m_logWriter.debug(_T("Decoded"));

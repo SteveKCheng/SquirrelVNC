@@ -89,7 +89,7 @@ public:
    * Adds a rectangle to this region.
    * @param rect rectangle to add.
    */
-  void addRect(const Rect *rect);
+  void addRect(const Rect &rect);
   /**
    * Adds offset to all rectangles in region.
    * @param dx horizontal offset to add.

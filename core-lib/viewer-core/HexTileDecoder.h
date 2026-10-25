@@ -50,7 +50,7 @@ protected:
   //
   void decode(RfbInputGate *input,
               FrameBuffer *framebuffer,
-              const Rect *dstRect) override;
+              const Rect &dstRect) override;
 private:
   static const int TILE_SIZE = 16;
 };

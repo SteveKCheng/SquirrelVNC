@@ -47,7 +47,7 @@ protected:
   // (PixelFormat::isValid()).
   void decode(RfbInputGate *input,
               FrameBuffer *frameBuffer,
-              const Rect *dstRect) override;
+              const Rect &dstRect) override;
 
 
   void readAndInflate(RfbInputGate *input, size_t maximalUnpackedSize);
@@ -107,7 +107,7 @@ private:
   static const size_t MAXIMAL_TILE_SIZE = 20481;
   static const size_t TILE_LENGTH_SIZE = sizeof(UINT32);
 
-  static size_t getMaxSizeOfRectangle(const Rect *dstRect);
+  static size_t getMaxSizeOfRectangle(const Rect &dstRect);
 };
 
 #endif

@@ -40,7 +40,7 @@ ZrleDecoder::~ZrleDecoder()
 
 void ZrleDecoder::decode(RfbInputGate *input,
                          FrameBuffer *frameBuffer,
-                         const Rect *dstRect)
+                         const Rect &dstRect)
 {
   size_t maxUnpackedSize = getMaxSizeOfRectangle(dstRect);
   readAndInflate(input, maxUnpackedSize);
@@ -48,7 +48,7 @@ void ZrleDecoder::decode(RfbInputGate *input,
   size_t unpackedDataSize = m_inflater.getOutputSize();
   if (unpackedDataSize == 0) {
     m_logWriter->debug(_T("Empty unpacked data in ZRLE decoder"));
-    if (dstRect->area() != 0) {
+    if (dstRect.area() != 0) {
       throw Exception(_T("Bad data received from the server: Empty unpacked data in ZRLE decoder."));
     }
     return;
@@ -91,18 +91,18 @@ void ZrleDecoder::decode(RfbInputGate *input,
     throw Exception(_T("ZRLE decoding is not supported for this pixel size"));
   }
 
-  for (int y = dstRect->top; y < dstRect->bottom; y += TILE_SIZE) {
-    for (int x = dstRect->left; x < dstRect->right; x += TILE_SIZE) {
+  for (int y = dstRect.top; y < dstRect.bottom; y += TILE_SIZE) {
+    for (int x = dstRect.left; x < dstRect.right; x += TILE_SIZE) {
       Rect tileRect(x, y, 
-                    std::min(x + TILE_SIZE, dstRect->right),
-                    std::min(y + TILE_SIZE, dstRect->bottom));
+                    std::min(x + TILE_SIZE, dstRect.right),
+                    std::min(y + TILE_SIZE, dstRect.bottom));
 
       // FIXME: Check dstRect elsewhere on a higher level, once for all (non-pseudo) decoders,
       //        and document that in the corresponding interface contract. Do not check here
       //        or in other decoders. Also, placing this check in the tile loop is not necessary,
       //        it was enough to check once in the beginning of the function. I do not change that
       //        just to make sure I do not break anything. (-- const)
-      if (!frameBuffer->getDimension().getRect().intersection(&tileRect).isEqualTo(&tileRect)) {
+      if (!frameBuffer->getDimension().getRect().intersection(tileRect).isEqualTo(tileRect)) {
         throw Exception(_T("Incorrect size of ZRLE tile."));
       }
       size_t tileLength = tileRect.area();
@@ -156,10 +156,10 @@ void ZrleDecoder::readAndInflate(RfbInputGate *input, size_t maximalUnpackedSize
   m_inflater.inflate();
 }
 
-size_t ZrleDecoder::getMaxSizeOfRectangle(const Rect *dstRect)
+size_t ZrleDecoder::getMaxSizeOfRectangle(const Rect &dstRect)
 {
-  size_t widthCount = (dstRect->getWidth() + TILE_SIZE - 1) / TILE_SIZE;
-  size_t heightCount = (dstRect->getHeight() + TILE_SIZE - 1) / TILE_SIZE;
+  size_t widthCount = (dstRect.getWidth() + TILE_SIZE - 1) / TILE_SIZE;
+  size_t heightCount = (dstRect.getHeight() + TILE_SIZE - 1) / TILE_SIZE;
   size_t tileCount = widthCount * heightCount;
   return TILE_LENGTH_SIZE + MAXIMAL_TILE_SIZE * tileCount;
 }

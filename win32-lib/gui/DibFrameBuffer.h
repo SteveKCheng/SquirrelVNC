@@ -39,18 +39,18 @@ public:
   ~DibFrameBuffer() override;
 
   void setColor(UINT8 reg, UINT8 green, UINT8 blue) override;
-  void fillRect(const Rect *dstRect, UINT32 color) override;
+  void fillRect(const Rect &dstRect, UINT32 color) override;
 
   bool isEqualTo(const FrameBuffer &frameBuffer) override;
 
-  bool copyFrom(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
+  bool copyFrom(const Rect &dstRect, const FrameBuffer &srcFrameBuffer,
                 int srcX, int srcY) override;
   bool copyFrom(const FrameBuffer &srcFrameBuffer,
                 int srcX, int srcY) override;
-  bool overlay(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
+  bool overlay(const Rect &dstRect, const FrameBuffer &srcFrameBuffer,
                int srcX, int srcY, const char *andMask) override;
-  void move(const Rect *dstRect, const int srcX, const int srcY) override;
-  bool cmpFrom(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
+  void move(const Rect &dstRect, const int srcX, const int srcY) override;
+  bool cmpFrom(const Rect &dstRect, const FrameBuffer &srcFrameBuffer,
                const int srcX, const int srcY) override;
 
   inline Dimension getDimension() const override;

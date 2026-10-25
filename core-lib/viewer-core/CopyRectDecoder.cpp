@@ -34,7 +34,7 @@ CopyRectDecoder::~CopyRectDecoder()
 
 void CopyRectDecoder::decode(RfbInputGate *input,
                              FrameBuffer * /* frameBuffer */,
-                             const Rect * /* dstRect */)
+                             const Rect & /* dstRect */)
 {
   m_sourcePosition.x = input->readInt16();
   m_sourcePosition.y = input->readInt16();
@@ -42,7 +42,7 @@ void CopyRectDecoder::decode(RfbInputGate *input,
 
 void CopyRectDecoder::copy(FrameBuffer *dstFrameBuffer,
                            const FrameBuffer & /* srcFrameBuffer */,
-                           const Rect *rect,
+                           const Rect &rect,
                            LocalMutex *fbLock)
 {
   AutoLock al(fbLock);

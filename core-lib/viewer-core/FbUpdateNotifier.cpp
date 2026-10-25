@@ -105,7 +105,7 @@ void FbUpdateNotifier::execute()
         m_adapter->onFrameBufferPropChange(m_frameBuffer);
         // FIXME: it's bad code. Must work without one next line, but not it.
         Rect fbRect = m_frameBuffer->getDimension().getRect();
-        m_adapter->onFrameBufferUpdate(*m_frameBuffer, &fbRect);
+        m_adapter->onFrameBufferUpdate(*m_frameBuffer, fbRect);
       } catch (...) {
         m_logWriter->error(_T("FbUpdateNotifier (event): error in set new size"));
       }
@@ -118,8 +118,8 @@ void FbUpdateNotifier::execute()
 
       AutoLock al(m_fbLock);
 	  Rect cursor = m_cursorPainter.showCursor();
-	  update.addRect(&cursor);
-	  update.addRect(&m_oldPosition);
+	  update.addRect(cursor);
+	  update.addRect(m_oldPosition);
 
       std::vector<Rect> updateList;
       update.getRectVector(&updateList);
@@ -127,7 +127,7 @@ void FbUpdateNotifier::execute()
 
       try {
         for (std::vector<Rect>::iterator i = updateList.begin(); i != updateList.end(); ++i) {
-			m_adapter->onFrameBufferUpdate(*m_frameBuffer, &*i);
+			m_adapter->onFrameBufferUpdate(*m_frameBuffer, *i);
         }
       } catch (...) {
         m_logWriter->error(_T("FbUpdateNotifier (event): error in update"));
@@ -150,7 +150,7 @@ void FbUpdateNotifier::onTerminate()
   m_eventUpdate.notify();
 }
 
-void FbUpdateNotifier::onUpdate(const Rect *update)
+void FbUpdateNotifier::onUpdate(const Rect &update)
 {
   {
     AutoLock al(&m_updateLock);

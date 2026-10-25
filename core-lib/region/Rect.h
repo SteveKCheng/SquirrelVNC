@@ -130,10 +130,10 @@ public:
     bottom  += offsetY;
   }
 
-  inline bool isEqualTo(const Rect *rect)  const { return  rect->left == left &&
-                                                    rect->top == top &&
-                                                    rect->right == right &&
-                                                    rect->bottom == bottom; }
+  inline bool isEqualTo(const Rect &rect)  const { return  rect.left == left &&
+                                                    rect.top == top &&
+                                                    rect.right == right &&
+                                                    rect.bottom == bottom; }
 
   inline void setWidth(int value)   { right = left + value; }
   inline void setHeight(int value)  { bottom = top + value; }
@@ -159,12 +159,12 @@ public:
    * @return the intersection, or an empty rectangle at (0, 0) when the
    *         two do not overlap.
    */
-  [[nodiscard]] Rect intersection(const Rect *other) const {
+  [[nodiscard]] Rect intersection(const Rect &other) const {
     Rect result;
-    result.setRect((left > other->left) ? left : other->left,
-                   (top > other->top) ? top : other->top,
-                   (right < other->right) ? right : other->right,
-                   (bottom < other->bottom) ? bottom : other->bottom);
+    result.setRect((left > other.left) ? left : other.left,
+                   (top > other.top) ? top : other.top,
+                   (right < other.right) ? right : other.right,
+                   (bottom < other.bottom) ? bottom : other.bottom);
     if (!result.isValid()) {
       result.clear();
     }

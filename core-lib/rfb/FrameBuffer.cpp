@@ -58,7 +58,7 @@ bool FrameBuffer::clone(const FrameBuffer &srcFrameBuffer)
   }
 
   Rect fbRect = m_dimension.getRect();
-  copyFrom(&fbRect, srcFrameBuffer, fbRect.left, fbRect.top);
+  copyFrom(fbRect, srcFrameBuffer, fbRect.left, fbRect.top);
 
   return true;
 }
@@ -81,7 +81,7 @@ void FrameBuffer::setColor(UINT8 red, UINT8 green, UINT8 blue)
   }
 }
 
-void FrameBuffer::fillRect(const Rect *dstRect, UINT32 color)
+void FrameBuffer::fillRect(const Rect &dstRect, UINT32 color)
 {
   Rect clipRect = m_dimension.getRect().intersection(dstRect);
   // A rectangle with no width or no height may still be valid after
@@ -117,45 +117,45 @@ bool FrameBuffer::isEqualTo(const FrameBuffer &frameBuffer)
          hasPixelFormatOf(&m_pixelFormat, frameBuffer);
 }
 
-void FrameBuffer::clipRect(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
+void FrameBuffer::clipRect(const Rect &dstRect, const FrameBuffer &srcFrameBuffer,
                            const int srcX, const int srcY,
                            Rect *dstClippedRect, Rect *srcClippedRect)
 {
   Rect srcBufferRect = srcFrameBuffer.getDimension().getRect();
-  clipRect(dstRect, &srcBufferRect, srcX, srcY, dstClippedRect, srcClippedRect);
+  clipRect(dstRect, srcBufferRect, srcX, srcY, dstClippedRect, srcClippedRect);
 }
 
-void FrameBuffer::clipRect(const Rect *dstRect, const Rect *srcBufferRect,
+void FrameBuffer::clipRect(const Rect &dstRect, const Rect &srcBufferRect,
                            const int srcX, const int srcY,
                            Rect *dstClippedRect, Rect *srcClippedRect)
 {
   Rect dstBufferRect = m_dimension.getRect();
 
   // Building srcRect
-  Rect srcRect(srcX, srcY, srcX + dstRect->getWidth(), srcY + dstRect->getHeight());
+  Rect srcRect(srcX, srcY, srcX + dstRect.getWidth(), srcY + dstRect.getHeight());
 
   // Finding common area between the dstRect, srcRect and the FrameBuffers
   Rect dstRectFB = dstBufferRect.intersection(dstRect);
-  Rect srcRectFB = srcBufferRect->intersection(&srcRect);
+  Rect srcRectFB = srcBufferRect.intersection(srcRect);
 
   // Finding common area between the dstRectFB and the srcRectFB
   Rect dstCommonArea(dstRectFB);
   Rect srcCommonArea(srcRectFB);
   // Move to common place (left = 0, top = 0)
-  dstCommonArea.move(-dstRect->left, -dstRect->top);
+  dstCommonArea.move(-dstRect.left, -dstRect.top);
   srcCommonArea.move(-srcRect.left, -srcRect.top);
 
-  Rect commonRect = dstCommonArea.intersection(&srcCommonArea);
+  Rect commonRect = dstCommonArea.intersection(srcCommonArea);
 
   // Moving commonRect to destination coordinates and source
   dstClippedRect->setRect(&commonRect);
-  dstClippedRect->move(dstRect->left, dstRect->top);
+  dstClippedRect->move(dstRect.left, dstRect.top);
 
   srcClippedRect->setRect(&commonRect);
   srcClippedRect->move(srcRect.left, srcRect.top);
 }
 
-bool FrameBuffer::overlay(const Rect *dstRect,
+bool FrameBuffer::overlay(const Rect &dstRect,
                           const FrameBuffer &srcFrameBuffer,
                           int srcX, int srcY,
                           const char *andMask)
@@ -175,7 +175,7 @@ bool FrameBuffer::overlay(const Rect *dstRect,
   return false;
 }
 
-template<class PIXEL_T> bool FrameBuffer::overlayT(const Rect *dstRect,
+template<class PIXEL_T> bool FrameBuffer::overlayT(const Rect &dstRect,
                                                    const FrameBuffer &srcFrameBuffer,
                                                    int srcX, int srcY,
                                                    const char *andMask)
@@ -206,7 +206,7 @@ template<class PIXEL_T> bool FrameBuffer::overlayT(const Rect *dstRect,
   return true;
 }
 
-bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
+bool FrameBuffer::copyFrom(const Rect &dstRect, const FrameBuffer &srcFrameBuffer,
                            int srcX, int srcY)
 {
   if (!hasPixelFormatOf(&m_pixelFormat, srcFrameBuffer)) {
@@ -247,10 +247,10 @@ bool FrameBuffer::copyFrom(const FrameBuffer &srcFrameBuffer,
                            int srcX, int srcY)
 {
   Rect fbRect = m_dimension.getRect();
-  return copyFrom(&fbRect, srcFrameBuffer, srcX, srcY);
+  return copyFrom(fbRect, srcFrameBuffer, srcX, srcY);
 }
 
-bool FrameBuffer::cmpFrom(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
+bool FrameBuffer::cmpFrom(const Rect &dstRect, const FrameBuffer &srcFrameBuffer,
                           const int srcX, const int srcY)
 {
   if (!hasPixelFormatOf(&m_pixelFormat, srcFrameBuffer)) {
@@ -289,7 +289,7 @@ bool FrameBuffer::cmpFrom(const Rect *dstRect, const FrameBuffer &srcFrameBuffer
   return true;
 }
 
-void FrameBuffer::move(const Rect *dstRect, const int srcX, const int srcY)
+void FrameBuffer::move(const Rect &dstRect, const int srcX, const int srcY)
 {
   Rect srcClippedRect, dstClippedRect;
 
@@ -307,7 +307,7 @@ void FrameBuffer::move(const Rect *dstRect, const int srcX, const int srcY)
 
   UINT8 *pdst, *psrc;
 
-  if (srcY > dstRect->top) {
+  if (srcY > dstRect.top) {
     // Pointers set to first string of the rectanles
     pdst = (UINT8 *)m_buffer + dstClippedRect.top * strideBytes
            + pixelSize * dstClippedRect.left;

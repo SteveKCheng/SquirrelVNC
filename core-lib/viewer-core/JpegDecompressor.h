@@ -57,7 +57,7 @@ public:
   void decompress(std::vector<UINT8> &buffer,
                   size_t jpegBufLen,
                   std::vector<UINT8> &pixels,
-                  const Rect *dstRect);
+                  const Rect &dstRect);
 
 private:
   /*

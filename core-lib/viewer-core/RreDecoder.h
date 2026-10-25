@@ -45,7 +45,7 @@ protected:
   //
   void decode(RfbInputGate *input,
               FrameBuffer *framebuffer,
-              const Rect *dstRect) override;
+              const Rect &dstRect) override;
 };
 
 #endif

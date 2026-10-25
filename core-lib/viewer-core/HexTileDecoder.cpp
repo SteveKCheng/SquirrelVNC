@@ -36,7 +36,7 @@ HexTileDecoder::~HexTileDecoder()
 
 void HexTileDecoder::decode(RfbInputGate *input,
                             FrameBuffer *framebuffer,
-                            const Rect *dstRect)
+                            const Rect &dstRect)
 {
   // shorcut
   const int bytesPerPixel = framebuffer->getBytesPerPixel();
@@ -46,14 +46,14 @@ void HexTileDecoder::decode(RfbInputGate *input,
 
   bool backgroundAccepted = false;
 
-  for (int y = dstRect->top; y < dstRect->bottom; y += TILE_SIZE) {
-    for (int x = dstRect->left; x < dstRect->right; x += TILE_SIZE) {
+  for (int y = dstRect.top; y < dstRect.bottom; y += TILE_SIZE) {
+    for (int x = dstRect.left; x < dstRect.right; x += TILE_SIZE) {
       Rect tileRect(x,
                     y,
-                    std::min(x + TILE_SIZE, dstRect->right),
-                    std::min(y + TILE_SIZE, dstRect->bottom));
+                    std::min(x + TILE_SIZE, dstRect.right),
+                    std::min(y + TILE_SIZE, dstRect.bottom));
 
-      if (!framebuffer->getDimension().getRect().intersection(&tileRect).isEqualTo(&tileRect))
+      if (!framebuffer->getDimension().getRect().intersection(tileRect).isEqualTo(tileRect))
         throw Exception(_T("Error in protocol: incorrect size of tile in hextile-decoder"));
 
       UINT8 flags = input->readUInt8();
@@ -69,7 +69,7 @@ void HexTileDecoder::decode(RfbInputGate *input,
         }
 
         if (backgroundAccepted)
-          framebuffer->fillRect(&tileRect, background);
+          framebuffer->fillRect(tileRect, background);
 
         if (flags & 0x4)
           input->readFully(&foreground, bytesPerPixel);
@@ -97,7 +97,7 @@ void HexTileDecoder::decode(RfbInputGate *input,
             Rect subRect(subX, subY, subX + w, subY + h);
 
             subRect.move(tileRect.left, tileRect.top);
-            framebuffer->fillRect(&subRect, foreground);
+            framebuffer->fillRect(subRect, foreground);
           }
         } else { // exist subrect
           if (!backgroundAccepted)

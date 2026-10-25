@@ -34,7 +34,7 @@ RreDecoder::~RreDecoder()
 
 void RreDecoder::decode(RfbInputGate *input,
                         FrameBuffer *frameBuffer,
-                        const Rect *dstRect)
+                        const Rect &dstRect)
 {
   UINT32 numberRectangle = input->readUInt32();
   size_t bytesPerPixel = frameBuffer->getBytesPerPixel();
@@ -53,13 +53,13 @@ void RreDecoder::decode(RfbInputGate *input,
 
     // Subrectangles are positioned relative to the rectangle, and must lie
     // within it.
-    if (x + w > static_cast<UINT32>(dstRect->getWidth()) ||
-        y + h > static_cast<UINT32>(dstRect->getHeight())) {
+    if (x + w > static_cast<UINT32>(dstRect.getWidth()) ||
+        y + h > static_cast<UINT32>(dstRect.getHeight())) {
       throw Exception(_T("Error in protocol: RRE subrectangle outside its rectangle"));
     }
 
     Rect rect(x, y, x + w, y + h);
-    rect.move(dstRect->left, dstRect->top);
-    frameBuffer->fillRect(&rect, color);
+    rect.move(dstRect.left, dstRect.top);
+    frameBuffer->fillRect(rect, color);
   }
 }

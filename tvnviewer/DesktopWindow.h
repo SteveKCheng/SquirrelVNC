@@ -48,7 +48,7 @@ public:
 
   void setClipboardData(const StringStorage *strText);
   void updateFramebuffer(const FrameBuffer &framebuffer,
-                         const Rect *dstRect);
+                         const Rect &dstRect);
   // this function must be called if size of image was changed
   // or the number of bits per pixel
   void setNewFramebuffer(const FrameBuffer *framebuffer);
@@ -180,7 +180,7 @@ private:
    *       part is at most one pixel wide or high; nothing is invalidated
    *       when none of the area is visible.
    */
-  void repaint(const Rect *repaintRect);
+  void repaint(const Rect &repaintRect);
   void calcClientArea();
 };
 

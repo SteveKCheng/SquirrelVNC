@@ -120,7 +120,7 @@ protected:
   void onDisconnect(const StringStorage *message) override;
   void onAuthError(const AuthException *exception) override;
   void onError(const Exception *exception) override;
-  void onFrameBufferUpdate(const FrameBuffer &fb, const Rect *rect) override;
+  void onFrameBufferUpdate(const FrameBuffer &fb, const Rect &rect) override;
   void onFrameBufferPropChange(const FrameBuffer *fb) override;
   void onCutText(const StringStorage *cutText) override;
 

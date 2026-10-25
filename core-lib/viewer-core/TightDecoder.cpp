@@ -43,7 +43,7 @@ TightDecoder::~TightDecoder()
 
 void TightDecoder::decode(RfbInputGate *input,
                           FrameBuffer *fb,
-                          const Rect *dstRect)
+                          const Rect &dstRect)
 {
  // The width of any Tight-encoded rectangle cannot exceed 2048
  // pixels. If a rectangle is wider, it must be split into several rectangles
@@ -145,9 +145,9 @@ int TightDecoder::readCompactSize(RfbInputGate *input)
 
 void TightDecoder::processJpeg(RfbInputGate *input,
                                FrameBuffer *frameBuffer,
-                               const Rect *dstRect)
+                               const Rect &dstRect)
 {
-  if (!ViewerBufferSize::fitsDecoderBuffer(dstRect->getWidth(), dstRect->getHeight(),
+  if (!ViewerBufferSize::fitsDecoderBuffer(dstRect.getWidth(), dstRect.getHeight(),
                                             JpegDecompressor::BYTES_PER_PIXEL)) {
     throw Exception(_T("Tight JPEG rectangle is too large"));
   }
@@ -159,9 +159,9 @@ void TightDecoder::processJpeg(RfbInputGate *input,
   buffer.resize(jpegBufLen);
   input->readFully(&buffer.front(), jpegBufLen);
 
-  if (dstRect->area() != 0) {
+  if (dstRect.area() != 0) {
     std::vector<UINT8> pixels;
-    pixels.resize(dstRect->area() * JpegDecompressor::BYTES_PER_PIXEL);
+    pixels.resize(dstRect.area() * JpegDecompressor::BYTES_PER_PIXEL);
 
     try {
       m_jpeg.decompress(buffer, jpegBufLen, pixels, dstRect);
@@ -182,7 +182,7 @@ void TightDecoder::processJpeg(RfbInputGate *input,
 
 void TightDecoder::processBasicTypes(RfbInputGate *input,
                                      FrameBuffer *fb,
-                                     const Rect *dstRect,
+                                     const Rect &dstRect,
                                      UINT8 compressionControl)
 {
   int decoderId = (compressionControl & STREAM_ID_MASK) >> 4;
@@ -192,9 +192,9 @@ void TightDecoder::processBasicTypes(RfbInputGate *input,
   }
 
   int bytesPerCPixel = fb->getBytesPerPixel();
-  size_t lengthCurrentBpp = dstRect->area() * bytesPerCPixel;
+  size_t lengthCurrentBpp = dstRect.area() * bytesPerCPixel;
   if (m_isCPixel) {
-    lengthCurrentBpp = dstRect->area() * 3;
+    lengthCurrentBpp = dstRect.area() * 3;
   }
 
   std::vector<UINT8> buffer;
@@ -214,9 +214,9 @@ void TightDecoder::processBasicTypes(RfbInputGate *input,
     {
       int paletteSize = input->readUInt8() + 1;
       std::vector<UINT32> palette = readPalette(input, paletteSize, bytesPerCPixel);
-      size_t dataLength = dstRect->area();
+      size_t dataLength = dstRect.area();
       if (paletteSize == 2) {
-        dataLength = (dstRect->getWidth() + 7) / 8 * dstRect->getHeight();
+        dataLength = (dstRect.getWidth() + 7) / 8 * dstRect.getHeight();
       }
       readTightData(input, buffer, dataLength, decoderId);
       drawPalette(fb, palette, buffer, dstRect);
@@ -294,17 +294,17 @@ void TightDecoder::readCompressedData(RfbInputGate *input,
 void TightDecoder::drawPalette(FrameBuffer *fb,
                                const std::vector<UINT32> &palette,
                                const std::vector<UINT8> &pixels,
-                               const Rect *dstRect)
+                               const Rect &dstRect)
 {
   // TODO: removed duplicate code (draw Tight bytes)
-  int width = dstRect->getWidth();
+  int width = dstRect.getWidth();
 
   int bytesPerPixel = fb->getBytesPerPixel();
 
-  int dstLength = dstRect->area();
+  int dstLength = dstRect.area();
 
-  int x = dstRect->left;
-  int y = dstRect->top;
+  int x = dstRect.left;
+  int y = dstRect.top;
   int stride = fb->getBytesPerRow();
   char *basePtr = (char*)fb->getBufferPtr(x, y);
   if (palette.size() == 2) {
@@ -333,17 +333,17 @@ void TightDecoder::drawPalette(FrameBuffer *fb,
 
 void TightDecoder::drawTightBytes(FrameBuffer *fb,
                                   const std::vector<UINT8> &pixels,
-                                  const Rect *dstRect)
+                                  const Rect &dstRect)
 {
   // TODO: removed duplicate code (zrle)
-  int width = dstRect->getWidth();
+  int width = dstRect.getWidth();
 
   int bytesPerPixel = fb->getBytesPerPixel();
 
-  int dstLength = dstRect->area();
+  int dstLength = dstRect.area();
 
-  int x = dstRect->left;
-  int y = dstRect->top;
+  int x = dstRect.left;
+  int y = dstRect.top;
   for (int i = 0; i < dstLength; i++) {
     void *pixelPtr = fb->getBufferPtr(x + i % width, y + i / width);
     memcpy(pixelPtr, &pixels[i * bytesPerPixel], bytesPerPixel);
@@ -352,19 +352,19 @@ void TightDecoder::drawTightBytes(FrameBuffer *fb,
 
 void TightDecoder::drawJpegBytes(FrameBuffer *fb,
                                  const std::vector<UINT8> &pixels,
-                                 const Rect *dstRect)
+                                 const Rect &dstRect)
 {
   // TODO: removed duplicate code (draw tight bytes)
-  int width = dstRect->getWidth();
+  int width = dstRect.getWidth();
 
   int fbBytesPerPixel = fb->getBytesPerPixel();
   int bytesPerCPixel = 3;
   PixelFormat pxFormat = fb->getPixelFormat();
 
-  int dstLength = dstRect->area();
+  int dstLength = dstRect.area();
 
-  int x = dstRect->left;
-  int y = dstRect->top;
+  int x = dstRect.left;
+  int y = dstRect.top;
   for (int i = 0; i < dstLength; i++) {
     UINT8 color[4] = {0, 0, 0, 0};
     memcpy(&color, &pixels[i * bytesPerCPixel], bytesPerCPixel);
@@ -396,10 +396,10 @@ void TightDecoder::drawJpegBytes(FrameBuffer *fb,
 
 void TightDecoder::drawGradient(FrameBuffer *fb,
                                 const std::vector<UINT8> &pixels,
-                                const Rect *dstRect)
+                                const Rect &dstRect)
 {
   typedef std::vector<UINT16> RowType;
-  size_t opRowLength = dstRect->getWidth() * 3 + 3;
+  size_t opRowLength = dstRect.getWidth() * 3 + 3;
 
   std::vector<RowType> opRows(2);
   opRows[0].resize(opRowLength);
@@ -420,7 +420,7 @@ void TightDecoder::drawGradient(FrameBuffer *fb,
   UINT16 shift[3] = {pxFormat.redShift, pxFormat.greenShift, pxFormat.blueShift};
   size_t pixelOffset = 0;
 
-  for (int i = 0; i < dstRect->getHeight(); ++i) {
+  for (int i = 0; i < dstRect.getHeight(); ++i) {
     // exchange thisRow and prevRow:
     RowType &thisRow = opRows[opRowIndex];
     RowType &prevRow = opRows[opRowIndex = (opRowIndex + 1) % 2];
@@ -437,8 +437,8 @@ void TightDecoder::drawGradient(FrameBuffer *fb,
         thisRow[j + index] = (converted + rawColor[index]) & max[index];
         color |= static_cast<UINT32>(thisRow[j + index] & max[index]) << shift[index];
       }
-      void *pixelPtr = fb->getBufferPtr(static_cast<int>(dstRect->left + j/3 - 1),
-                                        dstRect->top + i);
+      void *pixelPtr = fb->getBufferPtr(static_cast<int>(dstRect.left + j/3 - 1),
+                                        dstRect.top + i);
       memcpy(pixelPtr, &color, fbBytesPerPixel);
     }
   }

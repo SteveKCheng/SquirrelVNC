@@ -41,7 +41,7 @@ public:
 protected:
   void decode(RfbInputGate *input,
               FrameBuffer *frameBuffer,
-              const Rect *dstRect) override;
+              const Rect &dstRect) override;
 
 private:
   void reset();
@@ -60,10 +60,10 @@ private:
                           int bytesPerCPixel);
   void processJpeg(RfbInputGate *input,
                    FrameBuffer *frameBuffer,
-                   const Rect *dstRect);
+                   const Rect &dstRect);
   void processBasicTypes(RfbInputGate *input,
                          FrameBuffer *frameBuffer,
-                         const Rect *dstRect,
+                         const Rect &dstRect,
                          UINT8 compControl);
   void readTightData(RfbInputGate *input,
                      std::vector<UINT8> &buffer,
@@ -76,20 +76,20 @@ private:
   void drawPalette(FrameBuffer *fb,
                    const std::vector<UINT32> &palette,
                    const std::vector<UINT8> &pixels,
-                   const Rect *dstRect);
+                   const Rect &dstRect);
   // Draws the pixels of a rectangle sent with the gradient filter.
   // Pre: the pixel format of fb is valid (PixelFormat::isValid()), and
   // pixels holds a whole pixel for each pixel of dstRect.
   // Post: dstRect in fb holds the decoded pixels.
   void drawGradient(FrameBuffer *fb,
                     const std::vector<UINT8> &pixels,
-                    const Rect *dstRect);
+                    const Rect &dstRect);
   void drawTightBytes(FrameBuffer *fb,
                      const std::vector<UINT8> &pixels,
-                     const Rect *dstRect);
+                     const Rect &dstRect);
   void drawJpegBytes(FrameBuffer *fb,
                      const std::vector<UINT8> &pixels,
-                     const Rect *dstRect);
+                     const Rect &dstRect);
 
   UINT32 getRawTightColor(const PixelFormat &pxFormat,
                           const std::vector<UINT8> &pixels,

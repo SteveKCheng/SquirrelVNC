@@ -37,7 +37,7 @@ DecoderOfRectangle::~DecoderOfRectangle()
 void DecoderOfRectangle::process(RfbInputGate *input,
                      FrameBuffer *frameBuffer,
                      FrameBuffer *secondFrameBuffer,
-                     const Rect *rect,
+                     const Rect &rect,
                      LocalMutex *fbLock,
                      FbUpdateNotifier *fbNotifier)
 {
@@ -48,15 +48,15 @@ void DecoderOfRectangle::process(RfbInputGate *input,
 
 void DecoderOfRectangle::copy(FrameBuffer *dstFrameBuffer,
                    const FrameBuffer &srcFrameBuffer,
-                   const Rect *rect,
+                   const Rect &rect,
                    LocalMutex *fbLock)
 {
   AutoLock al(fbLock);
-  dstFrameBuffer->copyFrom(rect, srcFrameBuffer, rect->left, rect->top);
+  dstFrameBuffer->copyFrom(rect, srcFrameBuffer, rect.left, rect.top);
 }
 
 void DecoderOfRectangle::notify(FbUpdateNotifier *fbNotifier,
-                     const Rect *rect)
+                     const Rect &rect)
 {
   fbNotifier->onUpdate(rect);
 }

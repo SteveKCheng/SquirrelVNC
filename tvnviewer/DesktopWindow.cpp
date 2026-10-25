@@ -512,7 +512,7 @@ bool DesktopWindow::onDestroy()
 }
 
 void DesktopWindow::updateFramebuffer(const FrameBuffer &framebuffer,
-                                     const Rect *dstRect)
+                                     const Rect &dstRect)
 {
   // This code doesn't require blocking of m_framebuffer.
   //
@@ -523,9 +523,9 @@ void DesktopWindow::updateFramebuffer(const FrameBuffer &framebuffer,
   // Size of framebuffer can not changed, because onFrameBufferUpdate()
   // and onFrameBufferPropChange() may be called only from one thread.
 
-  if (!m_framebuffer.copyFrom(dstRect, framebuffer, dstRect->left, dstRect->top)) {
+  if (!m_framebuffer.copyFrom(dstRect, framebuffer, dstRect.left, dstRect.top)) {
     m_logWriter->error(_T("Possible invalide region. (%d, %d), (%d, %d)"),
-                       dstRect->left, dstRect->top, dstRect->right, dstRect->bottom);
+                       dstRect.left, dstRect.top, dstRect.right, dstRect.bottom);
     m_logWriter->interror(_T("Error in updateFramebuffer (ViewerWindow)"));
   }
   repaint(dstRect);
@@ -563,18 +563,18 @@ void DesktopWindow::setNewFramebuffer(const FrameBuffer *framebuffer)
   }
   if (dimension.isEmpty()) {
     Rect rect = dimension.getRect();
-    repaint(&rect);
+    repaint(rect);
   } else {
     m_isBackgroundDirty = isBackgroundDirty;
   }
 }
 
-void DesktopWindow::repaint(const Rect *repaintRect)
+void DesktopWindow::repaint(const Rect &repaintRect)
 {
   Rect rect;
   m_scManager.getSourceRect(&rect);
-  Rect paint = *repaintRect;
-  paint = paint.intersection(&rect);
+  Rect paint = repaintRect;
+  paint = paint.intersection(rect);
   if (paint.isEmpty() && !m_isBackgroundDirty) {
     // None of it is visible.
     return;
@@ -601,7 +601,7 @@ void DesktopWindow::repaint(const Rect *repaintRect)
   if (wnd.bottom < rect.bottom) {
     ++wnd.bottom;
   }
-  wnd = wnd.intersection(&rect);
+  wnd = wnd.intersection(rect);
   RECT rcWnd = wnd.toWindowsRect();
   redraw(&rcWnd);
 }

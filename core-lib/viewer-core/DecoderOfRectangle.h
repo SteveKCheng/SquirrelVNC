@@ -48,7 +48,7 @@ public:
   virtual void process(RfbInputGate *input,
                        FrameBuffer *frameBuffer,
                        FrameBuffer *secondFrameBuffer,
-                       const Rect *rect,
+                       const Rect &rect,
                        LocalMutex *fbLock,
                        FbUpdateNotifier *fbNotifier);
 
@@ -58,7 +58,7 @@ protected:
   //
   virtual void decode(RfbInputGate *input,
                       FrameBuffer *frameBuffer,
-                      const Rect *rect) = 0;
+                      const Rect &rect) = 0;
 
   //
   // This method copy rectangle from srcFrameBuffer to dstFrameBuffer.
@@ -66,14 +66,14 @@ protected:
   //
   virtual void copy(FrameBuffer *dstFrameBuffer,
                     const FrameBuffer &srcFrameBuffer,
-                    const Rect *rect,
+                    const Rect &rect,
                     LocalMutex *fbLock);
 
   //
   // This method notify fbNotifier about update of rect.
   //
   void notify(FbUpdateNotifier *fbNotifier,
-              const Rect *rect);
+              const Rect &rect);
 };
 
 #endif

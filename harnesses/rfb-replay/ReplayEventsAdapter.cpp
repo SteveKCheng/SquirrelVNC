@@ -93,7 +93,7 @@ void ReplayEventsAdapter::onError(const Exception *exception)
 }
 
 void ReplayEventsAdapter::onFrameBufferUpdate(const FrameBuffer & /* fb */,
-                                              const Rect * /* update */)
+                                              const Rect & /* update */)
 {
 }
 

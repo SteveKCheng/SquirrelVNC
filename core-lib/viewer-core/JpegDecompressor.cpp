@@ -67,9 +67,9 @@ void JpegDecompressor::outputMessage(j_common_ptr /* cinfo */)
 void JpegDecompressor::decompress(std::vector<UINT8> &buffer,
                                   size_t jpegBufLen,
                                   std::vector<UINT8> &pixels,
-                                  const Rect *dstRect)
+                                  const Rect &dstRect)
 {
-  if (!dstRect->isValid())
+  if (!dstRect.isValid())
     throw Exception(_T("invalid destination rectangle in jpeg-decompressor"));
 
   if (buffer.size() == 0 || buffer.size() < jpegBufLen)
@@ -77,8 +77,8 @@ void JpegDecompressor::decompress(std::vector<UINT8> &buffer,
   UINT8 *src_buf = &buffer.front();
   size_t src_buf_size = jpegBufLen;
 
-  size_t width = dstRect->getWidth();
-  size_t height = dstRect->getHeight();
+  size_t width = dstRect.getWidth();
+  size_t height = dstRect.getHeight();
   size_t pixelBufferCount =  width * height * BYTES_PER_PIXEL;
   if (pixels.size() == 0 || pixels.size() < pixelBufferCount)
     throw Exception(_T("incorrect size of pixels-buffer in jpeg-decompressor"));
@@ -91,8 +91,8 @@ void JpegDecompressor::decompress(std::vector<UINT8> &buffer,
       throw Exception(_T("possible, bad JPEG header"));
     }
 
-    JDIMENSION jpegWidth = dstRect->getWidth();
-    JDIMENSION jpegHeight = dstRect->getHeight();
+    JDIMENSION jpegWidth = dstRect.getWidth();
+    JDIMENSION jpegHeight = dstRect.getHeight();
     if (m_jpeg.cinfo.image_width != jpegWidth ||
         m_jpeg.cinfo.image_height != jpegHeight) {
       jpeg_abort_decompress(&m_jpeg.cinfo);

@@ -89,10 +89,10 @@ Region & Region::operator=(const Region &src)
   return *this;
 }
 
-void Region::addRect(const Rect *rect)
+void Region::addRect(const Rect &rect)
 {
-  if (!rect->isEmpty()) {
-    Region temp(*rect);
+  if (!rect.isEmpty()) {
+    Region temp(rect);
     add(temp);
   }
 }

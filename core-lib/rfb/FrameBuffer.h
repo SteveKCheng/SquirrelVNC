@@ -55,7 +55,7 @@ public:
   // Post-conditions: every pixel of dstRect that lies in the frame buffer
   // holds color; nothing else changes. An empty rectangle, or one wholly
   // outside the frame buffer, changes nothing.
-  virtual void fillRect(const Rect *dstRect, UINT32 color);
+  virtual void fillRect(const Rect &dstRect, UINT32 color);
 
   // Return value: true - if equal
   //               false - if PixelFormats or size differs
@@ -63,21 +63,21 @@ public:
 
   // Copy to self by specified destination rectangle from the specified
   // coordinates of srcFrameBuffer
-  virtual bool copyFrom(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
+  virtual bool copyFrom(const Rect &dstRect, const FrameBuffer &srcFrameBuffer,
                 int srcX, int srcY);
   // The same as above but destination rect is m_dimension
   virtual bool copyFrom(const FrameBuffer &srcFrameBuffer,
                 int srcX, int srcY);
 
   // Overlays the source image to this with by the AND mask
-  virtual bool overlay(const Rect *dstRect,
+  virtual bool overlay(const Rect &dstRect,
                const FrameBuffer &srcFrameBuffer,
                int srcX, int srcY,
                const char *andMask);
-  virtual void move(const Rect *dstRect, const int srcX, const int srcY);
+  virtual void move(const Rect &dstRect, const int srcX, const int srcY);
   // Return value: true - if equal
   //               false - if PixelFormats or data differs
-  virtual bool cmpFrom(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
+  virtual bool cmpFrom(const Rect &dstRect, const FrameBuffer &srcFrameBuffer,
                const int srcX, const int srcY);
 
   virtual bool setDimension(const Dimension *newDim);
@@ -138,14 +138,14 @@ protected:
   // owned by this frame buffer, with undefined contents; returns true. If
   // allocating it throws, the old buffer is left.
   bool resizeBuffer();
-  void clipRect(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
+  void clipRect(const Rect &dstRect, const FrameBuffer &srcFrameBuffer,
                 const int srcX, const int srcY,
                 Rect *dstClippedRect, Rect *srcClippedRect);
-  void clipRect(const Rect *dstRect, const Rect *srcBufferRect,
+  void clipRect(const Rect &dstRect, const Rect &srcBufferRect,
                 const int srcX, const int srcY,
                 Rect *dstClippedRect, Rect *srcClippedRect);
 
-  template<class PIXEL_T> bool overlayT(const Rect *dstRect,
+  template<class PIXEL_T> bool overlayT(const Rect &dstRect,
                                         const FrameBuffer &srcFrameBuffer,
                                         int srcX, int srcY,
                                         const char *andMask);

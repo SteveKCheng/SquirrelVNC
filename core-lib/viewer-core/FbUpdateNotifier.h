@@ -50,7 +50,7 @@ public:
 
   void setAdapter(CoreEventsAdapter *adapter);
 
-  void onUpdate(const Rect *rect);
+  void onUpdate(const Rect &rect);
   void onPropertiesFb();
 
   void updatePointerPos(const Point *position);
