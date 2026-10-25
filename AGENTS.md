@@ -60,9 +60,10 @@ Finer points on style:
     - But you don't need to remember all of the note; much of the code already has been converted to the preferred style, so you can imitate what's there already
   - Use smart pointers where possible/practical to imply other ownership semantics
   - Classes that should not be inherited from are `final`
+    - Exception: struct-like types (e.g. as inherited from C `struct`) do not need `final`
   - Implementations of virtual methods are `override`
   - Delete copy constructors/assignment on ‘non-value’ types; even move constructors/assignment if not needed
-  - Base classes that should not usefully instantiated have pure `virtual` methods or protected constructors
+  - Base classes that are not usefully instantiated have pure `virtual` methods or protected constructors
 
 ## Design and planning
 
