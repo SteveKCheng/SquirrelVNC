@@ -42,6 +42,7 @@
 #include "win-system/WindowsApplication.h"
 #include "win-system/WinHooks.h"
 
+#include <future>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -65,9 +66,35 @@ public:
   bool requiresReconnect() const;
 
   //
-  // This function return value of flag m_stopped.
+  // Returns true once the window has been destroyed (m_stopped), and the
+  // instance may be deleted; but false while handlePasswordRequest() is
+  // running, whose dialog runs a message loop in which the instance could
+  // otherwise be deleted (ViewerCollector::deleteDeadInstances()).
   //
   bool isStopped() const;
+
+  //
+  // Asks the user for the password of the connection, and waits for the
+  // answer. The dialog runs on the GUI thread (handlePasswordRequest()).
+  //
+  // Pre-conditions: called on the core thread (by ViewerVncAuthHandler),
+  // and not again before it has returned.
+  // Post-conditions: no request is pending.
+  // Returns the password, or nothing if the user cancelled, if the request
+  // has been cancelled by cancelPasswordRequest() (before or during this
+  // call), or if the request could not be posted.
+  //
+  std::optional<StringStorage> askPassword();
+
+  //
+  // Ends a pending askPassword() with no password, and makes later calls
+  // return nothing at once. Called before waiting for the core thread to
+  // finish, which may otherwise wait for a GUI thread that is waiting for
+  // it. Any thread.
+  //
+  // Post-conditions: no request is pending, and none will be.
+  //
+  void cancelPasswordRequest();
 
   static const int WM_USER_ERROR = WM_USER + 1;
   static const int WM_USER_STOP = WM_USER + 2;
@@ -84,6 +111,8 @@ protected:
   static const int WM_USER_CONNECTED = WM_USER + 6;
   static const int WM_USER_BELL = WM_USER + 7;
   static const int WM_USER_CUT_TEXT = WM_USER + 8;
+  // Posted by askPassword(); handled by handlePasswordRequest().
+  static const int WM_USER_PASSWORD = WM_USER + 9;
 
   static const int TIMER_DESKTOP_STATE = 1;
   static const int TIMER_DESKTOP_STATE_DELAY = 50;
@@ -118,6 +147,24 @@ protected:
   // Post-condition: m_pendingCutText is empty.
   //
   bool handleCutText();
+
+  //
+  // Handles WM_USER_PASSWORD, on the GUI thread: shows AuthenticationDialog,
+  // unless the request has been cancelled meanwhile, and answers the request
+  // with what the user entered, or nothing if the user cancelled (or the
+  // dialog threw, after which the exception propagates).
+  //
+  // Post-conditions: no request is pending.
+  //
+  bool handlePasswordRequest();
+
+  //
+  // Answers the pending request of askPassword() with the given password,
+  // or does nothing if none is pending. Any thread.
+  //
+  // Post-conditions: no request is pending.
+  //
+  void answerPasswordRequest(std::optional<StringStorage> password);
 
   bool onFsWarning();
   bool onSize(WPARAM wParam, LPARAM lParam);
@@ -202,6 +249,16 @@ protected:
   // Guarded by m_pendingCutTextLock.
   std::optional<StringStorage> m_pendingCutText;
   std::mutex m_pendingCutTextLock;
+
+  // The promise of the pending askPassword(), if any, and whether
+  // cancelPasswordRequest() has been called. Guarded by
+  // m_passwordRequestLock.
+  std::optional<std::promise<std::optional<StringStorage>>> m_passwordRequest;
+  bool m_isPasswordRequestCancelled;
+  std::mutex m_passwordRequestLock;
+
+  // True while handlePasswordRequest() runs. Accessed only on the GUI thread.
+  bool m_isInPasswordDialog;
 
   // Flag is set, if now viewer is in full screen mode
   bool m_isFullScr;

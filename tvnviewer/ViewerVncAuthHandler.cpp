@@ -22,10 +22,12 @@
 //
 
 #include "ViewerVncAuthHandler.h"
-#include "AuthenticationDialog.h"
+#include "ViewerWindow.h"
 
-ViewerVncAuthHandler::ViewerVncAuthHandler(ConnectionData *connectionData)
-: m_connectionData(connectionData)
+ViewerVncAuthHandler::ViewerVncAuthHandler(ConnectionData *connectionData,
+                                           ViewerWindow &passwordPrompt)
+: m_connectionData(connectionData),
+  m_passwordPrompt(passwordPrompt)
 {
 }
 
@@ -37,14 +39,11 @@ void ViewerVncAuthHandler::getPassword(StringStorage *passString)
 {
   // get password from ConnectionData or User Interface
   if (!m_connectionData->isSetPassword()) {
-    AuthenticationDialog authDialog;
-    StringStorage hostname = m_connectionData->getHost();
-    authDialog.setHostName(hostname);
-    if (authDialog.showModal()) {
-      m_connectionData->setPlainPassword(authDialog.getPassword());
-    } else {
+    std::optional<StringStorage> password = m_passwordPrompt.askPassword();
+    if (!password) {
       throw AuthCanceledException();
     }
+    m_connectionData->setPlainPassword(*password);
   }
   *passString = m_connectionData->getPlainPassword();
 }

@@ -59,7 +59,10 @@ public:
   void start();
   void stop();
 
-  // wait while viewer is not terminated
+  // Waits until the core thread has finished. Called on the GUI thread, so
+  // it first cancels a pending password request
+  // (ViewerWindow::cancelPasswordRequest()), which only this thread could
+  // answer.
   void waitViewer();
 
 protected:

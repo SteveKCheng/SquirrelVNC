@@ -35,7 +35,7 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
               &m_condata,
               &m_conConf,
               ViewerConfig::getInstance()->getLogger()),
-  m_vncAuthHandler(&m_condata),
+  m_vncAuthHandler(&m_condata, m_viewerWnd),
   m_viewerCore(ViewerConfig::getInstance()->getLogger())
 {
 }
@@ -51,7 +51,7 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
               &m_condata,
               &m_conConf,
               ViewerConfig::getInstance()->getLogger()),
-  m_vncAuthHandler(&m_condata),
+  m_vncAuthHandler(&m_condata, m_viewerWnd),
   m_viewerCore(ViewerConfig::getInstance()->getLogger())
 {
 }
@@ -70,11 +70,15 @@ ViewerInstance::~ViewerInstance()
   }
 
   m_viewerCore.stop();
+  // The core thread may be waiting for the password from this thread.
+  m_viewerWnd.cancelPasswordRequest();
   m_viewerCore.waitTermination();
 }
 
 void ViewerInstance::waitViewer()
 {
+  // The core thread may be waiting for the password from this thread.
+  m_viewerWnd.cancelPasswordRequest();
   m_viewerCore.waitTermination();
 }
 

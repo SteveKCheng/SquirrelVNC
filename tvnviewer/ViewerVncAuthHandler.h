@@ -27,16 +27,33 @@
 #include "viewer-core/VncAuthenticationHandler.h"
 #include "ConnectionData.h"
 
+class ViewerWindow;
+
 class ViewerVncAuthHandler final : public VncAuthenticationHandler
 {
 public:
-  ViewerVncAuthHandler(ConnectionData *connectionData);
+  //
+  // The password is taken from connectionData if it has one; otherwise the
+  // user is asked through passwordPrompt, and the answer stored in
+  // connectionData. Both must outlive the handler's use by the core thread.
+  //
+  ViewerVncAuthHandler(ConnectionData *connectionData,
+                       ViewerWindow &passwordPrompt);
   ~ViewerVncAuthHandler() override;
 
 private:
+  //
+  // Called on the core thread. Waits for the user if the password is not
+  // known yet (ViewerWindow::askPassword()).
+  //
+  // Post-conditions: passString and m_connectionData hold the password.
+  // Throws AuthCanceledException if the user cancelled, or the request was
+  // cancelled (ViewerWindow::cancelPasswordRequest()).
+  //
   void getPassword(StringStorage *passString) override;
 
   ConnectionData *m_connectionData;
+  ViewerWindow &m_passwordPrompt;
 };
 
 #endif // __VIEWERVNCAUTHHANDLER_H__

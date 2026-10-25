@@ -24,8 +24,10 @@
 #include "config-lib/IniFileSettingsManager.h"
 #include "util/Exception.h"
 #include "util/ResourceLoader.h"
+#include "util/ScopeExit.h"
 #include "rfb/StandardPixelFormatFactory.h"
 
+#include "AuthenticationDialog.h"
 #include "FsWarningDialog.h"
 #include "NamingDefs.h"
 #include "TvnViewer.h"
@@ -46,6 +48,8 @@ ViewerWindow::ViewerWindow(WindowsApplication *application,
   m_fileTransfer(nullptr),
   m_conData(conData),
   m_dsktWnd(&m_logWriter, conConf),
+  m_isPasswordRequestCancelled(false),
+  m_isInPasswordDialog(false),
   m_isConnected(false),
   m_sizeIsChanged(false),
   m_hooksEnabledFirstTime(true),
@@ -304,6 +308,8 @@ bool ViewerWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
     return handleBell();
   case WM_USER_CUT_TEXT:
     return handleCutText();
+  case WM_USER_PASSWORD:
+    return handlePasswordRequest();
   case WM_ACTIVATE:
     if (!m_isFullScr) {
       return true;
@@ -1237,6 +1243,73 @@ bool ViewerWindow::handleCutText()
   return true;
 }
 
+std::optional<StringStorage> ViewerWindow::askPassword()
+{
+  std::future<std::optional<StringStorage>> answer;
+  {
+    std::lock_guard<std::mutex> lock(m_passwordRequestLock);
+    if (m_isPasswordRequestCancelled) {
+      return std::nullopt;
+    }
+    m_passwordRequest.emplace();
+    answer = m_passwordRequest->get_future();
+  }
+  // Not BaseWindow::postMessage(), which does not report failure: the
+  // request would then never be answered.
+  if (!PostMessage(getHWnd(), WM_USER_PASSWORD, 0, 0)) {
+    answerPasswordRequest(std::nullopt);
+  }
+  return answer.get();
+}
+
+void ViewerWindow::cancelPasswordRequest()
+{
+  {
+    std::lock_guard<std::mutex> lock(m_passwordRequestLock);
+    m_isPasswordRequestCancelled = true;
+  }
+  answerPasswordRequest(std::nullopt);
+}
+
+void ViewerWindow::answerPasswordRequest(std::optional<StringStorage> password)
+{
+  std::optional<std::promise<std::optional<StringStorage>>> request;
+  {
+    std::lock_guard<std::mutex> lock(m_passwordRequestLock);
+    request.swap(m_passwordRequest);
+  }
+  if (request) {
+    request->set_value(std::move(password));
+  }
+}
+
+bool ViewerWindow::handlePasswordRequest()
+{
+  {
+    std::lock_guard<std::mutex> lock(m_passwordRequestLock);
+    if (!m_passwordRequest) {
+      // Cancelled before the message arrived.
+      return true;
+    }
+  }
+  m_isInPasswordDialog = true;
+  ScopeExit endOfDialog([&] { m_isInPasswordDialog = false; });
+  std::optional<StringStorage> password;
+  try {
+    AuthenticationDialog authDialog;
+    authDialog.setHostName(m_conData->getHost());
+    // 1 is OK; 0 is Cancel, and -1 a dialog that could not be created.
+    if (authDialog.showModal() == 1) {
+      password = authDialog.getPassword();
+    }
+  } catch (...) {
+    answerPasswordRequest(std::nullopt);
+    throw;
+  }
+  answerPasswordRequest(std::move(password));
+  return true;
+}
+
 bool ViewerWindow::requiresReconnect() const
 {
   return m_requiresReconnect;
@@ -1244,7 +1317,7 @@ bool ViewerWindow::requiresReconnect() const
 
 bool ViewerWindow::isStopped() const
 {
-  return m_stopped;
+  return m_stopped && !m_isInPasswordDialog;
 }
 
 void ViewerWindow::adjustWindowSize()

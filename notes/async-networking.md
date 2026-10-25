@@ -79,8 +79,8 @@ roughly 300 lines in `RemoteViewerCore` (`handshake`, `authenticate`,
    capabilities.
 3. Authentication. For VNC authentication: a 16-byte challenge, then a
    16-byte DES response. **The password prompt happens in the middle of
-   this**, which is why `AuthenticationDialog` runs on the core thread
-   today.
+   this**, which is why `AuthenticationDialog` ran on the core thread
+   (until Phase 1 step 2, below).
 4. SecurityResult, with a failure reason string in RFB 3.8.
 5. ClientInit (shared flag), then ServerInit: size, pixel format, name,
    and for Tight, the lists of supported message types.
@@ -426,7 +426,10 @@ Each step is useful on its own.
    `CoreEventsAdapter`.
 2. **The password dialog moves to the GUI thread.** The core posts a
    request and waits on a `std::future`: still blocking, but the wait
-   later becomes a `co_await`.
+   later becomes a `co_await`. **Done** (2026-10-25):
+   `ViewerWindow::askPassword()` and `cancelPasswordRequest()`; see
+   `concurrency.md`, "Threads". The cancellation is the synchronous
+   version of Phase 4 step 3's `operation_aborted` on teardown.
 3. **File transfer parses first, then notifies.**
    `FileTransferMessageProcessor` calls the reply parser explicitly,
    then notifies the operations without passing the stream, so the

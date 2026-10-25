@@ -25,10 +25,26 @@ Windows message queue is used in some places.
 | File-transfer delete | Deletes local files. | `LocalFilesDeleteOperation` |
 
 Those are the only `Thread` subclasses. Every window lives on the GUI
-thread, with one exception: the **password dialog runs on the core
-thread**. `ViewerVncAuthHandler::getPassword()` is called from
-`authenticate()` and shows a modal `AuthenticationDialog` there, with
-its own message loop.
+thread. Until 2026-10-25 there was one exception: the **password dialog
+ran on the core thread**. `ViewerVncAuthHandler::getPassword()` is
+called from `authenticate()` and showed a modal `AuthenticationDialog`
+there, with its own message loop. Now (step 2 of Phase 1 in
+`async-networking.md`) it calls `ViewerWindow::askPassword()`, which
+posts `WM_USER_PASSWORD` and waits on a `std::future`; the GUI thread
+shows the dialog and fulfils the promise. Two consequences:
+
+- The GUI thread must never wait for a core thread that may be waiting
+  for it. `ViewerInstance` therefore calls
+  `ViewerWindow::cancelPasswordRequest()` before waiting; the
+  cancellation also refuses requests made after it, so a core thread
+  that asks just too late does not wait either.
+- The dialog's modal loop now runs on the GUI thread, so other windows
+  keep working through it, but without `TvnViewer::processMessages`:
+  no accelerators, and no `IsDialogMessage` for modeless dialogs, while
+  it is open. `ViewerWindow::isStopped()` returns false during the
+  dialog, so that `ViewerCollector::deleteDeadInstances()`, which can
+  run from a timer inside that loop, cannot delete the instance whose
+  handler is still on the stack.
 
 ## A framebuffer update, end to end
 
