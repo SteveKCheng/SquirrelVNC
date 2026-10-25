@@ -169,6 +169,17 @@ private:
   void scrollProcessing(int fbWidth, int fbHeight);
   void drawBackground(DeviceContext *dc, const RECT *rcMain, const RECT *rcImage);
   void drawImage(const RECT *src, const RECT *dst);
+  /**
+   * Invalidates the part of the window that shows an area of the frame
+   * buffer, so that it is drawn again.
+   * @param repaintRect the area, in frame-buffer coordinates.
+   * @post If the background is dirty, the whole window is invalidated and
+   *       the background is no longer marked dirty. Otherwise only the
+   *       visible part of the area is invalidated (with a margin of one
+   *       pixel for rounding when scaled), or the whole window when that
+   *       part is at most one pixel wide or high; nothing is invalidated
+   *       when none of the area is visible.
+   */
   void repaint(const Rect *repaintRect);
   void calcClientArea();
 };

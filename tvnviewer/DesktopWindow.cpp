@@ -574,7 +574,11 @@ void DesktopWindow::repaint(const Rect *repaintRect)
   Rect rect;
   m_scManager.getSourceRect(&rect);
   Rect paint = *repaintRect;
-  paint.intersection(&rect);
+  paint = paint.intersection(&rect);
+  if (paint.isEmpty() && !m_isBackgroundDirty) {
+    // None of it is visible.
+    return;
+  }
 
   // checks what we getted a valid rectangle
   if (paint.getWidth() <= 1 || paint.getHeight() <= 1 || m_isBackgroundDirty) {
@@ -597,7 +601,7 @@ void DesktopWindow::repaint(const Rect *repaintRect)
   if (wnd.bottom < rect.bottom) {
     ++wnd.bottom;
   }
-  wnd.intersection(&rect);
+  wnd = wnd.intersection(&rect);
   RECT rcWnd = wnd.toWindowsRect();
   redraw(&rcWnd);
 }

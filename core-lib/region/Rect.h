@@ -180,7 +180,13 @@ public:
 
   inline void clear() { left = top = right = bottom = 0; }
 
-  Rect intersection(const Rect *other) const {
+  /**
+   * Returns the intersection of this rectangle with another; this
+   * rectangle is not changed.
+   * @return the intersection, or an empty rectangle at (0, 0) when the
+   *         two do not overlap.
+   */
+  [[nodiscard]] Rect intersection(const Rect *other) const {
     Rect result;
     result.setRect((left > other->left) ? left : other->left,
                    (top > other->top) ? top : other->top,
