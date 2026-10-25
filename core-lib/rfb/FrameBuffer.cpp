@@ -30,7 +30,7 @@
 static inline bool hasPixelFormatOf(const PixelFormat *pf, const FrameBuffer *fb)
 {
   PixelFormat fbPixelFormat = fb->getPixelFormat();
-  return pf->isEqualTo(&fbPixelFormat);
+  return pf->isEqualTo(fbPixelFormat);
 }
 
 FrameBuffer::FrameBuffer(void)

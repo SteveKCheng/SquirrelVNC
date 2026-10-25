@@ -292,7 +292,7 @@ bool RemoteViewerCore::updatePixelFormat()
   {
     AutoLock al(&m_fbLock);
     PixelFormat fbPixelFormat = m_frameBuffer.getPixelFormat();
-    bool isEqual = pxFormat.isEqualTo(&fbPixelFormat);
+    bool isEqual = pxFormat.isEqualTo(fbPixelFormat);
     // Until the first SetPixelFormat, the frame buffer format may be a
     // stand-in for a server format that is not true colour (see
     // readPixelFormat()), so that one is sent even if the formats are equal.

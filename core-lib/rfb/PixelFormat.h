@@ -32,7 +32,7 @@ struct PixelFormat
   // endian; no other field changes.
   void initBigEndianByNative();
 
-  bool isEqualTo(const PixelFormat *pf) const;
+  bool isEqualTo(const PixelFormat &pf) const;
 
   // Returns true if this is a true-colour format the viewer can use:
   // - bitsPerPixel is 8, 16 or 32, and colorDepth is from 1 to bitsPerPixel;

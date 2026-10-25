@@ -72,14 +72,14 @@ bool PixelFormat::isValid() const
          (greenMask & blueMask) == 0;
 }
 
-bool PixelFormat::isEqualTo(const PixelFormat *pf) const {
-  return bitsPerPixel == pf->bitsPerPixel &&
-         colorDepth   == pf->colorDepth &&
-         redMax       == pf->redMax &&
-         greenMax     == pf->greenMax &&
-         blueMax      == pf->blueMax &&
-         redShift     == pf->redShift &&
-         greenShift   == pf->greenShift &&
-         blueShift    == pf->blueShift &&
-         bigEndian    == pf->bigEndian;
+bool PixelFormat::isEqualTo(const PixelFormat &pf) const {
+  return bitsPerPixel == pf.bitsPerPixel &&
+         colorDepth   == pf.colorDepth &&
+         redMax       == pf.redMax &&
+         greenMax     == pf.greenMax &&
+         blueMax      == pf.blueMax &&
+         redShift     == pf.redShift &&
+         greenShift   == pf.greenShift &&
+         blueShift    == pf.blueShift &&
+         bigEndian    == pf.bigEndian;
 }
