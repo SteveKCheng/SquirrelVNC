@@ -115,7 +115,6 @@
     <ClCompile Include="rfb\FrameBuffer.cpp" />
     <ClCompile Include="rfb\HostPath.cpp" />
     <ClCompile Include="rfb\MsgDefs.cpp" />
-    <ClCompile Include="rfb\PixelConverter.cpp" />
     <ClCompile Include="rfb\PixelFormat.cpp" />
     <ClCompile Include="rfb\RfbKeySym.cpp" />
     <ClCompile Include="rfb\StandardPixelFormatFactory.cpp" />
@@ -202,7 +201,6 @@
     <ClInclude Include="rfb\HostPath.h" />
     <ClInclude Include="rfb\keysymdef.h" />
     <ClInclude Include="rfb\MsgDefs.h" />
-    <ClInclude Include="rfb\PixelConverter.h" />
     <ClInclude Include="rfb\PixelFormat.h" />
     <ClInclude Include="rfb\RfbKeySym.h" />
     <ClInclude Include="rfb\RfbKeySymListener.h" />

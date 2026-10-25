@@ -305,3 +305,9 @@ git diff -U0 --diff-filter=M 630df21~1 20956d9 -- '*.cpp' | grep '^-[^-/ {}#	]'
   When the registry gives way to `default.ini`, `RegistryKey`,
   `Registry`, `RegistrySettingsManager` and its two subclasses
   (`ViewerSettingsManager`, `ConnectionConfigSM`) can go entirely.
+- **rfb/PixelConverter** (both files), which converted pixels between
+  two pixel formats. Its last user was the watermark code removed in
+  `6648a9c`, after the passes above, so nothing flagged it. Found while
+  converting its parameters to references (`pointer-parameters.md`).
+  Its strict-aliasing violations, listed in `portability.md`, went
+  with it.

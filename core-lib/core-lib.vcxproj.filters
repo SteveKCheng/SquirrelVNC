@@ -75,9 +75,6 @@
     <ClCompile Include="rfb\MsgDefs.cpp">
       <Filter>rfb</Filter>
     </ClCompile>
-    <ClCompile Include="rfb\PixelConverter.cpp">
-      <Filter>rfb</Filter>
-    </ClCompile>
     <ClCompile Include="rfb\PixelFormat.cpp">
       <Filter>rfb</Filter>
     </ClCompile>
@@ -330,9 +327,6 @@
       <Filter>rfb</Filter>
     </ClInclude>
     <ClInclude Include="rfb\MsgDefs.h">
-      <Filter>rfb</Filter>
-    </ClInclude>
-    <ClInclude Include="rfb\PixelConverter.h">
       <Filter>rfb</Filter>
     </ClInclude>
     <ClInclude Include="rfb\PixelFormat.h">

@@ -219,9 +219,6 @@ through `unsigned short *`. (`fb322ec`)
 
 Remaining, all on pixel buffers in `core-lib/rfb`:
 
-- `PixelConverter::convert()`: 11 accesses, reading source pixels and
-  writing destination pixels through `*(UINT16 *)` and `*(UINT32 *)`
-  casts of `UINT8 *` pointers into frame buffers.
 - `FrameBuffer::overlayT<PIXEL_T>()`: both buffers cast to `PIXEL_T *`.
 - `FrameBuffer::copyFromRotated90/180/270()`: rows copied through
   `UINT32 *`. These are 32 bpp only, and nothing outside `FrameBuffer`
