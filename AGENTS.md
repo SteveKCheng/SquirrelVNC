@@ -53,7 +53,7 @@ If the category of an issue is arguable, use reasonable judgement on the labelli
 
 ## Design and planning
 
-  - For major work, we write down plans and conclusions in [`notes/`](notes/index.md)
+  - For major work, we write down plans and conclusions in [`notes/`](notes/README.md)
     - Update relevant notes as we change/fix code
     - Historical information is okay to keep; everyone can then understand how decisions were arrived at and why 
     - Notes provide context for later work to resume (in other sessions/agents)
