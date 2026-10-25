@@ -1,9 +1,10 @@
 # Clipboard: echo of the server's text, and the viewer chain
 
-Planned fix, to be done after the `cpp-clean-up` branch is in use. Not
-implemented yet.
+Fixed on the `clipboard-echo` branch (`67478af`, `36ea946`); see
+[What was done](#what-was-done). The sections up to and including
+[Fix](#fix) are the plan as written before, kept for the reasoning.
 
-## How it works now
+## How it worked before the fix
 
 `DesktopWindow` keeps the local clipboard and the server's cut text in
 step, through `WinClipboard` (`win32-lib/win-system/WinClipboard.cpp`):
@@ -79,3 +80,62 @@ Considered and not chosen:
 - A private clipboard format put beside the text as a marker: works,
   but puts extra data on the clipboard, seen by other programs and the
   clipboard history.
+
+## What was done
+
+1. `67478af`: `DesktopWindow::onCreate()` calls
+   `AddClipboardFormatListener()`, and `onDestroy()`
+   `RemoveClipboardFormatListener()`. `onDrawClipboard()` is now
+   `onClipboardUpdate()`, handling `WM_CLIPBOARDUPDATE`.
+   `SetClipboardViewer()`, the `WM_CHANGECBCHAIN` and `WM_DRAWCLIPBOARD`
+   handling and `m_hwndNextViewer` are gone.
+2. `36ea946`: `WinClipboard::setString()` records the sequence number
+   of its change, and `WinClipboard::isUnchangedSinceSetString()` says
+   whether the clipboard is still at it. `onClipboardUpdate()` sends
+   nothing then. `m_strClipboard` is gone.
+
+One change from the plan: the number is read just after
+`CloseClipboard()`, not while the clipboard is still open, because
+closing changes it again. A throwaway test program on the sandbox
+(Windows 10 21H2, a child window registered as a listener) showed:
+
+| Step                                         | Sequence number |
+|----------------------------------------------|-----------------|
+| Before `OpenClipboard()`                     | 0               |
+| After `EmptyClipboard()`                     | 1               |
+| After `SetClipboardData(CF_UNICODETEXT)`     | 2               |
+| After `CloseClipboard()`                     | 5               |
+| At our `WM_CLIPBOARDUPDATE`                  | 5               |
+| Reading, including synthesised `CF_TEXT`     | 5 (unchanged)   |
+| Another window adding a format, no emptying  | 6               |
+
+The extra three are presumably `CF_LOCALE` and the other text formats
+(`CF_TEXT`, `CF_OEMTEXT`), which were listed after closing; how many
+there are is the system's business, so the code does not count on it.
+
+The same run confirmed the rest of the plan:
+
+- `WM_CLIPBOARDUPDATE` is posted: none had arrived when `setString()`
+  returned, and one came when the message queue was next pumped.
+- One notification per change, that is, per open/close of the
+  clipboard, not per format.
+- Adding a format without emptying leaves the previous owner in place,
+  as assumed when `GetClipboardOwner()` was rejected.
+
+The remaining gap: another program's change between `CloseClipboard()`
+and `GetClipboardSequenceNumber()`, one call apart, would be taken for
+ours and not sent to the server. Nothing is echoed in that case; one
+local copy is missed.
+
+`GetClipboardSequenceNumber()` returns 0 when the window station gives
+no clipboard access. Then nothing is recorded, and every change is sent,
+as if none were ours.
+
+Not yet tested against a server; to check by hand:
+
+- Copy on the server: the text arrives locally and is not sent back
+  (in the viewer's log at detail level, no "Sending ... cut text"
+  after it arrives).
+- Copy on the server, then copy the same text locally: it is sent.
+- Close one viewer window while another program (or a second viewer)
+  watches the clipboard: it still gets changes.
