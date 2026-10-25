@@ -26,6 +26,8 @@
 
 #include "util/CommonHeader.h"
 
+#include <optional>
+
 class WinClipboard final
 {
 public:
@@ -55,7 +57,25 @@ public:
   // leaving the clipboard unchanged, if it could not be put there. The
   // memory given to the clipboard then belongs to the system.
   //
+  // On true, the clipboard sequence number of this change is recorded,
+  // for isUnchangedSinceSetString().
+  //
   bool setString(const StringStorage &str);
+
+  //
+  // Returns true if the clipboard is unchanged since the last successful
+  // setString() of this object, that is, it still holds that text and
+  // no one else has changed it since. A clipboard listener uses this to
+  // tell the notification of its own change from those of others.
+  //
+  // Post-conditions: false if setString() has never succeeded, or if
+  // the sequence number was unavailable when it last did (the window
+  // station gives no clipboard access).
+  //
+  // Another program's change between the end of setString() and its
+  // reading of the number (one call apart) would be taken for ours.
+  //
+  bool isUnchangedSinceSetString() const;
 
 protected:
   static const TCHAR CR = _T('\r');
@@ -69,6 +89,10 @@ protected:
   StringStorage addCR(const StringStorage &str);
 
   HWND m_hWnd;
+
+  // GetClipboardSequenceNumber() just after the last successful
+  // setString(); empty before it, or when the number was unavailable.
+  std::optional<DWORD> m_setStringSequenceNumber;
 };
 
 #endif

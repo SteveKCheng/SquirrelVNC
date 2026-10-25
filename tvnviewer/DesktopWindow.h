@@ -103,7 +103,8 @@ protected:
   //
   // Handles WM_CLIPBOARDUPDATE, which is posted once for each time a
   // program closes the clipboard after changing it, ours included:
-  // sends the clipboard's text to the server, unless it came from there.
+  // sends the clipboard's text to the server, unless the clipboard is
+  // still as setClipboardData() left it.
   //
   bool onClipboardUpdate();
   bool onEraseBackground(HDC hdc);
@@ -163,7 +164,6 @@ protected:
 
   // clipboard
   WinClipboard m_clipboard;
-  StringStorage m_strClipboard;
 
   bool m_ctrlDown;
   bool m_altDown;

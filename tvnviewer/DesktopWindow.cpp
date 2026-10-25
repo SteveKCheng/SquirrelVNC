@@ -298,15 +298,12 @@ bool DesktopWindow::onClipboardUpdate()
   if (!IsWindowVisible(getHWnd()) || !m_conConf->isClipboardEnabled()) {
     return false;
   }
+  // The server's text, put there by setClipboardData(): not sent back.
+  if (m_clipboard.isUnchangedSinceSetString()) {
+    return true;
+  }
   StringStorage clipboardString;
   if (m_clipboard.getString(&clipboardString)) {
-
-    // if string in clipboard got from server, then don't send him too
-    if (clipboardString == m_strClipboard) {
-      m_strClipboard = _T("");
-      return true;
-    }
-    m_strClipboard = _T("");
     sendCutTextEvent(clipboardString);
   }
   return true;
@@ -316,7 +313,6 @@ void DesktopWindow::setClipboardData(const StringStorage &strText)
 {
   if (m_conConf->isClipboardEnabled()) {
     m_clipboard.setString(strText);
-    m_strClipboard.setString(strText.getString());
   }
 }
 
