@@ -7,6 +7,7 @@
   - [How to use `clang-tidy` on this codebase](clang-tidy.md)
   - [Issues with clipboard handling](clipboard.md)
   - [Threading and concurrency model from the TightVNC codebase](concurrency.md)
+  - [Observations on CPU usage](cpu-usage.md)
   - [Dead code dropped from TightVNC](dead-code.md)
   - [Auto-generation of dialog resources](dialog-resources.md)
   - [Issues with VNC file transfer](file-transfer.md)
