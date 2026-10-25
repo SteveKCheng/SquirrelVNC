@@ -313,3 +313,11 @@ git diff -U0 --diff-filter=M 630df21~1 20956d9 -- '*.cpp' | grep '^-[^-/ {}#	]'
   with it.
 - **`CursorShape::clone()`**, which nothing called (its last caller
   went with the server). Found the same way.
+- **`FrameBuffer::copyFromRotated90/180/270()`**, which copied from a
+  rotated frame buffer, with the helpers only they used:
+  `Rect::rotateOn90/180/270InsideDimension()` and
+  `Dimension::getTransposition()`, and `Dimension::transpose()`, which
+  nothing called. Their only user was the server, copying from a
+  rotated monitor (`desktop/Win8DeskDuplicationThread.cpp`); the viewer
+  has no display rotation, and RFB does not ask for any.
+  Their strict-aliasing entry in `portability.md` went with them.

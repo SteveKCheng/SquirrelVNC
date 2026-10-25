@@ -69,24 +69,6 @@ public:
   virtual bool copyFrom(const FrameBuffer *srcFrameBuffer,
                 int srcX, int srcY);
 
-  // Copy to self by specified destination rectangle from the specified
-  // coordinates of srcFrameBuffer. When source farmebuffer and source coordinates are
-  // rotated with 90 degree.
-  bool copyFromRotated90(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
-                         int srcX, int srcY);
-
-  // Copy to self by specified destination rectangle from the specified
-  // coordinates of srcFrameBuffer. When source farmebuffer and source coordinates are
-  // rotated with 180 degree.
-  bool copyFromRotated180(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
-                          int srcX, int srcY);
-
-  // Copy to self by specified destination rectangle from the specified
-  // coordinates of srcFrameBuffer. When source farmebuffer and source coordinates are
-  // rotated with 270 degree.
-  bool copyFromRotated270(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
-                          int srcX, int srcY);
-
   // Overlays the source image to this with by the AND mask
   virtual bool overlay(const Rect *dstRect,
                const FrameBuffer *srcFrameBuffer,

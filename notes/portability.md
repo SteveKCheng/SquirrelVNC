@@ -217,12 +217,9 @@ for fuzzing or Valgrind. Until it is fixed, such a build can use
 Fixed: `win-system/VersionInfo.cpp` read the halves of a `DWORD`
 through `unsigned short *`. (`fb322ec`)
 
-Remaining, all on pixel buffers in `core-lib/rfb`:
+Remaining, on pixel buffers in `core-lib/rfb`:
 
 - `FrameBuffer::overlayT<PIXEL_T>()`: both buffers cast to `PIXEL_T *`.
-- `FrameBuffer::copyFromRotated90/180/270()`: rows copied through
-  `UINT32 *`. These are 32 bpp only, and nothing outside `FrameBuffer`
-  calls them, so they are candidates for `dead-code.md` instead.
 
 The buffers are `new UINT8[]` (`FrameBuffer::resizeBuffer()`) or DIB
 section memory (`DibFrameBuffer`). In C++20 an `unsigned char` array

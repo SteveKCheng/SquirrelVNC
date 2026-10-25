@@ -141,33 +141,6 @@ public:
   inline int getWidth()  const { return right - left; }
   inline int getHeight() const { return bottom - top; }
 
-  void rotateOn90InsideDimension(int dimHeight)
-  {
-    Rect localCopy(*this);
-    setWidth(localCopy.getHeight());
-    setHeight(localCopy.getWidth());
-    int newLeft = dimHeight - localCopy.top - localCopy.getHeight();
-    int newTop = localCopy.left;
-    setLocation(newLeft, newTop);
-  }
-
-  void rotateOn180InsideDimension(int dimWidth, int dimHeight)
-  {
-    int newLeft = dimWidth - left - getWidth();
-    int newTop = dimHeight - top - getHeight();
-    setLocation(newLeft, newTop);
-  }
-
-  void rotateOn270InsideDimension(int dimWidth)
-  {
-    Rect localCopy(*this);
-    setWidth(localCopy.getHeight());
-    setHeight(localCopy.getWidth());
-    int newLeft = localCopy.top;
-    int newTop = dimWidth - localCopy.left - localCopy.getWidth();
-    setLocation(newLeft, newTop);
-  }
-
   inline bool isEmpty() const { return getWidth() <= 0 || getHeight() <= 0; }
   inline int area() const { return isEmpty() ? 0 : getWidth() * getHeight(); }
 

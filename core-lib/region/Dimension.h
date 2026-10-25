@@ -48,20 +48,6 @@ public:
     return r;
   }
 
-  Dimension getTransposition() const
-  { 
-    Dimension r(height, width);
-    return r;
-  }
-
-  // Exchanges width and height
-  void transpose()
-  {
-    int temp = width;
-    width = height;
-    height = temp;
-  }
-
   inline void setDim(const int w, const int h) { width = w; height = h; }
   inline void setDim(const Rect *rect) { width = rect->getWidth();
                                          height = rect->getHeight(); }
