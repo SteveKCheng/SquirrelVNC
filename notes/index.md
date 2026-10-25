@@ -6,8 +6,7 @@
   - [The change of branding to SquirrelVNC and its icon artwork](branding-and-icons.md)
   - [How to use `clang-tidy` on this codebase](clang-tidy.md)
   - [Issues with clipboard handling](clipboard.md)
-  - 
-concurrency.md
+  - [Threading and concurrency model from the TightVNC codebase](concurrency.md)
   - [Dead code dropped from TightVNC](dead-code.md)
   - [Auto-generation of dialog resources](dialog-resources.md)
   - [Issues with VNC file transfer](file-transfer.md)
