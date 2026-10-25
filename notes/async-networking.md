@@ -565,3 +565,7 @@ For the proxy:
     - `std::shared_ptr` could be used to hold those objects so the coroutine's lifetime can exceed that of `RemoteViewerCore`
     - However, we don't want crashes when shutting down the program, so there needs to be a final synchronous wait for Asio's executor
   
+Reference information:
+
+  - [Q&A on the Asio C++ library](cpp-asio.md)
+  - [Q&A on C++20 coroutines](cpp-coro.md)
