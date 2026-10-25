@@ -81,7 +81,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE,
       // FIXME: set listening connection options.
       tvnViewer.startListening(ConnectionListener::DEFAULT_PORT);
     } else if (!condata.isEmpty()) {
-      tvnViewer.newConnection(&condata, &conConf);
+      tvnViewer.newConnection(condata, conConf);
     } else {
       tvnViewer.showLoginDialog();
     }

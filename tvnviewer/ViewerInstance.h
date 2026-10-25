@@ -38,13 +38,13 @@ public:
   // Both constructors copy condata and conConf. The second takes
   // ownership of socket.
   ViewerInstance(WindowsApplication *application,
-                 const ConnectionData *condata,
-                 const ConnectionConfig *conConf);
+                 const ConnectionData &condata,
+                 const ConnectionConfig &conConf);
 
   // creates the viewer instance if we have the socket
   ViewerInstance(WindowsApplication *application,
-                 const ConnectionData *condata,
-                 const ConnectionConfig *conConf,
+                 const ConnectionData &condata,
+                 const ConnectionConfig &conConf,
                  std::unique_ptr<SocketIPv4> socket);
 
   ViewerInstance(const ViewerInstance &) = delete;

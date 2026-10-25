@@ -131,7 +131,7 @@ void TvnViewer::addInstance(std::unique_ptr<ViewerInstance> viewerInstance)
   m_instances.addInstance(std::move(viewerInstance));
 }
 
-void TvnViewer::runInstance(const ConnectionData *conData, const ConnectionConfig *config)
+void TvnViewer::runInstance(const ConnectionData &conData, const ConnectionConfig &config)
 {
   std::unique_ptr<ViewerInstance> viewerInst =
     std::make_unique<ViewerInstance>(this, conData, config);
@@ -145,14 +145,14 @@ bool TvnViewer::isVisibleLoginDialog() const
   return !!m_loginDialog->getControl()->getWindow();
 }
 
-void TvnViewer::newConnection(const StringStorage *hostName, const ConnectionConfig *config)
+void TvnViewer::newConnection(const StringStorage *hostName, const ConnectionConfig &config)
 {
   ConnectionData conData;
   conData.setHost(hostName);
-  runInstance(&conData, config);
+  runInstance(conData, config);
 }
 
-void TvnViewer::newConnection(const ConnectionData *conData, const ConnectionConfig *config)
+void TvnViewer::newConnection(const ConnectionData &conData, const ConnectionConfig &config)
 {
   runInstance(conData, config);
 }
@@ -286,8 +286,8 @@ void TvnViewer::newListeningConnection()
     while (socket) {
       std::unique_ptr<ViewerInstance> viewerInst =
         std::make_unique<ViewerInstance>(this,
-                                         &connectionData,
-                                         &connectionConfig,
+                                         connectionData,
+                                         connectionConfig,
                                          std::move(socket));
       viewerInst->start();
       addInstance(std::move(viewerInst));
@@ -343,7 +343,7 @@ LRESULT CALLBACK TvnViewer::wndProc(HWND hWnd, UINT msg, WPARAM wparam, LPARAM l
         // Made with new by ViewerWindow, and freed here.
         std::unique_ptr<ConnectionData> conData(reinterpret_cast<ConnectionData *>(wparam));
         std::unique_ptr<ConnectionConfig> conConfig(reinterpret_cast<ConnectionConfig *>(lparam));
-        _this->newConnection(conData.get(), conConfig.get());
+        _this->newConnection(*conData, *conConfig);
         _this->m_instances.decreaseToReconnect();
         break;
       }
