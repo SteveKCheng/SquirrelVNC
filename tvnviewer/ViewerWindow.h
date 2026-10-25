@@ -43,6 +43,8 @@
 #include "win-system/WinHooks.h"
 
 #include <memory>
+#include <mutex>
+#include <optional>
 
 class ViewerWindow final : public BaseWindow,
                      public CoreEventsAdapter,
@@ -74,6 +76,15 @@ public:
   static const int WM_USER_FS_WARNING = WM_USER + 5;
 
 protected:
+  //
+  // Posted by the CoreEventsAdapter callbacks of the same names, which run on
+  // the core thread, so that the work on the window is done on the GUI
+  // thread. Handled by handleConnected(), handleBell() and handleCutText().
+  //
+  static const int WM_USER_CONNECTED = WM_USER + 6;
+  static const int WM_USER_BELL = WM_USER + 7;
+  static const int WM_USER_CUT_TEXT = WM_USER + 8;
+
   static const int TIMER_DESKTOP_STATE = 1;
   static const int TIMER_DESKTOP_STATE_DELAY = 50;
 
@@ -83,6 +94,30 @@ protected:
   bool onDisconnect();
   bool onAuthError(WPARAM wParam);
   bool onError();
+
+  //
+  // Handles WM_USER_CONNECTED, on the GUI thread: marks the window as
+  // connected, shows it and applies the settings.
+  //
+  // Pre-condition: posted by onConnected(), after the protocol
+  // initialization of m_viewerCore has completed.
+  // Post-condition: m_isConnected is true.
+  //
+  bool handleConnected();
+
+  //
+  // Handles WM_USER_BELL, on the GUI thread: beeps, after restoring and
+  // activating the window if the connection is so configured.
+  //
+  bool handleBell();
+
+  //
+  // Handles WM_USER_CUT_TEXT, on the GUI thread: puts the text in
+  // m_pendingCutText, if any, on the clipboard (if the clipboard is enabled).
+  //
+  // Post-condition: m_pendingCutText is empty.
+  //
+  bool handleCutText();
 
   bool onFsWarning();
   bool onSize(WPARAM wParam, LPARAM lParam);
@@ -113,6 +148,13 @@ protected:
 
   //
   // It is implementation of CoreEventsAdapter functions.
+  //
+  // They run on the core thread (onFrameBufferUpdate() and
+  // onFrameBufferPropChange() on the FbUpdateNotifier thread). onBell(),
+  // onConnected() and onCutText() leave all work on the window to the GUI
+  // thread by posting a message, as onDisconnect(), onAuthError() and
+  // onError() already do: a call on a window of the GUI thread can wait for
+  // that thread, and the state the work touches stays on one thread.
   //
   void onBell() override;
   void onEstablished() override;
@@ -154,6 +196,13 @@ protected:
   // This variable save disconnect-message after call onDisconnect().
   StringStorage m_disconnectMessage;
 
+  // The latest cut text from the server not yet put on the clipboard: set
+  // by onCutText() on the core thread, and taken by handleCutText() on the
+  // GUI thread. Only the latest text matters, so a newer one replaces it.
+  // Guarded by m_pendingCutTextLock.
+  std::optional<StringStorage> m_pendingCutText;
+  std::mutex m_pendingCutTextLock;
+
   // Flag is set, if now viewer is in full screen mode
   bool m_isFullScr;
   // It's size of work-area in windowed mode. It is necessary for restore size of window.
@@ -169,7 +218,7 @@ protected:
   // It is scale of viewer window in percent.
   int m_scale;
 
-  // Flag is set after onConnected().
+  // Flag is set by handleConnected(). Accessed only on the GUI thread.
   bool m_isConnected;
 
   // Flag is set, if instance is requires to reconnect.

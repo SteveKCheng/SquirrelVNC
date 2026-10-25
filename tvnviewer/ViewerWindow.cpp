@@ -298,6 +298,12 @@ bool ViewerWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
     return onError();
   case WM_USER_DISCONNECT:
     return onDisconnect();
+  case WM_USER_CONNECTED:
+    return handleConnected();
+  case WM_USER_BELL:
+    return handleBell();
+  case WM_USER_CUT_TEXT:
+    return handleCutText();
   case WM_ACTIVATE:
     if (!m_isFullScr) {
       return true;
@@ -1073,11 +1079,17 @@ bool ViewerWindow::onFocus(WPARAM /* wParam */)
 
 void ViewerWindow::onBell()
 {
+  postMessage(WM_USER_BELL);
+}
+
+bool ViewerWindow::handleBell()
+{
   if (m_conConf->isDeiconifyOnRemoteBellEnabled()) {
     ShowWindow(getHWnd(), SW_RESTORE);
     setForegroundWindow();
   }
   MessageBeep(MB_ICONASTERISK);
+  return true;
 }
 
 Rect ViewerWindow::calculateDefaultSize()
@@ -1130,11 +1142,6 @@ void ViewerWindow::onEstablished()
 
 void ViewerWindow::onConnected(RfbOutputGate *output)
 {
-  // Set flags.
-  m_isConnected = true;
-  m_sizeIsChanged = false;
-  m_dsktWnd.setConnected();
-
   // Set output for client-to-server messages in file transfer.
   m_fileTransfer->setOutput(output);
 
@@ -1147,10 +1154,29 @@ void ViewerWindow::onConnected(RfbOutputGate *output)
 
   m_fileTransfer->getCore()->updateSupportedOperations(clientMsgCodes, serverMsgCodes);
 
+  // The file-transfer state above is complete before the GUI thread sees
+  // the message, which applySettings() needs to enable the button.
+  postMessage(WM_USER_CONNECTED);
+}
+
+bool ViewerWindow::handleConnected()
+{
+  // Set flags.
+  m_isConnected = true;
+  m_sizeIsChanged = false;
+  m_dsktWnd.setConnected();
+
   // Start viewer window and applying settings.
-  showWindow();
-  setForegroundWindow();
-  applySettings();
+  // Caught here as RemoteViewerCore::execute() did when this ran inside
+  // onConnected(): an error is logged, and the connection carries on.
+  try {
+    showWindow();
+    setForegroundWindow();
+    applySettings();
+  } catch (const Exception &ex) {
+    m_logWriter.error(_T("Error on connection: %s"), ex.getMessage());
+  }
+  return true;
 }
 
 void ViewerWindow::onDisconnect(const StringStorage &message)
@@ -1189,7 +1215,26 @@ void ViewerWindow::onFrameBufferPropChange(const FrameBuffer &fb)
 
 void ViewerWindow::onCutText(const StringStorage &cutText)
 {
-  m_dsktWnd.setClipboardData(cutText);
+  {
+    std::lock_guard<std::mutex> lock(m_pendingCutTextLock);
+    m_pendingCutText = cutText;
+  }
+  // Posted every time, so that a lost message cannot strand a later text;
+  // handleCutText() does nothing for the messages after the first.
+  postMessage(WM_USER_CUT_TEXT);
+}
+
+bool ViewerWindow::handleCutText()
+{
+  std::optional<StringStorage> cutText;
+  {
+    std::lock_guard<std::mutex> lock(m_pendingCutTextLock);
+    cutText.swap(m_pendingCutText);
+  }
+  if (cutText) {
+    m_dsktWnd.setClipboardData(*cutText);
+  }
+  return true;
 }
 
 bool ViewerWindow::requiresReconnect() const

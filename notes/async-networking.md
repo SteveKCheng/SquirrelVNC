@@ -415,7 +415,15 @@ Each step is useful on its own.
 
 1. **Adapter callbacks only post to the GUI.** `onConnected`, `onBell`
    and `onCutText` stop calling window functions from the core thread.
-   This fixes the shutdown deadlock in `concurrency.md`.
+   ~~This fixes the shutdown deadlock in `concurrency.md`.~~ *That
+   deadlock turned out not to be reachable (`concurrency.md`, "Hazards");
+   the step still removes blocking cross-thread window calls and data
+   races, and the network thread of Phase 4 must never block on the GUI.*
+   **Done** (2026-10-25): `onConnected` keeps only the file-transfer
+   set-up on the core thread and posts `WM_USER_CONNECTED`; `onBell`
+   posts `WM_USER_BELL`; `onCutText` stores the latest text under a mutex
+   and posts `WM_USER_CUT_TEXT`. The contract is documented on
+   `CoreEventsAdapter`.
 2. **The password dialog moves to the GUI thread.** The core posts a
    request and waits on a `std::future`: still blocking, but the wait
    later becomes a `co_await`.

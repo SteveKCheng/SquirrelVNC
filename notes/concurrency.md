@@ -91,17 +91,28 @@ while a modal loop is running.) The code uses `PostMessage` for:
 - **Login dialog:** its "About" and "Configuration" buttons post to the
   application instead of calling it directly.
 
-It is not used consistently. Several callbacks touch the GUI directly
-from the core thread:
+It was not used consistently. Several callbacks touched the GUI
+directly from the core thread:
 
-- `ViewerWindow::onConnected()` calls `showWindow()`,
+- `ViewerWindow::onConnected()` called `showWindow()`,
   `setForegroundWindow()` and `applySettings()`;
-- `onBell()` calls `ShowWindow`;
-- `onCutText()` opens the clipboard.
+- `onBell()` called `ShowWindow`;
+- `onCutText()` opened the clipboard.
 
 Many window calls made from another thread are turned by Windows into a
 `SendMessage`, which blocks the calling thread until the GUI thread
 handles it. They work, but they hide synchronous waits between threads.
+**Changed 2026-10-25** (step 1 of Phase 1 in `async-networking.md`):
+these three now post `WM_USER_CONNECTED`, `WM_USER_BELL` and
+`WM_USER_CUT_TEXT`, and the work on the window is done on the GUI
+thread. This also removed data races on `ViewerWindow::m_isConnected`
+and `m_sizeIsChanged`, and on `WinClipboard`'s record of the sequence
+number after its own change, which `onClipboardUpdate()` reads on the
+GUI thread. `onConnected()` still sets up file transfer on the core
+thread, before posting. The framebuffer callbacks on the notifier
+thread still call into `DesktopWindow` directly, but only copy pixels,
+(re)create the DIB section and call `InvalidateRect`, none of which
+waits for the GUI thread.
 
 **Nothing goes from the GUI to the network through a queue.** Key and
 pointer events are written to the socket on the GUI thread
@@ -126,13 +137,27 @@ connect cannot be cancelled this way.
 
 None of these is a security issue; all are latent.
 
-1. **Possible deadlock on shutdown.**
+1. ~~**Possible deadlock on shutdown.**
    `ViewerCollector::destroyAllInstances()` holds `m_lockObj` on the GUI
    thread and waits for each core thread (`waitViewer()`). A core thread
    that is inside `onConnected()` at that moment is blocked in a
    cross-thread `SendMessage` to the GUI thread, which is now waiting on
    it. The window is narrow: closing the application just as a
-   connection completes.
+   connection completes.~~ **Not reachable** (checked 2026-10-25), and
+   the cross-thread calls are gone anyway (see "The Windows message
+   queue"):
+   - `destroyAllInstances()` runs only from `~TvnViewer`, after the
+     message loop has ended, and the loop ends (`shutdown()`, from
+     `TvnViewer::onTimer`) only once there are no instances left.
+   - The other wait on a core thread, `~ViewerInstance` from
+     `deleteDeadInstances()`, happens only after the viewer window has
+     been destroyed; window calls on a destroyed `HWND` fail at once
+     instead of waiting.
+   - Latent in the same code: `destroyAllInstances()` "stops" each
+     instance by posting `WM_USER_STOP` to its window, which nothing
+     will process once the loop has ended, and then waits for its core
+     thread, which nothing has stopped. If it were reached with a live
+     connection, it would wait until the server disconnected.
 2. **Data races that Windows tolerates:**
    - pixels written into the DIB while it is being painted (deliberate,
      see above);

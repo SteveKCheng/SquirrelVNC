@@ -307,10 +307,12 @@ public:
   //
   // Timing: the format is applied by updatePixelFormat() in the next
   // sendFbUpdateRequest(), which sends SetPixelFormat ahead of that request.
-  // - Called before start(), as rfb-replay does, or from
-  //   CoreEventsAdapter::onConnected(), as ViewerWindow does through
-  //   applySettings(), it is applied with the first update request: both
-  //   happen before that request, on the protocol thread or before it starts.
+  // - Called before start(), as rfb-replay does and as ViewerWindow does
+  //   through setRemoteViewerCore(), or from CoreEventsAdapter::onConnected()
+  //   on the protocol thread, it is applied with the first update request:
+  //   all of these happen before that request. (ViewerWindow calls it again
+  //   when the GUI thread handles the connection, which races as below; the
+  //   format is the same, so nothing more is sent.)
   // - Called later from the GUI thread, when the user changes the colour
   //   setting, it races with the protocol thread, so which request carries
   //   it varies from run to run.
