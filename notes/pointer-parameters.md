@@ -206,6 +206,37 @@ Moved from the module batches to the caveat batches:
 `TvnViewer::newConnection` chain (overloads), and the constructors of
 `DibSection` and `ViewerInstance` (`make_unique`).
 
+### Non-`const` pointees: objects operated on
+
+Decided 2026-10-25: a non-`const` pointer to an object that the
+function operates on (not a value-like object that it fills in or
+replaces, which is an out-parameter) is converted like the `const`
+ones, as `string.resize()` would be written rather than
+`(&string)->resize()`. Done:
+
+| Commit | What |
+|---|---|
+| `cdc1cf7` | The decoders' `FrameBuffer *` and `RfbInputGate *` |
+| `6024835` | The client messages' `RfbOutputGate *` (`send`, `sendUtf8`) |
+| `0e85ad5` | `SettingsManager *` (`loadFromStorage`, `saveToStorage`; `ViewerSettingsManager::getInstance()` returns a reference) and `CapabilitiesManager *` (`AuthHandler::addAuthCapability`) |
+
+Left as pointers on purpose:
+
+- `DataInputStream *` and `DataOutputStream *`, to stay consistent with
+  the file-transfer code, which is not being changed (it is
+  TightVNC-specific and hard to test). For the same reason
+  `FileTransferCapability::addCapabilities` keeps its
+  `CapabilitiesManager *`.
+- `AutoLock`, `LocalMutex *` and `FbUpdateNotifier *`: the custom
+  threading and locks are to be replaced.
+- `DeviceContext *`, `TextBox *`, `MSG *` and other GUI types: the GUI
+  code passes Win32-style pointers throughout.
+- `onConnected(RfbOutputGate *)`: `ViewerWindow` passes it on to file
+  transfer, which keeps it.
+- Out-parameters (`StringStorage *`, `std::vector<...> *`, `Rect *`
+  results and so on), still to be decided; many would read better
+  returning the value.
+
 ## Results
 
 Of 662 object-pointer parameters (counting a function's declaration
