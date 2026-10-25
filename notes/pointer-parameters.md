@@ -151,6 +151,25 @@ passing the tests:
 | `847de7b` | The `const FrameBuffer *` chain (23 parameters, with its virtual families) |
 | `a8a78ac` | The `const Rect *` chain (41 parameters, with its virtual families) |
 | `2a9b3f2` | `Rect::setRect` and `ScaleManager::calcScaled`, left over from the `Rect` chain |
+| `c1c63c4` | Leftovers in `ft-common` and `ft-client-lib` (`FileInfo(const File &)`, now `explicit`) |
+| `935e63f` | `CoreEventsAdapter`'s callbacks, with their overrides and what they pass on to |
+| `338ede0` | `FrameBuffer`'s virtual setters, `CursorShape`'s and `Dimension::setDim` |
+| `03ddfca` | Call sites: `ConnectionData::setPlainPassword` (and `AuthenticationDialog::getPassword()` returns a reference) |
+| `58d8e91` | Arguments copied into local objects (`drawImage`, `crop`, `sendPointerEvent`, ...) |
+| `52475cc`, `e883c03` | Through `std::make_unique`: `DibSection` and its chain, and `ViewerInstance` with `TvnViewer::runInstance` |
+| `754e1d3` | Overloads: `StringStorage::isEqualTo`, `ConnectionData::setHost` and the host name of `newConnection` |
+| `2bb92fe` | Functions in the test harnesses |
+
+**The `const` part of the plan is done.** A rerun of the analysis on
+`2bb92fe` finds no `const` candidates left. The 15 parameters with
+`const` pointees that remain are not candidates:
+
+- arrays with a count (`std::span` candidates): the `const FileInfo *`
+  of the file-transfer operations, `FileInfoList`'s constructor and
+  `appendAfter`, and `ViewerCmdLine::processCmdLine`'s options;
+- nullable: `FileInfoList::setChild` (called with null and a count of
+  0), `ConnectionData::setCryptedPassword` and `BaseWindow::redraw`
+  (null for the whole window).
 
 Found along the way and committed separately: `a4ca831` (the
 swapped parameter names of `stretchFromDibSection`), `04c19b6` (the
@@ -174,6 +193,10 @@ Lessons for the remaining batches:
   code is removed or converted: functions drop out of a big chain and
   become chains of their own (`setRect`, `calcScaled`), and the line
   numbers in the survey go stale.
+- `make_unique` calls show up as "other use" problems in the script's
+  output: they need no edit once the forwarding parameter is a
+  reference, but a `make_unique` that passes `&x` must be edited by hand
+  (the compiler finds it).
 - The script needed two fixes on the way: a `*` inside template
   arguments (`std::map<UINT32, AuthHandler *> *`), and a parameter
   whose name is commented out (`const FrameBuffer * /* fb */`).
