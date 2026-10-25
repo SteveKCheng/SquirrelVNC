@@ -31,7 +31,7 @@
 class RfbPointerEventClientMessage final : public RfbClientToServerMessage
 {
 public:
-  RfbPointerEventClientMessage(const UINT8 buttonMask, const Point *position);
+  RfbPointerEventClientMessage(const UINT8 buttonMask, const Point &position);
   ~RfbPointerEventClientMessage() override;
 
   void send(RfbOutputGate *output) override;

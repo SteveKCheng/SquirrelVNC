@@ -29,7 +29,7 @@
 class RfbCutTextEventClientMessage final : public RfbClientToServerMessage
 {
 public:
-  RfbCutTextEventClientMessage(const StringStorage *cutText);
+  RfbCutTextEventClientMessage(const StringStorage &cutText);
   ~RfbCutTextEventClientMessage() override;
 
   //

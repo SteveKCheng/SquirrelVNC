@@ -85,13 +85,13 @@ private:
                     const std::vector<UINT8> &pixels,
                     const Rect *dstRect);
   void drawTightBytes(FrameBuffer *fb,
-                     const std::vector<UINT8> *pixels,
+                     const std::vector<UINT8> &pixels,
                      const Rect *dstRect);
   void drawJpegBytes(FrameBuffer *fb,
-                     const std::vector<UINT8> *pixels,
+                     const std::vector<UINT8> &pixels,
                      const Rect *dstRect);
 
-  UINT32 getRawTightColor(const PixelFormat *pxFormat,
+  UINT32 getRawTightColor(const PixelFormat &pxFormat,
                           const std::vector<UINT8> &pixels,
                           size_t offset);
   //
@@ -106,7 +106,7 @@ private:
   // pixelOffset (3 bytes for a compact 24-bit pixel, otherwise the pixel
   // size of pxFormat).
   //
-  void fillRawComponents(const PixelFormat *pxFormat,
+  void fillRawComponents(const PixelFormat &pxFormat,
                          UINT8 components[],
                          const std::vector<UINT8> &pixels,
                          size_t pixelOffset);

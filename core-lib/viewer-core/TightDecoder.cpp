@@ -167,9 +167,9 @@ void TightDecoder::processJpeg(RfbInputGate *input,
       m_jpeg.decompress(buffer, jpegBufLen, pixels, dstRect);
       if (m_isCPixel) {
         pixels = transformArray(pixels);
-        drawTightBytes(frameBuffer, &pixels, dstRect);
+        drawTightBytes(frameBuffer, pixels, dstRect);
       } else {
-        drawJpegBytes(frameBuffer, &pixels, dstRect);
+        drawJpegBytes(frameBuffer, pixels, dstRect);
       }
     } catch (const Exception &ex) {
       StringStorage error;
@@ -205,7 +205,7 @@ void TightDecoder::processBasicTypes(RfbInputGate *input,
     if (m_isCPixel) {
       buffer = transformArray(buffer);
     }
-    drawTightBytes(fb, &buffer, dstRect);
+    drawTightBytes(fb, buffer, dstRect);
     break;
 
   // The "gradient" filter and "jpeg" compression may be used only
@@ -332,7 +332,7 @@ void TightDecoder::drawPalette(FrameBuffer *fb,
 }
 
 void TightDecoder::drawTightBytes(FrameBuffer *fb,
-                                  const std::vector<UINT8> *pixels,
+                                  const std::vector<UINT8> &pixels,
                                   const Rect *dstRect)
 {
   // TODO: removed duplicate code (zrle)
@@ -346,12 +346,12 @@ void TightDecoder::drawTightBytes(FrameBuffer *fb,
   int y = dstRect->top;
   for (int i = 0; i < dstLength; i++) {
     void *pixelPtr = fb->getBufferPtr(x + i % width, y + i / width);
-    memcpy(pixelPtr, &pixels->operator [](i * bytesPerPixel), bytesPerPixel);
+    memcpy(pixelPtr, &pixels[i * bytesPerPixel], bytesPerPixel);
   }
 }
 
 void TightDecoder::drawJpegBytes(FrameBuffer *fb,
-                                 const std::vector<UINT8> *pixels,
+                                 const std::vector<UINT8> &pixels,
                                  const Rect *dstRect)
 {
   // TODO: removed duplicate code (draw tight bytes)
@@ -367,7 +367,7 @@ void TightDecoder::drawJpegBytes(FrameBuffer *fb,
   int y = dstRect->top;
   for (int i = 0; i < dstLength; i++) {
     UINT8 color[4] = {0, 0, 0, 0};
-    memcpy(&color, &pixels->operator [](i * bytesPerCPixel), bytesPerCPixel);
+    memcpy(&color, &pixels[i * bytesPerCPixel], bytesPerCPixel);
     UINT32 pixel = (((UINT32)color[0] * pxFormat.redMax + 127) / 255 << pxFormat.redShift | 
                    ((UINT32)color[1] * pxFormat.greenMax + 127) / 255 << pxFormat.greenShift |
                    ((UINT32)color[2] * pxFormat.blueMax + 127) / 255 << pxFormat.blueShift);
@@ -427,7 +427,7 @@ void TightDecoder::drawGradient(FrameBuffer *fb,
 
     for (size_t j = 3; j < opRowLength; j += 3, pixelOffset += bytesPerCPixel) {
       UINT8 rawColor[3];
-      fillRawComponents(&pxFormat, rawColor, pixels, pixelOffset);
+      fillRawComponents(pxFormat, rawColor, pixels, pixelOffset);
       UINT32 color = 0;
       for (int index = 0; index < 3; index++) {
         INT32 d = prevRow[j + index] +      // "upper" pixel (from prev row)
@@ -444,7 +444,7 @@ void TightDecoder::drawGradient(FrameBuffer *fb,
   }
 }
 
-UINT32 TightDecoder::getRawTightColor(const PixelFormat *pxFormat,
+UINT32 TightDecoder::getRawTightColor(const PixelFormat &pxFormat,
                                       const std::vector<UINT8> &pixels,
                                       const size_t offset)
 {
@@ -454,17 +454,17 @@ UINT32 TightDecoder::getRawTightColor(const PixelFormat *pxFormat,
            pixels[offset + 2];
   }
   UINT32 rawColor = 0;
-  memcpy(&rawColor, &pixels[offset], pxFormat->bitsPerPixel / 8);
+  memcpy(&rawColor, &pixels[offset], pxFormat.bitsPerPixel / 8);
   return rawColor;
 }
 
-void TightDecoder::fillRawComponents(const PixelFormat *pxFormat,
+void TightDecoder::fillRawComponents(const PixelFormat &pxFormat,
                                      UINT8 components[],
                                      const std::vector<UINT8> &pixels,
                                      const size_t pixelOffset)
 {
   UINT32 rawColor = getRawTightColor(pxFormat, pixels, pixelOffset);
-  components[0] = static_cast<UINT8>(rawColor >> pxFormat->redShift & pxFormat->redMax);
-  components[1] = static_cast<UINT8>(rawColor >> pxFormat->greenShift & pxFormat->greenMax);
-  components[2] = static_cast<UINT8>(rawColor >> pxFormat->blueShift & pxFormat->blueMax);
+  components[0] = static_cast<UINT8>(rawColor >> pxFormat.redShift & pxFormat.redMax);
+  components[1] = static_cast<UINT8>(rawColor >> pxFormat.greenShift & pxFormat.greenMax);
+  components[2] = static_cast<UINT8>(rawColor >> pxFormat.blueShift & pxFormat.blueMax);
 }

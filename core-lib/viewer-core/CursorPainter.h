@@ -48,13 +48,13 @@ public:
   // this functions is thread-safe
   void setIgnoreShapeUpdates(bool ignore);
   void updatePointerPos(const Point *position);
-  void setNewCursor(const Point *hotSpot,
+  void setNewCursor(const Point &hotSpot,
                     UINT16 width, UINT16 height,
-                    const std::vector<UINT8> *cursor, 
-                    const std::vector<UINT8> *bitmask);
+                    const std::vector<UINT8> &cursor, 
+                    const std::vector<UINT8> &bitmask);
 private:
   // This function is thread-save.
-  Point getUpperLeftPoint(const Point *position) const;
+  Point getUpperLeftPoint(const Point &position) const;
 
   LogWriter *m_logWriter;
 

@@ -312,7 +312,7 @@ void FuzzSession::readPseudoEncoding(const Rect *rect, int encodingType)
 
       // FbUpdateNotifier::setNewCursor()
       AutoLock al(&m_fbLock);
-      m_cursorPainter->setNewCursor(&hotSpot, width, height, &cursor, &bitmask);
+      m_cursorPainter->setNewCursor(hotSpot, width, height, cursor, bitmask);
     }
     break;
 

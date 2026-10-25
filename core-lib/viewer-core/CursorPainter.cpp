@@ -47,14 +47,14 @@ void CursorPainter::updatePointerPos(const Point *position)
   // Now, cursor is ready for painting.
 }
 
-void CursorPainter::setNewCursor(const Point *hotSpot,
+void CursorPainter::setNewCursor(const Point &hotSpot,
                                  UINT16 width, UINT16 height,
-                                 const std::vector<UINT8> *cursor,
-                                 const std::vector<UINT8> *bitmask)
+                                 const std::vector<UINT8> &cursor,
+                                 const std::vector<UINT8> &bitmask)
 {
   AutoLock al(&m_lock);
-  m_logWriter->debug(_T("Cursor hot-spot is (%d, %d)"), hotSpot->x, hotSpot->y);
-  m_cursor.setHotSpot(hotSpot->x, hotSpot->y);
+  m_logWriter->debug(_T("Cursor hot-spot is (%d, %d)"), hotSpot.x, hotSpot.y);
+  m_cursor.setHotSpot(hotSpot.x, hotSpot.y);
 
   m_logWriter->debug(_T("Cursor size is (%d, %d)"), width, height);
   Dimension cursorDimension(width, height);
@@ -68,9 +68,9 @@ void CursorPainter::setNewCursor(const Point *hotSpot,
   // Server is allowed to specify zero as width and/or height of the cursor.
   if (cursorSize != 0) {
     m_logWriter->debug(_T("Set image of cursor..."));
-    memcpy(m_cursor.getPixels()->getBuffer(), &cursor->front(), cursorSize);
+    memcpy(m_cursor.getPixels()->getBuffer(), &cursor.front(), cursorSize);
     m_logWriter->debug(_T("Set bitmask of cursor..."));
-    m_cursor.assignMaskFromRfb(reinterpret_cast<const char *>(&bitmask->front()));
+    m_cursor.assignMaskFromRfb(reinterpret_cast<const char *>(&bitmask.front()));
   }
 }
 
@@ -93,7 +93,7 @@ Rect CursorPainter::hideCursor()
   m_isExist = false;
 
   Rect erase(m_cursorOverlay.getDimension().getRect());
-  Point corner = getUpperLeftPoint(&m_lastPosition);
+  Point corner = getUpperLeftPoint(m_lastPosition);
 
   erase.move(corner.x, corner.y);
 
@@ -124,7 +124,7 @@ Rect CursorPainter::showCursor()
 
     m_logWriter->debug(_T("Painting cursor..."));
 
-    Point corner = getUpperLeftPoint(&m_lastPosition);
+    Point corner = getUpperLeftPoint(m_lastPosition);
 
     m_cursorOverlay.copyFrom(m_fb, corner.x, corner.y);
 
@@ -139,9 +139,9 @@ Rect CursorPainter::showCursor()
   return Rect();
 }
 
-Point CursorPainter::getUpperLeftPoint(const Point *position) const
+Point CursorPainter::getUpperLeftPoint(const Point &position) const
 {
-  Point upperLeftPoint = *position;
+  Point upperLeftPoint = position;
   upperLeftPoint.move(-m_cursor.getHotSpot().x, -m_cursor.getHotSpot().y);
   return upperLeftPoint;
 }

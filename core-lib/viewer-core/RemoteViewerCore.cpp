@@ -265,12 +265,12 @@ void RemoteViewerCore::waitTermination()
   wait();
 }
 
-void RemoteViewerCore::setPixelFormat(const PixelFormat *pixelFormat)
+void RemoteViewerCore::setPixelFormat(const PixelFormat &pixelFormat)
 {
   m_logWriter.detail(_T("Pixel format will changed"));
   AutoLock al(&m_pixelFormatLock);
   m_isNewPixelFormat = true;
-  m_viewerPixelFormat = *pixelFormat;
+  m_viewerPixelFormat = pixelFormat;
 }
 
 bool RemoteViewerCore::updatePixelFormat()
@@ -306,7 +306,7 @@ bool RemoteViewerCore::updatePixelFormat()
     m_isPixelFormatSent = true;
   }
 
-  RfbSetPixelFormatClientMessage pixelFormatMessage(&pxFormat);
+  RfbSetPixelFormatClientMessage pixelFormatMessage(pxFormat);
   pixelFormatMessage.send(m_output);
 
   return true;
@@ -389,7 +389,7 @@ void RemoteViewerCore::sendPointerEvent(UINT8 buttonMask,
   m_logWriter.detail(_T("Sending pointer event 0x%X, (%d, %d)..."),
                      static_cast<int>(buttonMask), position->x, position->y);
   // send position to server
-  RfbPointerEventClientMessage pointerMessage(buttonMask, position);
+  RfbPointerEventClientMessage pointerMessage(buttonMask, *position);
   pointerMessage.send(m_output);
   // update position
   m_fbUpdateNotifier.updatePointerPos(position);
@@ -407,7 +407,7 @@ void RemoteViewerCore::sendCutTextEvent(const StringStorage *cutText)
     return;
   }
 
-  RfbCutTextEventClientMessage cutTextMessage(cutText);
+  RfbCutTextEventClientMessage cutTextMessage(*cutText);
   if (m_isUtf8ClipboardEnabled) {
     // The clipboard may hold passwords, so only its length is logged.
     m_logWriter.detail(_T("Sending UTF-8 clipboard cut text (%zu characters)..."),
@@ -657,7 +657,7 @@ int RemoteViewerCore::negotiateSecurityType()
 
   // select type security
   m_logWriter.debug(_T("Selecting auth-handler"));
-  int typeSelected = selectSecurityType(&secTypes, &m_authHandlers, m_isTightEnabled);
+  int typeSelected = selectSecurityType(secTypes, m_authHandlers, m_isTightEnabled);
   m_logWriter.info(_T("Security type is selected: %d"), typeSelected);
   if (typeSelected == SecurityDefs::TIGHT) {
     m_logWriter.info(_T("Tight capabilities is enable"));
@@ -719,8 +719,8 @@ StringStorage RemoteViewerCore::getAuthenticationTypeName(UINT32 authenticationT
   return _T("Unknown type");
 }
 
-int RemoteViewerCore::selectSecurityType(const std::vector<UINT32> *secTypes,
-                                         const std::map<UINT32, AuthHandler *> *authHandlers,
+int RemoteViewerCore::selectSecurityType(const std::vector<UINT32> &secTypes,
+                                         const std::map<UINT32, AuthHandler *> &authHandlers,
 										 const bool isTightEnabled) const
 {
   // Typedef const iterator.
@@ -728,18 +728,18 @@ int RemoteViewerCore::selectSecurityType(const std::vector<UINT32> *secTypes,
 
   if (isTightEnabled) {
     // If server supports security type "Tight", select it.
-    SecTypesIterator tightSecType = std::find(secTypes->begin(),
-                                              secTypes->end(),
+    SecTypesIterator tightSecType = std::find(secTypes.begin(),
+                                              secTypes.end(),
                                               SecurityDefs::TIGHT);
-    if (tightSecType != secTypes->end()) {
+    if (tightSecType != secTypes.end()) {
       return *tightSecType;
     }
   }
   // If server doesn't support security type "Tight", then search first type, which is supported.
-  for (SecTypesIterator i = secTypes->begin();
-       i != secTypes->end();
+  for (SecTypesIterator i = secTypes.begin();
+       i != secTypes.end();
        i++) {
-    if (authHandlers->find(*i) != authHandlers->end() ||
+    if (authHandlers.find(*i) != authHandlers.end() ||
         *i == SecurityDefs::NONE)
       return *i;
   }
@@ -793,8 +793,8 @@ int RemoteViewerCore::initAuthentication()
   m_logWriter.detail(_T("Reading authentication capability..."));
   for (UINT32 i = 0; i < authTypesNumber; i++) {
     RfbCapabilityInfo cap = readCapability();
-    m_authCaps.enable(&cap);
-    newerViewerAuthCaps.enable(&cap);
+    m_authCaps.enable(cap);
+    newerViewerAuthCaps.enable(cap);
   }
   size_t numEnabled = m_authCaps.numEnabled();
   std::vector<UINT32> authTypes(numEnabled);
@@ -1155,8 +1155,8 @@ void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
       Point hotSpot(rect->left, rect->top);
 
       m_logWriter.debug(_T("Setting new rich cursor..."));
-      m_fbUpdateNotifier.setNewCursor(&hotSpot, width, height,
-                                      &cursor, &bitmask);
+      m_fbUpdateNotifier.setNewCursor(hotSpot, width, height,
+                                      cursor, bitmask);
     }
     break;
 
@@ -1421,19 +1421,19 @@ void RemoteViewerCore::readCapabilities()
   m_logWriter.detail(_T("Server message types (capability):"));
   while (nServerMessageTypes--) {
     RfbCapabilityInfo cap = readCapability();
-    m_serverMsgCaps.enable(&cap);
+    m_serverMsgCaps.enable(cap);
   }
 
   m_logWriter.detail(_T("Client message types (capability):"));
   while (nClientMessageTypes--) {
     RfbCapabilityInfo cap = readCapability();
-    m_clientMsgCaps.enable(&cap);
+    m_clientMsgCaps.enable(cap);
   }
 
   m_logWriter.detail(_T("Encodings (capability):"));
   while (nEncodingTypes--) {
     RfbCapabilityInfo cap = readCapability();
-    m_encodingCaps.enable(&cap);
+    m_encodingCaps.enable(cap);
   }
 
   // Add active encoding-capabilities in DecoderStore.

@@ -40,7 +40,7 @@ public:
   // Throws whatever reading or writing throws.
   //
   static void vncAuthenticate(DataInputStream *input, DataOutputStream *output,
-                    const StringStorage *password);
+                    const StringStorage &password);
 
   // TODO: removed duplicate code: ServerConfig.h
   static const int VNC_PASSWORD_SIZE = 8;

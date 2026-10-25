@@ -180,10 +180,10 @@ void FbUpdateNotifier::updatePointerPos(const Point *position)
   m_eventUpdate.notify();
 }
 
-void FbUpdateNotifier::setNewCursor(const Point *hotSpot,
+void FbUpdateNotifier::setNewCursor(const Point &hotSpot,
                                     UINT16 width, UINT16 height,
-                                    const std::vector<UINT8> *cursor, 
-                                    const std::vector<UINT8> *bitmask)
+                                    const std::vector<UINT8> &cursor, 
+                                    const std::vector<UINT8> &bitmask)
 {
   {
     AutoLock al(m_fbLock);

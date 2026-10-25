@@ -44,7 +44,7 @@ void VncAuthenticationHandler::authenticate(DataInputStream *input,
   StringStorage password;
   getPassword(&password);
 
-  VncAuthentication::vncAuthenticate(input, output, &password);
+  VncAuthentication::vncAuthenticate(input, output, password);
 }
 
 void VncAuthenticationHandler::addAuthCapability(CapabilitiesManager *capManager)

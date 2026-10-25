@@ -59,7 +59,7 @@ public:
   // two functions to perform this task. These functions overwrite capability
   // records with the same code.
   //
-  void add(const RfbCapabilityInfo *capinfo, const StringStorage desc = _T(""));
+  void add(const RfbCapabilityInfo &capinfo, const StringStorage desc = _T(""));
   void add(UINT32 code, const char *vendor, const char *name,
            StringStorage desc = _T(""));
 
@@ -68,7 +68,7 @@ public:
   // and "name" signatures in the existing record and in the argument structure
   // and enables the capability only if both records are the same.
   //
-  bool enable(const RfbCapabilityInfo *capinfo);
+  bool enable(const RfbCapabilityInfo &capinfo);
 
   //
   // Check if the specified capability is known and enabled.

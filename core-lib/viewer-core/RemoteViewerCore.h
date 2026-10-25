@@ -318,7 +318,7 @@ public:
   // that a change from the GUI is posted to the network loop and applied in
   // order with the update requests, so that this timing is deterministic too.
   //
-  void setPixelFormat(const PixelFormat *viewerPixelFormat);
+  void setPixelFormat(const PixelFormat &viewerPixelFormat);
 
   //
   // Pause/resume updating the frame buffer.
@@ -600,8 +600,8 @@ private:
   // therefore one of the types this program knows.
   // @throw Exception if no type in secTypes qualifies.
   //
-  int selectSecurityType(const std::vector<UINT32> *secTypes,
-                         const std::map<UINT32, AuthHandler *> *authHandlers,
+  int selectSecurityType(const std::vector<UINT32> &secTypes,
+                         const std::map<UINT32, AuthHandler *> &authHandlers,
                          const bool isTightEnabled) const;
   void initTunnelling();
   int initAuthentication();

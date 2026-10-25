@@ -24,11 +24,11 @@
 #include "RfbPointerEventClientMessage.h"
 
 RfbPointerEventClientMessage::RfbPointerEventClientMessage(const UINT8 buttonMask,
-                                                           const Point *position)
+                                                           const Point &position)
 : m_buttonMask(buttonMask)
 {
-  m_xPos = static_cast<UINT16>(position->x);
-  m_yPos = static_cast<UINT16>(position->y);
+  m_xPos = static_cast<UINT16>(position.x);
+  m_yPos = static_cast<UINT16>(position.y);
 }
 
 RfbPointerEventClientMessage::~RfbPointerEventClientMessage()

@@ -30,7 +30,7 @@
 class RfbSetPixelFormatClientMessage final : public RfbClientToServerMessage
 {
 public:
-  RfbSetPixelFormatClientMessage(const PixelFormat *pixelFormat);
+  RfbSetPixelFormatClientMessage(const PixelFormat &pixelFormat);
   ~RfbSetPixelFormatClientMessage() override;
 
   void send(RfbOutputGate *output) override;

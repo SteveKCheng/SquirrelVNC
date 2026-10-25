@@ -184,7 +184,7 @@ bool ViewerWindow::viewerCoreSettings()
   PixelFormat pixelFormat = m_conConf->isUsing8BitColor()
                             ? StandardPixelFormatFactory::create8bppPixelFormat()
                             : StandardPixelFormatFactory::create32bppPixelFormat();
-  m_viewerCore->setPixelFormat(&pixelFormat);
+  m_viewerCore->setPixelFormat(pixelFormat);
   return true;
 }
 

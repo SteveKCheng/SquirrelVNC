@@ -23,9 +23,9 @@
 
 #include "RfbSetPixelFormatClientMessage.h"
 
-RfbSetPixelFormatClientMessage::RfbSetPixelFormatClientMessage(const PixelFormat *pixelFormat)
+RfbSetPixelFormatClientMessage::RfbSetPixelFormatClientMessage(const PixelFormat &pixelFormat)
 {
-  m_pixelFormat = *pixelFormat;
+  m_pixelFormat = pixelFormat;
 }
 
 RfbSetPixelFormatClientMessage::~RfbSetPixelFormatClientMessage()

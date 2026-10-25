@@ -62,30 +62,30 @@ protected:
 
   void readRawTile(DataInputStream *input,
                    std::vector<char> &pixels,
-                   const Rect *tileRect);
+                   const Rect &tileRect);
 
   void readSolidTile(DataInputStream *input,
                      std::vector<char> &pixels,
-                     const Rect *tileRect);
+                     const Rect &tileRect);
 
   void readPackedPaletteTile(DataInputStream *input,
                              std::vector<char> &pixels,
-                             const Rect *tileRect,
+                             const Rect &tileRect,
                              const int type);
 
   void readPlainRleTile(DataInputStream *input,
                         std::vector<char> &pixels,
-                        const Rect *tileRect);
+                        const Rect &tileRect);
 
   void readPaletteRleTile(DataInputStream *input,
                           std::vector<char> &pixels,
-                          const Rect *tileRect,
+                          const Rect &tileRect,
                           const int type);
 
 
   void drawTile(FrameBuffer *fb,
-                const Rect *tileRect,
-                const std::vector<char> *pixels);
+                const Rect &tileRect,
+                const std::vector<char> &pixels);
 
   Inflater m_inflater;
   size_t m_bytesPerPixel;

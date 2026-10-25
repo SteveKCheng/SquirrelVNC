@@ -42,34 +42,34 @@ void CapsContainer::add(UINT32 code, const char *vendor, const char *name,
   capinfo.code = code;
   memcpy(capinfo.vendorSignature, vendor, RfbCapabilityInfo::vendorSigSize);
   memcpy(capinfo.nameSignature, name, RfbCapabilityInfo::nameSigSize);
-  add(&capinfo, desc);
+  add(capinfo, desc);
 }
 
-void CapsContainer::add(const RfbCapabilityInfo *capinfo,
+void CapsContainer::add(const RfbCapabilityInfo &capinfo,
                         const StringStorage desc)
 {
   AutoLock al(&m_mapLock);
 
-  infoMap[capinfo->code] = *capinfo;
-  enableMap[capinfo->code] = false;
-  descMap[capinfo->code] = desc;
+  infoMap[capinfo.code] = capinfo;
+  enableMap[capinfo.code] = false;
+  descMap[capinfo.code] = desc;
 }
 
-bool CapsContainer::enable(const RfbCapabilityInfo *capinfo)
+bool CapsContainer::enable(const RfbCapabilityInfo &capinfo)
 {
   AutoLock al(&m_mapLock);
-  if (!isKnown(capinfo->code)) {
+  if (!isKnown(capinfo.code)) {
     return false;
   }
 
-  const RfbCapabilityInfo known = infoMap[capinfo->code];
-  if (!known.isEqual(capinfo->vendorSignature, capinfo->nameSignature)){
-    enableMap[capinfo->code] = false;
+  const RfbCapabilityInfo known = infoMap[capinfo.code];
+  if (!known.isEqual(capinfo.vendorSignature, capinfo.nameSignature)){
+    enableMap[capinfo.code] = false;
     return false;
   }
 
-  enableMap[capinfo->code] = true;
-  m_plist.push_back(capinfo->code);
+  enableMap[capinfo.code] = true;
+  m_plist.push_back(capinfo.code);
   return true;
 }
 

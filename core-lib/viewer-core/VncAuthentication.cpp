@@ -30,14 +30,14 @@
 
 void VncAuthentication::vncAuthenticate(DataInputStream *input,
                                         DataOutputStream *output,
-                                        const StringStorage *password)
+                                        const StringStorage &password)
 {
   // TODO: removed duplicate code: ControlAuth.cpp
 
   // Prepare data for authentication: the key is the first 8 bytes of the
   // password in UTF-8, as TigerVNC's vncpasswd stores it, padded with
   // zeros. Cutting may split a character; the key is only bytes.
-  std::vector<std::byte> passwordUtf8 = TextEncoding::toUtf8(*password);
+  std::vector<std::byte> passwordUtf8 = TextEncoding::toUtf8(password);
 
   UINT8 m_password[VNC_PASSWORD_SIZE];
   memset(m_password, 0, sizeof(m_password));
