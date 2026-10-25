@@ -65,7 +65,7 @@ protected:
   // This function is thread-safe from dstFrameBuffer.
   //
   virtual void copy(FrameBuffer *dstFrameBuffer,
-                    const FrameBuffer *srcFrameBuffer,
+                    const FrameBuffer &srcFrameBuffer,
                     const Rect *rect,
                     LocalMutex *fbLock);
 

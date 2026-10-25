@@ -41,7 +41,7 @@ void CopyRectDecoder::decode(RfbInputGate *input,
 }
 
 void CopyRectDecoder::copy(FrameBuffer *dstFrameBuffer,
-                           const FrameBuffer * /* srcFrameBuffer */,
+                           const FrameBuffer & /* srcFrameBuffer */,
                            const Rect *rect,
                            LocalMutex *fbLock)
 {

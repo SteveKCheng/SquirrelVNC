@@ -70,7 +70,7 @@ public:
   void onAuthError(const AuthException *exception) override;
   void onError(const Exception *exception) override;
   // Not recorded (see above).
-  void onFrameBufferUpdate(const FrameBuffer *fb, const Rect *update) override;
+  void onFrameBufferUpdate(const FrameBuffer &fb, const Rect *update) override;
   void onFrameBufferPropChange(const FrameBuffer *fb) override;
 
   //

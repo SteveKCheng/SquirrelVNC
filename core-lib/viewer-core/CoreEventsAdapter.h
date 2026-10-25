@@ -101,7 +101,7 @@ public:
   // the frame buffer is locked, and the rectangle is guaranteed to be valid
   // (no guarantees about other areas of the frame buffer).
   //
-  virtual void onFrameBufferUpdate(const FrameBuffer *fb, const Rect *update) = 0;
+  virtual void onFrameBufferUpdate(const FrameBuffer &fb, const Rect *update) = 0;
 
   // changed properties of frame buffer.
   // In this moment frame buffer area is dirty and may be contained incorrect data

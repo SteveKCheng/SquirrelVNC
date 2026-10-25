@@ -1559,7 +1559,7 @@ std::vector<Rect> RemoteViewerCore::getDesktops()
 void RemoteViewerCore::copyFrameBuffer(FrameBuffer *dst)
 {
   AutoLock al(&m_fbLock);
-  if (!dst->clone(&m_frameBuffer)) {
+  if (!dst->clone(m_frameBuffer)) {
     throw Exception(_T("Failed to copy the frame buffer"));
   }
 }

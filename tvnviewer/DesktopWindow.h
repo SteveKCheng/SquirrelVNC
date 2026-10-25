@@ -47,7 +47,7 @@ public:
   ~DesktopWindow() override;
 
   void setClipboardData(const StringStorage *strText);
-  void updateFramebuffer(const FrameBuffer *framebuffer,
+  void updateFramebuffer(const FrameBuffer &framebuffer,
                          const Rect *dstRect);
   // this function must be called if size of image was changed
   // or the number of bits per pixel

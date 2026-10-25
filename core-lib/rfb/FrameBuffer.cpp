@@ -27,9 +27,9 @@
 // Returns true if pf is equal to the pixel format of fb.  getPixelFormat()
 // returns a copy, which is held here so that PixelFormat::isEqualTo() can
 // take its address.  The call stays virtual: DibFrameBuffer overrides it.
-static inline bool hasPixelFormatOf(const PixelFormat *pf, const FrameBuffer *fb)
+static inline bool hasPixelFormatOf(const PixelFormat *pf, const FrameBuffer &fb)
 {
-  PixelFormat fbPixelFormat = fb->getPixelFormat();
+  PixelFormat fbPixelFormat = fb.getPixelFormat();
   return pf->isEqualTo(fbPixelFormat);
 }
 
@@ -43,15 +43,15 @@ FrameBuffer::~FrameBuffer(void)
 {
 }
 
-bool FrameBuffer::assignProperties(const FrameBuffer *srcFrameBuffer)
+bool FrameBuffer::assignProperties(const FrameBuffer &srcFrameBuffer)
 {
-  Dimension srcDimension = srcFrameBuffer->getDimension();
-  PixelFormat srcPixelFormat = srcFrameBuffer->getPixelFormat();
+  Dimension srcDimension = srcFrameBuffer.getDimension();
+  PixelFormat srcPixelFormat = srcFrameBuffer.getPixelFormat();
   setProperties(&srcDimension, &srcPixelFormat);
   return resizeBuffer();
 }
 
-bool FrameBuffer::clone(const FrameBuffer *srcFrameBuffer)
+bool FrameBuffer::clone(const FrameBuffer &srcFrameBuffer)
 {
   if (!assignProperties(srcFrameBuffer)) {
     return false;
@@ -110,18 +110,18 @@ void FrameBuffer::fillRect(const Rect *dstRect, UINT32 color)
     memcpy(dstLinePtr, srcLinePtr, sizeLineRect);
 }
 
-bool FrameBuffer::isEqualTo(const FrameBuffer *frameBuffer)
+bool FrameBuffer::isEqualTo(const FrameBuffer &frameBuffer)
 {
-  Dimension dimension = frameBuffer->getDimension();
+  Dimension dimension = frameBuffer.getDimension();
   return m_dimension.cmpDim(dimension) &&
          hasPixelFormatOf(&m_pixelFormat, frameBuffer);
 }
 
-void FrameBuffer::clipRect(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+void FrameBuffer::clipRect(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
                            const int srcX, const int srcY,
                            Rect *dstClippedRect, Rect *srcClippedRect)
 {
-  Rect srcBufferRect = srcFrameBuffer->getDimension().getRect();
+  Rect srcBufferRect = srcFrameBuffer.getDimension().getRect();
   clipRect(dstRect, &srcBufferRect, srcX, srcY, dstClippedRect, srcClippedRect);
 }
 
@@ -156,7 +156,7 @@ void FrameBuffer::clipRect(const Rect *dstRect, const Rect *srcBufferRect,
 }
 
 bool FrameBuffer::overlay(const Rect *dstRect,
-                          const FrameBuffer *srcFrameBuffer,
+                          const FrameBuffer &srcFrameBuffer,
                           int srcX, int srcY,
                           const char *andMask)
 {
@@ -176,7 +176,7 @@ bool FrameBuffer::overlay(const Rect *dstRect,
 }
 
 template<class PIXEL_T> bool FrameBuffer::overlayT(const Rect *dstRect,
-                                                   const FrameBuffer *srcFrameBuffer,
+                                                   const FrameBuffer &srcFrameBuffer,
                                                    int srcX, int srcY,
                                                    const char *andMask)
 {
@@ -188,8 +188,8 @@ template<class PIXEL_T> bool FrameBuffer::overlayT(const Rect *dstRect,
   }
 
   PIXEL_T *dstPixels = (PIXEL_T *)getBuffer();
-  PIXEL_T *srcPixels = (PIXEL_T *)srcFrameBuffer->getBuffer();
-  int srcWidth = srcFrameBuffer->getDimension().width;
+  PIXEL_T *srcPixels = (PIXEL_T *)srcFrameBuffer.getBuffer();
+  int srcWidth = srcFrameBuffer.getDimension().width;
   int dstWidth = getDimension().width;
   size_t bytesPerRow = (srcWidth + 7) / 8;
   for (int iRow = srcClippedRect.top; iRow < srcClippedRect.bottom; iRow++) {
@@ -206,7 +206,7 @@ template<class PIXEL_T> bool FrameBuffer::overlayT(const Rect *dstRect,
   return true;
 }
 
-bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
                            int srcX, int srcY)
 {
   if (!hasPixelFormatOf(&m_pixelFormat, srcFrameBuffer)) {
@@ -223,7 +223,7 @@ bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffe
   // Shortcuts
   int pixelSize = m_pixelFormat.bitsPerPixel / 8;
   int dstStrideBytes = m_dimension.width * pixelSize;
-  int srcStrideBytes = srcFrameBuffer->getDimension().width * pixelSize;
+  int srcStrideBytes = srcFrameBuffer.getDimension().width * pixelSize;
 
   int resultHeight = dstClippedRect.getHeight();
   int resultWidthBytes = dstClippedRect.getWidth() * pixelSize;
@@ -232,7 +232,7 @@ bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffe
                 + dstClippedRect.top * dstStrideBytes
                 + pixelSize * dstClippedRect.left;
 
-  UINT8 *psrc = (UINT8 *)srcFrameBuffer->getBuffer()
+  UINT8 *psrc = (UINT8 *)srcFrameBuffer.getBuffer()
                 + srcClippedRect.top * srcStrideBytes
                 + pixelSize * srcClippedRect.left;
 
@@ -243,14 +243,14 @@ bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffe
   return true;
 }
 
-bool FrameBuffer::copyFrom(const FrameBuffer *srcFrameBuffer,
+bool FrameBuffer::copyFrom(const FrameBuffer &srcFrameBuffer,
                            int srcX, int srcY)
 {
   Rect fbRect = m_dimension.getRect();
   return copyFrom(&fbRect, srcFrameBuffer, srcX, srcY);
 }
 
-bool FrameBuffer::cmpFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+bool FrameBuffer::cmpFrom(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
                           const int srcX, const int srcY)
 {
   if (!hasPixelFormatOf(&m_pixelFormat, srcFrameBuffer)) {
@@ -267,7 +267,7 @@ bool FrameBuffer::cmpFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer
   // Shortcuts
   int pixelSize = m_pixelFormat.bitsPerPixel / 8;
   int dstStrideBytes = m_dimension.width * pixelSize;
-  int srcStrideBytes = srcFrameBuffer->getDimension().width * pixelSize;
+  int srcStrideBytes = srcFrameBuffer.getDimension().width * pixelSize;
 
   int resultHeight = dstClippedRect.getHeight();
   int resultWidthBytes = dstClippedRect.getWidth() * pixelSize;
@@ -276,7 +276,7 @@ bool FrameBuffer::cmpFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer
                 + dstClippedRect.top * dstStrideBytes
                 + pixelSize * dstClippedRect.left;
 
-  UINT8 *psrc = (UINT8 *)srcFrameBuffer->getBuffer()
+  UINT8 *psrc = (UINT8 *)srcFrameBuffer.getBuffer()
                 + srcClippedRect.top * srcStrideBytes
                 + pixelSize * srcClippedRect.left;
 
@@ -293,7 +293,7 @@ void FrameBuffer::move(const Rect *dstRect, const int srcX, const int srcY)
 {
   Rect srcClippedRect, dstClippedRect;
 
-  clipRect(dstRect, this, srcX, srcY, &dstClippedRect, &srcClippedRect);
+  clipRect(dstRect, *this, srcX, srcY, &dstClippedRect, &srcClippedRect);
   if (dstClippedRect.area() <= 0 || srcClippedRect.area() <= 0) {
     return;
   }

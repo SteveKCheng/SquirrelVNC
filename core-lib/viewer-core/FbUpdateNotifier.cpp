@@ -105,7 +105,7 @@ void FbUpdateNotifier::execute()
         m_adapter->onFrameBufferPropChange(m_frameBuffer);
         // FIXME: it's bad code. Must work without one next line, but not it.
         Rect fbRect = m_frameBuffer->getDimension().getRect();
-        m_adapter->onFrameBufferUpdate(m_frameBuffer, &fbRect);
+        m_adapter->onFrameBufferUpdate(*m_frameBuffer, &fbRect);
       } catch (...) {
         m_logWriter->error(_T("FbUpdateNotifier (event): error in set new size"));
       }
@@ -127,7 +127,7 @@ void FbUpdateNotifier::execute()
 
       try {
         for (std::vector<Rect>::iterator i = updateList.begin(); i != updateList.end(); ++i) {
-			m_adapter->onFrameBufferUpdate(m_frameBuffer, &*i);
+			m_adapter->onFrameBufferUpdate(*m_frameBuffer, &*i);
         }
       } catch (...) {
         m_logWriter->error(_T("FbUpdateNotifier (event): error in update"));

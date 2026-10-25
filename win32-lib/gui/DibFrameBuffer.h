@@ -41,16 +41,16 @@ public:
   void setColor(UINT8 reg, UINT8 green, UINT8 blue) override;
   void fillRect(const Rect *dstRect, UINT32 color) override;
 
-  bool isEqualTo(const FrameBuffer *frameBuffer) override;
+  bool isEqualTo(const FrameBuffer &frameBuffer) override;
 
-  bool copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+  bool copyFrom(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
                 int srcX, int srcY) override;
-  bool copyFrom(const FrameBuffer *srcFrameBuffer,
+  bool copyFrom(const FrameBuffer &srcFrameBuffer,
                 int srcX, int srcY) override;
-  bool overlay(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+  bool overlay(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
                int srcX, int srcY, const char *andMask) override;
   void move(const Rect *dstRect, const int srcX, const int srcY) override;
-  bool cmpFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+  bool cmpFrom(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
                const int srcX, const int srcY) override;
 
   inline Dimension getDimension() const override;
@@ -119,8 +119,8 @@ private:
   // This section to reduce access to some function that have been inherited from the
   // FrameBuffer class and can't to be use in here. Also, if user code will to try
   // use this functions from a base class its will throw Exception.
-  bool assignProperties(const FrameBuffer *srcFrameBuffer) override;
-  bool clone(const FrameBuffer *srcFrameBuffer) override;
+  bool assignProperties(const FrameBuffer &srcFrameBuffer) override;
+  bool clone(const FrameBuffer &srcFrameBuffer) override;
   bool setDimension(const Dimension *newDim) override;
   bool setDimension(const Rect *rect) override;
   void setEmptyDimension(const Rect *dimByRect) override;

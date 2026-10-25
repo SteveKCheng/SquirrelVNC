@@ -39,12 +39,12 @@ void DibFrameBuffer::setTargetDC(HDC targetDC)
   m_dibSection->setTargetDC(targetDC);
 }
 
-bool DibFrameBuffer::assignProperties(const FrameBuffer * /* srcFrameBuffer */)
+bool DibFrameBuffer::assignProperties(const FrameBuffer & /* srcFrameBuffer */)
 {
   throw Exception(_T("Wrong: You shouln't use the DibFrameBuffer::assignProperties() function."));
 }
 
-bool DibFrameBuffer::clone(const FrameBuffer * /* srcFrameBuffer */)
+bool DibFrameBuffer::clone(const FrameBuffer & /* srcFrameBuffer */)
 {
   throw Exception(_T("Wrong: You shouln't use the DibFrameBuffer::clone() function."));
 }
@@ -59,23 +59,23 @@ void DibFrameBuffer::fillRect(const Rect *dstRect, UINT32 color)
   m_fb.fillRect(dstRect, color);
 }
 
-bool DibFrameBuffer::isEqualTo(const FrameBuffer *frameBuffer)
+bool DibFrameBuffer::isEqualTo(const FrameBuffer &frameBuffer)
 {
   return m_fb.isEqualTo(frameBuffer);
 }
 
-bool DibFrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+bool DibFrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
                               int srcX, int srcY)
 {
   return m_fb.copyFrom(dstRect, srcFrameBuffer, srcX, srcY);
 }
 
-bool DibFrameBuffer::copyFrom(const FrameBuffer *srcFrameBuffer, int srcX, int srcY)
+bool DibFrameBuffer::copyFrom(const FrameBuffer &srcFrameBuffer, int srcX, int srcY)
 {
   return m_fb.copyFrom(srcFrameBuffer, srcX, srcY);
 }
 
-bool DibFrameBuffer::overlay(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+bool DibFrameBuffer::overlay(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
                              int srcX, int srcY, const char *andMask)
 {
   return m_fb.overlay(dstRect, srcFrameBuffer, srcX, srcY, andMask);
@@ -86,7 +86,7 @@ void DibFrameBuffer::move(const Rect *dstRect, const int srcX, const int srcY)
   m_fb.move(dstRect, srcX, srcY);
 }
 
-bool DibFrameBuffer::cmpFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+bool DibFrameBuffer::cmpFrom(const Rect *dstRect, const FrameBuffer &srcFrameBuffer,
                              const int srcX, const int srcY)
 {
   return m_fb.cmpFrom(dstRect, srcFrameBuffer, srcX, srcY);

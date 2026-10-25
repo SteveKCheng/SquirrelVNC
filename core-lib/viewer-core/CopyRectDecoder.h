@@ -46,7 +46,7 @@ protected:
   // This method inherited by DecoderOfRectangle.
   //
   void copy(FrameBuffer *dstFrameBuffer,
-            const FrameBuffer *srcFrameBuffer,
+            const FrameBuffer &srcFrameBuffer,
             const Rect *rect,
             LocalMutex *fbLock) override;
 

@@ -511,7 +511,7 @@ bool DesktopWindow::onDestroy()
   return true;
 }
 
-void DesktopWindow::updateFramebuffer(const FrameBuffer *framebuffer,
+void DesktopWindow::updateFramebuffer(const FrameBuffer &framebuffer,
                                      const Rect *dstRect)
 {
   // This code doesn't require blocking of m_framebuffer.

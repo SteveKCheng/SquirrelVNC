@@ -42,12 +42,12 @@ void DecoderOfRectangle::process(RfbInputGate *input,
                      FbUpdateNotifier *fbNotifier)
 {
   decode(input, secondFrameBuffer, rect);
-  copy(frameBuffer, secondFrameBuffer, rect, fbLock);
+  copy(frameBuffer, *secondFrameBuffer, rect, fbLock);
   notify(fbNotifier, rect);
 }
 
 void DecoderOfRectangle::copy(FrameBuffer *dstFrameBuffer,
-                   const FrameBuffer *srcFrameBuffer,
+                   const FrameBuffer &srcFrameBuffer,
                    const Rect *rect,
                    LocalMutex *fbLock)
 {
