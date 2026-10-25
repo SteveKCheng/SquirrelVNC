@@ -35,14 +35,33 @@
 
 #include "OperationNotPermittedException.h"
 #include "FileTransferEventHandler.h"
+#include "FileTransferReplyBuffer.h"
 
 class FileTransferMessageProcessor final : public ListenerContainer<FileTransferEventHandler *>
 {
 public:
-  FileTransferMessageProcessor();
+  //
+  // replyBuffer reads the replies; it must outlive this object.
+  //
+  explicit FileTransferMessageProcessor(FileTransferReplyBuffer &replyBuffer);
   ~FileTransferMessageProcessor();
 
+  //
+  // Processes one file-transfer reply, on the core thread: first reads it
+  // in full with the reply buffer, then notifies the listeners, which do
+  // not read the stream. Reading is done without the listener list locked.
+  //
+  // Pre-conditions: the message type, rfbMessage, has been read from input.
+  // Post-conditions: the reply has been read from input, and each listener
+  // notified of it.
+  // Throws whatever FileTransferReplyBuffer::readReply() throws, before any
+  // listener is notified; and whatever a listener throws, after which the
+  // listeners after it are not notified.
+  //
   void processRfbMessage(DataInputStream *input, UINT32 rfbMessage);
+
+private:
+  FileTransferReplyBuffer &m_replyBuffer;
 };
 
 #endif

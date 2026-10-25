@@ -24,7 +24,8 @@
 #include "FileTransferMessageProcessor.h"
 #include "ft-common/FTMessage.h"
 
-FileTransferMessageProcessor::FileTransferMessageProcessor()
+FileTransferMessageProcessor::FileTransferMessageProcessor(FileTransferReplyBuffer &replyBuffer)
+: m_replyBuffer(replyBuffer)
 {
 }
 
@@ -35,6 +36,10 @@ FileTransferMessageProcessor::~FileTransferMessageProcessor()
 void FileTransferMessageProcessor::processRfbMessage(DataInputStream *input,
                                                      UINT32 rfbMessage)
 {
+  // The only read of the stream: once the stream becomes asynchronous, this
+  // is the one call that waits for data, and no lock is held across it.
+  m_replyBuffer.readReply(input, rfbMessage);
+
   AutoLock al(&m_listeners);
 
   for (size_t i = 0; i < m_listeners.size(); i++) {
@@ -42,46 +47,46 @@ void FileTransferMessageProcessor::processRfbMessage(DataInputStream *input,
 
     switch (rfbMessage) {
     case FTMessage::COMPRESSION_SUPPORT_REPLY:
-      listener->onCompressionSupportReply(input);
+      listener->onCompressionSupportReply();
       break;
     case FTMessage::FILE_LIST_REPLY:
-      listener->onFileListReply(input);
+      listener->onFileListReply();
       break;
     case FTMessage::DOWNLOAD_START_REPLY:
-      listener->onDownloadReply(input);
+      listener->onDownloadReply();
       break;
     case FTMessage::DOWNLOAD_DATA_REPLY:
-      listener->onDownloadDataReply(input);
+      listener->onDownloadDataReply();
       break;
     case FTMessage::DOWNLOAD_END_REPLY:
-      listener->onDownloadEndReply(input);
+      listener->onDownloadEndReply();
       break;
     case FTMessage::UPLOAD_START_REPLY:
-      listener->onUploadReply(input);
+      listener->onUploadReply();
       break;
     case FTMessage::UPLOAD_DATA_REPLY:
-      listener->onUploadDataReply(input);
+      listener->onUploadDataReply();
       break;
     case FTMessage::UPLOAD_END_REPLY:
-      listener->onUploadEndReply(input);
+      listener->onUploadEndReply();
       break;
     case FTMessage::MD5_REPLY:
-      listener->onMd5DataReply(input);
+      listener->onMd5DataReply();
       break;
     case FTMessage::DIRSIZE_REPLY:
-      listener->onDirSizeReply(input);
+      listener->onDirSizeReply();
       break;
     case FTMessage::RENAME_REPLY:
-      listener->onMvReply(input);
+      listener->onMvReply();
       break;
     case FTMessage::MKDIR_REPLY:
-      listener->onMkdirReply(input);
+      listener->onMkdirReply();
       break;
     case FTMessage::REMOVE_REPLY:
-      listener->onRmReply(input);
+      listener->onRmReply();
       break;
     case FTMessage::LAST_REQUEST_FAILED_REPLY:
-      listener->onLastRequestFailedReply(input);
+      listener->onLastRequestFailedReply();
       break;
     } // switch
   } // for

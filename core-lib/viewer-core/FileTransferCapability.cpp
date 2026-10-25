@@ -34,14 +34,14 @@
 
 FileTransferCapability::FileTransferCapability(Logger *logger)
 : m_logWriter(logger),
-  m_ftReplyBuffer(&m_logWriter),
   m_ftRequestSender(&m_logWriter),
+  m_ftReplyBuffer(&m_logWriter),
+  m_ftMessageProcessor(m_ftReplyBuffer),
   m_ftCore(&m_logWriter,
            &m_ftRequestSender,
            &m_ftReplyBuffer,
            &m_ftMessageProcessor)
 {
-  m_ftMessageProcessor.addListener(&m_ftReplyBuffer);
 }
 
 FileTransferCapability::~FileTransferCapability()

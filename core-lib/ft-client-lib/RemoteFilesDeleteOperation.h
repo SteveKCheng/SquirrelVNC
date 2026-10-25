@@ -66,9 +66,9 @@ public:
   // File transfer message(accepted by this operation) handlers
   //
 
-  void onFileListReply(DataInputStream *input) override;
-  void onRmReply(DataInputStream *input) override;
-  void onLastRequestFailedReply(DataInputStream *input) override;
+  void onFileListReply() override;
+  void onRmReply() override;
+  void onLastRequestFailedReply() override;
 
 private:
 

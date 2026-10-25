@@ -42,8 +42,8 @@ public:
   void start() override;
 
 protected:
-  void onMkdirReply(DataInputStream *input) override;
-  void onLastRequestFailedReply(DataInputStream *input) override;
+  void onMkdirReply() override;
+  void onLastRequestFailedReply() override;
 
 protected:
   StringStorage m_pathToTargetFile;

@@ -47,24 +47,24 @@ protected:
 public:
   ~FileTransferEventAdapter() override;
 
-  void onCompressionSupportReply(DataInputStream *input) override;
-  void onFileListReply(DataInputStream *input) override;
-  void onMd5DataReply(DataInputStream *input) override;
+  void onCompressionSupportReply() override;
+  void onFileListReply() override;
+  void onMd5DataReply() override;
 
-  void onUploadReply(DataInputStream *input) override;
-  void onUploadDataReply(DataInputStream *input) override;
-  void onUploadEndReply(DataInputStream *input) override;
+  void onUploadReply() override;
+  void onUploadDataReply() override;
+  void onUploadEndReply() override;
 
-  void onDownloadReply(DataInputStream *input) override;
-  void onDownloadDataReply(DataInputStream *input) override;
-  void onDownloadEndReply(DataInputStream *input) override;
+  void onDownloadReply() override;
+  void onDownloadDataReply() override;
+  void onDownloadEndReply() override;
 
-  void onMkdirReply(DataInputStream *input) override;
-  void onRmReply(DataInputStream *input) override;
-  void onMvReply(DataInputStream *input) override;
+  void onMkdirReply() override;
+  void onRmReply() override;
+  void onMvReply() override;
 
-  void onDirSizeReply(DataInputStream *input) override;
-  void onLastRequestFailedReply(DataInputStream *input) override;
+  void onDirSizeReply() override;
+  void onLastRequestFailedReply() override;
 };
 
 #endif

@@ -71,12 +71,12 @@ protected:
   // Inherited from FileTransferEventHandler
   //
 
-  void onFileListReply(DataInputStream *input) override;
-  void onDownloadReply(DataInputStream *input) override;
-  void onDownloadDataReply(DataInputStream *input) override;
-  void onDownloadEndReply(DataInputStream *input) override;
-  void onLastRequestFailedReply(DataInputStream *input) override;
-  void onDirSizeReply(DataInputStream *input) override;
+  void onFileListReply() override;
+  void onDownloadReply() override;
+  void onDownloadDataReply() override;
+  void onDownloadEndReply() override;
+  void onLastRequestFailedReply() override;
+  void onDirSizeReply() override;
 
 private:
 

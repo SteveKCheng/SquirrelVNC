@@ -404,7 +404,8 @@ The read path to colour:
   `AuthHandler::authenticate`.
 - **`FileTransferReplyBuffer`**. Of the file-transfer reply handlers it
   is the only one that reads; the operations receive the stream but
-  never touch it.
+  never touch it. (Since Phase 1 step 3, only its `readReply()` takes
+  the stream.)
 
 No read happens inside a `catch` block, where `co_await` is not
 allowed.
@@ -434,7 +435,11 @@ Each step is useful on its own.
    `FileTransferMessageProcessor` calls the reply parser explicitly,
    then notifies the operations without passing the stream, so the
    coroutine colour stops at the parser instead of spreading through
-   every handler interface.
+   every handler interface. **Done** (2026-10-25):
+   `FileTransferReplyBuffer` is no longer a listener; its handlers became
+   private `read*Reply()` functions behind `readReply()`, which
+   `processRfbMessage()` calls before locking the listener list and
+   notifying. `FileTransferEventHandler`'s methods take no stream.
 4. **Coroutine infrastructure, unused:** a small lazy `Task<T>` of our
    own, `syncWait`, and a reader awaitable over today's blocking
    stream, with unit tests. Asio stays out of the protocol core

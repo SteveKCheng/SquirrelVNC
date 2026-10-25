@@ -22,6 +22,7 @@
 //
 
 #include "FileTransferReplyBuffer.h"
+#include "ft-common/FTMessage.h"
 #include "io-lib/ByteArrayInputStream.h"
 #include "thread/AutoLock.h"
 #include <crtdbg.h>
@@ -81,7 +82,55 @@ std::vector<UINT8> FileTransferReplyBuffer::getDownloadBuffer()
   return m_downloadBuffer;
 }
 
-void FileTransferReplyBuffer::onCompressionSupportReply(DataInputStream *input)
+void FileTransferReplyBuffer::readReply(DataInputStream *input, UINT32 rfbMessage)
+{
+  switch (rfbMessage) {
+  case FTMessage::COMPRESSION_SUPPORT_REPLY:
+    readCompressionSupportReply(input);
+    break;
+  case FTMessage::FILE_LIST_REPLY:
+    readFileListReply(input);
+    break;
+  case FTMessage::DOWNLOAD_START_REPLY:
+    readDownloadReply(input);
+    break;
+  case FTMessage::DOWNLOAD_DATA_REPLY:
+    readDownloadDataReply(input);
+    break;
+  case FTMessage::DOWNLOAD_END_REPLY:
+    readDownloadEndReply(input);
+    break;
+  case FTMessage::UPLOAD_START_REPLY:
+    readUploadReply(input);
+    break;
+  case FTMessage::UPLOAD_DATA_REPLY:
+    readUploadDataReply(input);
+    break;
+  case FTMessage::UPLOAD_END_REPLY:
+    readUploadEndReply(input);
+    break;
+  case FTMessage::MD5_REPLY:
+    readMd5DataReply(input);
+    break;
+  case FTMessage::DIRSIZE_REPLY:
+    readDirSizeReply(input);
+    break;
+  case FTMessage::RENAME_REPLY:
+    readMvReply(input);
+    break;
+  case FTMessage::MKDIR_REPLY:
+    readMkdirReply(input);
+    break;
+  case FTMessage::REMOVE_REPLY:
+    readRmReply(input);
+    break;
+  case FTMessage::LAST_REQUEST_FAILED_REPLY:
+    readLastRequestFailedReply(input);
+    break;
+  }
+}
+
+void FileTransferReplyBuffer::readCompressionSupportReply(DataInputStream *input)
 {
   m_isCompressionSupported = (input->readUInt8() == 1);
 
@@ -89,7 +138,7 @@ void FileTransferReplyBuffer::onCompressionSupportReply(DataInputStream *input)
                     m_isCompressionSupported ? _T("supported") : _T("not supported"));
 }
 
-void FileTransferReplyBuffer::onFileListReply(DataInputStream *input)
+void FileTransferReplyBuffer::readFileListReply(DataInputStream *input)
 {
   UINT8 compressionLevel = 0;
   UINT32 compressedSize = 0;
@@ -149,32 +198,32 @@ void FileTransferReplyBuffer::onFileListReply(DataInputStream *input)
   }
 }
 
-void FileTransferReplyBuffer::onMd5DataReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readMd5DataReply(DataInputStream * /* input */)
 {
   throw OperationNotSupportedException();
 }
 
-void FileTransferReplyBuffer::onUploadReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readUploadReply(DataInputStream * /* input */)
 {
   m_logWriter->info(_T("Received upload reply\n"));
 }
 
-void FileTransferReplyBuffer::onUploadDataReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readUploadDataReply(DataInputStream * /* input */)
 {
   m_logWriter->info(_T("Received upload data reply\n"));
 }
 
-void FileTransferReplyBuffer::onUploadEndReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readUploadEndReply(DataInputStream * /* input */)
 {
   m_logWriter->info(_T("Received upload end reply\n"));
 }
 
-void FileTransferReplyBuffer::onDownloadReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readDownloadReply(DataInputStream * /* input */)
 {
   m_logWriter->info(_T("Received download reply\n"));
 }
 
-void FileTransferReplyBuffer::onDownloadDataReply(DataInputStream *input)
+void FileTransferReplyBuffer::readDownloadDataReply(DataInputStream *input)
 {
   UINT8 coLevel = input->readUInt8();
   UINT32 coBufferSize = input->readUInt32();
@@ -192,7 +241,7 @@ void FileTransferReplyBuffer::onDownloadDataReply(DataInputStream *input)
                     coBufferSize, uncoBufferSize, coLevel);
 }
 
-void FileTransferReplyBuffer::onDownloadEndReply(DataInputStream *input)
+void FileTransferReplyBuffer::readDownloadEndReply(DataInputStream *input)
 {
   m_downloadFileFlags = input->readUInt8();
   m_downloadLastModified = input->readUInt64();
@@ -203,29 +252,29 @@ void FileTransferReplyBuffer::onDownloadEndReply(DataInputStream *input)
                     m_downloadFileFlags, m_downloadLastModified);
 }
 
-void FileTransferReplyBuffer::onMkdirReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readMkdirReply(DataInputStream * /* input */)
 {
   m_logWriter->info(_T("Received mkdir reply\n"));
 }
 
-void FileTransferReplyBuffer::onRmReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readRmReply(DataInputStream * /* input */)
 {
   m_logWriter->info(_T("Received rm reply\n"));
 }
 
-void FileTransferReplyBuffer::onMvReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readMvReply(DataInputStream * /* input */)
 {
   m_logWriter->info(_T("Received rename reply\n"));
 }
 
-void FileTransferReplyBuffer::onDirSizeReply(DataInputStream *input)
+void FileTransferReplyBuffer::readDirSizeReply(DataInputStream *input)
 {
   m_dirSize = input->readUInt64();
 
   m_logWriter->info(_T("Received dirsize reply\n"));
 }
 
-void FileTransferReplyBuffer::onLastRequestFailedReply(DataInputStream *input)
+void FileTransferReplyBuffer::readLastRequestFailedReply(DataInputStream *input)
 {
   input->readUTF8(&m_lastErrorMessage);
 

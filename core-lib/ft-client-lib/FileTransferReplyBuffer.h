@@ -24,8 +24,6 @@
 #ifndef _FILE_TRANSFER_REPLY_BUFFER_H_
 #define _FILE_TRANSFER_REPLY_BUFFER_H_
 
-#include "FileTransferEventHandler.h"
-
 #include "io-lib/DataInputStream.h"
 
 #include "ft-common/FileInfo.h"
@@ -38,11 +36,11 @@
 
 #include <vector>
 
-class FileTransferReplyBuffer final : public FileTransferEventHandler
+class FileTransferReplyBuffer final
 {
 public:
   FileTransferReplyBuffer(LogWriter *logWriter);
-  ~FileTransferReplyBuffer() override;
+  ~FileTransferReplyBuffer();
 
   void getLastErrorMessage(StringStorage *storage);
 
@@ -61,33 +59,41 @@ public:
   UINT64 getDirSize();
 
   //
-  // Inherited from FileTransferEventHandler abstract class
+  // Reads one file-transfer reply from input, and keeps what it holds for
+  // the getters above (and the operations, through them). Called on the
+  // core thread, before the listeners of FileTransferMessageProcessor are
+  // notified of the reply. Does nothing for other message types.
   //
+  // Pre-conditions: the message type, rfbMessage, has been read from input.
+  // Post-conditions: the reply has been read from input.
+  // Throws whatever the read*Reply() function for the type throws; then
+  // the stream is left in the middle of the reply.
+  //
+  void readReply(DataInputStream *input, UINT32 rfbMessage);
 
-  void onCompressionSupportReply(DataInputStream *input) override;
+private:
+  void readCompressionSupportReply(DataInputStream *input);
   // Reads a file list reply into m_filesInfo, replacing the previous list.
   // If this throws, the previous list is gone and the new one may be partly
   // read: some entries may be left empty.  The count the server sends is
   // rejected if the data is too short to hold that many entries.
-  void onFileListReply(DataInputStream *input) override;
-  void onMd5DataReply(DataInputStream *input) override;
+  void readFileListReply(DataInputStream *input);
+  void readMd5DataReply(DataInputStream *input);
 
-  void onUploadReply(DataInputStream *input) override;
-  void onUploadDataReply(DataInputStream *input) override;
-  void onUploadEndReply(DataInputStream *input) override;
+  void readUploadReply(DataInputStream *input);
+  void readUploadDataReply(DataInputStream *input);
+  void readUploadEndReply(DataInputStream *input);
 
-  void onDownloadReply(DataInputStream *input) override;
-  void onDownloadDataReply(DataInputStream *input) override;
-  void onDownloadEndReply(DataInputStream *input) override;
+  void readDownloadReply(DataInputStream *input);
+  void readDownloadDataReply(DataInputStream *input);
+  void readDownloadEndReply(DataInputStream *input);
 
-  void onMkdirReply(DataInputStream *input) override;
-  void onRmReply(DataInputStream *input) override;
-  void onMvReply(DataInputStream *input) override;
+  void readMkdirReply(DataInputStream *input);
+  void readRmReply(DataInputStream *input);
+  void readMvReply(DataInputStream *input);
 
-  void onDirSizeReply(DataInputStream *input) override;
-  void onLastRequestFailedReply(DataInputStream *input) override;
-
-private:
+  void readDirSizeReply(DataInputStream *input);
+  void readLastRequestFailedReply(DataInputStream *input);
 
   /**
    * Reads a block of compressedSize bytes from input, and inflates it with

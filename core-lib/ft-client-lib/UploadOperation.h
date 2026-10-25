@@ -95,12 +95,12 @@ public:
   // Event handlers to process file transfer messages
   //
 
-  void onUploadReply(DataInputStream *input) override;
-  void onUploadDataReply(DataInputStream *input) override;
-  void onUploadEndReply(DataInputStream *input) override;
-  void onMkdirReply(DataInputStream *input) override;
-  void onLastRequestFailedReply(DataInputStream *input) override;
-  void onFileListReply(DataInputStream *input) override;
+  void onUploadReply() override;
+  void onUploadDataReply() override;
+  void onUploadEndReply() override;
+  void onMkdirReply() override;
+  void onLastRequestFailedReply() override;
+  void onFileListReply() override;
 
 private:
 

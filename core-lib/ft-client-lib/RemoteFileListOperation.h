@@ -47,8 +47,8 @@ public:
   // File transfer message handlers
   //
 
-  void onFileListReply(DataInputStream *input) override;
-  void onLastRequestFailedReply(DataInputStream *input) override;
+  void onFileListReply() override;
+  void onLastRequestFailedReply() override;
 
   //
   // Returns true if operation is finished and was no error,

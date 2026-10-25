@@ -47,8 +47,8 @@ public:
   void start() override;
 
 protected:
-  void onMvReply(DataInputStream *input) override;
-  void onLastRequestFailedReply(DataInputStream *input) override;
+  void onMvReply() override;
+  void onLastRequestFailedReply() override;
 
 protected:
   StringStorage m_pathToSourceFile;

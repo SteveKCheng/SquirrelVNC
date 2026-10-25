@@ -57,7 +57,7 @@ void RemoteFilesDeleteOperation::start()
   remove(false);
 }
 
-void RemoteFilesDeleteOperation::onFileListReply(DataInputStream * /* input */)
+void RemoteFilesDeleteOperation::onFileListReply()
 {
   //
   // Current file is directory so, we can remove it only
@@ -84,13 +84,13 @@ void RemoteFilesDeleteOperation::onFileListReply(DataInputStream * /* input */)
   }
 }
 
-void RemoteFilesDeleteOperation::onRmReply(DataInputStream * /* input */)
+void RemoteFilesDeleteOperation::onRmReply()
 {
   // Go to next file to delete it
   gotoNext();
 }
 
-void RemoteFilesDeleteOperation::onLastRequestFailedReply(DataInputStream * /* input */)
+void RemoteFilesDeleteOperation::onLastRequestFailedReply()
 {
   //
   // Logging
