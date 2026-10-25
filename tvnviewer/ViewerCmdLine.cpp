@@ -225,9 +225,9 @@ void ViewerCmdLine::parseOptionsFile()
   if (sm.getString(_T("port"), &port)) {
     StringStorage hostString;
     hostString.format(_T("%s::%s"), host.getString(), port.getString());
-    m_conData->setHost(&hostString);
+    m_conData->setHost(hostString);
   } else {
-    m_conData->setHost(&host);
+    m_conData->setHost(host);
   }
 
   StringStorage password;
@@ -430,16 +430,16 @@ void ViewerCmdLine::parseHostArg()
   m_wpcl.getArgument(1, &host);
 
   if (host.findChar(_T(':')) != -1) {
-    m_conData->setHost(&host);
+    m_conData->setHost(host);
   } else {
    if (isPresent(PORT)) {
      StringStorage hostPort;
 
      hostPort.format(_T("%s::%s"), host.getString(),
                                   m_options[PORT].getString());
-     m_conData->setHost(&hostPort);
+     m_conData->setHost(hostPort);
    }
-   m_conData->setHost(&host);
+   m_conData->setHost(host);
   }
 }
 
@@ -459,7 +459,7 @@ bool ViewerCmdLine::parseHostOptions()
     strHost.format(_T("%s::%s"), m_options[HOST].getString(),
                                 m_options[PORT].getString());
   }
-  m_conData->setHost(&strHost);
+  m_conData->setHost(strHost);
   return true;
 }
 

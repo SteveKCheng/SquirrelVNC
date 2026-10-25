@@ -173,9 +173,8 @@ public:
 
   /**
    * Checks if string contained by this storage equals to string in other storage.
-   * @param other must not be null.
    */
-  bool isEqualTo(const StringStorage *other) const;
+  bool isEqualTo(const StringStorage &other) const;
 
   //
   // Return a pointer to the first occurrence of a search substr in the

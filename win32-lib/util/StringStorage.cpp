@@ -182,9 +182,9 @@ void StringStorage::appendChar(TCHAR c)
   }
 }
 
-bool StringStorage::isEqualTo(const StringStorage *other) const
+bool StringStorage::isEqualTo(const StringStorage &other) const
 {
-  return m_string == other->m_string;
+  return m_string == other.m_string;
 }
 
 bool StringStorage::isEqualTo(const TCHAR *other) const
@@ -293,7 +293,7 @@ StringStorage &StringStorage::operator= (StringStorage &&other) noexcept
 
 bool StringStorage::operator == (const StringStorage &str) const
 {
-  return isEqualTo(&str);
+  return isEqualTo(str);
 }
 
 bool StringStorage::operator < (const StringStorage &str) const

@@ -145,7 +145,7 @@ bool TvnViewer::isVisibleLoginDialog() const
   return !!m_loginDialog->getControl()->getWindow();
 }
 
-void TvnViewer::newConnection(const StringStorage *hostName, const ConnectionConfig &config)
+void TvnViewer::newConnection(const StringStorage &hostName, const ConnectionConfig &config)
 {
   ConnectionData conData;
   conData.setHost(hostName);

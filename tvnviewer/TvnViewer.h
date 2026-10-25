@@ -76,7 +76,7 @@ public:
   // ConnectionData and ConnectionConfig). After call this function can free memory
   // with hostName, connectionData, connectionConfig
   void newListeningConnection();
-  void newConnection(const StringStorage *hostName, const ConnectionConfig &connectionConfig);
+  void newConnection(const StringStorage &hostName, const ConnectionConfig &connectionConfig);
   void newConnection(const ConnectionData &conData, const ConnectionConfig &connectionConfig);
   // Pre: listeningPort is from 0 to 65535.
   void startListening(int listeningPort);

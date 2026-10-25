@@ -83,9 +83,9 @@ void ConnectionData::resetPassword()
   m_plainPassword.setString(_T(""));
 }
 
-void ConnectionData::setHost(const StringStorage *host)
+void ConnectionData::setHost(const StringStorage &host)
 {
-  StringStorage chompedString = *host;
+  StringStorage chompedString = host;
   TCHAR spaceChar[] = _T(" \t\n\r");
   chompedString.removeChars(spaceChar, sizeof(spaceChar)/sizeof(TCHAR));
 

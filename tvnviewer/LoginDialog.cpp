@@ -103,7 +103,7 @@ void LoginDialog::onConnect()
     m_connectionConfig.saveToStorage(&ccsm);
   }
 
-  m_viewer->newConnection(&m_serverHost, m_connectionConfig);
+  m_viewer->newConnection(m_serverHost, m_connectionConfig);
 }
 
 void LoginDialog::onConfiguration()

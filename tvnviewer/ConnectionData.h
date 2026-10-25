@@ -36,7 +36,7 @@ public:
   //
   // This methods is setter and getter of hostname or pair of hostname and port.
   //
-  void setHost(const StringStorage *host);
+  void setHost(const StringStorage &host);
   StringStorage getHost() const;
 
   //
