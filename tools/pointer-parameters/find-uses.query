@@ -1,0 +1,21 @@
+# How each pointer parameter is used in its function's body: kept (member initialiser, assignment, local alias, return, lambda capture), null-checked, deleted, indexed or in pointer arithmetic, passed on, given null by a caller, or address taken. Each binding's name says which.
+# Run with run-query.ps1 (see notes/pointer-parameters.md).
+set output dump
+set bind-root false
+set traversal AsIs
+match cxxCtorInitializer(withInitializer(ignoringParenImpCasts(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("ctorinit"))))))
+match binaryOperator(isAssignmentOperator(), hasRHS(ignoringParenImpCasts(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("assign"))))))
+match varDecl(hasInitializer(ignoringParenImpCasts(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("alias"))))))
+match returnStmt(hasReturnValue(ignoringParenImpCasts(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("ret"))))))
+match lambdaExpr(hasAnyCapture(capturesVar(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("lambda"))))
+match binaryOperator(hasAnyOperatorName("==","!="), hasEitherOperand(ignoringParenImpCasts(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("nullcmp"))))), hasEitherOperand(ignoringParenImpCasts(anyOf(cxxNullPtrLiteralExpr(), integerLiteral(equals(0)), gnuNullExpr()))))
+match implicitCastExpr(hasCastKind("CK_PointerToBoolean"), hasSourceExpression(ignoringParenImpCasts(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("nullbool"))))))
+match cxxDeleteExpr(hasDescendant(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("delete")))))
+match binaryOperator(hasAnyOperatorName("+","-","+=","-="), hasEitherOperand(ignoringParenImpCasts(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("arith"))))))
+match unaryOperator(hasAnyOperatorName("++","--"), hasUnaryOperand(ignoringParenImpCasts(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("arith"))))))
+match callExpr(hasAnyArgument(ignoringParenImpCasts(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("fwd"))))))
+match cxxConstructExpr(hasAnyArgument(ignoringParenImpCasts(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("fwdctor"))))))
+match callExpr(forEachArgumentWithParam(ignoringParenImpCasts(anyOf(cxxNullPtrLiteralExpr(), integerLiteral(equals(0)), gnuNullExpr())), parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("passnull")))
+match cxxConstructExpr(forEachArgumentWithParam(ignoringParenImpCasts(anyOf(cxxNullPtrLiteralExpr(), integerLiteral(equals(0)), gnuNullExpr())), parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("passnull")))
+match unaryOperator(hasOperatorName("&"), hasUnaryOperand(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("addrof")))))
+match arraySubscriptExpr(hasDescendant(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("index")))))

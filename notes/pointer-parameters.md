@@ -81,7 +81,8 @@ Decisions:
 ### Tool
 
 A script driven by `clang-query` (as in the survey), given the
-parameters to convert. It edits the source at the exact locations
+parameters to convert (`tools/pointer-parameters/apply-rewrite.py`; see
+"How to repeat it" at the end). It edits the source at the exact locations
 `clang-query` reports:
 
 - declarations and definitions, overrides included: `const T *p`
@@ -544,25 +545,73 @@ Not counted above, from the categories left out of scope:
 - `LoginDialog::setConConf` is declared but never defined or called:
   dead.
 
-## How to repeat it
+## How to repeat it: `tools/pointer-parameters`
 
-The queries were run ad hoc and are not in the tree. The core of it,
-for `clang-query -p . -f <file> <source>`:
+The scripts used for the survey and the conversion are in
+`tools/pointer-parameters`, as they were run. They are not polished:
+paths are hard-coded for the setup used (the checkout's path, `PRE` in
+the Python scripts; the ssh host in `config.sh`), and the drivers assume
+an agent on Linux reaching the Windows build machine with `claude-ssh`.
+They record what was done, so that it need not be worked out again.
 
-```
-set output dump
-set bind-root false
-set traversal AsIs
-# all pointer parameters
-match parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader()))
-# e.g. kept by a member initialiser (P is the matcher above)
-match cxxCtorInitializer(withInitializer(ignoringParenImpCasts(declRefExpr(to(P.bind("ctorinit"))))))
-# e.g. passed on
-match callExpr(forEachArgumentWithParam(ignoringParenImpCasts(declRefExpr(to(P.bind("src")))), parmVarDecl().bind("dst")))
-```
+**Queries** (`clang-query`, run on the Windows machine with
+`run-query.ps1`, which runs a query file on every source of
+`compile_commands.json` in parallel and keeps the lines the scripts
+read):
 
-Two pitfalls: under `IgnoreUnlessSpelledInSource` implicit casts are
-invisible, so `CK_PointerToBoolean` never matches; and
-`cxxDeleteExpr(has(...))` and `arraySubscriptExpr(hasBase(...))`
-made `clang-query` 22.1.3 exit silently, ending the rest of the
-query file (`hasDescendant` works).
+| File | Finds |
+|---|---|
+| `find-params.query` | every parameter whose type is a pointer |
+| `find-uses.query` | how each is used in its body: kept, null-checked, deleted, indexed, passed on, given null, address taken |
+| `find-forwarding.query` | which parameter each is passed on to, and which arguments go to a local variable's constructor |
+| `find-call-args.query` | call-site arguments that are not obviously non-null |
+
+**Analysis** (Python, run locally on the queries' output and a
+`git archive` of the commit, each reading the previous step's JSON from
+a working directory):
+
+1. `parse-params.py`: the parameters, with their function, position and
+   a category (object, string, typedef, ...).
+2. `group-params.py`: a header's declaration and a source's definition
+   joined, by file stem, function, position and type.
+3. `classify-uses.py`: each group's status (candidate, kept or array,
+   nullable), passed along forwarding until nothing changes. A few
+   `std::` calls checked by hand are listed in it (`STD_OK`).
+4. `find-declarations.py`: virtual, defined, and null default arguments,
+   from the source text.
+5. `attach-call-args.py`: the arguments to read by hand.
+6. `find-chains.py`: closed chains of candidates (passing the pointer on
+   to one another, or in one virtual family), which convert in one
+   commit. It keeps to `const` pointees; for the non-`const` batches the
+   selection was made from `ana3.json` by type instead.
+
+`write-note-lists.py` wrote the candidate lists below.
+
+**Rewrite:**
+
+7. `make-targets.py`: every declaration of the selected parameters,
+   given as `[file stem, function, type]` (for example
+   `["core-lib/region/Rect", "setRect", "const Rect *"]`).
+8. `make-rewrite-query.py`: a query collecting every use of those
+   parameters, run with `run-query.ps1`.
+9. `apply-rewrite.py`: edits the sources at the reported byte columns
+   (declarations, `->`, `*`, `&x` and other arguments at call sites),
+   and reports any other use for editing by hand.
+
+**Drivers:** `analyse.sh` runs the queries and steps 1 to 6;
+`rewrite.sh` runs steps 7 to 9 on a copy of the tree; `build-and-test.sh`
+uploads the result, builds the three configurations and runs the tests;
+`run-fuzz.ps1` runs `rfb-fuzz` for two minutes on a copy of the corpus.
+A batch was: `analyse.sh`, choose the selection from `chains.json` or
+`ana3.json`, `rewrite.sh`, read the diff and make the hand edits listed
+in `rewrite.sh`, `build-and-test.sh` (and `run-fuzz.ps1` for decoder
+changes), then commit.
+
+Pitfalls met while writing the queries: under
+`IgnoreUnlessSpelledInSource` implicit casts are invisible, so
+`CK_PointerToBoolean` never matches (the queries use `AsIs`); and
+`cxxDeleteExpr(has(...))` and `arraySubscriptExpr(hasBase(...))` made
+`clang-query` 22.1.3 exit silently, ending the rest of the query file
+(`hasDescendant` works). A binding on a matcher that is not a node
+(`hasParameter(...).bind(...)`) makes the whole match fail without an
+error.

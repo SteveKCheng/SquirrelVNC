@@ -1,0 +1,5 @@
+# Every parameter whose type is a pointer (after resolving typedefs), outside system headers.
+# Run with run-query.ps1 (see notes/pointer-parameters.md).
+set output dump
+set bind-root true
+match parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader()))

@@ -1,0 +1,8 @@
+# Call-site arguments to pointer parameters that are not obviously non-null (not &x, this, a parameter passed on, or a literal), for reading by hand.
+# Run with run-query.ps1 (see notes/pointer-parameters.md).
+set output diag
+enable output dump
+set bind-root false
+set traversal AsIs
+match callExpr(unless(isExpansionInSystemHeader()), forEachArgumentWithParam(expr(unless(ignoringParenImpCasts(anyOf(unaryOperator(hasOperatorName("&")), cxxThisExpr(), declRefExpr(to(parmVarDecl())), cxxNullPtrLiteralExpr(), integerLiteral(), stringLiteral(), gnuNullExpr())))).bind("arg"), parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("dst")))
+match cxxConstructExpr(unless(isExpansionInSystemHeader()), forEachArgumentWithParam(expr(unless(ignoringParenImpCasts(anyOf(unaryOperator(hasOperatorName("&")), cxxThisExpr(), declRefExpr(to(parmVarDecl())), cxxNullPtrLiteralExpr(), integerLiteral(), stringLiteral(), gnuNullExpr())))).bind("arg"), parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("dst")))

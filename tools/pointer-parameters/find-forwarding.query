@@ -1,0 +1,8 @@
+# Where a pointer parameter is passed on, as the argument of another function's (or constructor's) parameter: pairs of src and dst. ldst marks a constructor of a local variable (AutoLock al(p)), which does not count as keeping the pointer.
+# Run with run-query.ps1 (see notes/pointer-parameters.md).
+set output dump
+set bind-root false
+set traversal AsIs
+match callExpr(forEachArgumentWithParam(ignoringParenImpCasts(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("src")))), parmVarDecl().bind("dst")))
+match cxxConstructExpr(forEachArgumentWithParam(ignoringParenImpCasts(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("src")))), parmVarDecl().bind("dst")))
+match varDecl(hasLocalStorage(), hasInitializer(ignoringImplicit(cxxConstructExpr(forEachArgumentWithParam(ignoringParenImpCasts(declRefExpr(to(parmVarDecl(hasType(qualType(hasCanonicalType(pointerType()))), unless(isExpansionInSystemHeader())).bind("lsrc")))), parmVarDecl().bind("ldst"))))))
