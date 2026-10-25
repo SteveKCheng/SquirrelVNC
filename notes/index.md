@@ -18,6 +18,7 @@ concurrency.md
   - [The server component from TightVNC that had been dropped](old-server.md)
   - [Comparison of features and architectures with other VNC clients](other-clients.md)
   - [General portability issues with the codebase](portability.md)
+  - [Raw-pointer parameters that could be references](pointer-parameters.md)
   - [How Windows resources are loaded](resource-loading.md)
   - [Summary of security issues](security.md)
   - [Classes and functions for strings and transcoding](string-encoding.md)
