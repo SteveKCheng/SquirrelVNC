@@ -573,7 +573,7 @@ void DesktopWindow::repaint(const Rect *repaintRect)
 {
   Rect rect;
   m_scManager.getSourceRect(&rect);
-  Rect paint = repaintRect;
+  Rect paint = *repaintRect;
   paint.intersection(&rect);
 
   // checks what we getted a valid rectangle

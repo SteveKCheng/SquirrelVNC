@@ -70,7 +70,7 @@ void ScaleManager::setScale(int scale)
 
 void ScaleManager::setWindow(Rect *rcWnd)
 {
-  m_rcWindow = rcWnd;
+  m_rcWindow = *rcWnd;
   setStartPoint(m_xStart, m_yStart);
 }
 
@@ -209,7 +209,7 @@ void ScaleManager::getSourceRect(Rect *rcSource) const
 
 void ScaleManager::getWndFromScreen(const Rect *screen, Rect *wnd)
 {
-  Rect scr = screen;
+  Rect scr = *screen;
   scr.move(-m_rcViewed.left, -m_rcViewed.top);
   Rect rcScaled = calcScaled(&scr, false);
   wnd->setRect(&rcScaled);

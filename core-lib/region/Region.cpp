@@ -92,7 +92,7 @@ Region & Region::operator=(const Region &src)
 void Region::addRect(const Rect *rect)
 {
   if (!rect->isEmpty()) {
-    Region temp(rect);
+    Region temp(*rect);
     add(&temp);
   }
 }
@@ -124,7 +124,7 @@ void Region::intersect(const Region *other)
 
 void Region::crop(const Rect *rect)
 {
-  Region temp(rect);
+  Region temp(*rect);
   intersect(&temp);
 }
 

@@ -32,7 +32,6 @@ class Rect
 {
 public:
   Rect(void) : left(0), top(0), right(0), bottom(0) {}
-  Rect(const Rect *rect) { setRect(rect); }
   Rect(const Rect &rect) { setRect(&rect); }
   Rect(int lt, int tp, int rt, int bm) { setRect(lt, tp, rt, bm); }
   Rect(int width, int height) { setRect(0, 0, width, height); }
@@ -144,7 +143,7 @@ public:
 
   void rotateOn90InsideDimension(int dimHeight)
   {
-    Rect localCopy(this);
+    Rect localCopy(*this);
     setWidth(localCopy.getHeight());
     setHeight(localCopy.getWidth());
     int newLeft = dimHeight - localCopy.top - localCopy.getHeight();
@@ -161,7 +160,7 @@ public:
 
   void rotateOn270InsideDimension(int dimWidth)
   {
-    Rect localCopy(this);
+    Rect localCopy(*this);
     setWidth(localCopy.getHeight());
     setHeight(localCopy.getWidth());
     int newLeft = localCopy.top;

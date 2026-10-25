@@ -139,8 +139,8 @@ void FrameBuffer::clipRect(const Rect *dstRect, const Rect *srcBufferRect,
   Rect srcRectFB = srcBufferRect->intersection(&srcRect);
 
   // Finding common area between the dstRectFB and the srcRectFB
-  Rect dstCommonArea(&dstRectFB);
-  Rect srcCommonArea(&srcRectFB);
+  Rect dstCommonArea(dstRectFB);
+  Rect srcCommonArea(srcRectFB);
   // Move to common place (left = 0, top = 0)
   dstCommonArea.move(-dstRect->left, -dstRect->top);
   srcCommonArea.move(-srcRect.left, -srcRect.top);
