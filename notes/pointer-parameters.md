@@ -148,8 +148,12 @@ passing the tests:
 | `e96a137` | `core-lib/viewer-core` (27 parameters) |
 | `7c615d0` | `win32-lib` (19 parameters) |
 | `1c924cd` | `tvnviewer` (4 parameters) |
+| `847de7b` | The `const FrameBuffer *` chain (23 parameters, with its virtual families) |
+| `a8a78ac` | The `const Rect *` chain (41 parameters, with its virtual families) |
+| `2a9b3f2` | `Rect::setRect` and `ScaleManager::calcScaled`, left over from the `Rect` chain |
 
-Found along the way and committed separately: `04c19b6` (the
+Found along the way and committed separately: `a4ca831` (the
+swapped parameter names of `stretchFromDibSection`), `04c19b6` (the
 discarded `Rect::intersection` results in `DesktopWindow::repaint`,
 and `[[nodiscard]]`), and dead code removed instead of converted
 (`1fb6910` `PixelConverter`, `b323ad2` `CursorShape::clone`,
@@ -166,6 +170,13 @@ Lessons for the remaining batches:
   `ViewerInstance`).
 - Read a function's callers before converting it: three of the rfb
   candidates had none.
+- Rerun the whole analysis before each batch. The chains change as
+  code is removed or converted: functions drop out of a big chain and
+  become chains of their own (`setRect`, `calcScaled`), and the line
+  numbers in the survey go stale.
+- The script needed two fixes on the way: a `*` inside template
+  arguments (`std::map<UINT32, AuthHandler *> *`), and a parameter
+  whose name is commented out (`const FrameBuffer * /* fb */`).
 
 Moved from the module batches to the caveat batches:
 `StringStorage::isEqualTo` and the `ConnectionData::setHost` /
