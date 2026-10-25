@@ -195,10 +195,10 @@ void DibFrameBuffer::blitFromDibSection(const Rect &rect)
   m_dibSection->blitFromDibSection(rect);
 }
 
-void DibFrameBuffer::stretchFromDibSection(const Rect &srcRect, const Rect &dstRect)
+void DibFrameBuffer::stretchFromDibSection(const Rect &dstRect, const Rect &srcRect)
 {
   checkDibValid();
-  m_dibSection->stretchFromDibSection(srcRect, dstRect);
+  m_dibSection->stretchFromDibSection(dstRect, srcRect);
 }
 
 void DibFrameBuffer::setProperties(const Dimension *newDim,

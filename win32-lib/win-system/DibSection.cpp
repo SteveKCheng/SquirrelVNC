@@ -76,9 +76,9 @@ void DibSection::blitFromDibSection(const Rect &rect)
   blitFromDibSection(rect, SRCCOPY);
 }
 
-void DibSection::stretchFromDibSection(const Rect &srcRect, const Rect &dstRect)
+void DibSection::stretchFromDibSection(const Rect &dstRect, const Rect &srcRect)
 {
-  stretchFromDibSection(srcRect, dstRect, SRCCOPY);
+  stretchFromDibSection(dstRect, srcRect, SRCCOPY);
 }
 
 void DibSection::blitToDibSection(const Rect &rect, DWORD flags)
@@ -99,12 +99,12 @@ void DibSection::blitFromDibSection(const Rect &rect, DWORD flags)
   }
 }
 
-void DibSection::stretchFromDibSection(const Rect &srcRect, const Rect &dstRect, DWORD flags)
+void DibSection::stretchFromDibSection(const Rect &dstRect, const Rect &srcRect, DWORD flags)
 {
   SetStretchBltMode(m_targetDC, HALFTONE);
-  if (StretchBlt(m_targetDC, srcRect.left + m_srcOffsetX, srcRect.top + m_srcOffsetY,
-                 srcRect.getWidth(), srcRect.getHeight(),
-                 m_memDC, dstRect.left, dstRect.top, dstRect.getWidth(), dstRect.getHeight(),
+  if (StretchBlt(m_targetDC, dstRect.left + m_srcOffsetX, dstRect.top + m_srcOffsetY,
+                 dstRect.getWidth(), dstRect.getHeight(),
+                 m_memDC, srcRect.left, srcRect.top, srcRect.getWidth(), srcRect.getHeight(),
                  flags) == 0) {
     throw Exception(_T("Can't strech blit from DIB section."));
   }

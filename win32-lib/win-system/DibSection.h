@@ -48,35 +48,44 @@ public:
 
   ~DibSection();
 
-  // This function changes the target DC. In default target DC is a DC that has been
-  // got from a compatible window on object creation. This function can be call many times.
+  /**
+   * Changes the target DC: the DC that the blit and stretch functions copy
+   * to and from. Until this is called, it is the DC of the window given
+   * when the DIB section was made, or the whole screen's DC when none was
+   * given; for the screen, coordinates are relative to the top-left
+   * corner of the virtual desktop. May be called any number of times.
+   */
   void setTargetDC(HDC targetDC);
 
   void *getBuffer();
 
-  // This function copies a block of bits from a source DC (that has been used to create the
-  // DIB section) to the DIB section.
+  // This function copies a block of bits from the target DC (see setTargetDC()) to the
+  // DIB section.
   // Note that this function does not copy any transparent windows.
   // This function throwing an exception on a failure.
   void blitToDibSection(const Rect &rect);
 
-  // This function copies a block of bits from a source DC (that has been used to create the
-  // DIB section) to the DIB section.
+  // This function copies a block of bits from the target DC (see setTargetDC()) to the
+  // DIB section.
   // Note that this function copies transparent windows too.
   // This function throwing an exception on a failure.
   void blitTransparentToDibSection(const Rect &rect);
 
-  // This function copies a block of bits from the DIB section to the source DC
-  // (that has been used to create the compatible DIB section).
+  // This function copies a block of bits from the DIB section to the target DC (see
+  // setTargetDC()).
   // Note that this function does not copy any transparent windows.
   // This function throwing an exception on a failure.
   void blitFromDibSection(const Rect &rect);
 
-  // This function copies with strech a block of bits from the DIB section to the source DC
-  // (that has been used to create the compatible DIB section).
-  // Note that this function does not copy any transparent windows.
-  // This function throwing an exception on a failure.
-  void stretchFromDibSection(const Rect &srcRect, const Rect &dstRect);
+  /**
+   * Copies a block of pixels from the DIB section to the target DC (see
+   * setTargetDC()), stretching it from srcRect to dstRect.
+   * Does not copy transparent windows.
+   * @param dstRect the area of the target DC to draw.
+   * @param srcRect the area of the DIB section to copy.
+   * @throw Exception on failure.
+   */
+  void stretchFromDibSection(const Rect &dstRect, const Rect &srcRect);
 
 private:
   // Opens a new DIB section.
@@ -92,7 +101,7 @@ private:
 
   // This function throwing an exception on a failure.
   void blitFromDibSection(const Rect &rect, DWORD flags);
-  void stretchFromDibSection(const Rect &srcRect, const Rect &dstRect, DWORD flags);
+  void stretchFromDibSection(const Rect &dstRect, const Rect &srcRect, DWORD flags);
 
   // Fills *bmi to describe an 8-bit DIB section of the given format and
   // size, with a colour table that maps each pixel value to its colour.
