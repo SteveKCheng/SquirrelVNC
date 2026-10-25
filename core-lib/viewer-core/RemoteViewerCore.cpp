@@ -977,7 +977,7 @@ void RemoteViewerCore::execute()
     }
     StringStorage message(_T("Remote viewer's core thread terminated"));
     try {
-      m_adapter->onDisconnect(&message);
+      m_adapter->onDisconnect(message);
     } catch (const Exception &ex) {
       m_logWriter.error(_T("Error in CoreEventsAdapter::onDisconnect(): %s"), ex.getMessage());
     } catch (...) {
@@ -987,7 +987,7 @@ void RemoteViewerCore::execute()
   } catch (const AuthException &ex) {
     m_logWriter.message(_T("RemoteVewerCore. Auth exception: %s"), ex.getMessage());
     try {
-      m_adapter->onAuthError(&ex);
+      m_adapter->onAuthError(ex);
     } catch (const Exception &ex) {
       m_logWriter.error(_T("Error in CoreEventsAdapter::onAuthError(): %s"), ex.getMessage());
     } catch (...) {
@@ -996,7 +996,7 @@ void RemoteViewerCore::execute()
   } catch (const IOException &ex) {
     try {
       StringStorage disconnectMessage(ex.getMessage());
-      m_adapter->onDisconnect(&disconnectMessage);
+      m_adapter->onDisconnect(disconnectMessage);
     } catch (const Exception &ex) {
       m_logWriter.error(_T("Error in CoreEventsAdapter::onDisconnect(): %s"), ex.getMessage());
     } catch (...) {
@@ -1005,7 +1005,7 @@ void RemoteViewerCore::execute()
   } catch (const Exception &ex) {
     m_logWriter.message(_T("RemoteViewerCore. Exception: %s"), ex.getMessage());
     try {
-      m_adapter->onError(&ex);
+      m_adapter->onError(ex);
     } catch (...) {
       m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onError()"));
     }
@@ -1015,7 +1015,7 @@ void RemoteViewerCore::execute()
     m_logWriter.message(_T("%s"), error.getString());
     Exception ex(error.getString());
     try {
-      m_adapter->onError(&ex);
+      m_adapter->onError(ex);
     } catch (...) {
       m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onError()"));
     }
@@ -1240,7 +1240,7 @@ void RemoteViewerCore::receiveServerCutText()
   // Only the length: the clipboard may hold passwords.
   m_logWriter.debug(_T("Cut text: %zu characters"), cutText.getLength());
   try {
-    m_adapter->onCutText(&cutText);
+    m_adapter->onCutText(cutText);
   } catch (const Exception &ex) {
     m_logWriter.error(_T("Error in CoreEventsAdapter::onCutText(): %s"), ex.getMessage());
   } catch (...) {
@@ -1266,7 +1266,7 @@ void RemoteViewerCore::receiveServerCutTextUtf8()
   // Only the length: the clipboard may hold passwords.
   m_logWriter.debug(_T("Cut text: %zu characters"), cutText.getLength());
   try {
-    m_adapter->onCutText(&cutText);
+    m_adapter->onCutText(cutText);
   }
   catch (const Exception &ex) {
     m_logWriter.error(_T("Error in CoreEventsAdapter::onCutText(): %s"), ex.getMessage());

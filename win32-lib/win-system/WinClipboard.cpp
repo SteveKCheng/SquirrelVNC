@@ -76,7 +76,7 @@ bool WinClipboard::getString(StringStorage *str)
   return true;
 }
 
-bool WinClipboard::setString(const StringStorage *serverClipboard)
+bool WinClipboard::setString(const StringStorage &serverClipboard)
 {
   StringStorage nativeClipboard = addCR(serverClipboard);
 
@@ -115,12 +115,12 @@ bool WinClipboard::setString(const StringStorage *serverClipboard)
   return true;
 }
 
-StringStorage WinClipboard::addCR(const StringStorage *str)
+StringStorage WinClipboard::addCR(const StringStorage &str)
 {
-  const TCHAR *beginString = str->getString();
-  const TCHAR *endString = beginString + str->getLength() + 1; // start + lenght + '\0'
+  const TCHAR *beginString = str.getString();
+  const TCHAR *endString = beginString + str.getLength() + 1; // start + lenght + '\0'
   std::vector<TCHAR> chars(beginString, endString);
-  std::vector<TCHAR> newChars(str->getLength() * 2 + 1);
+  std::vector<TCHAR> newChars(str.getLength() * 2 + 1);
   size_t countLF = 0;
   for (size_t i = 0; i < chars.size(); i++) {
     // if is first byte or previous byte not CR, then add CR

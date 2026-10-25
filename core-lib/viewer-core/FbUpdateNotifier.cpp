@@ -102,7 +102,7 @@ void FbUpdateNotifier::execute()
       m_logWriter->debug(_T("FbUpdateNotifier (event): new size of frame buffer"));
       try {
         AutoLock al(m_fbLock);
-        m_adapter->onFrameBufferPropChange(m_frameBuffer);
+        m_adapter->onFrameBufferPropChange(*m_frameBuffer);
         // FIXME: it's bad code. Must work without one next line, but not it.
         Rect fbRect = m_frameBuffer->getDimension().getRect();
         m_adapter->onFrameBufferUpdate(*m_frameBuffer, fbRect);

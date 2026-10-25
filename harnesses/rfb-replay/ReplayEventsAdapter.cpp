@@ -46,7 +46,7 @@ void ReplayEventsAdapter::onBell()
   addEvent("bell");
 }
 
-void ReplayEventsAdapter::onCutText(const StringStorage *cutText)
+void ReplayEventsAdapter::onCutText(const StringStorage &cutText)
 {
   addEvent("cut-text", cutText);
 }
@@ -61,12 +61,12 @@ void ReplayEventsAdapter::onConnected(RfbOutputGate * /*output*/)
   // ServerInit has been read by now, on this thread.
   if (m_core != nullptr) {
     StringStorage name = m_core->getRemoteDesktopName();
-    addEvent("desktop-name", &name);
+    addEvent("desktop-name", name);
   }
   addEvent("connected");
 }
 
-void ReplayEventsAdapter::onDisconnect(const StringStorage *message)
+void ReplayEventsAdapter::onDisconnect(const StringStorage &message)
 {
   addEvent("disconnect", message);
   AutoLock al(&m_lock);
@@ -74,19 +74,19 @@ void ReplayEventsAdapter::onDisconnect(const StringStorage *message)
   m_endEvent.notify();
 }
 
-void ReplayEventsAdapter::onAuthError(const AuthException *exception)
+void ReplayEventsAdapter::onAuthError(const AuthException &exception)
 {
-  StringStorage message(exception->getMessage());
-  addEvent("auth-error", &message);
+  StringStorage message(exception.getMessage());
+  addEvent("auth-error", message);
   AutoLock al(&m_lock);
   m_hasEnded = true;
   m_endEvent.notify();
 }
 
-void ReplayEventsAdapter::onError(const Exception *exception)
+void ReplayEventsAdapter::onError(const Exception &exception)
 {
-  StringStorage message(exception->getMessage());
-  addEvent("error", &message);
+  StringStorage message(exception.getMessage());
+  addEvent("error", message);
   AutoLock al(&m_lock);
   m_hasEnded = true;
   m_endEvent.notify();
@@ -97,7 +97,7 @@ void ReplayEventsAdapter::onFrameBufferUpdate(const FrameBuffer & /* fb */,
 {
 }
 
-void ReplayEventsAdapter::onFrameBufferPropChange(const FrameBuffer * /* fb */)
+void ReplayEventsAdapter::onFrameBufferPropChange(const FrameBuffer & /* fb */)
 {
 }
 
@@ -131,9 +131,9 @@ void ReplayEventsAdapter::addEvent(const char *name)
   m_events.push_back(name);
 }
 
-void ReplayEventsAdapter::addEvent(const char *name, const StringStorage *text)
+void ReplayEventsAdapter::addEvent(const char *name, const StringStorage &text)
 {
-  std::vector<std::byte> utf8 = TextEncoding::toUtf8(*text);
+  std::vector<std::byte> utf8 = TextEncoding::toUtf8(text);
   std::string line(name);
   line += " \"";
   for (std::byte b : utf8) {

@@ -1153,27 +1153,27 @@ void ViewerWindow::onConnected(RfbOutputGate *output)
   applySettings();
 }
 
-void ViewerWindow::onDisconnect(const StringStorage *message)
+void ViewerWindow::onDisconnect(const StringStorage &message)
 {
-  m_logWriter.info(_T("onDisconnect: %s"), message->getString());
-  m_disconnectMessage = *message;
+  m_logWriter.info(_T("onDisconnect: %s"), message.getString());
+  m_disconnectMessage = message;
   if (!m_stopped) {
     postMessage(WM_USER_DISCONNECT);
   }
 }
 
-void ViewerWindow::onAuthError(const AuthException *exception)
+void ViewerWindow::onAuthError(const AuthException &exception)
 {
   m_logWriter.info(_T("onAuthError (%d): %s"),
-                   exception->getAuthCode(), exception->getMessage());
-  int authCode = exception->getAuthCode();
-  m_error = *exception;
+                   exception.getAuthCode(), exception.getMessage());
+  int authCode = exception.getAuthCode();
+  m_error = exception;
   postMessage(WM_USER_AUTH_ERROR, authCode);
 }
 
-void ViewerWindow::onError(const Exception *exception)
+void ViewerWindow::onError(const Exception &exception)
 {
-  m_error = *exception;
+  m_error = exception;
   postMessage(WM_USER_ERROR);
 }
 
@@ -1182,12 +1182,12 @@ void ViewerWindow::onFrameBufferUpdate(const FrameBuffer &fb, const Rect &rect)
   m_dsktWnd.updateFramebuffer(fb, rect);
 }
 
-void ViewerWindow::onFrameBufferPropChange(const FrameBuffer *fb)
+void ViewerWindow::onFrameBufferPropChange(const FrameBuffer &fb)
 {
   m_dsktWnd.setNewFramebuffer(fb);
 }
 
-void ViewerWindow::onCutText(const StringStorage *cutText)
+void ViewerWindow::onCutText(const StringStorage &cutText)
 {
   m_dsktWnd.setClipboardData(cutText);
 }

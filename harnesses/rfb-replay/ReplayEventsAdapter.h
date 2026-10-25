@@ -63,15 +63,15 @@ public:
   void setCore(RemoteViewerCore *core);
 
   void onBell() override;
-  void onCutText(const StringStorage *cutText) override;
+  void onCutText(const StringStorage &cutText) override;
   void onEstablished() override;
   void onConnected(RfbOutputGate *output) override;
-  void onDisconnect(const StringStorage *message) override;
-  void onAuthError(const AuthException *exception) override;
-  void onError(const Exception *exception) override;
+  void onDisconnect(const StringStorage &message) override;
+  void onAuthError(const AuthException &exception) override;
+  void onError(const Exception &exception) override;
   // Not recorded (see above).
   void onFrameBufferUpdate(const FrameBuffer &fb, const Rect &update) override;
-  void onFrameBufferPropChange(const FrameBuffer *fb) override;
+  void onFrameBufferPropChange(const FrameBuffer &fb) override;
 
   //
   // Wait until the session ends, by disconnection or error.
@@ -95,12 +95,11 @@ private:
   void addEvent(const char *name);
 
   //
-  // Pre-conditions: text is not null.
   // Post-conditions: a line of name and text is added to the events, the
   // text in UTF-8, quoted, with backslash, double quote and newline
   // escaped. Unpaired surrogates become U+FFFD.
   //
-  void addEvent(const char *name, const StringStorage *text);
+  void addEvent(const char *name, const StringStorage &text);
 
   RemoteViewerCore *m_core;
   LocalMutex m_lock;

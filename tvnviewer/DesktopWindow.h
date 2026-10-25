@@ -46,12 +46,12 @@ public:
   DesktopWindow(LogWriter *logWriter, ConnectionConfig *conConf);
   ~DesktopWindow() override;
 
-  void setClipboardData(const StringStorage *strText);
+  void setClipboardData(const StringStorage &strText);
   void updateFramebuffer(const FrameBuffer &framebuffer,
                          const Rect &dstRect);
   // this function must be called if size of image was changed
   // or the number of bits per pixel
-  void setNewFramebuffer(const FrameBuffer *framebuffer);
+  void setNewFramebuffer(const FrameBuffer &framebuffer);
 
   // set scale of image, can -1 = Auto, in percent
   void setScale(int scale);

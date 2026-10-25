@@ -320,11 +320,11 @@ bool DesktopWindow::onDrawClipboard()
   return true;
 }
 
-void DesktopWindow::setClipboardData(const StringStorage * strText)
+void DesktopWindow::setClipboardData(const StringStorage &strText)
 {
   if (m_conConf->isClipboardEnabled()) {
     m_clipboard.setString(strText);
-    m_strClipboard.setString(strText->getString());
+    m_strClipboard.setString(strText.getString());
   }
 }
 
@@ -531,9 +531,9 @@ void DesktopWindow::updateFramebuffer(const FrameBuffer &framebuffer,
   repaint(dstRect);
 }
 
-void DesktopWindow::setNewFramebuffer(const FrameBuffer *framebuffer)
+void DesktopWindow::setNewFramebuffer(const FrameBuffer &framebuffer)
 {
-  Dimension dimension = framebuffer->getDimension();
+  Dimension dimension = framebuffer.getDimension();
   Dimension olddimension = m_framebuffer.getDimension();
 
   bool isBackgroundDirty = dimension.width < olddimension.width || 
@@ -551,7 +551,7 @@ void DesktopWindow::setNewFramebuffer(const FrameBuffer *framebuffer)
       dimension.width = alignWidth * 4;
       int alignHeight = (dimension.height + 3) / 4;
       dimension.height = alignHeight * 4;
-      PixelFormat pixelFormat = framebuffer->getPixelFormat();
+      PixelFormat pixelFormat = framebuffer.getPixelFormat();
       m_framebuffer.setProperties(&dimension, &pixelFormat, getHWnd());
       m_framebuffer.setColor(0, 0, 0);
       m_scManager.setScreenResolution(dimension.width, dimension.height);

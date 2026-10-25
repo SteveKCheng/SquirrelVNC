@@ -51,7 +51,7 @@ public:
   // leaving the clipboard unchanged, if it could not be put there. The
   // memory given to the clipboard then belongs to the system.
   //
-  bool setString(const StringStorage *str);
+  bool setString(const StringStorage &str);
 
 protected:
   static const TCHAR CR = _T('\r');
@@ -62,7 +62,7 @@ protected:
   StringStorage removeCR(const StringStorage &str);
 
   // function replaced LF to CR+LF. If before LF already is CR, this not added second
-  StringStorage addCR(const StringStorage *str);
+  StringStorage addCR(const StringStorage &str);
 
   HWND m_hWnd;
 };

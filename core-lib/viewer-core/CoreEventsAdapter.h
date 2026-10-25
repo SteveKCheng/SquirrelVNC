@@ -61,7 +61,7 @@ public:
   //
   // New cut text (clipboard) contents has been received from the server.
   //
-  virtual void onCutText(const StringStorage *cutText) = 0;
+  virtual void onCutText(const StringStorage &cutText) = 0;
 
   //
   // Connection has been established.
@@ -82,17 +82,17 @@ public:
   //
   // FIXME: now, onDisconnect not called after onError().
   // FIXME: change documentation or call onDisconnect() after onError().
-  virtual void onDisconnect(const StringStorage *message) = 0;
+  virtual void onDisconnect(const StringStorage &message) = 0;
 
   //
   // Authentication has been failed.
   //
-  virtual void onAuthError(const AuthException *exception) = 0;
+  virtual void onAuthError(const AuthException &exception) = 0;
 
   //
   // Error has been occured.
   //
-  virtual void onError(const Exception *exception) = 0;
+  virtual void onError(const Exception &exception) = 0;
 
   // this event after update of frame buffer "fb" in rectangle "update".
   // guaranteed correct of frame buffer's area in rectangle "update".
@@ -110,7 +110,7 @@ public:
   // frame buffer has been created and the old one has been destroyed. This
   // notification will be called on initial frame buffer allocation as well.
   //
-  virtual void onFrameBufferPropChange(const FrameBuffer *fb) = 0;
+  virtual void onFrameBufferPropChange(const FrameBuffer &fb) = 0;
 };
 
 #endif
