@@ -505,3 +505,63 @@ the other. The largest diff is Phase 2, but it is mechanical.
 - Independent of all this, on the configuration side: settings in
   `.ini` files only, and saved passwords in Windows Credential Manager
   keyed by `user@host`, separately from the `.ini` files.
+
+### Lifetimes of objects passed to async methods
+
+This section is a note by the author, after working with an agent to clean up the code before the async rewrite.  See also: the note on [“Raw-pointer parameters that could be references”](pointer-parameters.md).
+
+Currently, the codebase passed in `RfbInputGate` and `RfbOutputGate` by reference.
+
+According to [C++ Core Guidelines §CP.53](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#rcoro-reference-parameters), that's (normally) quite dangerous.  Nevertheless, examples from Asio show asynchronous methods being passed references, e.g. from the [“refactored echo server”](https://think-async.com/Asio/asio-1.38.2/src/examples/cpp20/coroutines/refactored_echo_server.cpp).  The pattern that best works with Asio must be *structured concurrency*:
+
+  - The ‘driver’ of the connection, running on the core thread, owns the connection.
+  - Tasks that read from or write to the connection *must not* detach from the driver; the driver owns all tasks under the connection and drives them one at a time.
+  - Conceptually, everything outside the driver's call stack needs to somehow hold a *weak reference* to the connection, so that:
+    - The GUI thread can await establishment of the RFB connection
+    - The GUI thread can send events for the RFB connection
+    - The GUI thread can request disconnection (cancellation)
+  - When the connection dies:
+    - the asynchronous read/write interfaces need to throw an exception, for decoding/encoding tasks to unwind themselves back to the driver
+    - further requests from the GUI thread (made through the weak reference) must be ignored
+
+Before the async rewrite, `ViewerInstance` from the GUI side (`tvnviewer`) owns an instance of `RemoteViewerCore`:
+
+  - `RemoteViewerCore` has `Thread` as its base class, already noted earlier.  
+  - (This unnatural style of mixing the system-level concept of a `Thread` with the application-level concept of the viewer/connection model looks like a wart imported from Java.)
+  - Conceptually, data/operations in `RemoteViewerCore` are ‘shared by default’ between the GUI and the new thread spawned by `Thread`, and then protected by locks.
+
+The cleaner design needs to:
+
+  - Close off all data/operations in the public interface of `RemoteViewerCore` by default.  
+  - `RemoteViewerCore` is constructed with connection parameter, possibly with an externally given single-threaded Asio executor.
+  - It then proceeds to create the connection on the executor (which runs on a separate thread).
+  - It owns all connection state privately.
+  - The ‘driver’ of the connection, mentioned above, runs on the executor.
+  - `RemoteViewerCore` hands out a proxy for the GUI component (`ViewerInstance`) to invoke operations on.
+
+For the proxy:
+
+  - In principle, there is always concurrency on the writing side:
+    - GUI sends event A.
+    - Event A needs to write the corresponding RFB frame to the socket.
+    - In the middle of writing that RFB frame, the socket cannot send data immediately (i.e. it would block if blocking sockets were used)
+    - GUI sends event B in the meantime.
+    - Event B must be serialized after the completion of event A.
+  - Without an explicit message queue for the writes, we'd need one of the following:
+    - an asynchronous lock (binary semaphore) held to write one frame
+    - a queue, or ‘channel’, that serializes events from the GUI, and then the ‘driver’ asynchronously waits on the channel, and writes the corresponding frame one at a time to the socket
+  - Asio does not have asynchronous locks, but fortunately, it does have channels
+    - Channels are labelled as ‘experimental’, but they are pretty much required in our design.  
+    - (The use of channels is common in modern asynchronous code in .NET too.)
+  - GUI requests to disconnect, which need to jump the queue, can work via Asio ‘cancellation signals’
+  - Channels are cleaner than locks in that we can have a single coroutine at the top driving everything for one connection 
+    - That coroutine is what we called the ‘driver’ above
+    - The channel has to be, in principle, unbounded, as we should not lose messages when the network is slow
+  - The ‘weak reference’ mentioned above is only conceptual
+    - The implementation need not use an actual `std::weak_ptr` or anything like that
+    - `asio::cancellation_signal` and `asio::concurrent_channel` are *already thread-safe* so the GUI thread could just trigger/send on them
+    - An already-dead connection would just ignore further cancellations and messages
+  - However, `ViewerInstance` needs to wait for the driver inside `RemoteViewerCore`, before destroying shared state such as the `asio::cancellation_signal` or `asio::concurrent_channel` objects
+    - `std::shared_ptr` could be used to hold those objects so the coroutine's lifetime can exceed that of `RemoteViewerCore`
+    - However, we don't want crashes when shutting down the program, so there needs to be a final synchronous wait for Asio's executor
+  
