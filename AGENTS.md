@@ -2,30 +2,60 @@
 
 ## Security and portability issues
 
-The codebase SquirrelVNC is derived from, TightVNC, is old, and seems to be written in an era where
-security, portability, and adherence to the best C++ coding practices, were not serious concerns.
+The codebase SquirrelVNC is derived from, TightVNC, is old, and seems not to have much prioritized security, portability, robustness, and adherence to standards.
 
 It will take a while to address all the problems, so:
 
-  1. Please be on a look-out for security issues.
-  2. Report a summary of them whenever you encounter them.
-  3. Whenever asked to fix security issues, if you find further cascading ones, you may continue fixing those.
-  4. If in doubt about how to fix an issue or there are multiple approaches possible, please ask.
-  4. Put security issues in separate commits, with a `[SECURITY]` prefix on the first line of the commit comment.
+  1. Please be on a look-out for buggy code, especially those with security implications.
+  2. Summarize issues whenever you encounter them.
+  3. Whenever asked to fix the issues, if you find further cascading ones, you may continue fixing those.
+  4. If in doubt about how to fix an issue, or when there are multiple approaches possible, please ask.
+  4. Put fixes in separate commits, with a prefix (described below) on the first line of the commit comment.
      - No need to go to a new branch — which might interrupt your other work.
-     - This labelling is to leave an audit trail, makes the changes easier to review, especially if we need to 
-       cross-reference against later versions of the source code that TightVNC might release.
-     - If it's a portability fix: tag with a `[PORTABILITY]` prefix.
-     - If an issue is arguable as to whether it's a security fix (e.g. because it has impacts 
-       theoretically but happens to cause no issues on MSVC), just use reasonable judgement on the labelling.
-  5. Write in any pre-conditions or post-conditions, as internal API docs, on any functions/classes you modify.
-  6. If asked to write new code, and you're unsure of pre-conditions or post-conditions for some internal
-     functionality, check more thoroughly and do not just blindly copy existing code patterns.
+     - This labelling is to leave an audit trail, makes the changes easier to review, especially if we need to cross-reference against later versions of the source code that TightVNC might release.
+  5. Write in any pre-conditions or post-conditions, as doxygen-formatted internal API docs, on any functions/classes you modify
+  6. If asked to write new code, and you're unsure of pre-conditions or post-conditions for some internal functionality, check more thoroughly, and do not just blindly copy existing code patterns.
+
+### Prefix labels on revision comments
+
+  - `[SECURITY]`: bad or undefined behavior, that should not happen if the code correctly defended against the outside thread
+    - Threat model is detailed in `notes/security.md`
+    - This category subsumes memory corruption issues, even if they may be hard to exploit. (It's not worth our effort to distinguish severities more finely.)
+  - `[PORTABILITY]`: use of platform-specific behavior, or accidental but deterministic behavior of a certain compiler or run-time
+  - `[LEAK]`: resource or memory leaks
+
+If the category of an issue is arguable, use reasonable judgement on the labelling.
 
 ## Building
 
-  - To save time, unless specifically required otherwise, you may only build these project configurations:
+  - To save time, unless specifically required otherwise, you may build these project configurations only:
     - `Debug` `Win32`. 32-bit x86 is not a first-tier platform for SquirrelVNC; this is only to catch errors on C/C++ types that switch between 32-bit and 64-bit.
-    - `Debug` `Win64`. Makes sure any conditionally-compiled code for Debug builds do work; also not something we need to run normally.
-    - `ReleaseAsan` `Win64`.  Main configuration for iterative development and running console-based test programs.
+    - `Debug` `x64`. Makes sure any conditionally-compiled code for Debug builds do work; also not something we need to run normally.
+    - `ReleaseAsan` `x64`.  Main configuration for iterative development and running console-based test programs.
+  - To run the fuzzers, you need to build in `ReleaseFuzz` (working only under `x64` is fine).`
+  - You will be developing in a sandboxed environment
+    - If you need anything not available in the sandbox, ask first before trying to work around the problem
+
+## Coding style and standards
+
+  - The codebase has been switched to compile with C++20
+    - In practice, we only use features supported by both MSVC and Clang (MSVC ABI)
+  - We inherit TightVNC's conventions on naming identifiers
+  - But strive to write new code to modern best C++ practices
+    - A good reference: [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines)
+    - For example: use scope guards or holder objects for destroying resources
+  - We are slowly switching `core-lib` to use portable, standard C++
+    - But don't change the style of the existing code haphazardly
+    - Changes for security / portability / re-factoring need to be cleanly separated in revision history
+  - Use the static type system to make wrong code appear obviously wrong, or ideally not even compile
+  - Do not over-generalize frameworks
+    - We aggressively delete dead code to save work in maintenance, and make the codebase easier to analyze
+
+## Design and planning
+
+  - For major work, we write down plans and conclusions in [`notes/`](notes/index.md)
+    - Update relevant notes as we change/fix code
+    - Historical information is okay to keep; everyone can then understand how decisions were arrived at and why 
+    - Notes provide context for later work to resume (in other sessions/agents)
+  - Feel free to suggest re-factoring, fixes, etc. as we go along
 
