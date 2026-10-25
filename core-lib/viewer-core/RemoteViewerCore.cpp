@@ -1094,8 +1094,8 @@ bool RemoteViewerCore::receiveFbUpdateRectangle()
       m_logWriter.debug(_T("Decoding..."));
 
       DecoderOfRectangle *rectangleDecoder = dynamic_cast<DecoderOfRectangle *>(decoder);
-      rectangleDecoder->process(m_input,
-                                &m_frameBuffer, &m_rectangleFb, rect, &m_fbLock,
+      rectangleDecoder->process(*m_input,
+                                m_frameBuffer, m_rectangleFb, rect, &m_fbLock,
                                 &m_fbUpdateNotifier);
 
       m_logWriter.debug(_T("Decoded"));
@@ -1556,10 +1556,10 @@ std::vector<Rect> RemoteViewerCore::getDesktops()
   return m_desktops;
 }
 
-void RemoteViewerCore::copyFrameBuffer(FrameBuffer *dst)
+void RemoteViewerCore::copyFrameBuffer(FrameBuffer &dst)
 {
   AutoLock al(&m_fbLock);
-  if (!dst->clone(m_frameBuffer)) {
+  if (!dst.clone(m_frameBuffer)) {
     throw Exception(_T("Failed to copy the frame buffer"));
   }
 }

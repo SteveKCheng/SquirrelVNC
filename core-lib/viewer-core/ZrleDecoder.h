@@ -45,12 +45,12 @@ protected:
   // high 3 bytes, which is not supported.
   // Pre-condition: the frame buffer's pixel format is valid
   // (PixelFormat::isValid()).
-  void decode(RfbInputGate *input,
-              FrameBuffer *frameBuffer,
+  void decode(RfbInputGate &input,
+              FrameBuffer &frameBuffer,
               const Rect &dstRect) override;
 
 
-  void readAndInflate(RfbInputGate *input, size_t maximalUnpackedSize);
+  void readAndInflate(RfbInputGate &input, size_t maximalUnpackedSize);
 
   int readType(DataInputStream *input);
 
@@ -83,7 +83,7 @@ protected:
                           const int type);
 
 
-  void drawTile(FrameBuffer *fb,
+  void drawTile(FrameBuffer &fb,
                 const Rect &tileRect,
                 const std::vector<char> &pixels);
 

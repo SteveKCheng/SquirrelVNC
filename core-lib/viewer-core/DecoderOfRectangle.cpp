@@ -34,25 +34,25 @@ DecoderOfRectangle::~DecoderOfRectangle()
 {
 }
 
-void DecoderOfRectangle::process(RfbInputGate *input,
-                     FrameBuffer *frameBuffer,
-                     FrameBuffer *secondFrameBuffer,
+void DecoderOfRectangle::process(RfbInputGate &input,
+                     FrameBuffer &frameBuffer,
+                     FrameBuffer &secondFrameBuffer,
                      const Rect &rect,
                      LocalMutex *fbLock,
                      FbUpdateNotifier *fbNotifier)
 {
   decode(input, secondFrameBuffer, rect);
-  copy(frameBuffer, *secondFrameBuffer, rect, fbLock);
+  copy(frameBuffer, secondFrameBuffer, rect, fbLock);
   notify(fbNotifier, rect);
 }
 
-void DecoderOfRectangle::copy(FrameBuffer *dstFrameBuffer,
+void DecoderOfRectangle::copy(FrameBuffer &dstFrameBuffer,
                    const FrameBuffer &srcFrameBuffer,
                    const Rect &rect,
                    LocalMutex *fbLock)
 {
   AutoLock al(fbLock);
-  dstFrameBuffer->copyFrom(rect, srcFrameBuffer, rect.left, rect.top);
+  dstFrameBuffer.copyFrom(rect, srcFrameBuffer, rect.left, rect.top);
 }
 
 void DecoderOfRectangle::notify(FbUpdateNotifier *fbNotifier,

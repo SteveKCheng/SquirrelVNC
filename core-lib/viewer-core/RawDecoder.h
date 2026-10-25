@@ -35,16 +35,16 @@ public:
   //
   // This method is inherited from DecoderOfRectangle.
   //
-  void process(RfbInputGate *input,
-               FrameBuffer *frameBuffer,
-               FrameBuffer *secondFrameBuffer,
+  void process(RfbInputGate &input,
+               FrameBuffer &frameBuffer,
+               FrameBuffer &secondFrameBuffer,
                const Rect &rect,
                LocalMutex *fbLock,
                FbUpdateNotifier *fbNotifier) override;
 
 protected:
-  void decode(RfbInputGate *input,
-              FrameBuffer *frameBuffer,
+  void decode(RfbInputGate &input,
+              FrameBuffer &frameBuffer,
               const Rect &rect) override;
 
 private:

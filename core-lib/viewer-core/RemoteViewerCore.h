@@ -455,7 +455,7 @@ public:
   // again under the same lock. Before ServerInit the copy is empty.
   // Throws Exception if dst cannot be set up, or std::bad_alloc.
   //
-  void copyFrameBuffer(FrameBuffer *dst);
+  void copyFrameBuffer(FrameBuffer &dst);
 
 private:
   //

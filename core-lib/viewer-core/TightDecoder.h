@@ -39,8 +39,8 @@ public:
   ~TightDecoder() override;
 
 protected:
-  void decode(RfbInputGate *input,
-              FrameBuffer *frameBuffer,
+  void decode(RfbInputGate &input,
+              FrameBuffer &frameBuffer,
               const Rect &dstRect) override;
 
 private:
@@ -53,27 +53,27 @@ private:
   // throws, m_inflater[i] is unchanged.
   //
   void replaceInflater(int i);
-  UINT32 readTightPixel(RfbInputGate *input, int bytesPerCPixel);
-  int readCompactSize(RfbInputGate *input);
-  std::vector<UINT32> readPalette(RfbInputGate *input,
+  UINT32 readTightPixel(RfbInputGate &input, int bytesPerCPixel);
+  int readCompactSize(RfbInputGate &input);
+  std::vector<UINT32> readPalette(RfbInputGate &input,
                           int paletteSize,
                           int bytesPerCPixel);
-  void processJpeg(RfbInputGate *input,
-                   FrameBuffer *frameBuffer,
+  void processJpeg(RfbInputGate &input,
+                   FrameBuffer &frameBuffer,
                    const Rect &dstRect);
-  void processBasicTypes(RfbInputGate *input,
-                         FrameBuffer *frameBuffer,
+  void processBasicTypes(RfbInputGate &input,
+                         FrameBuffer &frameBuffer,
                          const Rect &dstRect,
                          UINT8 compControl);
-  void readTightData(RfbInputGate *input,
+  void readTightData(RfbInputGate &input,
                      std::vector<UINT8> &buffer,
                      size_t expectedLength,
                      const int decoderId);
-  void readCompressedData(RfbInputGate *input,
+  void readCompressedData(RfbInputGate &input,
                           std::vector<UINT8> &buffer,
                           size_t expectedLength,
                           const int decoderId);
-  void drawPalette(FrameBuffer *fb,
+  void drawPalette(FrameBuffer &fb,
                    const std::vector<UINT32> &palette,
                    const std::vector<UINT8> &pixels,
                    const Rect &dstRect);
@@ -81,13 +81,13 @@ private:
   // Pre: the pixel format of fb is valid (PixelFormat::isValid()), and
   // pixels holds a whole pixel for each pixel of dstRect.
   // Post: dstRect in fb holds the decoded pixels.
-  void drawGradient(FrameBuffer *fb,
+  void drawGradient(FrameBuffer &fb,
                     const std::vector<UINT8> &pixels,
                     const Rect &dstRect);
-  void drawTightBytes(FrameBuffer *fb,
+  void drawTightBytes(FrameBuffer &fb,
                      const std::vector<UINT8> &pixels,
                      const Rect &dstRect);
-  void drawJpegBytes(FrameBuffer *fb,
+  void drawJpegBytes(FrameBuffer &fb,
                      const std::vector<UINT8> &pixels,
                      const Rect &dstRect);
 

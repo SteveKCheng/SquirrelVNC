@@ -34,12 +34,12 @@ HexTileDecoder::~HexTileDecoder()
 {
 }
 
-void HexTileDecoder::decode(RfbInputGate *input,
-                            FrameBuffer *framebuffer,
+void HexTileDecoder::decode(RfbInputGate &input,
+                            FrameBuffer &framebuffer,
                             const Rect &dstRect)
 {
   // shorcut
-  const int bytesPerPixel = framebuffer->getBytesPerPixel();
+  const int bytesPerPixel = framebuffer.getBytesPerPixel();
 
   UINT32 background = 0;
   UINT32 foreground = 0;
@@ -53,37 +53,37 @@ void HexTileDecoder::decode(RfbInputGate *input,
                     std::min(x + TILE_SIZE, dstRect.right),
                     std::min(y + TILE_SIZE, dstRect.bottom));
 
-      if (!framebuffer->getDimension().getRect().intersection(tileRect).isEqualTo(tileRect))
+      if (!framebuffer.getDimension().getRect().intersection(tileRect).isEqualTo(tileRect))
         throw Exception(_T("Error in protocol: incorrect size of tile in hextile-decoder"));
 
-      UINT8 flags = input->readUInt8();
+      UINT8 flags = input.readUInt8();
       // If tile-coding is RAW.
       if (flags & 0x1) {
         for (int row = tileRect.top; row < tileRect.bottom; row++)
-          input->readFully(framebuffer->getBufferPtr(tileRect.left, row),
+          input.readFully(framebuffer.getBufferPtr(tileRect.left, row),
                            tileRect.getWidth() * bytesPerPixel);
       } else {
         if (flags & 0x2) {
-          input->readFully(&background, bytesPerPixel);
+          input.readFully(&background, bytesPerPixel);
           backgroundAccepted = true;
         }
 
         if (backgroundAccepted)
-          framebuffer->fillRect(tileRect, background);
+          framebuffer.fillRect(tileRect, background);
 
         if (flags & 0x4)
-          input->readFully(&foreground, bytesPerPixel);
+          input.readFully(&foreground, bytesPerPixel);
 
         if (flags & 0x8) {
-          UINT8 numberOfSubrectangles = input->readUInt8();
+          UINT8 numberOfSubrectangles = input.readUInt8();
 
           for (int i = 0; i < numberOfSubrectangles; i++) {
 
             if (flags & 0x10 && !(flags & 0x4))
-              input->readFully(&foreground, bytesPerPixel);
+              input.readFully(&foreground, bytesPerPixel);
 
-            UINT8 xy = input->readUInt8();
-            UINT8 wh = input->readUInt8();
+            UINT8 xy = input.readUInt8();
+            UINT8 wh = input.readUInt8();
             int subX = (xy >> 4) & 0xF;
             int subY = xy & 0xF;
             int w = ((wh >> 4) & 0xF) + 1;
@@ -97,7 +97,7 @@ void HexTileDecoder::decode(RfbInputGate *input,
             Rect subRect(subX, subY, subX + w, subY + h);
 
             subRect.move(tileRect.left, tileRect.top);
-            framebuffer->fillRect(subRect, foreground);
+            framebuffer.fillRect(subRect, foreground);
           }
         } else { // exist subrect
           if (!backgroundAccepted)

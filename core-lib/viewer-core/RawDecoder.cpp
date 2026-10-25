@@ -34,9 +34,9 @@ RawDecoder::~RawDecoder()
 {
 }
 
-void RawDecoder::process(RfbInputGate *input,
-                         FrameBuffer *frameBuffer,
-                         FrameBuffer *secondFrameBuffer,
+void RawDecoder::process(RfbInputGate &input,
+                         FrameBuffer &frameBuffer,
+                         FrameBuffer &secondFrameBuffer,
                          const Rect &rect,
                          LocalMutex *fbLock,
                          FbUpdateNotifier *fbNotifier)
@@ -73,15 +73,15 @@ void RawDecoder::process(RfbInputGate *input,
                               fbNotifier);
 }
 
-void RawDecoder::decode(RfbInputGate *input,
-                     FrameBuffer *frameBuffer,
+void RawDecoder::decode(RfbInputGate &input,
+                     FrameBuffer &frameBuffer,
                      const Rect &rect)
 {
-  size_t bytesPerPixel = frameBuffer->getPixelFormat().bitsPerPixel / 8;
+  size_t bytesPerPixel = frameBuffer.getPixelFormat().bitsPerPixel / 8;
   size_t bytesPerLine = bytesPerPixel * rect.getWidth();
 
-  if (!frameBuffer->getDimension().getRect().intersection(rect).isEqualTo(rect))
+  if (!frameBuffer.getDimension().getRect().intersection(rect).isEqualTo(rect))
     throw Exception(_T("Error in protocol: incorrect size of rectangle"));
   for (int y = rect.top; y < rect.bottom; y++)
-    input->readFully(frameBuffer->getBufferPtr(rect.left, y), bytesPerLine);
+    input.readFully(frameBuffer.getBufferPtr(rect.left, y), bytesPerLine);
 }

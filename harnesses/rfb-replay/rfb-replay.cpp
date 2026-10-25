@@ -457,7 +457,7 @@ int _tmain(int argc, TCHAR *argv[])
     core->waitTermination();
 
     FrameBuffer frameBuffer;
-    core->copyFrameBuffer(&frameBuffer);
+    core->copyFrameBuffer(frameBuffer);
     ppm = frameBufferToPpm(frameBuffer);
   } catch (const Exception &e) {
     _ftprintf(stderr, _T("Error: %s\n"), e.getMessage());

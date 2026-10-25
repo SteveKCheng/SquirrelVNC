@@ -38,8 +38,8 @@ ZrleDecoder::~ZrleDecoder()
 {
 }
 
-void ZrleDecoder::decode(RfbInputGate *input,
-                         FrameBuffer *frameBuffer,
+void ZrleDecoder::decode(RfbInputGate &input,
+                         FrameBuffer &frameBuffer,
                          const Rect &dstRect)
 {
   size_t maxUnpackedSize = getMaxSizeOfRectangle(dstRect);
@@ -61,7 +61,7 @@ void ZrleDecoder::decode(RfbInputGate *input,
                                                unpackedData.size());
   DataInputStream unpackedDataStream(&unpackedByteArrayStream);
 
-  PixelFormat pxFormat = frameBuffer->getPixelFormat();
+  PixelFormat pxFormat = frameBuffer.getPixelFormat();
 
   if (pxFormat.bitsPerPixel == 8) {
     m_bytesPerPixel = 1;
@@ -102,7 +102,7 @@ void ZrleDecoder::decode(RfbInputGate *input,
       //        or in other decoders. Also, placing this check in the tile loop is not necessary,
       //        it was enough to check once in the beginning of the function. I do not change that
       //        just to make sure I do not break anything. (-- const)
-      if (!frameBuffer->getDimension().getRect().intersection(tileRect).isEqualTo(tileRect)) {
+      if (!frameBuffer.getDimension().getRect().intersection(tileRect).isEqualTo(tileRect)) {
         throw Exception(_T("Incorrect size of ZRLE tile."));
       }
       size_t tileLength = tileRect.area();
@@ -141,15 +141,15 @@ void ZrleDecoder::decode(RfbInputGate *input,
   } // tile(..., y)
 }
 
-void ZrleDecoder::readAndInflate(RfbInputGate *input, size_t maximalUnpackedSize)
+void ZrleDecoder::readAndInflate(RfbInputGate &input, size_t maximalUnpackedSize)
 {
-  UINT32 length = input->readUInt32();
+  UINT32 length = input.readUInt32();
   std::vector<char> zlibData;
   zlibData.resize(length);
   if (length == 0) {
     zlibData.resize(1);
   }
-  input->readFully(&zlibData.front(), length);
+  input.readFully(&zlibData.front(), length);
 
   m_inflater.setInput(&zlibData.front(), length);
   m_inflater.setUnpackedSize(maximalUnpackedSize);
@@ -326,7 +326,7 @@ void ZrleDecoder::readPaletteRleTile(DataInputStream *input,
   }
 }
 
-void ZrleDecoder::drawTile(FrameBuffer *fb,
+void ZrleDecoder::drawTile(FrameBuffer &fb,
                            const Rect &tileRect,
                            const std::vector<char> &pixels)
 {
@@ -345,7 +345,7 @@ void ZrleDecoder::drawTile(FrameBuffer *fb,
   const char *pixelsPtr = &pixels.front();
   char *bufferPtr = nullptr;
   for (int i = 0; i < tileLength; i++) {
-    bufferPtr = (char*)fb->getBufferPtr(x + i % width, y + i / width);
+    bufferPtr = (char*)fb.getBufferPtr(x + i % width, y + i / width);
     memset(bufferPtr, 0, fbBytesPerPixel);
     memcpy(bufferPtr, pixelsPtr, m_bytesPerPixel);
     pixelsPtr+=m_bytesPerPixel;
