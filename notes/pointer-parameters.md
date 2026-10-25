@@ -134,6 +134,44 @@ place:
    each call resolves to;
 10. functions in `harnesses/` and `tools/` only.
 
+### Progress
+
+Done (2026-10-25), each building in the three configurations and
+passing the tests:
+
+| Commit | What |
+|---|---|
+| `e53e96b` | Trial: the `const DateTime *` chain in `log-writer` |
+| `7d79f8f`, `b6cdefb` | Preparation: `Rect(const Rect *)` removed; `Rect(const RECT *)` and `Dimension(const Rect *)` made `explicit` |
+| `570d24c` | `core-lib/region` (13 parameters) |
+| `c7dac63` | `core-lib/rfb`: only `PixelFormat::isEqualTo` was live |
+| `e96a137` | `core-lib/viewer-core` (27 parameters) |
+| `7c615d0` | `win32-lib` (19 parameters) |
+| `1c924cd` | `tvnviewer` (4 parameters) |
+
+Found along the way and committed separately: `04c19b6` (the
+discarded `Rect::intersection` results in `DesktopWindow::repaint`,
+and `[[nodiscard]]`), and dead code removed instead of converted
+(`1fb6910` `PixelConverter`, `b323ad2` `CursorShape::clone`,
+`579efa6` `FrameBuffer::copyFromRotated*`; see `dead-code.md`).
+
+Lessons for the remaining batches:
+
+- Check for an existing overload that takes a reference:
+  `Region::add` had both, and the rewrite made two identical functions
+  (the build catches it).
+- A call through `std::make_unique` is invisible to the script, since
+  the argument is passed on inside the standard library; convert such
+  constructors in the `make_unique` batch (`DibSection`,
+  `ViewerInstance`).
+- Read a function's callers before converting it: three of the rfb
+  candidates had none.
+
+Moved from the module batches to the caveat batches:
+`StringStorage::isEqualTo` and the `ConnectionData::setHost` /
+`TvnViewer::newConnection` chain (overloads), and the constructors of
+`DibSection` and `ViewerInstance` (`make_unique`).
+
 ## Results
 
 Of 662 object-pointer parameters (counting a function's declaration
