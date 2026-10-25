@@ -279,7 +279,7 @@ void DownloadOperation::processFile()
 
   if (targetFile.exists()) {
     FileInfo *sourceFileInfo = m_toCopy->getFileInfo();
-    FileInfo targetFileInfo(&targetFile);
+    FileInfo targetFileInfo(targetFile);
 
     //
     // Copy listener must decide what to do with this situation

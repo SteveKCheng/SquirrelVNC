@@ -1145,7 +1145,7 @@ void ViewerWindow::onConnected(RfbOutputGate *output)
   std::vector<UINT32> serverMsgCodes;
   m_viewerCore->getEnabledServerMsgCapabilities(&serverMsgCodes);
 
-  m_fileTransfer->getCore()->updateSupportedOperations(&clientMsgCodes, &serverMsgCodes);
+  m_fileTransfer->getCore()->updateSupportedOperations(clientMsgCodes, serverMsgCodes);
 
   // Start viewer window and applying settings.
   showWindow();

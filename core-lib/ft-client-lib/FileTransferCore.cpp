@@ -104,10 +104,10 @@ std::vector<FileInfo> *FileTransferCore::getListRemoteFolder()
   return &m_remoteFilesInfo;
 }
 
-void FileTransferCore::updateSupportedOperations(const std::vector<UINT32> *clientCaps,
-                                                 const std::vector<UINT32> *serverCaps)
+void FileTransferCore::updateSupportedOperations(const std::vector<UINT32> &clientCaps,
+                                                 const std::vector<UINT32> &serverCaps)
 {
-  m_supportedOps = OperationSupport(*clientCaps, *serverCaps);
+  m_supportedOps = OperationSupport(clientCaps, serverCaps);
 }
 
 void FileTransferCore::ftOpStarted(FileTransferOperation * /* sender */)

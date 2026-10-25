@@ -67,7 +67,7 @@ bool FolderListener::list()
     const TCHAR *folderName = m_folderPath.getString();
 
     File file(folderName, fileName);
-    FileInfo fileInfo(&file);
+    FileInfo fileInfo(file);
 
     m_filesInfo[i] = fileInfo;
 

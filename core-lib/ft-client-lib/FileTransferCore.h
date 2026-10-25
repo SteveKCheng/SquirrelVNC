@@ -100,8 +100,8 @@ public:
   void onUpdateState(int state, int result);
 
   // FIXME: Debug.
-  void updateSupportedOperations(const std::vector<UINT32> *clientCaps,
-                                 const std::vector<UINT32> *serverCaps);
+  void updateSupportedOperations(const std::vector<UINT32> &clientCaps,
+                                 const std::vector<UINT32> &serverCaps);
 
 protected:
   //

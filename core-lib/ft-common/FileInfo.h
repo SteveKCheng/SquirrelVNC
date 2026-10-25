@@ -67,7 +67,7 @@ public:
   // retrieved from file argument.
   //
 
-  FileInfo(const File *file);
+  explicit FileInfo(const File &file);
 
   //
   // Returns true if DIRECTORY flag is set

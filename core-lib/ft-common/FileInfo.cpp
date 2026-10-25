@@ -39,17 +39,17 @@ FileInfo::FileInfo(UINT64 size, UINT64 modTime,
 // FIXME: EXECUTABLE flag isn't sets now
 //
 
-FileInfo::FileInfo(const File *file)
+FileInfo::FileInfo(const File &file)
 {
-  m_sizeInBytes = file->length();
-  m_lastModified = file->lastModified();
+  m_sizeInBytes = file.length();
+  m_lastModified = file.lastModified();
   m_flags = 0;
-  if (file->isDirectory()) {
+  if (file.isDirectory()) {
     m_flags |= FileInfo::DIRECTORY;
     m_sizeInBytes = 0;
     m_lastModified = 0;
   }
-  file->getName(&m_fileName);
+  file.getName(&m_fileName);
 }
 
 bool FileInfo::isDirectory() const
