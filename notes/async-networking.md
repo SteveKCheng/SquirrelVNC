@@ -429,10 +429,21 @@ Each step is useful on its own.
    stream, with unit tests. Asio stays out of the protocol core
    entirely, so the fuzzers drive it without Asio.
 5. **Keepalive.** Independent; this is just a convenient place for it.
+6. **A narrow interface for `RemoteViewerCore`** (added 2026-10-25; see
+   "Corrections and decisions" at the end). The GUI side
+   (`ViewerInstance`, `ViewerWindow` and the dialogs) talks to the
+   connection only through a small handle: send a typed input event,
+   request disconnection, and receive notifications. Other shared state
+   is closed off, except the framebuffer. Still synchronous and
+   implemented over today's threads, so Phase 4 replaces what is behind
+   the handle without touching the GUI. How far this goes is decided
+   when we get there.
 
-The writing side needs no preparation: every write already goes through
+~~The writing side needs no preparation: every write already goes through
 `RfbOutputGate` under its lock, so the gate can be re-implemented later
-without touching its callers.
+without touching its callers.~~ *Superseded: writes from the GUI become
+typed events through the handle of step 6, encoded on the network
+thread.*
 
 ### Phase 2: mechanical colouring, each commit a no-op
 
@@ -468,13 +479,19 @@ The risky part, split up:
    - The driver becomes `async_read_some`; connecting uses Asio's
      connect, and the resolver in "Host name resolution", still IPv4
      only, to keep this to one change.
-   - `RfbOutputGate`'s callers stay as they are. Its `flush()` now hands
-     the buffered bytes to the loop to write.
+   - ~~`RfbOutputGate`'s callers stay as they are. Its `flush()` now hands
+     the buffered bytes to the loop to write.~~ *Superseded:* the handle
+     from Phase 1 step 6 posts typed events to the loop, which encodes
+     them into the connection's one output buffer, alongside the core's
+     own messages; a single writer drains it.
    - Listening mode keeps `TcpServer` for now:
      `asio::ip::tcp::socket::assign()` takes over its native `SOCKET`.
    - `RemoteViewerCore` stops being a `Thread`. `stop()` posts a
-     cancellation to the loop, and `waitTermination()` waits for the
-     connection's coroutine to finish.
+     cancellation to the loop~~, and `waitTermination()` waits for the
+     connection's coroutine to finish~~. *Superseded:* the state shared
+     with the driver is held by `std::shared_ptr`, so the GUI side does
+     not wait for one connection; the only synchronous wait is joining
+     the network thread at process exit.
 3. **The password wait** becomes a `co_await` on a GUI-completed
    operation (`asio::async_initiate`), which resumes on the loop and is
    always completed, with `operation_aborted` on teardown, so no
@@ -551,20 +568,94 @@ For the proxy:
     - an asynchronous lock (binary semaphore) held to write one frame
     - a queue, or ‘channel’, that serializes events from the GUI, and then the ‘driver’ asynchronously waits on the channel, and writes the corresponding frame one at a time to the socket
   - Asio does not have asynchronous locks, but fortunately, it does have channels
-    - Channels are labelled as ‘experimental’, but they are pretty much required in our design.  
+    - ~~Channels are labelled as ‘experimental’, but they are pretty much required in our design.~~ *Not usable for the GUI-to-driver queue after all; see correction 2 below.*
     - (The use of channels is common in modern asynchronous code in .NET too.)
-  - GUI requests to disconnect, which need to jump the queue, can work via Asio ‘cancellation signals’
+  - GUI requests to disconnect, which need to jump the queue, can work via Asio ‘cancellation signals’ *(emitted on the network thread, not the GUI thread; see correction 1)*
   - Channels are cleaner than locks in that we can have a single coroutine at the top driving everything for one connection 
     - That coroutine is what we called the ‘driver’ above
-    - The channel has to be, in principle, unbounded, as we should not lose messages when the network is slow
+    - The channel has to be, in principle, unbounded, as we should not lose messages when the network is slow *(Asio's channels cannot be; see correction 2)*
   - The ‘weak reference’ mentioned above is only conceptual
     - The implementation need not use an actual `std::weak_ptr` or anything like that
-    - `asio::cancellation_signal` and `asio::concurrent_channel` are *already thread-safe* so the GUI thread could just trigger/send on them
+    - ~~`asio::cancellation_signal` and `asio::concurrent_channel` are *already thread-safe* so the GUI thread could just trigger/send on them~~ *Wrong for `cancellation_signal`; see correction 1.*
     - An already-dead connection would just ignore further cancellations and messages
   - However, `ViewerInstance` needs to wait for the driver inside `RemoteViewerCore`, before destroying shared state such as the `asio::cancellation_signal` or `asio::concurrent_channel` objects
     - `std::shared_ptr` could be used to hold those objects so the coroutine's lifetime can exceed that of `RemoteViewerCore`
     - However, we don't want crashes when shutting down the program, so there needs to be a final synchronous wait for Asio's executor
-  
+
+### Corrections and decisions (2026-10-25)
+
+Reviewed with an agent after the section above was written. The
+corrections were checked against Asio's documentation and source (Boost.Asio
+`develop`, which tracks standalone Asio); some answers in
+[the Asio Q&A](cpp-asio.md) are wrong on these points and are marked there.
+
+1. **`cancellation_signal::emit()` is not thread-safe.** It calls the
+   installed cancellation handler synchronously, on the calling thread,
+   through a plain pointer with no locking. Asio's documentation says
+   the thread-safety rules are "as if calling a member function on the
+   target operation's I/O object", and for composed operations (which a
+   `co_spawn`ed coroutine is) the emit must not run concurrently with the
+   operation's intermediate completion handlers. Those run on the network
+   thread, so the GUI must *post* a small task that does the `emit()`.
+2. **Asio's channels have a fixed capacity.** `max_buffer_size` is the
+   maximum number of buffered messages, and the default 0 means no
+   buffering at all: a send waits for a receiver (a rendezvous).
+   `try_send` fails when the buffer is full and no receive is waiting,
+   and the GUI cannot use `async_send` because it cannot wait. So:
+   - The GUI-to-driver queue is `asio::post` itself, which is unbounded,
+     ordered and thread-safe. The posted task appends to a plain
+     `std::deque` that only the network thread touches, and wakes the
+     writer (a non-concurrent channel of capacity 1, or a timer that is
+     cancelled, used as an event).
+   - Our own deque also allows coalescing: a pointer move can replace
+     the queued one before it when the button state is unchanged.
+   - Disconnect requests are posted the same way (correction 1), so both
+     paths from the GUI use one mechanism.
+   - (Aside: in Boost.Asio `develop` the channel classes have moved out
+     of `experimental`; the old names remain as aliases.)
+3. **`operator||` on awaitables waits for one operand to *succeed*.** It
+   is built on `wait_for_one_success`: when one operand throws, the
+   other is *not* cancelled, and the operator keeps waiting for it. With
+   `read_task || write_task`, a disconnect seen by the reader would then
+   hang until the writer finishes, which it never does while it waits
+   for GUI events. The driver should use `make_parallel_group(...)`
+   with `wait_for_one()`, which cancels the others when any operand
+   completes, successfully or not. (`operator&&` is `wait_for_one_error`:
+   it cancels on an exception but waits for both on success.)
+
+Decisions (Steve, 2026-10-25):
+
+- **The queue carries typed events.** The GUI thread never encodes RFB.
+  Events are encoded on the network thread, into the same output buffer
+  as the core's own messages (FramebufferUpdateRequest, Fence replies,
+  file-transfer data), so everything sent on a connection has one order.
+- **Unwinding is cooperative.** When the connection dies, a parser
+  suspended in a read is resumed with an exception thrown from the
+  reader awaitable's `await_resume`, rather than having its coroutine
+  frame destroyed. This matches the `IOException` behaviour of today's
+  code, and `catch` handlers keep running.
+- **Ownership by `std::shared_ptr`.** The state shared between the GUI
+  side and the driver is held by a `std::shared_ptr`. The GUI side holds
+  one reference and the driver coroutine receives the other *by value*
+  when it is spawned; each side then borrows from its own reference, so
+  the reference count is not touched per operation. When a window
+  closes, its GUI objects can go at once while the driver finishes
+  unwinding; no wait is needed. Several connections share one network
+  thread, and the only synchronous wait is at *process* exit, joining
+  that thread.
+- For this to be safe, the driver never blocks on the GUI (it only posts
+  to it), and cancellation always completes a pending password or
+  certificate prompt with `operation_aborted` (Phase 4 step 3).
+- **The framebuffer stays shared**, behind its mutex (Phase 4 step 4).
+  It is the exception to "connection state is private to the driver".
+- **TLS**: an Asio socket allows one read and one write in flight at
+  once, and a TLS layer needs reads that can trigger writes (key updates,
+  session tickets). Whether the writer stays one drain loop that the
+  read side also feeds, or reading and writing become independent, can
+  be decided after Phase 4; it is orthogonal to the rest.
+- **The interface of `RemoteViewerCore` is narrowed before the rewrite**,
+  as far as is reasonable, at the end of Phase 1 (step 6).
+
 Reference information:
 
   - [Q&A on the Asio C++ library](cpp-asio.md)

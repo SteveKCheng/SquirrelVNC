@@ -36,7 +36,7 @@ Because Asio does not provide a standard asynchronous mutex (like `SemaphoreSlim
 
 Instead of spawning a new coroutine that writes to the socket for every GUI event, you do the following:
 
-1. **Create an Asio Channel:** Recent versions of standalone Asio include `asio::experimental::channel` (or `concurrent_channel` for multi-threaded GUI pushing). This acts exactly like C#'s `Channel<T>`.
+1. **Create an Asio Channel:** Recent versions of standalone Asio include `asio::experimental::channel` (or `concurrent_channel` for multi-threaded GUI pushing). ~~This acts exactly like C#'s `Channel<T>`.~~
 2. **Spawn a Single Writer Coroutine:** You spawn exactly *one* coroutine whose sole job is to read from this channel and write to the socket.
 3. **Producers Push to the Channel:** Your GUI events simply use `async_send` (or `try_send` if non-blocking is preferred) to push the framed messages into the channel.
 
@@ -64,6 +64,9 @@ asio::awaitable<void> writer_loop(asio::ip::tcp::socket& socket,
     }
 }
 ```
+
+> **Correction (2026-10-25)**, checked against Asio's documentation and source; see also "Corrections and decisions" in [async-networking.md](async-networking.md): unlike C#'s `Channel<T>`, an Asio channel cannot be unbounded. `max_buffer_size` is the maximum number of buffered messages, and the default 0 means no buffering at all (a send waits for a receiver). `try_send` fails when the buffer is full and no receive is waiting.
+
 ### Summary of Primitives
 * **Strand:** Protects shared memory (state/variables) from concurrent thread access. It prevents data races, but it does *not* act as a logical lock across asynchronous suspensions.
 * **Channel (or Queue + Waker):** Serializes logical asynchronous workflows. Use this to queue up messages so a single execution context writes them to the socket sequentially.
@@ -151,7 +154,9 @@ asio::awaitable<void> master_connection_loop(asio::ip::tcp::socket socket, Chann
 
 This pattern eliminates the notorious lifetime headaches associated with asynchronous C++.
 
-If the external server abruptly closes the connection, `async_read_some` will complete with an error (which `asio::use_awaitable` translates into an exception). Before that exception is thrown to your `catch` block, the `||` operator automatically reaches into the pending `channel.async_receive` and cancels it.
+~~If the external server abruptly closes the connection, `async_read_some` will complete with an error (which `asio::use_awaitable` translates into an exception). Before that exception is thrown to your `catch` block, the `||` operator automatically reaches into the pending `channel.async_receive` and cancels it.~~
+
+> **Correction (2026-10-25)**, checked against Asio's documentation and source; see also "Corrections and decisions" in [async-networking.md](async-networking.md): `operator||` is built on `wait_for_one_success`. When one operand fails, the other is **not** cancelled; the operator waits for it to succeed, and throws only if both fail. Here a disconnect would wait until the next GUI message arrives. The pattern also has two other problems: whenever a GUI message wins, the pending read is cancelled and its result discarded (bytes read at the same moment would be lost), and nothing is read while `async_write` is in progress, which is weakness 3 in [async-networking.md](async-networking.md).
 
 Because everything happens linearly inside a single coroutine:
 1. You do not need atomic flags or manual `asio::cancellation_signal` plumbing to stop a separate writer task.
@@ -285,11 +290,13 @@ asio::awaitable<void> master_task(asio::io_context& ioc)
 
 Asio C++20 coroutines have a built-in cancellation propagation system tied to the `||` operator:
 
-1. **Graceful GUI cancellation:** The GUI pushes `std::nullopt` to the channel. `write_task` wakes up, breaks its loop, and returns. Because `write_task` finished, the `||` operator emits an `asio::cancellation_type::terminal` signal directly into `read_task`. `read_task` immediately aborts its `async_read_some` with an `operation_aborted` error, allowing the `co_await(...)` block in `master_task` to complete successfully.
-2. **Forced Socket cancellation:** The remote server cuts the connection. `async_read_some` completes with an EOF error, which `use_awaitable` translates to a `system_error` exception. Before that exception propagates up to `master_task`, the `||` operator catches it, emits a cancellation signal into `write_task` (which aborts the pending channel read), and then re-throws the exception into your `catch` block.
+1. **Graceful GUI cancellation:** The GUI pushes `std::nullopt` to the channel. `write_task` wakes up, breaks its loop, and returns. Because `write_task` finished, the `||` operator emits ~~an `asio::cancellation_type::terminal`~~ a cancellation signal (of type `cancellation_type::all` by default) directly into `read_task`. `read_task` immediately aborts its `async_read_some` with an `operation_aborted` error, allowing the `co_await(...)` block in `master_task` to complete successfully.
+2. **Forced Socket cancellation:** The remote server cuts the connection. `async_read_some` completes with an EOF error, which `use_awaitable` translates to a `system_error` exception. ~~Before that exception propagates up to `master_task`, the `||` operator catches it, emits a cancellation signal into `write_task` (which aborts the pending channel read), and then re-throws the exception into your `catch` block.~~
 3. **Hard GUI cancellation (Alternative):** If you wanted an instant "kill switch" from the GUI that doesn't even wait for the current `async_write` to finish, you could pass a third task into the operator: `co_await (read_task() || write_task() || wait_for_kill_switch_task());`. If the kill switch triggers first, it kills the read and write tasks instantly.
 
 Because `co_await` strictly enforces that all branched operations are fully resolved before moving to the next line of `master_task`, there is zero risk of dangling references.
+
+> **Correction (2026-10-25)**, checked against Asio's documentation and source; see also "Corrections and decisions" in [async-networking.md](async-networking.md): as in the previous answer, `operator||` waits for one operand to *succeed*: when `read_task` throws, `write_task` is not cancelled, and `master_task` hangs until the GUI sends something. Use `make_parallel_group(...).async_wait(wait_for_one(), ...)` instead, which cancels the other operands when any one completes, successfully or not. (`operator&&` is `wait_for_one_error`: it cancels on an exception, but waits for both on success.)
 </response>
 </turn>
 
@@ -312,7 +319,9 @@ Does Asio have some built-in ‘cancellation token’ functionality that could b
 
 Yes, Asio has exactly this built in. It uses a primitive called `asio::cancellation_signal`. It acts very much like a `CancellationTokenSource` in .NET.
 
-Even better: **you don't need to post a task to the executor to use it.** The Asio documentation explicitly guarantees that `cancellation_signal::emit()` is completely thread-safe. Your GUI thread can fire the kill switch directly, and Asio's internals will safely propagate that signal into the executor and down to the active sockets.
+~~Even better: **you don't need to post a task to the executor to use it.** The Asio documentation explicitly guarantees that `cancellation_signal::emit()` is completely thread-safe. Your GUI thread can fire the kill switch directly, and Asio's internals will safely propagate that signal into the executor and down to the active sockets.~~
+
+> **Correction (2026-10-25)**, checked against Asio's documentation and source; see also "Corrections and decisions" in [async-networking.md](async-networking.md): `emit()` is not thread-safe. It calls the installed handler synchronously on the calling thread, through a plain pointer without locking. The documentation says the rules are "as if calling a member function on the target operation's I/O object"; for a composed operation, which a spawned coroutine is, the emit must not run concurrently with its intermediate completion handlers. The GUI must post the emit to the executor, as the question proposed: `asio::post(ioc_, [this] { kill_switch_.emit(asio::cancellation_type::all); });`.
 
 Furthermore, you don't even need to modify the internal code of the `master_task` we just wrote. In Asio, cancellation is typically injected *from the outside* when you spawn the coroutine.
 
@@ -369,7 +378,7 @@ public:
 ```
 ##### How the cancellation propagates
 
-When the GUI thread calls `kill_switch_.emit(asio::cancellation_type::all)`, the following sequence happens instantly behind the scenes:
+When ~~the GUI thread calls~~ `kill_switch_.emit(asio::cancellation_type::all)` *runs on the executor*, the following sequence happens instantly behind the scenes:
 
 1. The cancellation signal ripples into the top-level `master_task` coroutine state.
 2. Because `master_task` is currently suspended on the `||` operator, the signal flows into the operator.
@@ -385,7 +394,9 @@ When the GUI thread calls `kill_switch_.emit(asio::cancellation_type::all)`, the
 You might notice `asio::cancellation_type::all`. Asio supports granular cancellation levels:
 * `terminal`: Abort immediately. Don't worry about leaving the socket in a reusable state (the connection is effectively dead).
 * `partial`: Abort if possible, but try not to corrupt the underlying stream.
-* `total`: Complete abort.
+* ~~`total`: Complete abort.~~
+
+> **Correction (2026-10-25)**, checked against Asio's documentation and source; see also "Corrections and decisions" in [async-networking.md](async-networking.md): Asio defines the types by what the cancelled operation may have done. `terminal`: "unspecified side effects, and it is only safe to close or destroy the I/O object". `partial`: "well-defined side effects, and the completion handler for the operation indicates what". `total`: "no side effects that are observable through the API". So `total` is the *weakest* request, not a "complete abort".
 
 For a network client kill switch, `terminal` or `all` is the standard choice. It brutally and safely severs the pending socket operations and unwinds your coroutines without memory leaks.
 </response>
@@ -484,7 +495,7 @@ public:
 ```
 ##### Why this prevents deadlocks and crashes
 
-1. **Stack Unwinding:** When `kill_switch_.emit()` is called, Asio queues the cancellation signals. The `io_thread_` wakes up, propagates the aborts to the socket, and unwinds the coroutine stack. By calling `join()`, you guarantee that all `master_task`, `read_task`, and `write_task` frames are completely destroyed *before* the application process begins destroying global/member variables.
+1. **Stack Unwinding:** ~~When `kill_switch_.emit()` is called, Asio queues the cancellation signals. The `io_thread_` wakes up, propagates the aborts to the socket, and unwinds the coroutine stack.~~ By calling `join()`, you guarantee that all `master_task`, `read_task`, and `write_task` frames are completely destroyed *before* the application process begins destroying global/member variables.
 2. **Socket Lifetime:** The `asio::ip::tcp::socket` lives inside the coroutine (or the client class). If the process terminates without joining the thread, the OS reclaims memory while the background thread is still trying to access the socket, leading to a segmentation fault. `join()` completely prevents this.
 3. **Deadlock Prevention:** The most common cause of Asio teardown deadlocks is forgetting to drop the `work_guard_`. If you tell a thread to join, but the `io_context` thinks it still has permanent "work" to do, `run()` will never return. Calling `work_guard_.reset()` breaks that deadlock.
 
@@ -506,6 +517,8 @@ std::future<void> master_future = asio::co_spawn(
 kill_switch_.emit(asio::cancellation_type::all);
 master_future.wait(); // Blocks until the coroutine fully unwinds
 ```
+> **Correction (2026-10-25)**, checked against Asio's documentation and source; see also "Corrections and decisions" in [async-networking.md](async-networking.md): `emit()` does not queue anything: it runs the cancellation handlers on the calling thread. `shutdown_synchronously()` above calls `force_disconnect()` from the GUI thread, which races with the network thread (see the correction on the previous answer). It should post the emit to `ioc_` first, and then reset the work guard and join.
+
 However, the `thread::join()` approach is generally safer for application-level shutdown because it ensures *all* Asio activity across the entire `io_context` has settled, not just the one connection.
 
 </response>
