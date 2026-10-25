@@ -25,6 +25,7 @@
 
 DesktopWindow::DesktopWindow(LogWriter *logWriter, ConnectionConfig *conConf)
 : m_logWriter(logWriter),
+  m_isConnected(false),
   m_clipboard(nullptr),
   m_showVert(false),
   m_showHorz(false),
