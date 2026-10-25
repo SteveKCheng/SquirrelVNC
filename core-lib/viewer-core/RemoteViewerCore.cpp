@@ -301,7 +301,7 @@ bool RemoteViewerCore::updatePixelFormat()
     }
     if (!isEqual && m_frameBuffer.getBuffer() != nullptr) {
       Dimension fbDimension = m_frameBuffer.getDimension();
-      setFbProperties(&fbDimension, &pxFormat);
+      setFbProperties(fbDimension, pxFormat);
     }
     m_isPixelFormatSent = true;
   }
@@ -825,13 +825,13 @@ int RemoteViewerCore::initAuthentication()
   return typeSelected;
 }
 
-void RemoteViewerCore::setFbProperties(const Dimension *fbDimension,
-                                       const PixelFormat *fbPixelFormat)
+void RemoteViewerCore::setFbProperties(const Dimension &fbDimension,
+                                       const PixelFormat &fbPixelFormat)
 {
-  const int width = fbDimension->width;
-  const int height = fbDimension->height;
-  const int bitsPerPixel = fbPixelFormat->bitsPerPixel;
-  if (width < 0 || height < 0 || !fbPixelFormat->isValid()) {
+  const int width = fbDimension.width;
+  const int height = fbDimension.height;
+  const int bitsPerPixel = fbPixelFormat.bitsPerPixel;
+  if (width < 0 || height < 0 || !fbPixelFormat.isValid()) {
     throw Exception(_T("Invalid framebuffer properties"));
   }
 
@@ -840,7 +840,7 @@ void RemoteViewerCore::setFbProperties(const Dimension *fbDimension,
     throw Exception(_T("Framebuffer is too large"));
   }
 
-  const PixelFormat &pxFormat = *fbPixelFormat;
+  const PixelFormat &pxFormat = fbPixelFormat;
   StringStorage pxString;
   pxString.format(_T("[bits-per-pixel: %d, depth: %d, big-endian-flag: %d, ")
                   _T("true-color-flag: is set, ") // true color always is set
@@ -852,7 +852,7 @@ void RemoteViewerCore::setFbProperties(const Dimension *fbDimension,
 
   m_logWriter.detail(_T("Setting frame buffer properties..."));
   m_logWriter.info(_T("Frame buffer dimension: (%d, %d)"),
-                   fbDimension->width, fbDimension->height);
+                   fbDimension.width, fbDimension.height);
   m_logWriter.info(_T("Frame buffer pixel format: %s"), pxString.getString());
 
   if (!m_frameBuffer.setProperties(fbDimension, fbPixelFormat) ||
@@ -860,7 +860,7 @@ void RemoteViewerCore::setFbProperties(const Dimension *fbDimension,
     StringStorage error;
     error.format(_T("Failed to set property frame buffer. ")
                  _T("Dimension: (%d, %d), Pixel format: %s"),
-                 fbDimension->width, fbDimension->height,
+                 fbDimension.width, fbDimension.height,
                  pxString.getString());
     throw Exception(error.getString());
   }
@@ -1122,7 +1122,7 @@ void RemoteViewerCore::processPseudoEncoding(const Rect &rect,
       AutoLock al(&m_fbLock);
       Dimension dimension(rect);
       PixelFormat pixelFormat = m_frameBuffer.getPixelFormat();
-      setFbProperties(&dimension, &pixelFormat);
+      setFbProperties(dimension, pixelFormat);
     }
     break;
     
@@ -1383,7 +1383,7 @@ void RemoteViewerCore::clientAndServerInit()
   
   {
     AutoLock al(&m_fbLock);
-    setFbProperties(&screenDimension, &serverPixelFormat);
+    setFbProperties(screenDimension, serverPixelFormat);
   }
 
   UINT32 sizeInBytes = m_input->readUInt32();

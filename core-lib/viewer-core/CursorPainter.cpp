@@ -61,7 +61,7 @@ void CursorPainter::setNewCursor(const Point &hotSpot,
   PixelFormat pixelFormat = m_fb->getPixelFormat();
 
   m_cursor.setProperties(cursorDimension, pixelFormat);
-  m_cursorOverlay.setProperties(&cursorDimension, &pixelFormat);
+  m_cursorOverlay.setProperties(cursorDimension, pixelFormat);
 
   size_t pixelSize = m_fb->getBytesPerPixel();
   size_t cursorSize = width * height * pixelSize;

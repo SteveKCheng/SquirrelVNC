@@ -78,7 +78,7 @@ public:
 private:
   void readServerInit();
   PixelFormat readPixelFormat();
-  void setFrameBuffer(const Dimension *dimension, const PixelFormat *pixelFormat);
+  void setFrameBuffer(const Dimension &dimension, const PixelFormat &pixelFormat);
   bool readMessage();
   void readFbUpdate();
   bool readFbUpdateRectangle();

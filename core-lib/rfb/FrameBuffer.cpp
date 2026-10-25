@@ -47,7 +47,7 @@ bool FrameBuffer::assignProperties(const FrameBuffer &srcFrameBuffer)
 {
   Dimension srcDimension = srcFrameBuffer.getDimension();
   PixelFormat srcPixelFormat = srcFrameBuffer.getPixelFormat();
-  setProperties(&srcDimension, &srcPixelFormat);
+  setProperties(srcDimension, srcPixelFormat);
   return resizeBuffer();
 }
 
@@ -353,24 +353,24 @@ void FrameBuffer::setEmptyPixelFmt(const PixelFormat &pf)
   m_pixelFormat = pf;
 }
 
-void FrameBuffer::setPropertiesWithoutResize(const Dimension *newDim, const PixelFormat *pf)
+void FrameBuffer::setPropertiesWithoutResize(const Dimension &newDim, const PixelFormat &pf)
 {
-  m_dimension = *newDim;
-  m_pixelFormat = *pf;
+  m_dimension = newDim;
+  m_pixelFormat = pf;
 }
 
-bool FrameBuffer::setProperties(const Dimension *newDim,
-                                const PixelFormat *pixelFormat)
+bool FrameBuffer::setProperties(const Dimension &newDim,
+                                const PixelFormat &pixelFormat)
 {
-  m_pixelFormat = *pixelFormat;
-  m_dimension = *newDim;
+  m_pixelFormat = pixelFormat;
+  m_dimension = newDim;
   return resizeBuffer();
 }
 
 bool FrameBuffer::setProperties(const Rect &dimByRect,
-                                const PixelFormat *pixelFormat)
+                                const PixelFormat &pixelFormat)
 {
-  m_pixelFormat = *pixelFormat;
+  m_pixelFormat = pixelFormat;
   m_dimension.setDim(dimByRect);
   return resizeBuffer();
 }

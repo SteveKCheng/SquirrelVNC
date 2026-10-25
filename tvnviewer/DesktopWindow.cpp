@@ -552,7 +552,7 @@ void DesktopWindow::setNewFramebuffer(const FrameBuffer &framebuffer)
       int alignHeight = (dimension.height + 3) / 4;
       dimension.height = alignHeight * 4;
       PixelFormat pixelFormat = framebuffer.getPixelFormat();
-      m_framebuffer.setProperties(&dimension, &pixelFormat, getHWnd());
+      m_framebuffer.setProperties(dimension, pixelFormat, getHWnd());
       m_framebuffer.setColor(0, 0, 0);
       m_scManager.setScreenResolution(dimension.width, dimension.height);
     } else {

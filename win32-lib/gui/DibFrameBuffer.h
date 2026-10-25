@@ -64,8 +64,8 @@ public:
   // a session of the DIB section later.
   // The compatibleWindow handle can be zero then the function will take a DC of entire desktop.
   // Note that other function that can change properties will throw Exception().
-  void setProperties(const Dimension *newDim,
-    const PixelFormat *pixelFormat, HWND compatibleWindow);
+  void setProperties(const Dimension &newDim,
+    const PixelFormat &pixelFormat, HWND compatibleWindow);
 
   /**
    * Changes the target DC: the DC that the blit and stretch functions copy
@@ -126,15 +126,15 @@ private:
   void setEmptyDimension(const Rect &dimByRect) override;
   bool setPixelFormat(const PixelFormat &pixelFormat) override;
   void setEmptyPixelFmt(const PixelFormat &pf) override;
-  bool setProperties(const Dimension *newDim, const PixelFormat *pixelFormat) override;
-  bool setProperties(const Rect &dimByRect, const PixelFormat *pixelFormat) override;
-  void setPropertiesWithoutResize(const Dimension *newDim, const PixelFormat *pf) override;
+  bool setProperties(const Dimension &newDim, const PixelFormat &pixelFormat) override;
+  bool setProperties(const Rect &dimByRect, const PixelFormat &pixelFormat) override;
+  void setPropertiesWithoutResize(const Dimension &newDim, const PixelFormat &pf) override;
   void setBuffer(void *newBuffer) override;
 
 private:
   // This function updates a DIB section in accord with the FrameBuffer
-  void *updateDibSection(const Dimension *newDim,
-    const PixelFormat *pixelFormat,
+  void *updateDibSection(const Dimension &newDim,
+    const PixelFormat &pixelFormat,
     HWND compatibleWindow);
   void releaseDibSection();
 

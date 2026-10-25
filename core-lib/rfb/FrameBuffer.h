@@ -93,7 +93,7 @@ public:
   // Sets pixel format to the frame buffer without buffer resizing
   virtual void setEmptyPixelFmt(const PixelFormat &pf);
 
-  virtual void setPropertiesWithoutResize(const Dimension *newDim, const PixelFormat *pf);
+  virtual void setPropertiesWithoutResize(const Dimension &newDim, const PixelFormat &pf);
 
   virtual inline Dimension getDimension() const { return m_dimension; }
 
@@ -101,8 +101,8 @@ public:
   virtual inline PixelFormat getPixelFormat() const { return m_pixelFormat; }
 
   // This function set both PixelFormat and Dimension
-  virtual bool setProperties(const Dimension *newDim, const PixelFormat *pixelFormat);
-  virtual bool setProperties(const Rect &dimByRect, const PixelFormat *pixelFormat);
+  virtual bool setProperties(const Dimension &newDim, const PixelFormat &pixelFormat);
+  virtual bool setProperties(const Rect &dimByRect, const PixelFormat &pixelFormat);
 
   // Return the number of bits occupied by one pixel (can be 8, 16 or 32).
   virtual UINT8 getBitsPerPixel() const;

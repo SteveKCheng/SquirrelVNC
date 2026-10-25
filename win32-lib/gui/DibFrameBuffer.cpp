@@ -112,7 +112,7 @@ void DibFrameBuffer::setEmptyPixelFmt(const PixelFormat & /* pf */)
   throw Exception(_T("This function is deprecated"));
 }
 
-void DibFrameBuffer::setPropertiesWithoutResize(const Dimension * /* newDim */, const PixelFormat * /* pf */)
+void DibFrameBuffer::setPropertiesWithoutResize(const Dimension & /* newDim */, const PixelFormat & /* pf */)
 {
   throw Exception(_T("Wrong: You shouln't use the DibFrameBuffer::setPropertiesWithoutResize() function."));
 }
@@ -132,12 +132,12 @@ inline PixelFormat DibFrameBuffer::getPixelFormat() const
   return m_fb.getPixelFormat();
 }
 
-bool DibFrameBuffer::setProperties(const Dimension * /* newDim */, const PixelFormat * /* pixelFormat */)
+bool DibFrameBuffer::setProperties(const Dimension & /* newDim */, const PixelFormat & /* pixelFormat */)
 {
   throw Exception(_T("Wrong: You shouln't use this variant of the DibFrameBuffer::setProperties() function."));
 }
 
-bool DibFrameBuffer::setProperties(const Rect & /* dimByRect */, const PixelFormat * /* pixelFormat */)
+bool DibFrameBuffer::setProperties(const Rect & /* dimByRect */, const PixelFormat & /* pixelFormat */)
 {
   throw Exception(_T("Wrong: You shouln't use this variant of the DibFrameBuffer::setProperties() function."));
 }
@@ -201,8 +201,8 @@ void DibFrameBuffer::stretchFromDibSection(const Rect &dstRect, const Rect &srcR
   m_dibSection->stretchFromDibSection(dstRect, srcRect);
 }
 
-void DibFrameBuffer::setProperties(const Dimension *newDim,
-                                   const PixelFormat *pixelFormat,
+void DibFrameBuffer::setProperties(const Dimension &newDim,
+                                   const PixelFormat &pixelFormat,
                                    HWND compatibleWindow)
 {
   m_fb.setPropertiesWithoutResize(newDim, pixelFormat);
@@ -210,8 +210,8 @@ void DibFrameBuffer::setProperties(const Dimension *newDim,
   m_fb.setBuffer(buffer);
 }
 
-void *DibFrameBuffer::updateDibSection(const Dimension *newDim,
-                                      const PixelFormat *pixelFormat,
+void *DibFrameBuffer::updateDibSection(const Dimension &newDim,
+                                      const PixelFormat &pixelFormat,
                                       HWND compatibleWindow)
 {
   releaseDibSection();

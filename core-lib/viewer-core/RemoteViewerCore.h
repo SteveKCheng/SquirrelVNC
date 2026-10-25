@@ -627,8 +627,8 @@ private:
   // valid (PixelFormat::isValid()); and Exception if a buffer cannot be
   // set up.
   //
-  void setFbProperties(const Dimension *fbDimension,
-                       const PixelFormat *fbPixelFormat);
+  void setFbProperties(const Dimension &fbDimension,
+                       const PixelFormat &fbPixelFormat);
 
   //
   // If m_isNewPixelFormat flag is set to true, then pixel format of the frame buffer

@@ -112,7 +112,7 @@ void FuzzSession::readServerInit()
   PixelFormat serverPixelFormat = readPixelFormat();
   {
     AutoLock al(&m_fbLock);
-    setFrameBuffer(&screenDimension, &serverPixelFormat);
+    setFrameBuffer(screenDimension, serverPixelFormat);
   }
 
   UINT32 sizeInBytes = m_input->readUInt32();
@@ -155,17 +155,17 @@ PixelFormat FuzzSession::readPixelFormat()
 
 // Mirrors RemoteViewerCore::setFbProperties(), with the fuzzer's limit.
 // Pre-conditions: m_fbLock is held.
-void FuzzSession::setFrameBuffer(const Dimension *dimension,
-                                 const PixelFormat *pixelFormat)
+void FuzzSession::setFrameBuffer(const Dimension &dimension,
+                                 const PixelFormat &pixelFormat)
 {
-  const int width = dimension->width;
-  const int height = dimension->height;
-  if (width < 0 || height < 0 || !pixelFormat->isValid()) {
+  const int width = dimension.width;
+  const int height = dimension.height;
+  if (width < 0 || height < 0 || !pixelFormat.isValid()) {
     throw Exception(_T("Invalid framebuffer properties"));
   }
   if (static_cast<UINT64>(width) * height > MAX_FRAME_BUFFER_PIXELS ||
       !ViewerBufferSize::fitsFrameBuffer(width, height,
-                                         pixelFormat->bitsPerPixel / 8)) {
+                                         pixelFormat.bitsPerPixel / 8)) {
     throw Exception(_T("Framebuffer is too large"));
   }
   if (!m_frameBuffer->setProperties(dimension, pixelFormat) ||
@@ -281,7 +281,7 @@ void FuzzSession::readPseudoEncoding(const Rect *rect, int encodingType)
       AutoLock al(&m_fbLock);
       Dimension dimension(*rect);
       PixelFormat pixelFormat = m_frameBuffer->getPixelFormat();
-      setFrameBuffer(&dimension, &pixelFormat);
+      setFrameBuffer(dimension, pixelFormat);
     }
     break;
 

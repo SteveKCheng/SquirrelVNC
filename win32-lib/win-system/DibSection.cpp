@@ -25,7 +25,7 @@
 #include "win-system/SystemException.h"
 #include "util/ScopeExit.h"
 
-DibSection::DibSection(const PixelFormat *pf, const Dimension *dim, HWND compatibleWin)
+DibSection::DibSection(const PixelFormat &pf, const Dimension &dim, HWND compatibleWin)
 : m_isOwnTargetDC(false),
   m_targetDC(nullptr),
   m_memDC(nullptr),
@@ -110,48 +110,48 @@ void DibSection::stretchFromDibSection(const Rect &dstRect, const Rect &srcRect,
   }
 }
 
-void DibSection::setupPaletteBMI(Screen::Palette8bitBMI *bmi, const PixelFormat *pf,
-                                 const Dimension *dim)
+void DibSection::setupPaletteBMI(Screen::Palette8bitBMI *bmi, const PixelFormat &pf,
+                                 const Dimension &dim)
 {
   *bmi = {};
   for (unsigned int index = 0; index < 256; index++) {
-    unsigned int red = (index >> pf->redShift) & pf->redMax;
-    red = red * 0xFF / pf->redMax;
+    unsigned int red = (index >> pf.redShift) & pf.redMax;
+    red = red * 0xFF / pf.redMax;
     bmi->rgbQuad[index].rgbRed = (BYTE)red;
-    unsigned int green = (index >> pf->greenShift) & pf->greenMax;
-    green = green * 0xFF / pf->greenMax;
+    unsigned int green = (index >> pf.greenShift) & pf.greenMax;
+    green = green * 0xFF / pf.greenMax;
     bmi->rgbQuad[index].rgbGreen = (BYTE)green;
-    unsigned int blue = (index >> pf->blueShift) & pf->blueMax;
-    blue = blue * 0xFF / pf->blueMax;
+    unsigned int blue = (index >> pf.blueShift) & pf.blueMax;
+    blue = blue * 0xFF / pf.blueMax;
     bmi->rgbQuad[index].rgbBlue = (BYTE)blue;
   }
   setupBMIHeader(&bmi->bmiHeader, pf, dim);
 }
 
-void DibSection::setupBitFieldsBMI(Screen::BMI *bmi, const PixelFormat *pf,
-                                   const Dimension *dim)
+void DibSection::setupBitFieldsBMI(Screen::BMI *bmi, const PixelFormat &pf,
+                                   const Dimension &dim)
 {
   *bmi = {};
   bmi->bmiHeader.biCompression = BI_BITFIELDS;
   // In UINT32, since a mask in the top bits of a 32-bit pixel does not fit
   // in an int.
-  bmi->red   = static_cast<UINT32>(pf->redMax)   << pf->redShift;
-  bmi->green = static_cast<UINT32>(pf->greenMax) << pf->greenShift;
-  bmi->blue  = static_cast<UINT32>(pf->blueMax)  << pf->blueShift;
+  bmi->red   = static_cast<UINT32>(pf.redMax)   << pf.redShift;
+  bmi->green = static_cast<UINT32>(pf.greenMax) << pf.greenShift;
+  bmi->blue  = static_cast<UINT32>(pf.blueMax)  << pf.blueShift;
   setupBMIHeader(&bmi->bmiHeader, pf, dim);
 }
 
-void DibSection::setupBMIHeader(BITMAPINFOHEADER *header, const PixelFormat *pf,
-                                const Dimension *dim)
+void DibSection::setupBMIHeader(BITMAPINFOHEADER *header, const PixelFormat &pf,
+                                const Dimension &dim)
 {
   header->biSize = sizeof(BITMAPINFOHEADER);
   header->biPlanes = 1;
-  header->biBitCount = pf->bitsPerPixel;
-  header->biWidth = dim->width;
-  header->biHeight = -dim->height;
+  header->biBitCount = pf.bitsPerPixel;
+  header->biWidth = dim.width;
+  header->biHeight = -dim.height;
 }
 
-void DibSection::openDIBSection(const PixelFormat *pf, const Dimension *dim, HWND compatibleWin)
+void DibSection::openDIBSection(const PixelFormat &pf, const Dimension &dim, HWND compatibleWin)
 {
   m_targetDC = GetDC(compatibleWin);
   m_isOwnTargetDC = true;
@@ -175,7 +175,7 @@ void DibSection::openDIBSection(const PixelFormat *pf, const Dimension *dim, HWN
   Screen::Palette8bitBMI paletteBmi;
   const BITMAPINFO *pBmi;
 
-  if (pf->bitsPerPixel == 8) {
+  if (pf.bitsPerPixel == 8) {
     setupPaletteBMI(&paletteBmi, pf, dim);
     pBmi = reinterpret_cast<const BITMAPINFO *>(&paletteBmi);
   } else {
