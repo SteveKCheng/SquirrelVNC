@@ -35,7 +35,7 @@ public:
   Rect(const Rect &rect) { setRect(&rect); }
   Rect(int lt, int tp, int rt, int bm) { setRect(lt, tp, rt, bm); }
   Rect(int width, int height) { setRect(0, 0, width, height); }
-  Rect(const RECT *rect) {fromWindowsRect(rect);}
+  explicit Rect(const RECT *rect) {fromWindowsRect(rect);}
 
   ~Rect(void) {}
   

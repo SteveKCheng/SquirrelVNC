@@ -31,7 +31,7 @@ class Dimension
 public:
   Dimension(void) : width(0), height(0) {}
   Dimension(const int w, const int h) { setDim(w, h); }
-  Dimension(const Rect *r) { width = r->getWidth(); height = r->getHeight(); }
+  explicit Dimension(const Rect *r) { width = r->getWidth(); height = r->getHeight(); }
   Dimension(const Dimension &other): width(other.width), height(other.height) {}
 
   const Dimension &operator=(const Dimension &other) { width = other.width;
