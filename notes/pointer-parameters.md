@@ -4,7 +4,7 @@ A survey (2026-10-25) of which functions take a raw pointer to an object
 that they only borrow: the pointee must be non-null, it is used only
 during the call, and the pointer is not kept after the call returns.
 Such parameters could be `T &` or `const T &`, which documents both
-facts in the type. **Preliminary:** nothing is changed yet, and the
+facts in the type. **Preliminary:** the
 lists below come from a tool with known blind spots (see the caveats),
 so check each function when converting it.
 
@@ -55,6 +55,84 @@ Declarations and definitions are matched by file, function name,
 position and type of the parameter. Virtual functions are grouped by
 name, position and type of the parameter, so that a base declaration and its overrides are
 judged together.
+
+## Plan: `const` pointees first
+
+Decided 2026-10-25: convert the candidates whose pointee is `const`
+first (243 of the 507, counting each override separately), since that
+is the least controversial change with the most effect on
+readability. The other kinds (non-`const` pointees, out-parameters,
+arrays, nullable or kept pointers) are decided later, possibly
+piecemeal as code is touched for other reasons, since many need
+special treatment.
+
+Decisions:
+
+- **No boilerplate documentation.** A `const T &` parameter says that
+  the argument is not null and is only borrowed, so converted functions
+  do not get `@pre` comments repeating that. `@pre` and `@post` are
+  added only for other conditions found while converting.
+- **Checks:** the build of the three usual configurations, the tests,
+  and review of the diff. Comparing the machine code before and after
+  (`dumpbin /disasm` of the Release `.obj` files) is provisional, done
+  by sampling only: references and pointers can be optimised slightly
+  differently, so differences do not by themselves mean a mistake.
+
+### Tool
+
+A script driven by `clang-query` (as in the survey), given the
+parameters to convert. It edits the source at the exact locations
+`clang-query` reports:
+
+- declarations and definitions, overrides included: `const T *p`
+  becomes `const T &p`;
+- in the body: `p->` becomes `p.`, `*p` becomes `p`, and `p` passed on
+  to another converted parameter is unchanged;
+- at call sites: `&x` becomes `x`; any other argument `e` becomes `*e`
+  (parenthesised unless simple);
+- any other use of `p` (comparison, `sizeof`, passed to a parameter
+  not being converted) is reported for editing by hand, not guessed.
+
+The compiler checks the rest: a pointer and a reference do not convert
+into each other, so a missed edit fails to build.
+
+### Batches
+
+Pointers are only ever passed on between `const` candidates of the
+same type, never to parameters that stay pointers, so the candidates
+fall into closed chains (92 parameters that pass the pointer nowhere,
+30 small chains, and two big ones: 22 parameters of
+`const FrameBuffer *` and 42 of `const Rect *`). Each chain converts
+in one commit without temporary `&`/`*` at its edges. In order:
+
+1. **Trial:** the `const DateTime *` chain in `win32-lib/log-writer`
+   (`FileAccount::format`/`print`/`flush`, `LogEntry`,
+   `LogDump::updateLogHeaderLines`/`updateLogDumpLines`/`flush`): 7
+   parameters, but every kind of edit, including a virtual family and
+   a constructor.
+2. **Preparation:** make `Rect(const RECT *)` and
+   `Dimension(const Rect *)` `explicit`, and replace
+   `Rect(const Rect *)`, which duplicates the copy constructor, with
+   the copy constructor, before converting anything that could change
+   overload resolution.
+3. **No caveats, not virtual:** one commit per module (`region`,
+   `rfb`, `viewer-core`, `win32-lib`, `tvnviewer`), with their small
+   chains.
+4. **The two big chains:** `const FrameBuffer *`, then `const Rect *`.
+5. **Other virtual families:** the `CoreEventsAdapter` callbacks, the
+   rest of `FrameBuffer`'s virtual functions, and so on.
+
+Then one commit per caveat, so that the reasoning for each is in one
+place:
+
+6. call sites whose arguments are not obviously non-null (8
+   parameters), with the reason each cannot be null;
+7. pointers passed to a local object's constructor (9 parameters);
+8. pointers passed through `std::make_unique` (4 parameters), with
+   the constructor they reach;
+9. overloaded functions not already covered, checking which overload
+   each call resolves to;
+10. functions in `harnesses/` and `tools/` only.
 
 ## Results
 
