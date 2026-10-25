@@ -27,17 +27,6 @@ CursorShape::~CursorShape()
 {
 }
 
-bool CursorShape::clone(const CursorShape *srcCursorShape)
-{
-  m_hotSpot = srcCursorShape->getHotSpot();
-  if (m_pixels.clone(srcCursorShape->getPixels())) {
-    m_mask = srcCursorShape->m_mask;
-    return true;
-  } else {
-    return false;
-  }
-}
-
 void CursorShape::assignMaskFromRfb(const char *srcMask)
 {
   if (!m_mask.empty()) {

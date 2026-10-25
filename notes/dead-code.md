@@ -311,3 +311,5 @@ git diff -U0 --diff-filter=M 630df21~1 20956d9 -- '*.cpp' | grep '^-[^-/ {}#	]'
   converting its parameters to references (`pointer-parameters.md`).
   Its strict-aliasing violations, listed in `portability.md`, went
   with it.
+- **`CursorShape::clone()`**, which nothing called (its last caller
+  went with the server). Found the same way.

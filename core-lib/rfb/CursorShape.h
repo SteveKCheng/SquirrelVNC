@@ -35,8 +35,6 @@ public:
   CursorShape(): m_mask(0) {}
   ~CursorShape();
 
-  bool clone(const CursorShape *srcCursorShape);
-
   bool setDimension(const Dimension *newDim);
   Dimension getDimension() const { return m_pixels.getDimension(); }
 
