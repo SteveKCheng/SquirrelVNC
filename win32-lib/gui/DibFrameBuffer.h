@@ -121,13 +121,13 @@ private:
   // use this functions from a base class its will throw Exception.
   bool assignProperties(const FrameBuffer &srcFrameBuffer) override;
   bool clone(const FrameBuffer &srcFrameBuffer) override;
-  bool setDimension(const Dimension *newDim) override;
-  bool setDimension(const Rect *rect) override;
-  void setEmptyDimension(const Rect *dimByRect) override;
-  bool setPixelFormat(const PixelFormat *pixelFormat) override;
-  void setEmptyPixelFmt(const PixelFormat *pf) override;
+  bool setDimension(const Dimension &newDim) override;
+  bool setDimension(const Rect &rect) override;
+  void setEmptyDimension(const Rect &dimByRect) override;
+  bool setPixelFormat(const PixelFormat &pixelFormat) override;
+  void setEmptyPixelFmt(const PixelFormat &pf) override;
   bool setProperties(const Dimension *newDim, const PixelFormat *pixelFormat) override;
-  bool setProperties(const Rect *dimByRect, const PixelFormat *pixelFormat) override;
+  bool setProperties(const Rect &dimByRect, const PixelFormat *pixelFormat) override;
   void setPropertiesWithoutResize(const Dimension *newDim, const PixelFormat *pf) override;
   void setBuffer(void *newBuffer) override;
 

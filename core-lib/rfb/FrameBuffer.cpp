@@ -27,10 +27,10 @@
 // Returns true if pf is equal to the pixel format of fb.  getPixelFormat()
 // returns a copy, which is held here so that PixelFormat::isEqualTo() can
 // take its address.  The call stays virtual: DibFrameBuffer overrides it.
-static inline bool hasPixelFormatOf(const PixelFormat *pf, const FrameBuffer &fb)
+static inline bool hasPixelFormatOf(const PixelFormat &pf, const FrameBuffer &fb)
 {
   PixelFormat fbPixelFormat = fb.getPixelFormat();
-  return pf->isEqualTo(fbPixelFormat);
+  return pf.isEqualTo(fbPixelFormat);
 }
 
 FrameBuffer::FrameBuffer(void)
@@ -114,7 +114,7 @@ bool FrameBuffer::isEqualTo(const FrameBuffer &frameBuffer)
 {
   Dimension dimension = frameBuffer.getDimension();
   return m_dimension.cmpDim(dimension) &&
-         hasPixelFormatOf(&m_pixelFormat, frameBuffer);
+         hasPixelFormatOf(m_pixelFormat, frameBuffer);
 }
 
 void FrameBuffer::clipRect(const Rect &dstRect, const FrameBuffer &srcFrameBuffer,
@@ -160,7 +160,7 @@ bool FrameBuffer::overlay(const Rect &dstRect,
                           int srcX, int srcY,
                           const char *andMask)
 {
-  if (!hasPixelFormatOf(&m_pixelFormat, srcFrameBuffer)) {
+  if (!hasPixelFormatOf(m_pixelFormat, srcFrameBuffer)) {
     return false;
   }
   if (m_pixelFormat.bitsPerPixel == 32) {
@@ -209,7 +209,7 @@ template<class PIXEL_T> bool FrameBuffer::overlayT(const Rect &dstRect,
 bool FrameBuffer::copyFrom(const Rect &dstRect, const FrameBuffer &srcFrameBuffer,
                            int srcX, int srcY)
 {
-  if (!hasPixelFormatOf(&m_pixelFormat, srcFrameBuffer)) {
+  if (!hasPixelFormatOf(m_pixelFormat, srcFrameBuffer)) {
     return false;
   }
 
@@ -253,7 +253,7 @@ bool FrameBuffer::copyFrom(const FrameBuffer &srcFrameBuffer,
 bool FrameBuffer::cmpFrom(const Rect &dstRect, const FrameBuffer &srcFrameBuffer,
                           const int srcX, const int srcY)
 {
-  if (!hasPixelFormatOf(&m_pixelFormat, srcFrameBuffer)) {
+  if (!hasPixelFormatOf(m_pixelFormat, srcFrameBuffer)) {
     return false;
   }
 
@@ -331,26 +331,26 @@ void FrameBuffer::move(const Rect &dstRect, const int srcX, const int srcY)
   }
 }
 
-bool FrameBuffer::setPixelFormat(const PixelFormat *pixelFormat)
+bool FrameBuffer::setPixelFormat(const PixelFormat &pixelFormat)
 {
-  m_pixelFormat = *pixelFormat;
+  m_pixelFormat = pixelFormat;
   return resizeBuffer();
 }
 
-bool FrameBuffer::setDimension(const Dimension *newDim)
+bool FrameBuffer::setDimension(const Dimension &newDim)
 {
-  m_dimension = *newDim;
+  m_dimension = newDim;
   return resizeBuffer();
 }
 
-void FrameBuffer::setEmptyDimension(const Rect *dimByRect)
+void FrameBuffer::setEmptyDimension(const Rect &dimByRect)
 {
   m_dimension.setDim(dimByRect);
 }
 
-void FrameBuffer::setEmptyPixelFmt(const PixelFormat *pf)
+void FrameBuffer::setEmptyPixelFmt(const PixelFormat &pf)
 {
-  m_pixelFormat = *pf;
+  m_pixelFormat = pf;
 }
 
 void FrameBuffer::setPropertiesWithoutResize(const Dimension *newDim, const PixelFormat *pf)
@@ -367,7 +367,7 @@ bool FrameBuffer::setProperties(const Dimension *newDim,
   return resizeBuffer();
 }
 
-bool FrameBuffer::setProperties(const Rect *dimByRect,
+bool FrameBuffer::setProperties(const Rect &dimByRect,
                                 const PixelFormat *pixelFormat)
 {
   m_pixelFormat = *pixelFormat;

@@ -35,14 +35,14 @@ public:
   CursorShape(): m_mask(0) {}
   ~CursorShape();
 
-  bool setDimension(const Dimension *newDim);
+  bool setDimension(const Dimension &newDim);
   Dimension getDimension() const { return m_pixels.getDimension(); }
 
-  bool setPixelFormat(const PixelFormat *pixelFormat);
+  bool setPixelFormat(const PixelFormat &pixelFormat);
   PixelFormat getPixelFormat() const { return m_pixels.getPixelFormat(); }
 
   // This function set both PixelFormat and Dimension
-  bool setProperties(const Dimension *newDim, const PixelFormat *pixelFormat);
+  bool setProperties(const Dimension &newDim, const PixelFormat &pixelFormat);
 
   const FrameBuffer *getPixels() const { return &m_pixels; }
   int getPixelsSize() const { return m_pixels.getBufferSize(); }

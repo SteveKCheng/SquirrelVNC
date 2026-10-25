@@ -92,22 +92,22 @@ bool DibFrameBuffer::cmpFrom(const Rect &dstRect, const FrameBuffer &srcFrameBuf
   return m_fb.cmpFrom(dstRect, srcFrameBuffer, srcX, srcY);
 }
 
-bool DibFrameBuffer::setDimension(const Dimension * /* newDim */)
+bool DibFrameBuffer::setDimension(const Dimension & /* newDim */)
 {
   throw Exception(_T("Wrong: You shouln't use the DibFrameBuffer::clone() function."));
 }
 
-bool DibFrameBuffer::setDimension(const Rect * /* rect */)
+bool DibFrameBuffer::setDimension(const Rect & /* rect */)
 {
   throw Exception(_T("Wrong: You shouln't use the DibFrameBuffer::clone() function."));
 }
 
-void DibFrameBuffer::setEmptyDimension(const Rect * /* dimByRect */)
+void DibFrameBuffer::setEmptyDimension(const Rect & /* dimByRect */)
 {
   throw Exception(_T("This function is deprecated"));
 }
 
-void DibFrameBuffer::setEmptyPixelFmt(const PixelFormat * /* pf */)
+void DibFrameBuffer::setEmptyPixelFmt(const PixelFormat & /* pf */)
 {
   throw Exception(_T("This function is deprecated"));
 }
@@ -122,7 +122,7 @@ inline Dimension DibFrameBuffer::getDimension() const
   return m_fb.getDimension();
 }
 
-bool DibFrameBuffer::setPixelFormat(const PixelFormat * /* pixelFormat */)
+bool DibFrameBuffer::setPixelFormat(const PixelFormat & /* pixelFormat */)
 {
   throw Exception(_T("Wrong: You shouln't use the DibFrameBuffer::setPixelFormat() function."));
 }
@@ -137,7 +137,7 @@ bool DibFrameBuffer::setProperties(const Dimension * /* newDim */, const PixelFo
   throw Exception(_T("Wrong: You shouln't use this variant of the DibFrameBuffer::setProperties() function."));
 }
 
-bool DibFrameBuffer::setProperties(const Rect * /* dimByRect */, const PixelFormat * /* pixelFormat */)
+bool DibFrameBuffer::setProperties(const Rect & /* dimByRect */, const PixelFormat * /* pixelFormat */)
 {
   throw Exception(_T("Wrong: You shouln't use this variant of the DibFrameBuffer::setProperties() function."));
 }

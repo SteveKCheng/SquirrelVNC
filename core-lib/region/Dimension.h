@@ -49,8 +49,8 @@ public:
   }
 
   inline void setDim(const int w, const int h) { width = w; height = h; }
-  inline void setDim(const Rect *rect) { width = rect->getWidth();
-                                         height = rect->getHeight(); }
+  inline void setDim(const Rect &rect) { width = rect.getWidth();
+                                         height = rect.getHeight(); }
 
   inline bool cmpDim(const Dimension &dim) const { return dim.width == width &&
                                                           dim.height == height; }

@@ -37,20 +37,20 @@ void CursorShape::assignMaskFromRfb(const char *srcMask)
   }
 }
 
-bool CursorShape::setDimension(const Dimension *newDim)
+bool CursorShape::setDimension(const Dimension &newDim)
 {
   bool result = m_pixels.setDimension(newDim);
   return result && resizeBuffer();
 }
 
-bool CursorShape::setPixelFormat(const PixelFormat *pixFormat)
+bool CursorShape::setPixelFormat(const PixelFormat &pixFormat)
 {
   bool result = m_pixels.setPixelFormat(pixFormat);
   return result && resizeBuffer();
 }
 
-bool CursorShape::setProperties(const Dimension *newDim,
-                                const PixelFormat *pixelFormat)
+bool CursorShape::setProperties(const Dimension &newDim,
+                                const PixelFormat &pixelFormat)
 {
   bool result = m_pixels.setDimension(newDim) &&
                 m_pixels.setPixelFormat(pixelFormat);
