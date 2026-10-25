@@ -32,7 +32,7 @@ class Rect
 {
 public:
   Rect(void) : left(0), top(0), right(0), bottom(0) {}
-  Rect(const Rect &rect) { setRect(&rect); }
+  Rect(const Rect &rect) { setRect(rect); }
   Rect(int lt, int tp, int rt, int bm) { setRect(lt, tp, rt, bm); }
   Rect(int width, int height) { setRect(0, 0, width, height); }
   explicit Rect(const RECT &rect) {fromWindowsRect(rect);}
@@ -52,17 +52,17 @@ public:
     bottom = bm;
   }
 
-  inline void setRect(const Rect *rect)
+  inline void setRect(const Rect &rect)
   {
-    left    = rect->left;
-    top     = rect->top;
-    right   = rect->right;
-    bottom  = rect->bottom;
+    left    = rect.left;
+    top     = rect.top;
+    right   = rect.right;
+    bottom  = rect.bottom;
   }
 
   inline Rect & operator=(const Rect &rect)
   {
-    setRect(&rect);
+    setRect(rect);
     return *this;
   }
 

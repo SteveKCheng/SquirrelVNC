@@ -148,10 +148,10 @@ void FrameBuffer::clipRect(const Rect &dstRect, const Rect &srcBufferRect,
   Rect commonRect = dstCommonArea.intersection(srcCommonArea);
 
   // Moving commonRect to destination coordinates and source
-  dstClippedRect->setRect(&commonRect);
+  dstClippedRect->setRect(commonRect);
   dstClippedRect->move(dstRect.left, dstRect.top);
 
-  srcClippedRect->setRect(&commonRect);
+  srcClippedRect->setRect(commonRect);
   srcClippedRect->move(srcRect.left, srcRect.top);
 }
 

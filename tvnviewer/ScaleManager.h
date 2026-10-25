@@ -91,7 +91,7 @@ protected:
   int m_scale;
 
 private:
-  Rect calcScaled(const Rect *rcViewed, bool bCent);
+  Rect calcScaled(const Rect &rcViewed, bool bCent);
 
 };
 

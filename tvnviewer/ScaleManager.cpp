@@ -74,7 +74,7 @@ void ScaleManager::setWindow(Rect *rcWnd)
   setStartPoint(m_xStart, m_yStart);
 }
 
-Rect ScaleManager::calcScaled(const Rect *rcViewed, bool bCent)
+Rect ScaleManager::calcScaled(const Rect &rcViewed, bool bCent)
 {
   Rect rcScaled;
   // calculate scaled window from viewed
@@ -191,28 +191,28 @@ void ScaleManager::setStartPoint(int x, int y)
       m_rcViewed.top = 0;
     }
   }
-  Rect rcScaled = calcScaled(&m_rcViewed, true);
+  Rect rcScaled = calcScaled(m_rcViewed, true);
 }
 
 void ScaleManager::getDestinationRect(Rect *rcDestination)
 {
-  Rect rcScaled = calcScaled(&m_rcViewed, true);
+  Rect rcScaled = calcScaled(m_rcViewed, true);
   rcScaled.setLocation(m_iCentX, m_iCentY);
 
-  rcDestination->setRect(&rcScaled);
+  rcDestination->setRect(rcScaled);
 }
 
 void ScaleManager::getSourceRect(Rect *rcSource) const
 {
-  rcSource->setRect(&m_rcViewed);
+  rcSource->setRect(m_rcViewed);
 }
 
 void ScaleManager::getWndFromScreen(const Rect *screen, Rect *wnd)
 {
   Rect scr = *screen;
   scr.move(-m_rcViewed.left, -m_rcViewed.top);
-  Rect rcScaled = calcScaled(&scr, false);
-  wnd->setRect(&rcScaled);
+  Rect rcScaled = calcScaled(scr, false);
+  wnd->setRect(rcScaled);
   wnd->move(m_iCentX, m_iCentY);
 }
 
