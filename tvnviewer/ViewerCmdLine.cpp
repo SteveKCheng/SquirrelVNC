@@ -245,7 +245,7 @@ void ViewerCmdLine::parseOptionsFile()
 void ViewerCmdLine::parsePassword()
 {
   if (isPresent(PASSWORD)) {
-    m_conData->setPlainPassword(&m_options[PASSWORD]);
+    m_conData->setPlainPassword(m_options[PASSWORD]);
   }
 }
 

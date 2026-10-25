@@ -57,7 +57,7 @@ BOOL AuthenticationDialog::onCommand(WORD controlID, UINT /* notificationID */)
   return FALSE;
 }
 
-const StringStorage *AuthenticationDialog::getPassword()
+const StringStorage &AuthenticationDialog::getPassword() const
 {
-  return &m_strPassword;
+  return m_strPassword;
 }

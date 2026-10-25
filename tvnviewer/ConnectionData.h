@@ -78,7 +78,7 @@ public:
   // Pre: password is not null.
   // Post: the password is kept, and encrypted for getCryptedPassword();
   // isSetPassword() is true.
-  void setPlainPassword(const StringStorage *password);
+  void setPlainPassword(const StringStorage &password);
   // Pre: password is null, or the encrypted password as hex digits, as
   // saved in a .vnc file. It comes from the file unchecked; it is checked
   // when getPlainPassword() reads it.

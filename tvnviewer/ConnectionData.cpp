@@ -144,10 +144,10 @@ StringStorage ConnectionData::getPlainPassword() const
   return TextEncoding::fromUtf8(std::as_bytes(std::span(plainPassword)));
 }
 
-void ConnectionData::setPlainPassword(const StringStorage *password)
+void ConnectionData::setPlainPassword(const StringStorage &password)
 {
   // The same bytes as VncAuthentication uses for the key.
-  std::vector<std::byte> passwordUtf8 = TextEncoding::toUtf8(*password);
+  std::vector<std::byte> passwordUtf8 = TextEncoding::toUtf8(password);
   UINT8 plainPassword[VncAuthentication::VNC_PASSWORD_SIZE];
   UINT8 encryptedPassword[VncAuthentication::VNC_PASSWORD_SIZE];
   memset(plainPassword, 0, VncAuthentication::VNC_PASSWORD_SIZE);
@@ -166,7 +166,7 @@ void ConnectionData::setPlainPassword(const StringStorage *password)
 
   // save password
   m_defaultPassword = TextEncoding::fromLatin1(std::as_bytes(std::span(hidePasswordChars)));
-  m_plainPassword = *password;
+  m_plainPassword = password;
   m_hasPlainPassword = true;
   m_isSetPassword = true;
 }

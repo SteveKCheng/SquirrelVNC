@@ -34,7 +34,7 @@ public:
   AuthenticationDialog();
 
   // this function returns the password entered by user
-  const StringStorage *getPassword();
+  const StringStorage &getPassword() const;
 
   // this function returns sets the name of host in dialog
   void setHostName(const StringStorage &hostname);
