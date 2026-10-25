@@ -38,9 +38,9 @@ BOOL AuthenticationDialog::onInitDialog()
   return FALSE;
 }
 
-void AuthenticationDialog::setHostName(const StringStorage *hostname)
+void AuthenticationDialog::setHostName(const StringStorage &hostname)
 {
-  m_strHost = *hostname;
+  m_strHost = hostname;
 }
 
 BOOL AuthenticationDialog::onCommand(WORD controlID, UINT /* notificationID */)

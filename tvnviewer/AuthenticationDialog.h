@@ -37,7 +37,7 @@ public:
   const StringStorage *getPassword();
 
   // this function returns sets the name of host in dialog
-  void setHostName(const StringStorage *hostname);
+  void setHostName(const StringStorage &hostname);
 
 protected:
   BOOL onCommand(WORD controlID, UINT notificationID) override;

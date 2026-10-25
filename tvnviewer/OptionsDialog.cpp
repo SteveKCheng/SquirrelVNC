@@ -28,9 +28,9 @@
 // narrowing the LPARAM back to int is exact.  index must be a valid item
 // index: otherwise the result is CB_ERR (-1), which is no encoding that the
 // combo box offers.
-static inline int getEncodingOfItem(const ComboBox *comboBox, int index)
+static inline int getEncodingOfItem(const ComboBox &comboBox, int index)
 {
-  return static_cast<int>(comboBox->getItemData(index));
+  return static_cast<int>(comboBox.getItemData(index));
 }
 
 OptionsDialog::OptionsDialog()
@@ -150,7 +150,7 @@ void OptionsDialog::updateControlValues()
 {
   // Preferred encoding
   for (int i = 0; i < m_useEnc.getItemsCount(); i++) {
-    int enc = getEncodingOfItem(&m_useEnc, i);
+    int enc = getEncodingOfItem(m_useEnc, i);
     if (enc == m_conConfig->getPreferredEncoding()) {
       m_useEnc.setSelectedItem(i);
       break;
@@ -302,7 +302,7 @@ void OptionsDialog::onPreferredEncodingSelectionChange()
   if (index < 0) {
     return ;
   }
-  int encoding = getEncodingOfItem(&m_useEnc, index);
+  int encoding = getEncodingOfItem(m_useEnc, index);
   switch (encoding) {
   case EncodingDefs::TIGHT:
     enableCustomCompression(m_compLvl.isChecked());
@@ -416,7 +416,7 @@ void OptionsDialog::apply()
   // Preferred encoding
   int pesii = m_useEnc.getSelectedItemIndex();
   if (pesii >= 0) {
-    int preferredEncoding = getEncodingOfItem(&m_useEnc, pesii);
+    int preferredEncoding = getEncodingOfItem(m_useEnc, pesii);
     m_conConfig->setPreferredEncoding(preferredEncoding);
   } else {
     _ASSERT(pesii >= 0);

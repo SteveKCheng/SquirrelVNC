@@ -39,7 +39,7 @@ void ViewerVncAuthHandler::getPassword(StringStorage *passString)
   if (!m_connectionData->isSetPassword()) {
     AuthenticationDialog authDialog;
     StringStorage hostname = m_connectionData->getHost();
-    authDialog.setHostName(&hostname);
+    authDialog.setHostName(hostname);
     if (authDialog.showModal()) {
       m_connectionData->setPlainPassword(authDialog.getPassword());
     } else {

@@ -167,7 +167,7 @@ protected:
 private:
   void doDraw(DeviceContext *dc);
   void scrollProcessing(int fbWidth, int fbHeight);
-  void drawBackground(DeviceContext *dc, const RECT *rcMain, const RECT *rcImage);
+  void drawBackground(DeviceContext *dc, const RECT &rcMain, const RECT &rcImage);
   void drawImage(const RECT *src, const RECT *dst);
   /**
    * Invalidates the part of the window that shows an area of the frame

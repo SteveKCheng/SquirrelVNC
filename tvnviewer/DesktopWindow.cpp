@@ -368,7 +368,7 @@ void DesktopWindow::doDraw(DeviceContext *dc)
   RECT rcDst = dst.toWindowsRect();
   if (iWidth || iHeight) {
     RECT rcClient = m_clientArea.toWindowsRect();
-    drawBackground(dc, &rcClient, &rcDst);
+    drawBackground(dc, rcClient, rcDst);
   }
 
   drawImage(&rcSrc, &rcDst);
@@ -457,17 +457,17 @@ void DesktopWindow::scrollProcessing(int fbWidth, int fbHeight)
   calculateWndSize(bChanged);
 }
 
-void DesktopWindow::drawBackground(DeviceContext *dc, const RECT *rcMain, const RECT *rcImage) {
+void DesktopWindow::drawBackground(DeviceContext *dc, const RECT &rcMain, const RECT &rcImage) {
   Graphics graphics(dc);
 
   // top rectangle
-  graphics.fillRect(rcMain->left, rcMain->top, rcMain->right, rcImage->top, m_brush);
+  graphics.fillRect(rcMain.left, rcMain.top, rcMain.right, rcImage.top, m_brush);
   // left rectangle
-  graphics.fillRect(rcMain->left, rcImage->top, rcImage->left, rcImage->bottom, m_brush);
+  graphics.fillRect(rcMain.left, rcImage.top, rcImage.left, rcImage.bottom, m_brush);
   // bottom rectangle
-  graphics.fillRect(rcMain->left, rcImage->bottom, rcMain->right, rcMain->bottom, m_brush);
+  graphics.fillRect(rcMain.left, rcImage.bottom, rcMain.right, rcMain.bottom, m_brush);
   // right rectangle
-  graphics.fillRect(rcImage->right, rcImage->top, rcMain->right, rcImage->bottom, m_brush);
+  graphics.fillRect(rcImage.right, rcImage.top, rcMain.right, rcImage.bottom, m_brush);
 }
 
 void DesktopWindow::calcClientArea() {
