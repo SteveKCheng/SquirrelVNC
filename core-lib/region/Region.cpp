@@ -65,7 +65,7 @@ Region::Region(const Rect &rect)
 Region::Region(const Region &src)
 {
   miRegionInit(&m_reg, NullBox, 0);
-  set(&src);
+  set(src);
 }
 
 Region::~Region()
@@ -78,14 +78,14 @@ void Region::clear()
   miRegionEmpty(&m_reg);
 }
 
-void Region::set(const Region *src)
+void Region::set(const Region &src)
 {
-  miRegionCopy(&m_reg, (RegionPtr)&src->m_reg);
+  miRegionCopy(&m_reg, (RegionPtr)&src.m_reg);
 }
 
 Region & Region::operator=(const Region &src)
 {
-  set(&src);
+  set(src);
   return *this;
 }
 
@@ -93,7 +93,7 @@ void Region::addRect(const Rect *rect)
 {
   if (!rect->isEmpty()) {
     Region temp(*rect);
-    add(&temp);
+    add(temp);
   }
 }
 
@@ -102,30 +102,25 @@ void Region::translate(int dx, int dy)
   miTranslateRegion(&m_reg, dx, dy);
 }
 
-void Region::add(const Region *other)
-{
-  miUnion(&m_reg, &m_reg, (RegionPtr)&other->m_reg);
-}
-
 void Region::add(const Region &other)
 {
   miUnion(&m_reg, &m_reg, (RegionPtr)&other.m_reg);
 }
 
-void Region::subtract(const Region *other)
+void Region::subtract(const Region &other)
 {
-  miSubtract(&m_reg, &m_reg, (RegionPtr)&other->m_reg);
+  miSubtract(&m_reg, &m_reg, (RegionPtr)&other.m_reg);
 }
 
-void Region::intersect(const Region *other)
+void Region::intersect(const Region &other)
 {
-  miIntersect(&m_reg, &m_reg, (RegionPtr)&other->m_reg);
+  miIntersect(&m_reg, &m_reg, (RegionPtr)&other.m_reg);
 }
 
 void Region::crop(const Rect *rect)
 {
   Region temp(*rect);
-  intersect(&temp);
+  intersect(temp);
 }
 
 bool Region::isEmpty() const
@@ -139,16 +134,16 @@ bool Region::isPointInside(int x, int y) const
   return !!miPointInRegion((RegionPtr)&m_reg, x, y, &stubBox);
 }
 
-bool Region::equals(const Region *other) const
+bool Region::equals(const Region &other) const
 {
   // Handle a special case when both regions are empty.
   // Such regions may be considered different by miRegionsEqual().
-  if (this->isEmpty() && other->isEmpty()) {
+  if (this->isEmpty() && other.isEmpty()) {
     return true;
   }
 
   return (miRegionsEqual((RegionPtr)&m_reg,
-                         (RegionPtr)&other->m_reg) == TRUE);
+                         (RegionPtr)&other.m_reg) == TRUE);
 }
 
 // FIXME: Optimize, make BoxRec and Rect identical to get rid of conversions.

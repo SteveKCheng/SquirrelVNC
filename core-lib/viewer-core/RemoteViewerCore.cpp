@@ -1120,7 +1120,7 @@ void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
     m_logWriter.info(_T("Changed size of desktop"));
     {
       AutoLock al(&m_fbLock);
-      Dimension dimension(rect);
+      Dimension dimension(*rect);
       PixelFormat pixelFormat = m_frameBuffer.getPixelFormat();
       setFbProperties(&dimension, &pixelFormat);
     }

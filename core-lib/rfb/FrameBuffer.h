@@ -101,7 +101,7 @@ public:
   virtual bool setDimension(const Dimension *newDim);
   virtual bool setDimension(const Rect *rect)
   {
-    Dimension dim(rect);
+    Dimension dim(*rect);
     return setDimension(&dim);
   }
 

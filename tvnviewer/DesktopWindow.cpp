@@ -70,7 +70,7 @@ bool DesktopWindow::onCreate(LPCREATESTRUCT /* pcs */)
 
 void DesktopWindow::onPaint(DeviceContext *dc, PAINTSTRUCT *paintStruct)
 {
-  Rect paintRect(&paintStruct->rcPaint);
+  Rect paintRect(paintStruct->rcPaint);
 
   if (paintRect.area() != 0) {
     try {
@@ -233,7 +233,7 @@ bool DesktopWindow::onMouse(unsigned char mouseButtons, unsigned short wheelSpee
     UINT8 buttons = mouseButtons;
 
     // If posititon of mouse isn't change, then don't send event to server.
-    if (buttons != m_previousMouseState || !pos.isEqualTo(&m_previousMousePos)) {
+    if (buttons != m_previousMouseState || !pos.isEqualTo(m_previousMousePos)) {
       int wheelMask = MOUSE_WUP | MOUSE_WDOWN;
 
       // Update previously position of mouse.
@@ -475,15 +475,15 @@ void DesktopWindow::calcClientArea() {
     RECT rc;
 
     getClientRect(&rc);
-    m_clientArea.fromWindowsRect(&rc);
+    m_clientArea.fromWindowsRect(rc);
     m_scManager.setWindow(&m_clientArea);
   }
 }
 
 void DesktopWindow::drawImage(const RECT *src, const RECT *dst)
 {
-  Rect rc_src(src);
-  Rect rc_dest(dst);
+  Rect rc_src(*src);
+  Rect rc_dest(*dst);
 
   AutoLock al(&m_bufferLock);
   

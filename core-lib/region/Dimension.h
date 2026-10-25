@@ -31,14 +31,14 @@ class Dimension
 public:
   Dimension(void) : width(0), height(0) {}
   Dimension(const int w, const int h) { setDim(w, h); }
-  explicit Dimension(const Rect *r) { width = r->getWidth(); height = r->getHeight(); }
+  explicit Dimension(const Rect &r) { width = r.getWidth(); height = r.getHeight(); }
   Dimension(const Dimension &other): width(other.width), height(other.height) {}
 
   const Dimension &operator=(const Dimension &other) { width = other.width;
                                                        height = other.height;
                                                        return *this; }
-  bool operator==(const Dimension &other) { return isEqualTo(&other); }
-  bool operator!=(const Dimension &other) { return !isEqualTo(&other); }
+  bool operator==(const Dimension &other) { return isEqualTo(other); }
+  bool operator!=(const Dimension &other) { return !isEqualTo(other); }
 
   ~Dimension(void) {}
 
@@ -66,22 +66,22 @@ public:
   inline void setDim(const Rect *rect) { width = rect->getWidth();
                                          height = rect->getHeight(); }
 
-  inline bool cmpDim(const Dimension *dim) const { return dim->width == width &&
-                                                          dim->height == height; }
+  inline bool cmpDim(const Dimension &dim) const { return dim.width == width &&
+                                                          dim.height == height; }
 
   inline bool isEmpty() const { return width <= 0 || height <= 0; }
-  inline bool isEqualTo(const Dimension *other) const
+  inline bool isEqualTo(const Dimension &other) const
   {
-    return (width == other->width)&& (height == other->height);
+    return (width == other.width)&& (height == other.height);
   }
   inline int area() const { return isEmpty() ? 0 : width * height; }
 
   inline void clear() { width = height = 0; }
 
-  inline Dimension intersection(const Dimension *other) const
+  inline Dimension intersection(const Dimension &other) const
   {
-    return Dimension(width < other->width ? width : other->width,
-                     height < other->height ? height : other->height);
+    return Dimension(width < other.width ? width : other.width,
+                     height < other.height ? height : other.height);
   }
 
   int width;

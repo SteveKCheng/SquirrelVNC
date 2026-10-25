@@ -124,7 +124,7 @@ PixelConverter::convert(const Rect *rect, const FrameBuffer *srcFb)
     std::unique_ptr<FrameBuffer> frameBuffer = std::make_unique<FrameBuffer>();
     frameBuffer->setProperties(&fbSize, &m_dstFormat);
     m_dstFrameBuffer = std::move(frameBuffer);
-  } else if (!m_dstFrameBuffer->getDimension().isEqualTo(&fbSize)) {
+  } else if (!m_dstFrameBuffer->getDimension().isEqualTo(fbSize)) {
     // Frame buffer is allocated but its size it wrong - just resize it.
     // Note that if the frame buffer is allocated, its pixel format is
     // guaranteed to be relevant, because setPixelFormats() always calls

@@ -113,7 +113,7 @@ void FrameBuffer::fillRect(const Rect *dstRect, UINT32 color)
 bool FrameBuffer::isEqualTo(const FrameBuffer *frameBuffer)
 {
   Dimension dimension = frameBuffer->getDimension();
-  return m_dimension.cmpDim(&dimension) &&
+  return m_dimension.cmpDim(dimension) &&
          hasPixelFormatOf(&m_pixelFormat, frameBuffer);
 }
 

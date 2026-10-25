@@ -279,7 +279,7 @@ void FuzzSession::readPseudoEncoding(const Rect *rect, int encodingType)
   case PseudoEncDefs::DESKTOP_SIZE:
     {
       AutoLock al(&m_fbLock);
-      Dimension dimension(rect);
+      Dimension dimension(*rect);
       PixelFormat pixelFormat = m_frameBuffer->getPixelFormat();
       setFrameBuffer(&dimension, &pixelFormat);
     }

@@ -75,9 +75,9 @@ public:
   void clear();
   /**
    * Replaces this region with a copy of another region.
-   * @param src a pointer to the source region.
+   * @param src the source region.
    */
-  void set(const Region *src);
+  void set(const Region &src);
   /**
    * Overriden assignment operator. Replaces this region with a copy of
    * another region.
@@ -100,18 +100,17 @@ public:
    * Replaces this region by its union with another region.
    * @param other region to add.
    */
-  void add(const Region *other);
   void add(const Region &other);
   /**
    * Subtracts another region from this region.
    * @param other region to subtract.
    */
-  void subtract(const Region *other);
+  void subtract(const Region &other);
   /**
    * Replace this region by its intersection with another region.
    * @param other region to intersect with.
    */
-  void intersect(const Region *other);
+  void intersect(const Region &other);
   /**
    * Sets this region data to intersection of this region and the specified
    * rectangle.
@@ -133,10 +132,10 @@ public:
 
   /**
    * Checks if this region equals to another region.
-   * @param other a pointer to another region to compare this region to.
+   * @param other another region to compare this region to.
    * @return true if this region equals to other, false otherwise.
    */
-  bool equals(const Region *other) const;
+  bool equals(const Region &other) const;
 
   /**
    * Get the vector of rectangles that constitute this region.

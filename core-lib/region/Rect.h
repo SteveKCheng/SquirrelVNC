@@ -35,7 +35,7 @@ public:
   Rect(const Rect &rect) { setRect(&rect); }
   Rect(int lt, int tp, int rt, int bm) { setRect(lt, tp, rt, bm); }
   Rect(int width, int height) { setRect(0, 0, width, height); }
-  explicit Rect(const RECT *rect) {fromWindowsRect(rect);}
+  explicit Rect(const RECT &rect) {fromWindowsRect(rect);}
 
   ~Rect(void) {}
   
@@ -85,9 +85,9 @@ public:
   }
 
   // Return true this Rect fully contain the inner Rect, otherwise return false.
-  inline bool isFullyContainRect(const Rect *inner) {
-    if (inner->left < left || inner->top < top ||
-        inner->right > right || inner->bottom > bottom) {
+  inline bool isFullyContainRect(const Rect &inner) {
+    if (inner.left < left || inner.top < top ||
+        inner.right > right || inner.bottom > bottom) {
       return false;
     } else {
       return true;
@@ -104,12 +104,12 @@ public:
                                 return winRect; } const
 
   // Load from windows RECT
-  inline void fromWindowsRect(const RECT *winRect)
+  inline void fromWindowsRect(const RECT &winRect)
   {
-    left    = winRect->left;
-    top     = winRect->top;
-    right   = winRect->right;
-    bottom  = winRect->bottom;
+    left    = winRect.left;
+    top     = winRect.top;
+    right   = winRect.right;
+    bottom  = winRect.bottom;
   }
 
   inline void move(int offsetX, int offsetY)

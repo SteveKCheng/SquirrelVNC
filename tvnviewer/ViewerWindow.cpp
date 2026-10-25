@@ -826,7 +826,7 @@ void ViewerWindow::setSizeFullScreenWindow()
     GetWindowRect(GetDesktopWindow(), &fullScreenWindowsRect);
   }
   Rect fullScreenRect;
-  fullScreenRect.fromWindowsRect(&fullScreenWindowsRect);
+  fullScreenRect.fromWindowsRect(fullScreenWindowsRect);
   m_logWriter.detail(_T("full screen window rect: %d, %d; %d, %d"),
                      fullScreenRect.left, fullScreenRect.top,
                      fullScreenRect.getWidth(), fullScreenRect.getHeight());
@@ -901,7 +901,7 @@ void ViewerWindow::doUnFullScr()
   setStyle(getStyle() | WS_CAPTION | WS_BORDER | WS_THICKFRAME | WS_MAXIMIZEBOX);
   setExStyle(getExStyle() & ~WS_EX_TOPMOST);
   Rect workArea;
-  workArea.fromWindowsRect(&m_workArea.rcNormalPosition);
+  workArea.fromWindowsRect(m_workArea.rcNormalPosition);
   if (m_rcNormal.getHeight() == workArea.getHeight() ||
       m_rcNormal.getWidth() == workArea.getWidth()) {
     SetWindowPlacement(m_hWnd, &m_workArea);
@@ -1090,14 +1090,14 @@ Rect ViewerWindow::calculateDefaultSize()
   mi.cbSize = sizeof(mi);
 
   if (!!GetMonitorInfo(hmon, &mi)) {
-    defaultRect.fromWindowsRect(&mi.rcWork);
+    defaultRect.fromWindowsRect(mi.rcWork);
   } else {
     m_logWriter.debug(_T("Get monitor info is failed. Use second method (no multi-screen)."));
     RECT desktopRc;
     if (!m_sysinf.getDesktopArea(&desktopRc)) {
        m_sysinf.getDesktopAllArea(&desktopRc);
     }
-    defaultRect.fromWindowsRect(&desktopRc);
+    defaultRect.fromWindowsRect(desktopRc);
   }
 
   int widthDesktop  = defaultRect.getWidth();
