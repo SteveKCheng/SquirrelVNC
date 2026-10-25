@@ -238,6 +238,59 @@ Left as pointers on purpose:
   results and so on), still to be decided; many would read better
   returning the value.
 
+### The gates and the data streams
+
+`RfbInputGate` and `RfbOutputGate` (`win32-lib/network`) derive from
+`DataInputStream` and `DataOutputStream` (`core-lib/io-lib`), which are
+themselves adapters over an unformatted `InputStream` or
+`OutputStream`:
+
+- `RfbInputGate` adds nothing but two constructors.
+- `RfbOutputGate` adds a `LocalMutex` and a 100 KB
+  `BufferedOutputStream` slipped under the `DataOutputStream`. The
+  buffering works through either type, since `flush()` is virtual and
+  every writer ends with a `flush()` (`VncAuthentication` too, holding
+  only a `DataOutputStream *`). The lock is the one real difference:
+  code holding the gate can make a whole message atomic against the
+  other thread with `AutoLock al(&output)`, and code holding a
+  `DataOutputStream` cannot. It is one lock per connection, held for
+  each whole message.
+
+Where each type is used (checked 2026-10-25 by querying every
+derived-to-base conversion from a gate):
+
+| Type | Used by | Stream underneath |
+|---|---|---|
+| the gates | `RemoteViewerCore`; the decoders' `decode`/`process`; the client messages' `send`; `FileTransferRequestSender`, which keeps an `RfbOutputGate *` in order to lock it | always the connection |
+| the data streams | the plug-in interfaces `AuthHandler::authenticate` and `ServerMessageListener::onServerMessage`, and through the latter file transfer's reply parsing; `ZrleDecoder`'s tile readers | the connection, except for ZRLE |
+
+The gates are converted to their bases only where `RemoteViewerCore`
+passes `m_input` and `m_output` to those two interfaces. Authentication
+writes without the lock; that is safe because it runs on the core thread
+during the handshake, before `wasConnected()` lets the GUI thread send
+anything. Only ZRLE needs the base type itself: it parses its inflated
+data from a `DataInputStream` over a byte array.
+
+So the line between them is TightVNC's layering (the core names the
+gates; the interfaces where other code plugs in name the data streams),
+not a difference in what the functions need. For a borrowed parameter
+there is no semantic difference between `RfbInputGate` and
+`DataInputStream`; on the output side the gate also says "you may lock
+me".
+
+If this is taken up again:
+
+- A borrowed `RfbInputGate` could be `DataInputStream &`, losing
+  nothing, and `RfbInputGate` could then go, or become an alias.
+- On the output side, keep `RfbOutputGate &` where the function locks
+  and use `DataOutputStream &` elsewhere, until the lock goes.
+  `async-networking.md` plans to do all writing on the core thread,
+  through messages, after which the lock, and with it the reason for a
+  separate output type, disappears.
+- `DataInputStream *` and `DataOutputStream *` parameters were left
+  alone (see above) because the churn would be mostly in the
+  file-transfer code.
+
 ## Results
 
 Of 662 object-pointer parameters (counting a function's declaration
