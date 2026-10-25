@@ -32,7 +32,7 @@ struct LogEntry
 {
   LogEntry(unsigned int processId,
            unsigned int threadId,
-           const DateTime *dt,
+           const DateTime &dt,
            int lineLevel,
            const TCHAR *message);
 
@@ -53,7 +53,7 @@ public:
   // Writes a log message.
   virtual void flush(unsigned int processId,
                      unsigned int threadId,
-                     const DateTime *dt,
+                     const DateTime &dt,
                      int level,
                      const TCHAR *message) = 0;
 
@@ -68,7 +68,7 @@ protected:
   // This function must be calling under the log mutex from derived classes.
   void updateLogHeaderLines(unsigned int processId,
                             unsigned int threadId,
-                            const DateTime *dt,
+                            const DateTime &dt,
                             int level,
                             const TCHAR *message);
 
@@ -77,7 +77,7 @@ protected:
   // This function must be calling under the log mutex from derived classes.
   void updateLogDumpLines(unsigned int processId,
                           unsigned int threadId,
-                          const DateTime *dt,
+                          const DateTime &dt,
                           int level,
                           const TCHAR *message);
 

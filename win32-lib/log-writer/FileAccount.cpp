@@ -77,7 +77,7 @@ void FileAccount::getFileName(StringStorage *fileName)
 
 void FileAccount::print(unsigned int processId,
                         unsigned int threadId,
-                        const DateTime *dt,
+                        const DateTime &dt,
                         int level,
                         const TCHAR *message)
 {
@@ -100,7 +100,7 @@ bool FileAccount::printsLine(int level)
 
 void FileAccount::flush(unsigned int processId,
                         unsigned int threadId,
-                        const DateTime *dt,
+                        const DateTime &dt,
                         int level,
                         const TCHAR *message)
 {
@@ -116,12 +116,12 @@ void FileAccount::print(int level, const TCHAR *message)
   unsigned int processId = GetCurrentProcessId();
   unsigned int threadId = GetCurrentThreadId();
   DateTime dt = DateTime::now();
-  print(processId, threadId, &dt, level, message);
+  print(processId, threadId, dt, level, message);
 }
 
 void FileAccount::format(unsigned int processId,
                          unsigned int threadId,
-                         const DateTime *dt,
+                         const DateTime &dt,
                          int level,
                          const TCHAR *message)
 {
@@ -129,7 +129,7 @@ void FileAccount::format(unsigned int processId,
   // Format the timestamp.
   StringStorage timeString(_T("[Temporary unavaliable]"));
   SYSTEMTIME st;
-  dt->toUtcSystemTime(&st);
+  dt.toUtcSystemTime(&st);
   unsigned char logBarrier;
   {
     AutoLock al(&m_logMut);

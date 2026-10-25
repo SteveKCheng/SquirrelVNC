@@ -87,7 +87,7 @@ public:
   // the log verbosity level.
   void print(unsigned int processId,
              unsigned int threadId,
-             const DateTime *dt,
+             const DateTime &dt,
              int level,
              const TCHAR *message);
 
@@ -96,7 +96,7 @@ public:
 protected:
   void flush(unsigned int processId,
              unsigned int threadId,
-             const DateTime *dt,
+             const DateTime &dt,
              int level,
              const TCHAR *message) override;
 
@@ -125,7 +125,7 @@ private:
   // Formates the message and stores it to the file.
   void format(unsigned int processId,
               unsigned int threadId,
-              const DateTime *dt,
+              const DateTime &dt,
               int level,
               const TCHAR *message);
 

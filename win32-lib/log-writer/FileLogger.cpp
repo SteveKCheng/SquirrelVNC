@@ -55,7 +55,7 @@ void FileLogger::print(int logLevel, const TCHAR *line)
     UINT32 threadId = GetCurrentThreadId();
     DateTime currTime = DateTime::now();
 
-    m_fileAccount.print(processId, threadId, &currTime, logLevel, line);
+    m_fileAccount.print(processId, threadId, currTime, logLevel, line);
   } catch (...) {
   }
 }
