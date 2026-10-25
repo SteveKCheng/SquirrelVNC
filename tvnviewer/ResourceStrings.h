@@ -30,15 +30,8 @@
 class ResourceStrings final
 {
 public:
-  ResourceStrings();
-  ResourceStrings(int min, int max);
-
-  bool isValid(int res); 
   // this function returns string as it is stored
   StringStorage getStrRes(WORD strRes);
-
-protected:
-  int m_min, m_max;
 };
 
 

@@ -24,26 +24,6 @@
 #include "ResourceStrings.h"
 #include "util/ResourceLoader.h"
 
-ResourceStrings::ResourceStrings() 
-: m_min(0), 
-  m_max(0)
-{
-}
-
-ResourceStrings::ResourceStrings(int min, int max) 
-{
-  m_min = min;
-  m_max = max;
-}
-
-bool ResourceStrings::isValid(int res) 
-{
-  if (res >= m_min && res <= m_max) {
-    return true;
-  }
-  return false;
-}
-
 StringStorage ResourceStrings::getStrRes(WORD strRes)
 {
   ResourceLoader *rLoader = ResourceLoader::getInstance();
