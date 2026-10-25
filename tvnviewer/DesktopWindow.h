@@ -95,8 +95,17 @@ protected:
   //
   bool onMessage(UINT message, WPARAM wParam, LPARAM lParam) override;
   void onPaint(DeviceContext *dc, PAINTSTRUCT *paintStruct) override;
+  //
+  // Starts listening for clipboard changes (WM_CLIPBOARDUPDATE); stopped
+  // by onDestroy().
+  //
   bool onCreate(LPCREATESTRUCT pcs);
-  bool onDrawClipboard();
+  //
+  // Handles WM_CLIPBOARDUPDATE, which is posted once for each time a
+  // program closes the clipboard after changing it, ours included:
+  // sends the clipboard's text to the server, unless it came from there.
+  //
+  bool onClipboardUpdate();
   bool onEraseBackground(HDC hdc);
   bool onDeadChar(WPARAM wParam, LPARAM lParam);
   bool onHScroll(WPARAM wParam, LPARAM lParam);
@@ -155,7 +164,6 @@ protected:
   // clipboard
   WinClipboard m_clipboard;
   StringStorage m_strClipboard;
-  HWND m_hwndNextViewer;
 
   bool m_ctrlDown;
   bool m_altDown;

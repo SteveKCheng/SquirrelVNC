@@ -39,7 +39,6 @@ WinClipboard::~WinClipboard()
 void WinClipboard::setHWnd(HWND hwnd)
 {
   m_hWnd = hwnd;
-  SetClipboardViewer(m_hWnd);
 }
 
 bool WinClipboard::getString(StringStorage *str)

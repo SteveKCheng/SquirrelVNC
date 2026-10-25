@@ -65,6 +65,10 @@ bool DesktopWindow::onCreate(LPCREATESTRUCT /* pcs */)
 {
   m_sbar.setWindow(getHWnd());
   m_clipboard.setHWnd(getHWnd());
+  if (!AddClipboardFormatListener(getHWnd())) {
+    m_logWriter->error(_T("Cannot listen for clipboard changes (error %lu)"),
+                       GetLastError());
+  }
   return true;
 }
 
@@ -97,21 +101,9 @@ bool DesktopWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
     case WM_DEADCHAR:
     case WM_SYSDEADCHAR:
       return onDeadChar(wParam, lParam);
-    case WM_CHANGECBCHAIN:
-      if ((HWND)wParam == m_hwndNextViewer) {
-        m_hwndNextViewer = (HWND)lParam;
-      } else if (m_hwndNextViewer != nullptr) {
-        SendMessage(m_hwndNextViewer, message, wParam, lParam);
-      }
-      return true;
-    case WM_DRAWCLIPBOARD:
-    {
-      bool ok = onDrawClipboard();
-      SendMessage(m_hwndNextViewer, message, wParam, lParam);
-      return ok;
-    }
+    case WM_CLIPBOARDUPDATE:
+      return onClipboardUpdate();
     case WM_CREATE:
-      m_hwndNextViewer = SetClipboardViewer((HWND)wParam);
       return onCreate(reinterpret_cast<LPCREATESTRUCT>(lParam));
     case WM_SIZE:
       return onSize(wParam, lParam);
@@ -301,7 +293,7 @@ bool DesktopWindow::onDeadChar(WPARAM /* wParam */, LPARAM /* lParam */)
   return true;
 }
 
-bool DesktopWindow::onDrawClipboard()
+bool DesktopWindow::onClipboardUpdate()
 {
   if (!IsWindowVisible(getHWnd()) || !m_conConf->isClipboardEnabled()) {
     return false;
@@ -508,6 +500,7 @@ bool DesktopWindow::onSize(WPARAM /* wParam */, LPARAM /* lParam */)
 
 bool DesktopWindow::onDestroy()
 {
+  RemoveClipboardFormatListener(getHWnd());
   return true;
 }
 

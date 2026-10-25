@@ -33,6 +33,10 @@ public:
   WinClipboard(HWND hwnd);
   ~WinClipboard();
 
+  //
+  // Sets the window that opens the clipboard, and so owns it after
+  // setString().
+  //
   void setHWnd(HWND hwnd);
   
   //
