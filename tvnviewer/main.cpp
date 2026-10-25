@@ -33,7 +33,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE,
                        LPTSTR /* lpCmdLine */, int /* nCmdShow */)
 {
   ViewerSettingsManager::initInstance(RegistryPaths::VIEWER_PATH);
-  SettingsManager *sm = ViewerSettingsManager::getInstance();
+  SettingsManager &sm = ViewerSettingsManager::getInstance();
 
   ViewerConfig config(RegistryPaths::VIEWER_PATH);
   config.loadFromStorage(sm);

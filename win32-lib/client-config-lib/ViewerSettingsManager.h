@@ -38,7 +38,9 @@ public:
   // the old one, if any, is destroyed.
   static void initInstance(const TCHAR registryName[]);
 
-  static SettingsManager *getInstance();
+  // Pre-conditions: initInstance() has been called; otherwise throws
+  // Exception.
+  static SettingsManager &getInstance();
 
 protected:
   static std::unique_ptr<SettingsManager> s_instance;

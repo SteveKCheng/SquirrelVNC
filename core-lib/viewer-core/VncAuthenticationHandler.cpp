@@ -47,7 +47,7 @@ void VncAuthenticationHandler::authenticate(DataInputStream *input,
   VncAuthentication::vncAuthenticate(input, output, password);
 }
 
-void VncAuthenticationHandler::addAuthCapability(CapabilitiesManager *capManager)
+void VncAuthenticationHandler::addAuthCapability(CapabilitiesManager &capManager)
 {
-  capManager->addAuthCapability(this, AuthDefs::VNC, VendorDefs::STANDARD, AuthDefs::SIG_VNC);
+  capManager.addAuthCapability(this, AuthDefs::VNC, VendorDefs::STANDARD, AuthDefs::SIG_VNC);
 }

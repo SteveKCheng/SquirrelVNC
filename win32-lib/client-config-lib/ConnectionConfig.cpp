@@ -404,39 +404,39 @@ int ConnectionConfig::getLocalCursorShape()
   return m_localCursor;
 }
 
-bool ConnectionConfig::saveToStorage(SettingsManager *sm) const
+bool ConnectionConfig::saveToStorage(SettingsManager &sm) const
 {
   AutoLock l(&m_cs);
 
   bool saveAllOk = true;
 
   // option "use_encoding_1" have need for compatible with old-vnc files
-  TEST_FAIL(sm->setBoolean(_T("use_encoding_1"),   m_allowedCopyRect), saveAllOk);
-  TEST_FAIL(sm->setBoolean(_T("copyrect"),         m_allowedCopyRect), saveAllOk);
-  TEST_FAIL(sm->setBoolean(_T("viewonly"),         m_viewOnly), saveAllOk);
-  TEST_FAIL(sm->setBoolean(_T("fullscreen"),       m_useFullscreen), saveAllOk);
-  TEST_FAIL(sm->setBoolean(_T("8bit"),             m_use8BitColor), saveAllOk);
-  TEST_FAIL(sm->setBoolean(_T("shared"),           m_requestSharedSession), saveAllOk);
-  TEST_FAIL(sm->setBoolean(_T("belldeiconify"),    m_deiconifyOnRemoteBell), saveAllOk);
-  TEST_FAIL(sm->setBoolean(_T("disableclipboard"), !m_isClipboardEnabled), saveAllOk);
-  TEST_FAIL(sm->setBoolean(_T("swapmouse"),        m_swapMouse), saveAllOk);
-  TEST_FAIL(sm->setBoolean(_T("fitwindow"),        m_fitWindow), saveAllOk);
-  TEST_FAIL(sm->setBoolean(_T("cursorshape"),      m_requestShapeUpdates), saveAllOk);
-  TEST_FAIL(sm->setBoolean(_T("noremotecursor"),   m_ignoreShapeUpdates), saveAllOk);
+  TEST_FAIL(sm.setBoolean(_T("use_encoding_1"),   m_allowedCopyRect), saveAllOk);
+  TEST_FAIL(sm.setBoolean(_T("copyrect"),         m_allowedCopyRect), saveAllOk);
+  TEST_FAIL(sm.setBoolean(_T("viewonly"),         m_viewOnly), saveAllOk);
+  TEST_FAIL(sm.setBoolean(_T("fullscreen"),       m_useFullscreen), saveAllOk);
+  TEST_FAIL(sm.setBoolean(_T("8bit"),             m_use8BitColor), saveAllOk);
+  TEST_FAIL(sm.setBoolean(_T("shared"),           m_requestSharedSession), saveAllOk);
+  TEST_FAIL(sm.setBoolean(_T("belldeiconify"),    m_deiconifyOnRemoteBell), saveAllOk);
+  TEST_FAIL(sm.setBoolean(_T("disableclipboard"), !m_isClipboardEnabled), saveAllOk);
+  TEST_FAIL(sm.setBoolean(_T("swapmouse"),        m_swapMouse), saveAllOk);
+  TEST_FAIL(sm.setBoolean(_T("fitwindow"),        m_fitWindow), saveAllOk);
+  TEST_FAIL(sm.setBoolean(_T("cursorshape"),      m_requestShapeUpdates), saveAllOk);
+  TEST_FAIL(sm.setBoolean(_T("noremotecursor"),   m_ignoreShapeUpdates), saveAllOk);
 
-  TEST_FAIL(sm->setByte(_T("preferred_encoding"),  m_preferredEncoding), saveAllOk);
-  TEST_FAIL(sm->setInt(_T("compresslevel"),        m_customCompressionLevel), saveAllOk);
-  TEST_FAIL(sm->setInt(_T("quality"),              m_jpegCompressionLevel), saveAllOk);
-  TEST_FAIL(sm->setInt(_T("localcursor"),          m_localCursor), saveAllOk);
-  TEST_FAIL(sm->setInt(_T("scale_den"),            m_scaleDenominator), saveAllOk);
-  TEST_FAIL(sm->setInt(_T("scale_num"),            m_scaleNumerator), saveAllOk);
+  TEST_FAIL(sm.setByte(_T("preferred_encoding"),  m_preferredEncoding), saveAllOk);
+  TEST_FAIL(sm.setInt(_T("compresslevel"),        m_customCompressionLevel), saveAllOk);
+  TEST_FAIL(sm.setInt(_T("quality"),              m_jpegCompressionLevel), saveAllOk);
+  TEST_FAIL(sm.setInt(_T("localcursor"),          m_localCursor), saveAllOk);
+  TEST_FAIL(sm.setInt(_T("scale_den"),            m_scaleDenominator), saveAllOk);
+  TEST_FAIL(sm.setInt(_T("scale_num"),            m_scaleNumerator), saveAllOk);
 
-  TEST_FAIL(sm->setInt(_T("local_cursor_shape"),   m_localCursor), saveAllOk);
+  TEST_FAIL(sm.setInt(_T("local_cursor_shape"),   m_localCursor), saveAllOk);
 
   return saveAllOk;
 }
 
-bool ConnectionConfig::loadFromStorage(SettingsManager *sm)
+bool ConnectionConfig::loadFromStorage(SettingsManager &sm)
 {
   AutoLock l(&m_cs);
 
@@ -444,34 +444,34 @@ bool ConnectionConfig::loadFromStorage(SettingsManager *sm)
 
 
   // option "use_encoding_1" have need for compatible with old-vnc files
-  TEST_FAIL(sm->getBoolean(_T("use_encoding_1"),   &m_allowedCopyRect), loadAllOk);
-  TEST_FAIL(sm->getBoolean(_T("copyrect"),         &m_allowedCopyRect), loadAllOk);
-  TEST_FAIL(sm->getBoolean(_T("viewonly"),         &m_viewOnly), loadAllOk);
-  TEST_FAIL(sm->getBoolean(_T("fullscreen"),       &m_useFullscreen), loadAllOk);
-  TEST_FAIL(sm->getBoolean(_T("8bit"),             &m_use8BitColor), loadAllOk);
-  TEST_FAIL(sm->getBoolean(_T("shared"),           &m_requestSharedSession), loadAllOk);
-  TEST_FAIL(sm->getBoolean(_T("belldeiconify"),    &m_deiconifyOnRemoteBell), loadAllOk);
+  TEST_FAIL(sm.getBoolean(_T("use_encoding_1"),   &m_allowedCopyRect), loadAllOk);
+  TEST_FAIL(sm.getBoolean(_T("copyrect"),         &m_allowedCopyRect), loadAllOk);
+  TEST_FAIL(sm.getBoolean(_T("viewonly"),         &m_viewOnly), loadAllOk);
+  TEST_FAIL(sm.getBoolean(_T("fullscreen"),       &m_useFullscreen), loadAllOk);
+  TEST_FAIL(sm.getBoolean(_T("8bit"),             &m_use8BitColor), loadAllOk);
+  TEST_FAIL(sm.getBoolean(_T("shared"),           &m_requestSharedSession), loadAllOk);
+  TEST_FAIL(sm.getBoolean(_T("belldeiconify"),    &m_deiconifyOnRemoteBell), loadAllOk);
 
-  if (sm->getBoolean(_T("disableclipboard"), &m_isClipboardEnabled)) {
+  if (sm.getBoolean(_T("disableclipboard"), &m_isClipboardEnabled)) {
     m_isClipboardEnabled = !m_isClipboardEnabled;
   } else {
     loadAllOk = false;
   }
 
-  TEST_FAIL(sm->getBoolean(_T("swapmouse"),        &m_swapMouse), loadAllOk);
-  TEST_FAIL(sm->getBoolean(_T("fitwindow"),        &m_fitWindow), loadAllOk);
-  TEST_FAIL(sm->getBoolean(_T("cursorshape"),      &m_requestShapeUpdates), loadAllOk);
-  TEST_FAIL(sm->getBoolean(_T("noremotecursor"),   &m_ignoreShapeUpdates), loadAllOk);
+  TEST_FAIL(sm.getBoolean(_T("swapmouse"),        &m_swapMouse), loadAllOk);
+  TEST_FAIL(sm.getBoolean(_T("fitwindow"),        &m_fitWindow), loadAllOk);
+  TEST_FAIL(sm.getBoolean(_T("cursorshape"),      &m_requestShapeUpdates), loadAllOk);
+  TEST_FAIL(sm.getBoolean(_T("noremotecursor"),   &m_ignoreShapeUpdates), loadAllOk);
 
-  TEST_FAIL(sm->getByte(_T("preferred_encoding"),  (char *)&m_preferredEncoding), loadAllOk);
+  TEST_FAIL(sm.getByte(_T("preferred_encoding"),  (char *)&m_preferredEncoding), loadAllOk);
 
-  TEST_FAIL(sm->getInt(_T("compresslevel"),        &m_customCompressionLevel), loadAllOk);
-  TEST_FAIL(sm->getInt(_T("quality"),              &m_jpegCompressionLevel), loadAllOk);
-  TEST_FAIL(sm->getInt(_T("localcursor"),          &m_localCursor), loadAllOk);
-  TEST_FAIL(sm->getInt(_T("scale_den"),            &m_scaleDenominator), loadAllOk);
-  TEST_FAIL(sm->getInt(_T("scale_num"),            &m_scaleNumerator), loadAllOk);
+  TEST_FAIL(sm.getInt(_T("compresslevel"),        &m_customCompressionLevel), loadAllOk);
+  TEST_FAIL(sm.getInt(_T("quality"),              &m_jpegCompressionLevel), loadAllOk);
+  TEST_FAIL(sm.getInt(_T("localcursor"),          &m_localCursor), loadAllOk);
+  TEST_FAIL(sm.getInt(_T("scale_den"),            &m_scaleDenominator), loadAllOk);
+  TEST_FAIL(sm.getInt(_T("scale_num"),            &m_scaleNumerator), loadAllOk);
 
-  TEST_FAIL(sm->getInt(_T("local_cursor_shape"),   &m_localCursor), loadAllOk);
+  TEST_FAIL(sm.getInt(_T("local_cursor_shape"),   &m_localCursor), loadAllOk);
 
   // The values above may come from a .vnc file from anywhere: make them
   // valid as the setters do. Without this, scale_den=0 divided by zero.

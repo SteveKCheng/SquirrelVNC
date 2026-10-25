@@ -45,10 +45,10 @@ void ViewerSettingsManager::initInstance(const TCHAR registryName[])
   s_instance = std::make_unique<ViewerSettingsManager>(registryName);
 }
 
-SettingsManager *ViewerSettingsManager::getInstance()
+SettingsManager &ViewerSettingsManager::getInstance()
 {
   if (!s_instance) {
     throw Exception(_T("Instance of viewer settings manager is 0"));
   }
-  return s_instance.get();
+  return *s_instance;
 }

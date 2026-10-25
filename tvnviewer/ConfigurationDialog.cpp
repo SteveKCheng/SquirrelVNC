@@ -229,6 +229,5 @@ void ConfigurationDialog::onOkPressed()
   config->showToolbar(m_showToolBars.isChecked());
   config->promptOnFullscreen(m_warnAtSwitching.isChecked());
 
-  SettingsManager *sm = ViewerSettingsManager::getInstance();
-  config->saveToStorage(sm);
+  config->saveToStorage(ViewerSettingsManager::getInstance());
 }

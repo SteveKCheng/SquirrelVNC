@@ -100,7 +100,7 @@ void ViewerInstance::start()
 
   m_viewerWnd.setFileTransfer(&m_fileTransfer);
 
-  m_vncAuthHandler.addAuthCapability(&m_viewerCore);
+  m_vncAuthHandler.addAuthCapability(m_viewerCore);
 
   m_fileTransfer.addCapabilities(&m_viewerCore);
 

@@ -374,7 +374,7 @@ void ViewerWindow::dialogConnectionOptions()
   dialog.setParent(&control);
 
   if (dialog.showModal() == 1) {
-    m_conConf->saveToStorage(&m_ccsm);
+    m_conConf->saveToStorage(m_ccsm);
     applySettings();
   }
 }
@@ -580,7 +580,7 @@ void ViewerWindow::commandSaveSession()
       }
 
       sm.setApplicationName(_T("options"));
-      m_conConf->saveToStorage(&sm);
+      m_conConf->saveToStorage(sm);
       sm.save();
     }
   } catch (const Exception &e) {
@@ -613,7 +613,7 @@ void ViewerWindow::commandScaleIn()
 
   m_conConf->setScale(m_standardScale[indexNewScale], 100);
   m_conConf->fitWindow(false);
-  m_conConf->saveToStorage(&m_ccsm);
+  m_conConf->saveToStorage(m_ccsm);
   applySettings();
 }
 
@@ -639,7 +639,7 @@ void ViewerWindow::commandScaleOut()
 
   m_conConf->setScale(m_standardScale[indexNewScale], 100);
   m_conConf->fitWindow(false);
-  m_conConf->saveToStorage(&m_ccsm);
+  m_conConf->saveToStorage(m_ccsm);
   applySettings();
 }
 
@@ -648,7 +648,7 @@ void ViewerWindow::commandScale100()
   m_toolbar.checkButton(IDS_TB_SCALEAUTO, false);
   m_conConf->setScale(1, 1);
   m_conConf->fitWindow(false);
-  m_conConf->saveToStorage(&m_ccsm);
+  m_conConf->saveToStorage(m_ccsm);
   applySettings();
 }
 
@@ -676,7 +676,7 @@ void ViewerWindow::commandScaleAuto()
       }
       m_conConf->fitWindow(false);
     }
-    m_conConf->saveToStorage(&m_ccsm);
+    m_conConf->saveToStorage(m_ccsm);
     applySettings();
   }
 }
@@ -847,7 +847,7 @@ void ViewerWindow::doFullScr()
   }
 
   m_conConf->enableFullscreen(true);
-  m_conConf->saveToStorage(&m_ccsm);
+  m_conConf->saveToStorage(m_ccsm);
 
   ViewerConfig *config = ViewerConfig::getInstance();
   m_bToolBar = m_toolbar.isVisible();
@@ -883,7 +883,7 @@ void ViewerWindow::doUnFullScr()
   }
 
   m_conConf->enableFullscreen(false);
-  m_conConf->saveToStorage(&m_ccsm);
+  m_conConf->saveToStorage(m_ccsm);
 
   m_menu.checkedMenuItem(IDS_TB_FULLSCREEN, false);
   m_menu.checkedMenuItem(IDS_TB_TOOLBAR, m_bToolBar);

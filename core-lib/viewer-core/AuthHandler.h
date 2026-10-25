@@ -85,7 +85,7 @@ public:
   //
   // This abstract method that add auth-capability in RemoveViewerCore.
   //
-  virtual void addAuthCapability(CapabilitiesManager *capabilitiesManager) = 0;
+  virtual void addAuthCapability(CapabilitiesManager &capabilitiesManager) = 0;
 
   //
   // This method return type of authentication (m_id).

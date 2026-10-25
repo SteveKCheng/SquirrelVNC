@@ -40,7 +40,7 @@ public:
   //
   // Overrides AuthHandler::addAuthCapability().
   //
-  void addAuthCapability(CapabilitiesManager *capabilitiesManager) override;
+  void addAuthCapability(CapabilitiesManager &capabilitiesManager) override;
 
 protected:
   virtual void getPassword(StringStorage *passString) = 0;

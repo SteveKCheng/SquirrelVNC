@@ -239,7 +239,7 @@ void ViewerCmdLine::parseOptionsFile()
   }
   
   sm.setApplicationName(_T("options"));
-  m_conConf->loadFromStorage(&sm);
+  m_conConf->loadFromStorage(sm);
 }
 
 void ViewerCmdLine::parsePassword()

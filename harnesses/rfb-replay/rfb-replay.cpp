@@ -442,7 +442,7 @@ int _tmain(int argc, TCHAR *argv[])
   std::vector<char> ppm;
   try {
     core->setMaxFrameBufferPixels(options.maxPixels);
-    authHandler.addAuthCapability(core.get());
+    authHandler.addAuthCapability(*core);
     adapter.setCore(core.get());
     core->start(&inputGate, &outputGate, &adapter, true);
 

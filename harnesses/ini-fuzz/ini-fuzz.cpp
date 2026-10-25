@@ -77,7 +77,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   // As ViewerCmdLine::parseOptionsFile() loads the options.
   ini.setApplicationName(_T("options"));
   ConnectionConfig config;
-  config.loadFromStorage(&ini);
+  config.loadFromStorage(ini);
   int percent = config.getScaleNumerator() * 100 / config.getScaleDenominator();
   (void)percent;
 
@@ -86,7 +86,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   ini.setString(_T("host"), _T("example.com"));
   ini.setUINT(_T("port"), 5901);
   ini.setApplicationName(_T("options"));
-  config.saveToStorage(&ini);
+  config.saveToStorage(ini);
   return 0;
 }
 

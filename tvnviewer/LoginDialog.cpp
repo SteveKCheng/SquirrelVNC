@@ -84,7 +84,7 @@ void LoginDialog::updateHistory()
     m_server.getText(&server);
     ConnectionConfigSM ccsm(RegistryPaths::VIEWER_PATH,
                             server.getString());
-    m_connectionConfig.loadFromStorage(&ccsm);
+    m_connectionConfig.loadFromStorage(ccsm);
   }
 }
 
@@ -100,7 +100,7 @@ void LoginDialog::onConnect()
 
   if (!m_serverHost.isEmpty()) {
     ConnectionConfigSM ccsm(RegistryPaths::VIEWER_PATH, m_serverHost.getString());
-    m_connectionConfig.saveToStorage(&ccsm);
+    m_connectionConfig.saveToStorage(ccsm);
   }
 
   m_viewer->newConnection(m_serverHost, m_connectionConfig);
@@ -122,7 +122,7 @@ BOOL LoginDialog::onOptions()
     if (server.isEmpty()) {
       ConnectionConfigSM ccsm(RegistryPaths::VIEWER_PATH,
                               server.getString());
-      m_connectionConfig.saveToStorage(&ccsm);
+      m_connectionConfig.saveToStorage(ccsm);
     }
     return FALSE;
   }
@@ -143,7 +143,7 @@ void LoginDialog::onListening()
 {
   ConnectionConfigSM ccsm(RegistryPaths::VIEWER_PATH,
                           _T(".listen"));
-  m_connectionConfig.loadFromStorage(&ccsm);
+  m_connectionConfig.loadFromStorage(ccsm);
 
   m_listening.setEnabled(false);
   m_viewer->startListening(ViewerConfig::getInstance()->getListenPort());
@@ -182,7 +182,7 @@ BOOL LoginDialog::onCommand(WORD controlID, UINT notificationID)
         m_server.getItemText(selectedItemIndex, &server);
         ConnectionConfigSM ccsm(RegistryPaths::VIEWER_PATH,
                                 server.getString());
-        m_connectionConfig.loadFromStorage(&ccsm);
+        m_connectionConfig.loadFromStorage(ccsm);
         break;
       }
     }

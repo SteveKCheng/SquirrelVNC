@@ -173,14 +173,14 @@ public:
   // Serialize to storage this ConnectionConfig object.
   // Return true if was no errors during serializing,
   // false otherwise.
-  bool saveToStorage(SettingsManager *sm) const;
+  bool saveToStorage(SettingsManager &sm) const;
   // Deserialize connection configuration from storage.
   // Return true if was no errors during deserializing,
   // false otherwise.
   // The storage may be a .vnc file from anywhere, so the values are made
   // valid as the setters make them: a missing value keeps the current one,
   // and an invalid one is clamped or replaced by the default.
-  bool loadFromStorage(SettingsManager *sm);
+  bool loadFromStorage(SettingsManager &sm);
 private:
   // FIXME: Move this method away from here.
   // Pre: a >= 0 and b >= 0.

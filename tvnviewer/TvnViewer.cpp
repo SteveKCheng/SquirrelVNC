@@ -228,12 +228,12 @@ void TvnViewer::showListeningOptions()
   ConnectionConfigSM ccsm(RegistryPaths::VIEWER_PATH,
                           _T(".listen"));
   ConnectionConfig conConfig;
-  conConfig.loadFromStorage(&ccsm);
+  conConfig.loadFromStorage(ccsm);
 
   OptionsDialog dialog;
   dialog.setConnectionConfig(&conConfig);
   if (dialog.showModal() == 1) {
-    conConfig.saveToStorage(&ccsm);
+    conConfig.saveToStorage(ccsm);
   }
 }
 
@@ -279,7 +279,7 @@ void TvnViewer::newListeningConnection()
 
   ConnectionConfig connectionConfig;
   ConnectionConfigSM ccsm(RegistryPaths::VIEWER_PATH, _T(".listen"));
-  connectionConfig.loadFromStorage(&ccsm);
+  connectionConfig.loadFromStorage(ccsm);
 
   if (m_conListener) {
     std::unique_ptr<SocketIPv4> socket = m_conListener->getNewConnection();
