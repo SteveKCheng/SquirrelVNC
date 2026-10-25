@@ -321,3 +321,4 @@ git diff -U0 --diff-filter=M 630df21~1 20956d9 -- '*.cpp' | grep '^-[^-/ {}#	]'
   rotated monitor (`desktop/Win8DeskDuplicationThread.cpp`); the viewer
   has no display rotation, and RFB does not ask for any.
   Their strict-aliasing entry in `portability.md` went with them.
+- **`LoginDialog::setConConf()`**, declared but never defined or called.

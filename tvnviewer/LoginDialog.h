@@ -46,7 +46,6 @@ public:
   LoginDialog(TvnViewer *viewer);
   ~LoginDialog() override;
 
-  void setConConf(ConnectionConfig *conConf);
   // set listening mode
   void setListening(bool isListening);
 
