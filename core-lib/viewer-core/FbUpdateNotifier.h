@@ -53,7 +53,7 @@ public:
   void onUpdate(const Rect &rect);
   void onPropertiesFb();
 
-  void updatePointerPos(const Point *position);
+  void updatePointerPos(const Point &position);
   void setNewCursor(const Point &hotSpot,
                     UINT16 width, UINT16 height,
                     const std::vector<UINT8> &cursor, 

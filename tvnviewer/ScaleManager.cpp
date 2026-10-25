@@ -207,9 +207,9 @@ void ScaleManager::getSourceRect(Rect *rcSource) const
   rcSource->setRect(m_rcViewed);
 }
 
-void ScaleManager::getWndFromScreen(const Rect *screen, Rect *wnd)
+void ScaleManager::getWndFromScreen(const Rect &screen, Rect *wnd)
 {
-  Rect scr = *screen;
+  Rect scr = screen;
   scr.move(-m_rcViewed.left, -m_rcViewed.top);
   Rect rcScaled = calcScaled(scr, false);
   wnd->setRect(rcScaled);

@@ -115,8 +115,8 @@ protected:
   // If into viewer core throwing exception Exception, then it catching
   // in this function and logged.
   void sendKeyboardEvent(bool downFlag, UINT32 key);
-  void sendPointerEvent(UINT8 buttonMask, const Point *position);
-  void sendCutTextEvent(const StringStorage *cutText);
+  void sendPointerEvent(UINT8 buttonMask, const Point &position);
+  void sendCutTextEvent(const StringStorage &cutText);
 
   LogWriter *m_logWriter;
 
@@ -168,7 +168,7 @@ private:
   void doDraw(DeviceContext *dc);
   void scrollProcessing(int fbWidth, int fbHeight);
   void drawBackground(DeviceContext *dc, const RECT &rcMain, const RECT &rcImage);
-  void drawImage(const RECT *src, const RECT *dst);
+  void drawImage(const RECT &src, const RECT &dst);
   /**
    * Invalidates the part of the window that shows an area of the frame
    * buffer, so that it is drawn again.

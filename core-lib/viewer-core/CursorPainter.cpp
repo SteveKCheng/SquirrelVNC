@@ -38,10 +38,10 @@ CursorPainter::~CursorPainter()
 {
 }
 
-void CursorPainter::updatePointerPos(const Point *position)
+void CursorPainter::updatePointerPos(const Point &position)
 {
   AutoLock al(&m_lock);
-  m_pointerPosition = *position;
+  m_pointerPosition = position;
   m_cursorIsMoveable = true;
 
   // Now, cursor is ready for painting.

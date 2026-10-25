@@ -242,12 +242,12 @@ bool DesktopWindow::onMouse(unsigned char mouseButtons, unsigned short wheelSpee
 
       if ((buttons & wheelMask) == 0) {
         // Send position of cursor and state of buttons one time.
-        sendPointerEvent(buttons, &pos);
+        sendPointerEvent(buttons, pos);
       } else {
         // Send position of cursor and state of buttons wheelSpeed times.
         for (int i = 0; i < wheelSpeed; i++) {
-          sendPointerEvent(buttons, &pos);
-          sendPointerEvent(buttons & ~wheelMask, &pos);
+          sendPointerEvent(buttons, pos);
+          sendPointerEvent(buttons & ~wheelMask, pos);
         }
       } // wheel
     }
@@ -315,7 +315,7 @@ bool DesktopWindow::onDrawClipboard()
       return true;
     }
     m_strClipboard = _T("");
-    sendCutTextEvent(&clipboardString);
+    sendCutTextEvent(clipboardString);
   }
   return true;
 }
@@ -371,7 +371,7 @@ void DesktopWindow::doDraw(DeviceContext *dc)
     drawBackground(dc, rcClient, rcDst);
   }
 
-  drawImage(&rcSrc, &rcDst);
+  drawImage(rcSrc, rcDst);
 }
 
 void DesktopWindow::applyScrollbarChanges(bool isChanged, bool isVert, bool isHorz, int wndWidth, int wndHeight)
@@ -480,19 +480,19 @@ void DesktopWindow::calcClientArea() {
   }
 }
 
-void DesktopWindow::drawImage(const RECT *src, const RECT *dst)
+void DesktopWindow::drawImage(const RECT &src, const RECT &dst)
 {
-  Rect rc_src(*src);
-  Rect rc_dest(*dst);
+  Rect rc_src(src);
+  Rect rc_dest(dst);
 
   AutoLock al(&m_bufferLock);
   
-  if ((src->right - src->left) == (dst->right - dst->left) &&
-     (src->bottom - src->top) == (dst->bottom - dst->top) &&
-     src->left == dst->left &&
-     src->right == dst->right &&
-     src->top == dst->top &&
-     src->bottom == dst->bottom) {
+  if ((src.right - src.left) == (dst.right - dst.left) &&
+     (src.bottom - src.top) == (dst.bottom - dst.top) &&
+     src.left == dst.left &&
+     src.right == dst.right &&
+     src.top == dst.top &&
+     src.bottom == dst.bottom) {
     m_framebuffer.blitFromDibSection(rc_dest);
   } else {
     m_framebuffer.stretchFromDibSection(rc_dest, rc_src);
@@ -587,7 +587,7 @@ void DesktopWindow::repaint(const Rect &repaintRect)
     return;
   }
   Rect wnd;
-  m_scManager.getWndFromScreen(&paint, &wnd);
+  m_scManager.getWndFromScreen(paint, &wnd);
   m_scManager.getDestinationRect(&rect);
   if (wnd.left) {
     --wnd.left;
@@ -717,7 +717,7 @@ void DesktopWindow::sendKeyboardEvent(bool downFlag, UINT32 key)
   }
 }
 
-void DesktopWindow::sendPointerEvent(UINT8 buttonMask, const Point *position)
+void DesktopWindow::sendPointerEvent(UINT8 buttonMask, const Point &position)
 {
   if (m_conConf->isViewOnly()) {
     return;
@@ -737,7 +737,7 @@ void DesktopWindow::sendPointerEvent(UINT8 buttonMask, const Point *position)
   }
 }
 
-void DesktopWindow::sendCutTextEvent(const StringStorage *cutText)
+void DesktopWindow::sendCutTextEvent(const StringStorage &cutText)
 {
   if (!m_conConf->isClipboardEnabled()) {
     return;

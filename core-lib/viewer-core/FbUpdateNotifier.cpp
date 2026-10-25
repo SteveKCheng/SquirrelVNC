@@ -171,7 +171,7 @@ void FbUpdateNotifier::onPropertiesFb()
   m_logWriter->debug(_T("FbUpdateNotifier: new size of frame buffer"));
 }
 
-void FbUpdateNotifier::updatePointerPos(const Point *position)
+void FbUpdateNotifier::updatePointerPos(const Point &position)
 {
   m_cursorPainter.updatePointerPos(position);
 

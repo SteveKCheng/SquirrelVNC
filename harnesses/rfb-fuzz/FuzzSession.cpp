@@ -320,7 +320,7 @@ void FuzzSession::readPseudoEncoding(const Rect *rect, int encodingType)
     {
       Point position(rect->left, rect->top);
       // FbUpdateNotifier::updatePointerPos()
-      m_cursorPainter->updatePointerPos(&position);
+      m_cursorPainter->updatePointerPos(position);
     }
     break;
 

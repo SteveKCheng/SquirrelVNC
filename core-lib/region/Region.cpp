@@ -117,9 +117,9 @@ void Region::intersect(const Region &other)
   miIntersect(&m_reg, &m_reg, (RegionPtr)&other.m_reg);
 }
 
-void Region::crop(const Rect *rect)
+void Region::crop(const Rect &rect)
 {
-  Region temp(*rect);
+  Region temp(rect);
   intersect(temp);
 }
 

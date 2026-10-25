@@ -116,7 +116,7 @@ public:
    * rectangle.
    * @param rect rectangle to intersect with.
    */
-  void crop(const Rect *rect);
+  void crop(const Rect &rect);
 
   /**
    * Checks if this region is empty.

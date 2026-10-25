@@ -378,7 +378,7 @@ void RemoteViewerCore::sendKeyboardEvent(bool downFlag, UINT32 key)
 }
 
 void RemoteViewerCore::sendPointerEvent(UINT8 buttonMask,
-                                        const Point *position)
+                                        const Point &position)
 {
   // If core isn't connected, then m_output may be isn't initialized.
   // Exit from function, if it is.
@@ -387,18 +387,18 @@ void RemoteViewerCore::sendPointerEvent(UINT8 buttonMask,
   }
 
   m_logWriter.detail(_T("Sending pointer event 0x%X, (%d, %d)..."),
-                     static_cast<int>(buttonMask), position->x, position->y);
+                     static_cast<int>(buttonMask), position.x, position.y);
   // send position to server
-  RfbPointerEventClientMessage pointerMessage(buttonMask, *position);
+  RfbPointerEventClientMessage pointerMessage(buttonMask, position);
   pointerMessage.send(m_output);
   // update position
   m_fbUpdateNotifier.updatePointerPos(position);
 
   m_logWriter.debug(_T("Pointer event: 0x%X, (%d, %d) is sent"),
-                    static_cast<int>(buttonMask), position->x, position->y);
+                    static_cast<int>(buttonMask), position.x, position.y);
 }
 
-void RemoteViewerCore::sendCutTextEvent(const StringStorage *cutText)
+void RemoteViewerCore::sendCutTextEvent(const StringStorage &cutText)
 {
   // If core isn't connected, then m_output may be isn't initialized.
   // Exit from function, if it is.
@@ -407,16 +407,16 @@ void RemoteViewerCore::sendCutTextEvent(const StringStorage *cutText)
     return;
   }
 
-  RfbCutTextEventClientMessage cutTextMessage(*cutText);
+  RfbCutTextEventClientMessage cutTextMessage(cutText);
   if (m_isUtf8ClipboardEnabled) {
     // The clipboard may hold passwords, so only its length is logged.
     m_logWriter.detail(_T("Sending UTF-8 clipboard cut text (%zu characters)..."),
-                       cutText->getLength());
+                       cutText.getLength());
     cutTextMessage.sendUtf8(m_output);
   }
   else {
     m_logWriter.detail(_T("Sending clipboard cut text (%zu characters)..."),
-                       cutText->getLength());
+                       cutText.getLength());
     cutTextMessage.send(m_output);
   }
   m_logWriter.debug(_T("Clipboard cut text is sent"));
@@ -1107,12 +1107,12 @@ bool RemoteViewerCore::receiveFbUpdateRectangle()
     } 
   } else { // it's pseudo encoding
     m_logWriter.debug(_T("It's pseudo encoding"));
-    processPseudoEncoding(&rect, encodingType);
+    processPseudoEncoding(rect, encodingType);
   }
   return false;
 }
 
-void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
+void RemoteViewerCore::processPseudoEncoding(const Rect &rect,
                                              int encodingType)
 {
   switch (encodingType) {
@@ -1120,7 +1120,7 @@ void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
     m_logWriter.info(_T("Changed size of desktop"));
     {
       AutoLock al(&m_fbLock);
-      Dimension dimension(*rect);
+      Dimension dimension(rect);
       PixelFormat pixelFormat = m_frameBuffer.getPixelFormat();
       setFbProperties(&dimension, &pixelFormat);
     }
@@ -1131,8 +1131,8 @@ void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
       m_logWriter.detail(_T("New rich cursor"));
 
       // The width and height were read as 16-bit values.
-      UINT16 width = static_cast<UINT16>(rect->getWidth());
-      UINT16 height = static_cast<UINT16>(rect->getHeight());
+      UINT16 width = static_cast<UINT16>(rect.getWidth());
+      UINT16 height = static_cast<UINT16>(rect.getHeight());
       UINT8 bytesPerPixel = m_frameBuffer.getBytesPerPixel();
 
       if (width > ViewerBufferSize::MAX_CURSOR_SIZE ||
@@ -1152,7 +1152,7 @@ void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
         bitmask.resize(bitmaskLen);
         m_input->readFully(&bitmask.front(), bitmaskLen);
       }
-      Point hotSpot(rect->left, rect->top);
+      Point hotSpot(rect.left, rect.top);
 
       m_logWriter.debug(_T("Setting new rich cursor..."));
       m_fbUpdateNotifier.setNewCursor(hotSpot, width, height,
@@ -1162,9 +1162,9 @@ void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
 
   case PseudoEncDefs::POINTER_POS:
     {
-      m_logWriter.detail(_T("Updating pointer position: [%d, %d]"), rect->left, rect->top);
-      Point position(rect->left, rect->top);
-      m_fbUpdateNotifier.updatePointerPos(&position);
+      m_logWriter.detail(_T("Updating pointer position: [%d, %d]"), rect.left, rect.top);
+      Point position(rect.left, rect.top);
+      m_fbUpdateNotifier.updatePointerPos(position);
     }
     break;
 

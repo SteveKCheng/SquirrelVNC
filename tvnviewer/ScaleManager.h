@@ -59,7 +59,7 @@ public:
   void getDestinationRect(Rect *rcDestination);
  
   // get window rectangle from screen
-  void getWndFromScreen(const Rect *screen, Rect *wnd);
+  void getWndFromScreen(const Rect &screen, Rect *wnd);
 
   // transform display coordinate to screen
   POINTS transformDispToScr(int xPoint, int yPoint) const;

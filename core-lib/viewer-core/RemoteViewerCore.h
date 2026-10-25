@@ -345,12 +345,12 @@ public:
   // Send a pointer (mouse) event. Arguments specify the event as defined in
   // the RFB v.3 protocol specification.
   //
-  void sendPointerEvent(UINT8 buttonMask, const Point *position);
+  void sendPointerEvent(UINT8 buttonMask, const Point &position);
 
   //
   // Send cut text (clipboard) to the server.
   //
-  void sendCutTextEvent(const StringStorage *cutText);
+  void sendCutTextEvent(const StringStorage &cutText);
 
   //
   // Set the preferred encoding type. Note that the server is not guaranteed
@@ -525,7 +525,7 @@ private:
   // taller than ViewerBufferSize::MAX_CURSOR_SIZE, or a desktop size that
   // setFbProperties() rejects; IOException if the input fails.
   //
-  void processPseudoEncoding(const Rect *rect, int encType);
+  void processPseudoEncoding(const Rect &rect, int encType);
 
   //
   // Send FramebufferUpdateRequest client message (code 3).
