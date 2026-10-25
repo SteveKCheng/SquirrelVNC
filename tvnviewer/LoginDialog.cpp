@@ -157,7 +157,7 @@ void LoginDialog::onAbout()
 BOOL LoginDialog::onDrawItem(WORD controlID, LPDRAWITEMSTRUCT dis)
 {
   if (controlID == IDC_LOGO) {
-    ScaledIcons::drawCentered(dis, IDI_APPICON);
+    ScaledIcons::drawCentered(*dis, IDI_APPICON);
   }
   return TRUE;
 }

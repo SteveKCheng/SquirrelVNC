@@ -46,8 +46,8 @@ public:
   // Handler, call it on UDN_DELTAPOS notification
   //
 
-  void setAutoAccelerationParams(const std::vector<int> *limitters,
-                                 const std::vector<int> *deltas,
+  void setAutoAccelerationParams(const std::vector<int> &limitters,
+                                 const std::vector<int> &deltas,
                                  int maxDelta);
 protected:
   Control *m_buddy;

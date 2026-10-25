@@ -177,25 +177,25 @@ inline int DibFrameBuffer::getBytesPerRow() const
   return m_fb.getBytesPerRow();
 }
 
-void DibFrameBuffer::blitToDibSection(const Rect *rect)
+void DibFrameBuffer::blitToDibSection(const Rect &rect)
 {
   checkDibValid();
   m_dibSection->blitToDibSection(rect);
 }
 
-void DibFrameBuffer::blitTransparentToDibSection(const Rect *rect)
+void DibFrameBuffer::blitTransparentToDibSection(const Rect &rect)
 {
   checkDibValid();
   m_dibSection->blitTransparentToDibSection(rect);
 }
 
-void DibFrameBuffer::blitFromDibSection(const Rect *rect)
+void DibFrameBuffer::blitFromDibSection(const Rect &rect)
 {
   checkDibValid();
   m_dibSection->blitFromDibSection(rect);
 }
 
-void DibFrameBuffer::stretchFromDibSection(const Rect *srcRect, const Rect *dstRect)
+void DibFrameBuffer::stretchFromDibSection(const Rect &srcRect, const Rect &dstRect)
 {
   checkDibValid();
   m_dibSection->stretchFromDibSection(srcRect, dstRect);

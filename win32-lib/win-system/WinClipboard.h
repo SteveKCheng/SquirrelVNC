@@ -59,7 +59,7 @@ protected:
 
 protected:
   // function removed CR before LF
-  StringStorage removeCR(const StringStorage *str);
+  StringStorage removeCR(const StringStorage &str);
 
   // function replaced LF to CR+LF. If before LF already is CR, this not added second
   StringStorage addCR(const StringStorage *str);

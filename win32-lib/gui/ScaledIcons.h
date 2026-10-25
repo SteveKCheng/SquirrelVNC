@@ -63,7 +63,7 @@ public:
    * Draws the icon centred in an owner-drawn static control, as large as
    * fits, on the background the parent gives static controls.
    */
-  static void drawCentered(const DRAWITEMSTRUCT *dis, WORD id);
+  static void drawCentered(const DRAWITEMSTRUCT &dis, WORD id);
 };
 
 #endif // _SCALED_ICONS_H_

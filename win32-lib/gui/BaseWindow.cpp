@@ -39,18 +39,18 @@ BaseWindow::~BaseWindow()
   }
 }
 
-void BaseWindow::setClass(const StringStorage *className)
+void BaseWindow::setClass(const StringStorage &className)
 {
-  m_className = *className;
+  m_className = className;
 }
 
-bool BaseWindow::createWindow(const StringStorage *windowName, DWORD style, HWND hWndParent,
+bool BaseWindow::createWindow(const StringStorage &windowName, DWORD style, HWND hWndParent,
                               int xPos, int yPos, int width, int height)
 {
   if (m_hWnd) {
     return false;
   }
-  m_windowName = *windowName;
+  m_windowName = windowName;
   m_hWnd = CreateWindow(m_className.getString(), 
                         m_windowName.getString(), 
                         style, 
@@ -235,10 +235,10 @@ HWND BaseWindow::getHWnd() const
   return m_hWnd;
 }
 
-void BaseWindow::setWindowText(const StringStorage *text)
+void BaseWindow::setWindowText(const StringStorage &text)
 {
   _ASSERT(m_hWnd != 0);
-  SetWindowText(m_hWnd, text->getString());
+  SetWindowText(m_hWnd, text.getString());
 }
 
 void BaseWindow::redraw(const RECT *rcArea)

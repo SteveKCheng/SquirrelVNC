@@ -46,21 +46,21 @@ public:
   // createWindow()
   // Create window with windowName and setted style
   // other parameters can by changed
-  bool createWindow(const StringStorage *windowName, DWORD style, HWND hWndParent = nullptr,
+  bool createWindow(const StringStorage &windowName, DWORD style, HWND hWndParent = nullptr,
                     int xPos = CW_USEDEFAULT, int yPos = CW_USEDEFAULT,
                     int width = CW_USEDEFAULT, int height = CW_USEDEFAULT);
   bool destroyWindow();
 
   // setClass()
   // Set a class name only to the new window created by createWindow
-  void setClass(const StringStorage *className);
+  void setClass(const StringStorage &className);
 
   // basic window manipulation procedures
   void show();
   void hide();
   bool setSize(int width, int height);
   bool setPosition(int xPos, int yPos);
-  void setWindowText(const StringStorage *text);
+  void setWindowText(const StringStorage &text);
 
   // loadIcon()
   // Sets the class icons (large and small) of the window from the icon

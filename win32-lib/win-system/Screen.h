@@ -74,7 +74,7 @@ public:
   void getBMI(BMI *bmi);
 
 private:
-  void fillPixelFormat(const BMI *bmi);
+  void fillPixelFormat(const BMI &bmi);
   // Returns the position of the lowest set bit in bits, from 0 to 31,
   // or 0 if no bit is set, so that the result is always a valid shift
   // count for a UINT32.

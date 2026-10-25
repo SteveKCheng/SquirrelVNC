@@ -86,25 +86,25 @@ public:
   // DIB section) to the DIB section.
   // Note that this function does not copy any transparent windows.
   // This function throwing an exception on a failure.
-  void blitToDibSection(const Rect *rect);
+  void blitToDibSection(const Rect &rect);
 
   // This function copies a block of bits from a source DC (that has been used to create the
   // DIB section) to the DIB section.
   // Note that this function copies transparent windows too.
   // This function throwing an exception on a failure.
-  void blitTransparentToDibSection(const Rect *rect);
+  void blitTransparentToDibSection(const Rect &rect);
 
   // This function copies a block of bits from the DIB section to the source DC
   // (that has been used to create the compatible DIB section).
   // Note that this function does not copy any transparent windows.
   // This function throwing an exception on a failure.
-  void blitFromDibSection(const Rect *rect);
+  void blitFromDibSection(const Rect &rect);
 
   // This function copies with strech a block of bits from the DIB section to the source DC
   // (that has been used to create the compatible DIB section).
   // Note that this function does not copy any transparent windows.
   // This function throwing an exception on a failure.
-  void stretchFromDibSection(const Rect *srcRect, const Rect *dstRect);
+  void stretchFromDibSection(const Rect &srcRect, const Rect &dstRect);
 
 private:
   // This section to reduce access to some function that have been inherited from the

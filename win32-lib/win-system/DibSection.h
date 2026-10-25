@@ -58,25 +58,25 @@ public:
   // DIB section) to the DIB section.
   // Note that this function does not copy any transparent windows.
   // This function throwing an exception on a failure.
-  void blitToDibSection(const Rect *rect);
+  void blitToDibSection(const Rect &rect);
 
   // This function copies a block of bits from a source DC (that has been used to create the
   // DIB section) to the DIB section.
   // Note that this function copies transparent windows too.
   // This function throwing an exception on a failure.
-  void blitTransparentToDibSection(const Rect *rect);
+  void blitTransparentToDibSection(const Rect &rect);
 
   // This function copies a block of bits from the DIB section to the source DC
   // (that has been used to create the compatible DIB section).
   // Note that this function does not copy any transparent windows.
   // This function throwing an exception on a failure.
-  void blitFromDibSection(const Rect *rect);
+  void blitFromDibSection(const Rect &rect);
 
   // This function copies with strech a block of bits from the DIB section to the source DC
   // (that has been used to create the compatible DIB section).
   // Note that this function does not copy any transparent windows.
   // This function throwing an exception on a failure.
-  void stretchFromDibSection(const Rect *srcRect, const Rect *dstRect);
+  void stretchFromDibSection(const Rect &srcRect, const Rect &dstRect);
 
 private:
   // Opens a new DIB section.
@@ -88,11 +88,11 @@ private:
   void releaseTargetDC();
 
   // This function throwing an exception on a failure.
-  void blitToDibSection(const Rect *rect, DWORD flags);
+  void blitToDibSection(const Rect &rect, DWORD flags);
 
   // This function throwing an exception on a failure.
-  void blitFromDibSection(const Rect *rect, DWORD flags);
-  void stretchFromDibSection(const Rect *srcRect, const Rect *dstRect, DWORD flags);
+  void blitFromDibSection(const Rect &rect, DWORD flags);
+  void stretchFromDibSection(const Rect &srcRect, const Rect &dstRect, DWORD flags);
 
   // Fills *bmi to describe an 8-bit DIB section of the given format and
   // size, with a colour table that maps each pixel value to its colour.

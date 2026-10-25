@@ -51,11 +51,11 @@ void SpinControl::setRange32(int lower, int upper)
   SendMessage(m_hwnd, UDM_SETRANGE32, lower, upper);
 }
 
-void SpinControl::setAutoAccelerationParams(const std::vector<int> *limitters,
-                                            const std::vector<int> *deltas,
+void SpinControl::setAutoAccelerationParams(const std::vector<int> &limitters,
+                                            const std::vector<int> &deltas,
                                             int maxDelta)
 {
-  m_limitters = *limitters;
-  m_deltas = *deltas;
+  m_limitters = limitters;
+  m_deltas = deltas;
   m_maxDelta = maxDelta;
 }

@@ -338,7 +338,7 @@ void DesktopWindow::doDraw(DeviceContext *dc)
     Graphics graphics(dc);
 
     graphics.fillRect(m_clientArea.left, m_clientArea.top, 
-                      m_clientArea.right, m_clientArea.bottom, &m_brush);
+                      m_clientArea.right, m_clientArea.bottom, m_brush);
     return;
   }
 
@@ -461,13 +461,13 @@ void DesktopWindow::drawBackground(DeviceContext *dc, const RECT *rcMain, const 
   Graphics graphics(dc);
 
   // top rectangle
-  graphics.fillRect(rcMain->left, rcMain->top, rcMain->right, rcImage->top, &m_brush);
+  graphics.fillRect(rcMain->left, rcMain->top, rcMain->right, rcImage->top, m_brush);
   // left rectangle
-  graphics.fillRect(rcMain->left, rcImage->top, rcImage->left, rcImage->bottom, &m_brush);
+  graphics.fillRect(rcMain->left, rcImage->top, rcImage->left, rcImage->bottom, m_brush);
   // bottom rectangle
-  graphics.fillRect(rcMain->left, rcImage->bottom, rcMain->right, rcMain->bottom, &m_brush);
+  graphics.fillRect(rcMain->left, rcImage->bottom, rcMain->right, rcMain->bottom, m_brush);
   // right rectangle
-  graphics.fillRect(rcImage->right, rcImage->top, rcMain->right, rcImage->bottom, &m_brush);
+  graphics.fillRect(rcImage->right, rcImage->top, rcMain->right, rcImage->bottom, m_brush);
 }
 
 void DesktopWindow::calcClientArea() {
@@ -493,9 +493,9 @@ void DesktopWindow::drawImage(const RECT *src, const RECT *dst)
      src->right == dst->right &&
      src->top == dst->top &&
      src->bottom == dst->bottom) {
-    m_framebuffer.blitFromDibSection(&rc_dest);
+    m_framebuffer.blitFromDibSection(rc_dest);
   } else {
-    m_framebuffer.stretchFromDibSection(&rc_dest, &rc_src);
+    m_framebuffer.stretchFromDibSection(rc_dest, rc_src);
   }
 }
 

@@ -39,7 +39,7 @@ public:
   ~Graphics();
 
   // Draws filled rect.
-  void fillRect(int l, int t, int r, int b, const Brush *brush);
+  void fillRect(int l, int t, int r, int b, const Brush &brush);
   // Draws ellipse.
   void ellipse(int l, int t, int r, int b);
   // Draws rectance.

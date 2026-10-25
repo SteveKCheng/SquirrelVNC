@@ -72,7 +72,7 @@ bool WinClipboard::getString(StringStorage *str)
   // may not have done so: read no further than its memory.
   size_t length = _tcsnlen(data, GlobalSize(hndData) / sizeof(TCHAR));
   StringStorage nativeClipboard(StringStorage::StdString(data, length));
-  *str = removeCR(&nativeClipboard);
+  *str = removeCR(nativeClipboard);
   return true;
 }
 
@@ -134,10 +134,10 @@ StringStorage WinClipboard::addCR(const StringStorage *str)
   return StringStorage(&newChars.front());
 }
 
-StringStorage WinClipboard::removeCR(const StringStorage *str)
+StringStorage WinClipboard::removeCR(const StringStorage &str)
 {
-  const TCHAR *beginString = str->getString();
-  const TCHAR *endString = beginString + str->getLength() + 1; // start + lenght + '\0'
+  const TCHAR *beginString = str.getString();
+  const TCHAR *endString = beginString + str.getLength() + 1; // start + lenght + '\0'
   std::vector<TCHAR> chars(beginString, endString);
   std::vector<TCHAR> newChars;
   for (size_t i = 0; i < chars.size(); i++) {

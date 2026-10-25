@@ -32,7 +32,7 @@ Graphics::~Graphics()
 {
 }
 
-void Graphics::fillRect(int l, int t, int r, int b, const Brush *brush)
+void Graphics::fillRect(int l, int t, int r, int b, const Brush &brush)
 {
   RECT rect;
 
@@ -41,7 +41,7 @@ void Graphics::fillRect(int l, int t, int r, int b, const Brush *brush)
   rect.bottom = b;
   rect.right = r;
 
-  FillRect(m_dc->m_dc, &rect, brush->m_brush);
+  FillRect(m_dc->m_dc, &rect, brush.m_brush);
 }
 
 void Graphics::ellipse(int l, int t, int r, int b)

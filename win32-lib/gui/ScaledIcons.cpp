@@ -94,26 +94,26 @@ HICON ScaledIcons::get(WORD id, int width, int height)
   return icon;
 }
 
-void ScaledIcons::drawCentered(const DRAWITEMSTRUCT *dis, WORD id)
+void ScaledIcons::drawCentered(const DRAWITEMSTRUCT &dis, WORD id)
 {
-  HWND parent = GetParent(dis->hwndItem);
+  HWND parent = GetParent(dis.hwndItem);
   HBRUSH background = reinterpret_cast<HBRUSH>(
     SendMessage(parent, WM_CTLCOLORSTATIC,
-                reinterpret_cast<WPARAM>(dis->hDC),
-                reinterpret_cast<LPARAM>(dis->hwndItem)));
+                reinterpret_cast<WPARAM>(dis.hDC),
+                reinterpret_cast<LPARAM>(dis.hwndItem)));
   if (background == nullptr) {
     background = GetSysColorBrush(COLOR_BTNFACE);
   }
-  FillRect(dis->hDC, &dis->rcItem, background);
+  FillRect(dis.hDC, &dis.rcItem, background);
 
-  int width = dis->rcItem.right - dis->rcItem.left;
-  int height = dis->rcItem.bottom - dis->rcItem.top;
+  int width = dis.rcItem.right - dis.rcItem.left;
+  int height = dis.rcItem.bottom - dis.rcItem.top;
   int size = (width < height) ? width : height;
   HICON icon = get(id, size, size);
   if (icon != nullptr) {
-    DrawIconEx(dis->hDC,
-               dis->rcItem.left + (width - size) / 2,
-               dis->rcItem.top + (height - size) / 2,
+    DrawIconEx(dis.hDC,
+               dis.rcItem.left + (width - size) / 2,
+               dis.rcItem.top + (height - size) / 2,
                icon, size, size, 0, nullptr, DI_NORMAL);
   }
 }

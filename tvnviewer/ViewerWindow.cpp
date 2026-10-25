@@ -67,11 +67,11 @@ ViewerWindow::ViewerWindow(WindowsApplication *application,
   StringStorage titleName = WindowNames::TVN_WINDOW_TITLE_NAME;
   StringStorage subTitleName = WindowNames::TVN_SUB_WINDOW_TITLE_NAME;
 
-  setClass(&windowClass);
-  createWindow(&titleName, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
+  setClass(windowClass);
+  createWindow(titleName, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
 
-  m_dsktWnd.setClass(&windowClass);
-  m_dsktWnd.createWindow(&subTitleName,
+  m_dsktWnd.setClass(windowClass);
+  m_dsktWnd.createWindow(subTitleName,
                          WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_CHILD,
                          getHWnd());
 
@@ -993,8 +993,8 @@ void ViewerWindow::showWindow()
   show();
 
   StringStorage windowName = formatWindowName();
-  setWindowText(&windowName);
-  m_dsktWnd.setWindowText(&windowName);
+  setWindowText(windowName);
+  m_dsktWnd.setWindowText(windowName);
 
 }
 
