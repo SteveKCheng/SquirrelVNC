@@ -380,6 +380,15 @@ allocate a lot. Until that is understood, run with `-rss_limit_mb=0`
 and, to catch single large allocations, `-malloc_limit_mb=512`. See
 "Later".
 
+With its output piped through PowerShell (`2>&1 | Select-Object -Last
+3`, as `tools/pointer-parameters/run-fuzz.ps1` used to run it),
+`rfb-fuzz` did not stop at `-max_total_time` (seen 2026-10-26): a run
+asked for 30 seconds was still going after 4 minutes, both before and
+after the decoders became coroutines. Started with `Start-Process` and
+its output redirected to a file, it stops on time (60 seconds, about
+3,200 inputs a second). The cause is not investigated; `run-fuzz.ps1`
+now starts it that way, and also stops it itself if it overruns.
+
 ### The `ReleaseAsan` and `ReleaseFuzz` configurations
 
 MSVC has supported AddressSanitizer and libFuzzer natively since

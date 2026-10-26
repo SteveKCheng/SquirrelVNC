@@ -23,6 +23,21 @@ New-Item -ItemType Directory "$WorkDir\corpus" | Out-Null
 Copy-Item tests\fuzz\corpus\* "$WorkDir\corpus"
 Copy-Item tests\fuzz\regressions\* "$WorkDir\corpus"
 $w = (Resolve-Path $WorkDir).Path
-& bin\x64\ReleaseFuzz\rfb-fuzz.exe -max_total_time=$Seconds -timeout=10 -rss_limit_mb=0 "-artifact_prefix=$w\" "$w\corpus" 2>&1 | Select-Object -Last 3
-"exit=$LASTEXITCODE"
-Get-ChildItem $w -File | Select-Object -ExpandProperty Name
+# Started with its output in a file: piped through PowerShell
+# ("2>&1 | Select-Object"), rfb-fuzz did not stop at -max_total_time
+# (notes/testing.md). As a safeguard, it is also stopped from here, a
+# little after the time is up.
+$log = "$w\fuzz.log"
+$p = Start-Process -FilePath bin\x64\ReleaseFuzz\rfb-fuzz.exe -NoNewWindow -PassThru `
+  -RedirectStandardError $log `
+  -ArgumentList "-max_total_time=$Seconds", '-timeout=10', '-rss_limit_mb=0',
+                "-artifact_prefix=$w\", "$w\corpus"
+if (-not $p.WaitForExit(($Seconds + 30) * 1000)) {
+  Stop-Process -Id $p.Id -Force
+  $p.WaitForExit()
+  "stopped after $Seconds seconds"
+} else {
+  "exit=$($p.ExitCode)"
+}
+Get-Content $log | Select-Object -Last 3
+Get-ChildItem $w -File -Exclude fuzz.log | Select-Object -ExpandProperty Name

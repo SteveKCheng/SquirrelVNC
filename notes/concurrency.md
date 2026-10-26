@@ -191,6 +191,18 @@ None of these is a security issue; all are latent.
    `m_bufferLock` inside it (its own comment says `FIXME: Nested locks
    should not be used`). File-transfer operations notify their listeners
    while holding the listener-list lock.
+4. **Display glitch seen when changing the local cursor** (Steve,
+   2026-10-26, while testing Phase 1 step 6). Changing the local cursor
+   option during a session blanked the screen once; afterwards only
+   parts were redrawn, with black rectangles until the remote screen
+   changed there. Similar glitches were seen with TightVNC before,
+   worse on slow connections, so it is probably not new. Not
+   investigated: to be audited once the threading described here is
+   gone. Candidates: `applySettings()` resizing or rescaling the window
+   (`doSize()`, `DesktopWindow::setScale()`) while the notifier thread
+   copies into the DIB without `m_bufferLock` (see "A framebuffer
+   update, end to end"), and `m_isBackgroundDirty` written without a
+   lock.
 
 ## Which code needs a recursive mutex
 
