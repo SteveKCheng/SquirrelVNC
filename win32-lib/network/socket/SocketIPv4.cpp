@@ -233,11 +233,29 @@ void SocketIPv4::enableNaggleAlgorithm(bool enabled)
 
 void SocketIPv4::enableKeepAlive(DWORD idleSeconds, DWORD intervalSeconds, DWORD probeCount)
 {
+  enableKeepAlive(m_socket, idleSeconds, intervalSeconds, probeCount);
+}
+
+void SocketIPv4::enableKeepAlive(SOCKET socket, DWORD idleSeconds,
+                                 DWORD intervalSeconds, DWORD probeCount)
+{
+  auto set = [socket](int level, int name, const void *value, int length) {
+    if (setsockopt(socket, level, name, static_cast<const char *>(value), length) == SOCKET_ERROR) {
+      throw SocketException();
+    }
+  };
   BOOL enabled = TRUE;
-  setSocketOptions(SOL_SOCKET, SO_KEEPALIVE, &enabled, sizeof(enabled));
-  setSocketOptions(IPPROTO_TCP, TCP_KEEPIDLE, &idleSeconds, sizeof(idleSeconds));
-  setSocketOptions(IPPROTO_TCP, TCP_KEEPINTVL, &intervalSeconds, sizeof(intervalSeconds));
-  setSocketOptions(IPPROTO_TCP, TCP_KEEPCNT, &probeCount, sizeof(probeCount));
+  set(SOL_SOCKET, SO_KEEPALIVE, &enabled, sizeof(enabled));
+  set(IPPROTO_TCP, TCP_KEEPIDLE, &idleSeconds, sizeof(idleSeconds));
+  set(IPPROTO_TCP, TCP_KEEPINTVL, &intervalSeconds, sizeof(intervalSeconds));
+  set(IPPROTO_TCP, TCP_KEEPCNT, &probeCount, sizeof(probeCount));
+}
+
+SOCKET SocketIPv4::release() noexcept
+{
+  SOCKET socket = m_socket;
+  m_socket = INVALID_SOCKET;
+  return socket;
 }
 
 void SocketIPv4::setExclusiveAddrUse()

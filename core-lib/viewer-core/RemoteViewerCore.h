@@ -27,12 +27,10 @@
 #include "log-writer/LogWriter.h"
 #include "network/RfbInputGate.h"
 #include "network/RfbOutputGate.h"
-#include "network/socket/SocketStream.h"
 #include "network/socket/SocketIPv4.h"
 #include "rfb/FrameBuffer.h"
 #include "region/Dimension.h"
 #include "region/Point.h"
-#include "thread/Thread.h"
 
 #include "CapsContainer.h"
 #include "CoreEventsAdapter.h"
@@ -40,11 +38,22 @@
 #include "io-lib/AwaitableReader.h"
 #include "util/Task.h"
 #include "FbUpdateNotifier.h"
+#include "QueuedOutputStream.h"
 #include "ServerMessageListener.h"
-#include "TcpConnection.h"
 
+#include <asio/any_io_executor.hpp>
+#include <asio/awaitable.hpp>
+#include <asio/cancellation_signal.hpp>
+#include <asio/ip/tcp.hpp>
+#include <asio/steady_timer.hpp>
+
+#include <atomic>
+#include <exception>
+#include <future>
 #include <map>
+#include <memory>
 #include <mutex>
+#include <optional>
 #include <variant>
 
 //
@@ -70,8 +79,7 @@
 // Finally, each function of this class may throw exceptions, unless it's
 // explicitly stated that it will never do so.
 //
-class RemoteViewerCore final : public CapabilitiesManager,
-                         protected Thread
+class RemoteViewerCore final : public CapabilitiesManager
 {
 public:
   //
@@ -118,7 +126,8 @@ public:
   // All three start() functions work similarly, but may do different work
   // at startup. For example, one of them initiates new TCP connection.
   //
-  // These functions start a number of threads and return control to the
+  // These functions start the connection on the network thread
+  // (NetworkThread::instance(), which must exist) and return control to the
   // calling thread. Only one of these functions should be called, and it
   // should be called just once.
   //
@@ -127,11 +136,12 @@ public:
   // notifications, the application should inherit CoreEventsAdapter and
   // provide a pointer to that subclass to one of the start() functions.
   //
-  // The threading model is the following. One thread created by start()
-  // performs all read operations from the input gate of the data connection.
-  // This thread is referred to as the "input thread". In addition to reading
-  // the data, it also performs most notifications via the adapter interface,
-  // except for two notifications which report changes in the frame buffer.
+  // The threading model is the following. The connection is driven on the
+  // network thread (notes/async-networking.md, Phase 4): connecting, reading
+  // with the protocol code, and writing. This thread is referred to as the
+  // "input thread" below. It also performs most notifications via the
+  // adapter interface, except for two notifications which report changes in
+  // the frame buffer.
   //
   // The notifications related to the frame buffer, onFrameBufferUpdate() and
   // onFrameBufferPropChange(), will be called from a separate thread (let's
@@ -146,13 +156,17 @@ public:
   // Write operations (sending data to the server) may be performed from any
   // thread, both within the object and from outside of the object, assuming
   // that proper locking and flushing are used in the corresponding
-  // RfbOutputGate object. Beware of sending data from callbacks, as that can
-  // block the input thread for a long time.
+  // RfbOutputGate object. For a socket, flushing only queues the message
+  // (QueuedOutputStream), and the network thread sends it, so no thread
+  // waits for the network to send.
   //
 
   //
   // This version of start() takes any type of connection that can be
   // specified via a pair of abstract "gates" (RfbInputGate and RfbOutputGate).
+  // The input is read with blocking reads on the network thread, which no
+  // other connection could share then: it is meant for input in memory, for
+  // tests (rfb-replay).
   //
   void start(RfbInputGate *input, RfbOutputGate *output,
              CoreEventsAdapter *adapter,
@@ -172,7 +186,9 @@ public:
 
   //
   // This version expects a connected TCP socket. For example, it can be used
-  // for reverse connections (when servers connect to viewers).
+  // for reverse connections (when servers connect to viewers). It takes the
+  // socket over (SocketIPv4::release()): socket is left without one, and
+  // the core closes it.
   //
   void start(SocketIPv4 *socket,
              CoreEventsAdapter *adapter,
@@ -192,28 +208,35 @@ public:
   void setMaxFrameBufferPixels(UINT64 maxPixels);
 
   //
-  // Stop operation, detach from the data connection and terminate all active
-  // threads.
+  // Stop operation: cancels the connection, on the network thread, whatever
+  // it is doing (resolving, connecting, reading or writing), and ends the
+  // frame buffer notifier's thread.
   //
-  // This function will return control to the caller immediately, and threads
-  // may run for some time after the function has finished. To wait for actual
-  // thread completion after stop(), call waitTermination().
+  // This function will return control to the caller immediately, and the
+  // connection may run for some time after the function has finished. To wait
+  // for its end after stop(), call waitTermination().
   //
-  // Note that this function does not close the actual data connection if that
-  // connection was not created by this class. It will be closed only if you
-  // passed host and port information to start().
+  // The socket, connected here or taken over, is closed when the connection
+  // ends; gates given to start() are not closed.
   //
   void stop();
 
   //
-  // Wait until all threads have been finished. Always call this function
-  // prior to destroying this object and connected objects (CoreEventsAdapter),
-  // but only if remote viewer core was actually
-  // started.
+  // Wait until the connection has ended on the network thread, and the frame
+  // buffer notifier's thread too. Always call this function prior to
+  // destroying this object and connected objects (CoreEventsAdapter), but
+  // only if remote viewer core was actually started.
   //
-  // This function does not terminate threads. That can be done by calling
+  // This function does not stop the connection. That can be done by calling
   // stop(). If stop() was not and will not be called, and no error occures,
   // this function blocks the calling thread forever.
+  //
+  // Pre-conditions: not called on the network thread (it would wait for
+  // itself), and the network thread is running.
+  // Post-conditions: no work of this object is left on the network thread,
+  // including work posted to it before (the end of the connection is
+  // followed by a round trip through the loop), so the object may be
+  // destroyed.
   //
   // NOTE: If remote viewer core isn't started, then function waitTermination()
   // blocks the calling thread forever.
@@ -531,15 +554,62 @@ private:
   void handle(const IgnoreCursorShapeUpdatesEvent &event);
 
   //
-  // Overrides Thread::execute(). Implements the input thread.
+  // The connection, on the network thread: an Asio coroutine, spawned by
+  // start() and bound to m_stopSignal. It connects (or takes over the
+  // socket given to start()), then runs readLoop() and writeLoop() until
+  // the first of them ends; or, with gates, runs run() with runBlocking().
+  // It ends the output queue before it returns.
   //
-  void execute() override;
+  // Throws what run() threw, or SocketException if the host cannot be
+  // resolved or connected to; finish() reports it to the adapter.
+  //
+  asio::awaitable<void> drive();
+
+  //
+  // Resolves m_host (asyncResolve()) and connects m_socket to the first
+  // address that accepts; or takes over m_acceptedSocket. Then sets the
+  // socket's options (configureSocket()). Throws SocketException on failure.
+  //
+  asio::awaitable<void> connect();
+
+  //
+  // Turns off Nagle's algorithm (TCP_NODELAY): RFB's small messages, such as
+  // pointer events, must not wait for earlier data to be acknowledged. Turns
+  // on TCP keepalive (KEEPALIVE_*), so that a peer gone without closing the
+  // connection is noticed: a view-only connection sends nothing, and would
+  // otherwise wait for an update forever. A failure is logged, and the
+  // connection goes on.
+  //
+  void configureSocket();
+
+  //
+  // The driver of the protocol (notes/async-networking-resumption.md): runs
+  // run(), reading from m_socket whenever m_reader runs short, and serving
+  // its requests (for now with the blocking getPassword(), stalling the
+  // network thread while a password dialog is open). Ends when run() has
+  // finished, its exception kept in m_runError; a read error, or a
+  // cancellation, is given to m_reader, so that the protocol code unwinds.
+  //
+  asio::awaitable<void> readLoop();
+
+  //
+  // Sends what m_output queues (m_queuedOutput), whenever it is woken, until
+  // cancelled or a send fails; a failure is given to m_reader as an
+  // IOException, so that the protocol code ends too.
+  //
+  asio::awaitable<void> writeLoop();
+
+  //
+  // Reports how the connection ended to the adapter, as onAuthError(),
+  // onDisconnect() or onError(), and marks the core finished for
+  // waitTermination(). The completion of drive(), on the network thread.
+  //
+  void finish(std::exception_ptr failure);
 
   //
   // The protocol, from the handshake to the end of the session, as a
-  // coroutine (util/Task.h) that reads through m_reader. execute() connects,
-  // then runs it with runBlocking(), and reports how it ended to the
-  // adapter.
+  // coroutine (util/Task.h) that reads through m_reader. drive() connects,
+  // then runs it, and finish() reports how it ended to the adapter.
   //
   // Pre-conditions: connected; m_reader has no bytes yet.
   // Post-conditions: when it returns, the session has ended normally, and
@@ -674,7 +744,6 @@ private:
   Task<> receiveSetColorMapEntries();
 
   bool isRfbProtocolString(const char protocol[12]) const;
-  void connectToHost();
   Task<> handshake();
   Task<int> negotiateSecurityType();
   Task<> authenticate();
@@ -753,16 +822,46 @@ private:
 
   LogWriter m_logWriter;
 
-  // m_tcpConnection depends on m_logWriter and must be defined after it.
-  // See also: C++ standard 12.6.2 - Initializing bases and members.
-  TcpConnection m_tcpConnection;
+  // TCP keepalive (configureSocket()): a dead peer is noticed after about
+  // 30 + 10 * 5 = 80 seconds without traffic.
+  static constexpr DWORD KEEPALIVE_IDLE_SECONDS = 30;
+  static constexpr DWORD KEEPALIVE_INTERVAL_SECONDS = 5;
+  static constexpr DWORD KEEPALIVE_PROBE_COUNT = 10;
 
+  // What start() was given: a host and port to connect to; a socket taken
+  // over (INVALID_SOCKET if none); or gates (m_input not null).
+  StringStorage m_host;
+  UINT16 m_port;
+  SOCKET m_acceptedSocket;
+
+  // The network thread's executor, for the connection.
+  asio::any_io_executor m_executor;
+  // The connection's socket, made by drive(); used only on the network
+  // thread.
+  std::optional<asio::ip::tcp::socket> m_socket;
+  // Wakes writeLoop(), by being cancelled; used only on the network thread.
+  std::optional<asio::steady_timer> m_writeWake;
+  // Cancels drive(); emitted on the network thread, by stop().
+  asio::cancellation_signal m_stopSignal;
+  // Set by stop(): the message loop of run() ends.
+  std::atomic<bool> m_isStopping;
+  // What left run(), for drive() to rethrow.
+  std::exception_ptr m_runError;
+  // Set by finish(), for waitTermination().
+  std::promise<void> m_finished;
+  std::shared_future<void> m_finishedFuture;
+
+  // With gates, the input gate given to start(), read with runBlocking();
+  // otherwise null.
   RfbInputGate *m_input;
   // What the coroutines of the protocol (run() and those it awaits) read;
-  // execute() feeds it from m_input, with runBlocking(). Used only on the
-  // core thread.
+  // readLoop() feeds it. Used only on the network thread.
   AwaitableReader m_reader;
+  // For a socket, m_ownOutput, which queues into m_queuedOutput; with
+  // gates, the output gate given to start().
   RfbOutputGate *m_output;
+  QueuedOutputStream m_queuedOutput;
+  std::unique_ptr<RfbOutputGate> m_ownOutput;
 
   CoreEventsAdapter *m_adapter;
 

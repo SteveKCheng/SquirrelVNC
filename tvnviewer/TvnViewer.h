@@ -34,6 +34,7 @@
 #include "win-system/WindowsApplication.h"
 
 #include "log-writer/LogWriter.h"
+#include "viewer-core/NetworkThread.h"
 #include "thread/AutoLock.h"
 
 #include <map>
@@ -134,6 +135,12 @@ protected:
 
   bool onTimer(WPARAM idTimer);
 
+  // The network thread of every connection (NetworkThread::instance()).
+  // Declared before m_instances, so that it is destroyed, joining the
+  // thread, after them: their connections end on it. Asio holds its own
+  // reference to WinSock until then, so the WindowsSocket::cleanup() in
+  // ~TvnViewer() comes first without harm.
+  NetworkThread m_networkThread;
   ViewerCollector m_instances;
 
   // class name of viewer-window

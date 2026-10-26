@@ -30,7 +30,10 @@
 #include "rfb/EncodingDefs.h"
 #include "rfb/StandardPixelFormatFactory.h"
 #include "rfb/VendorDefs.h"
+#include "util/ScopeExit.h"
 #include "util/TextEncoding.h"
+#include "network/HostResolver.h"
+#include "network/socket/SocketException.h"
 
 #include "AuthHandler.h"
 #include "RichCursorDecoder.h"
@@ -40,6 +43,7 @@
 #include "RfbPointerEventClientMessage.h"
 #include "RfbSetEncodingsClientMessage.h"
 #include "RfbSetPixelFormatClientMessage.h"
+#include "NetworkThread.h"
 #include "ViewerBufferSize.h"
 
 #include "RawDecoder.h"
@@ -57,7 +61,19 @@
 #include "PointerPosDecoder.h"
 #include "RichCursorDecoder.h"
 
+#include <asio/as_tuple.hpp>
+#include <asio/bind_cancellation_slot.hpp>
+#include <asio/co_spawn.hpp>
+#include <asio/connect.hpp>
+#include <asio/deferred.hpp>
+#include <asio/experimental/parallel_group.hpp>
+#include <asio/post.hpp>
+#include <asio/this_coro.hpp>
+#include <asio/use_awaitable.hpp>
+#include <asio/write.hpp>
+
 #include <algorithm>
+#include <stdexcept>
 #include <variant>
 
 // Limits on lengths sent by the server, so that a malicious or broken server
@@ -67,9 +83,31 @@ static const UINT32 MAX_DESKTOP_NAME_LENGTH = 64 * 1024;
 // As DataInputStream::readUTF8() allowed, which used to read the reason.
 static const UINT32 MAX_REASON_LENGTH = 1024 * 1024;
 
+// The most readLoop() asks the socket for at once.
+static const size_t READ_CHUNK_SIZE = 64 * 1024;
+
+//
+// The IOException for an error reading the socket: with the messages the
+// blocking sockets gave (SocketIPv4::recv()), which the adapter shows; and
+// for a cancellation, by stop().
+//
+static IOException makeReadException(const std::error_code &error)
+{
+  if (error == asio::error::eof) {
+    return IOException(_T("Connection has been gracefully closed"));
+  }
+  if (error == asio::error::operation_aborted) {
+    return IOException(_T("The connection was stopped"));
+  }
+  return IOException(_T("Failed to recv data from socket."));
+}
+
 RemoteViewerCore::RemoteViewerCore(Logger *logger)
 : m_logWriter(logger),
-  m_tcpConnection(&m_logWriter),
+  m_port(0),
+  m_acceptedSocket(INVALID_SOCKET),
+  m_isStopping(false),
+  m_finishedFuture(m_finished.get_future().share()),
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter),
   m_decoderStore(&m_logWriter),
   m_isTightEnabled(true),
@@ -129,6 +167,10 @@ RemoteViewerCore::~RemoteViewerCore()
     }
   } catch (...) {
   }
+  // Taken over, but never driven: start() failed.
+  if (m_acceptedSocket != INVALID_SOCKET) {
+    closesocket(m_acceptedSocket);
+  }
 }
 
 void RemoteViewerCore::start(CoreEventsAdapter *adapter,
@@ -155,8 +197,16 @@ void RemoteViewerCore::start(CoreEventsAdapter *adapter,
 
   m_fbUpdateNotifier.setAdapter(adapter);
 
-  // Start thread.
-  resume();
+  m_executor = NetworkThread::instance().getExecutor();
+  if (m_input == nullptr) {
+    m_ownOutput = std::make_unique<RfbOutputGate>(&m_queuedOutput);
+    m_output = m_ownOutput.get();
+  }
+  asio::co_spawn(m_executor, drive(),
+                 asio::bind_cancellation_slot(m_stopSignal.slot(),
+                                              [this](std::exception_ptr failure) {
+                                                finish(failure);
+                                              }));
   m_logWriter.debug(_T("Remote viewer core is started"));
 }
 
@@ -165,14 +215,15 @@ void RemoteViewerCore::start(const TCHAR *host,
                              CoreEventsAdapter *adapter,
                              bool sharedFlag)
 {
-  m_tcpConnection.bind(host, port);
+  m_host = host;
+  m_port = port;
   start(adapter, sharedFlag);
 }
 void RemoteViewerCore::start(SocketIPv4 *socket,
                              CoreEventsAdapter *adapter,
                              bool sharedFlag)
 {
-  m_tcpConnection.bind(socket);
+  m_acceptedSocket = socket->release();
   start(adapter, sharedFlag);
 }
 
@@ -180,7 +231,8 @@ void RemoteViewerCore::start(RfbInputGate *input, RfbOutputGate *output,
                              CoreEventsAdapter *adapter,
                              bool sharedFlag)
 {
-  m_tcpConnection.bind(input, output);
+  m_input = input;
+  m_output = output;
   start(adapter, sharedFlag);
 }
 
@@ -207,15 +259,28 @@ bool RemoteViewerCore::wasConnected() const
 
 void RemoteViewerCore::stop()
 {
-  m_tcpConnection.close();
+  m_isStopping = true;
   m_fbUpdateNotifier.terminate();
-  terminate();
+  if (wasStarted()) {
+    // The signal is not thread-safe: it is emitted on the network thread.
+    asio::post(m_executor, [this] {
+      m_stopSignal.emit(asio::cancellation_type::terminal);
+    });
+  }
 }
 
 void RemoteViewerCore::waitTermination()
 {
   m_fbUpdateNotifier.wait();
-  wait();
+  m_finishedFuture.wait();
+  // A round trip through the loop, which runs what is posted to it in
+  // order: whatever was posted for this object before, such as stop()'s
+  // cancellation or a wake of writeLoop(), has run by its end.
+  std::promise<void> drained;
+  asio::post(m_executor, [&drained] {
+    drained.set_value();
+  });
+  drained.get_future().wait();
 }
 
 void RemoteViewerCore::setPixelFormat(const PixelFormat &pixelFormat)
@@ -419,22 +484,6 @@ Task<PixelFormat> RemoteViewerCore::readPixelFormat()
     throw Exception(_T("The server's pixel format is invalid"));
   }
   co_return pixelFormat;
-}
-
-void RemoteViewerCore::connectToHost()
-{
-  m_tcpConnection.connect();
-  m_input = m_tcpConnection.getInput();
-  m_output = m_tcpConnection.getOutput();
-
-  m_logWriter.detail(_T("Connection is established"));
-  try {
-    m_adapter->onEstablished();
-  } catch (const Exception &ex) {
-    m_logWriter.error(_T("Error in CoreEventsAdapter::onEstablished(): %s"), ex.getMessage());
-  } catch (...) {
-    m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onEstablished()"));
-  }
 }
 
 Task<> RemoteViewerCore::authenticate()
@@ -784,7 +833,7 @@ Task<> RemoteViewerCore::run()
   sendFbUpdateRequest(false);
 
   // received server messages
-  while (!isTerminating()) {
+  while (!m_isStopping) {
     applyPendingEvents();
     UINT32 msgType = co_await receiveServerMessageType();
 
@@ -839,54 +888,240 @@ Task<> RemoteViewerCore::run()
 
 }
 
-void RemoteViewerCore::execute()
+asio::awaitable<void> RemoteViewerCore::drive()
 {
-  try {
-    // connect to host and create RfbInputGate/RfbOutputGate
-    // if already connected, then function do nothing
-    m_logWriter.info(_T("Protocol stage is \"Connection establishing\"."));
-    connectToHost();
+  auto notifyEstablished = [this] {
+    m_logWriter.detail(_T("Connection is established"));
+    try {
+      m_adapter->onEstablished();
+    } catch (const Exception &ex) {
+      m_logWriter.error(_T("Error in CoreEventsAdapter::onEstablished(): %s"), ex.getMessage());
+    } catch (...) {
+      m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onEstablished()"));
+    }
+  };
 
-    // The protocol, a coroutine reading through m_reader, which this
-    // thread feeds from m_input with blocking reads; it serves the
-    // password request here too (notes/async-networking-resumption.md).
+  if (m_input != nullptr) {
+    // Gates, for tests: the input is in memory, so the blocking reads of
+    // runBlocking() do not hold up the loop for long.
+    notifyEstablished();
     runBlocking(run(), m_reader, *m_input);
-  } catch (const AuthException &ex) {
-    m_logWriter.message(_T("RemoteVewerCore. Auth exception: %s"), ex.getMessage());
-    try {
-      m_adapter->onAuthError(ex);
-    } catch (const Exception &ex) {
-      m_logWriter.error(_T("Error in CoreEventsAdapter::onAuthError(): %s"), ex.getMessage());
-    } catch (...) {
-      m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onAuthError()"));
-    }
-  } catch (const IOException &ex) {
-    try {
-      StringStorage disconnectMessage(ex.getMessage());
-      m_adapter->onDisconnect(disconnectMessage);
-    } catch (const Exception &ex) {
-      m_logWriter.error(_T("Error in CoreEventsAdapter::onDisconnect(): %s"), ex.getMessage());
-    } catch (...) {
-      m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onDisconnect()"));
-    }
-  } catch (const Exception &ex) {
-    m_logWriter.message(_T("RemoteViewerCore. Exception: %s"), ex.getMessage());
-    try {
-      m_adapter->onError(ex);
-    } catch (...) {
-      m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onError()"));
-    }
-  } catch (...) {
-    StringStorage error;
-    error.format(_T("RemoteViewerCore. Unknown exception"));
-    m_logWriter.message(_T("%s"), error.getString());
-    Exception ex(error.getString());
-    try {
-      m_adapter->onError(ex);
-    } catch (...) {
-      m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onError()"));
+    co_return;
+  }
+
+  // Whatever happens, nothing is queued or woken once the connection ends.
+  ScopeExit closeQueue([this] { m_queuedOutput.close(); });
+
+  m_logWriter.info(_T("Protocol stage is \"Connection establishing\"."));
+  co_await connect();
+  notifyEstablished();
+
+  m_writeWake.emplace(m_executor);
+  m_queuedOutput.open([this] {
+    asio::post(m_executor, [this] {
+      m_writeWake->cancel();
+    });
+  });
+
+  // Until the first of them ends; the other is then cancelled, and waited
+  // for (notes/async-networking.md, "Corrections and decisions", 3).
+  auto [order, readError, writeError] =
+    co_await asio::experimental::make_parallel_group(
+      asio::co_spawn(m_executor, readLoop(), asio::deferred),
+      asio::co_spawn(m_executor, writeLoop(), asio::deferred))
+    .async_wait(asio::experimental::wait_for_one(), asio::use_awaitable);
+
+  // If the protocol ended by itself (the server closed the connection, or
+  // the protocol failed), rather than by stop() or a failed send, send what
+  // it queued last: writeLoop() may not have been woken for it before it
+  // was cancelled, and the server may have closed only its sending side.
+  if (order[0] == 0 && !writeError && !m_isStopping) {
+    std::vector<char> rest = m_queuedOutput.take();
+    if (!rest.empty()) {
+      co_await asio::async_write(*m_socket, asio::buffer(rest),
+                                 asio::as_tuple(asio::use_awaitable));
     }
   }
+
+  std::error_code ignored;
+  m_socket->shutdown(asio::ip::tcp::socket::shutdown_both, ignored);
+  m_socket->close(ignored);
+
+  if (readError) {
+    std::rethrow_exception(readError);
+  }
+  if (writeError) {
+    std::rethrow_exception(writeError);
+  }
+  if (m_runError) {
+    std::rethrow_exception(m_runError);
+  }
+}
+
+asio::awaitable<void> RemoteViewerCore::connect()
+{
+  auto throwConnectError = [](const std::error_code &error) {
+    if (error == asio::error::operation_aborted) {
+      throw IOException(_T("The connection was stopped"));
+    }
+    throw SocketException(error.value());
+  };
+
+  m_socket.emplace(m_executor);
+  if (m_acceptedSocket != INVALID_SOCKET) {
+    SOCKET socket = std::exchange(m_acceptedSocket, INVALID_SOCKET);
+    std::error_code error;
+    m_socket->assign(asio::ip::tcp::v4(), socket, error);
+    if (error) {
+      closesocket(socket);
+      throwConnectError(error);
+    }
+  } else {
+    auto [resolveError, endpoints] =
+      co_await asyncResolve(m_executor, m_host, m_port, asio::as_tuple(asio::use_awaitable));
+    if (resolveError) {
+      throwConnectError(resolveError);
+    }
+    m_logWriter.detail(_T("Connecting to the host \"%s:%hu\" (%hs)..."),
+                       m_host.getString(), m_port,
+                       endpoints.front().address().to_string().c_str());
+    auto [connectError, endpoint] =
+      co_await asio::async_connect(*m_socket, endpoints, asio::as_tuple(asio::use_awaitable));
+    if (connectError) {
+      throwConnectError(connectError);
+    }
+  }
+  configureSocket();
+}
+
+void RemoteViewerCore::configureSocket()
+{
+  std::error_code error;
+  m_socket->set_option(asio::ip::tcp::no_delay(true), error);
+  if (error) {
+    throw SocketException(error.value());
+  }
+  try {
+    SocketIPv4::enableKeepAlive(m_socket->native_handle(),
+                                KEEPALIVE_IDLE_SECONDS,
+                                KEEPALIVE_INTERVAL_SECONDS,
+                                KEEPALIVE_PROBE_COUNT);
+  } catch (const SocketException &e) {
+    m_logWriter.error(_T("Cannot turn on TCP keepalive: %s"), e.getMessage());
+  }
+}
+
+asio::awaitable<void> RemoteViewerCore::readLoop()
+{
+  Task<> root = run();
+  root.start();
+  std::vector<char> chunk(READ_CHUNK_SIZE);
+  while (!root.isDone()) {
+    if (!m_reader.isWaiting()) {
+      // A bug: nothing here can resume the protocol code.
+      throw std::logic_error("RemoteViewerCore::readLoop(): the protocol waits for "
+                             "something other than the reader");
+    }
+    try {
+      if (m_reader.hasRequest()) {
+        m_reader.serveRequest();
+      } else {
+        auto [error, length] =
+          co_await m_socket->async_read_some(asio::buffer(chunk),
+                                             asio::as_tuple(asio::use_awaitable));
+        if (error) {
+          if (error != asio::error::eof && error != asio::error::operation_aborted) {
+            m_logWriter.error(_T("Reading the socket failed (error %d)"), error.value());
+          }
+          throw makeReadException(error);
+        }
+        m_reader.append(chunk.data(), length);
+      }
+    } catch (const std::system_error &e) {
+      // A co_await after a cancellation throws it (asio::this_coro::
+      // throw_if_cancelled); the protocol code expects an IOException.
+      m_reader.fail(std::make_exception_ptr(makeReadException(e.code())));
+    } catch (...) {
+      m_reader.fail(std::current_exception());
+    }
+    m_reader.resumeWaiter();
+  }
+  try {
+    root.result();
+  } catch (...) {
+    m_runError = std::current_exception();
+  }
+}
+
+asio::awaitable<void> RemoteViewerCore::writeLoop()
+{
+  for (;;) {
+    std::vector<char> bytes = m_queuedOutput.take();
+    if (bytes.empty()) {
+      // Woken by being cancelled: by a write, or by the end.
+      m_writeWake->expires_at(asio::steady_timer::time_point::max());
+      co_await m_writeWake->async_wait(asio::as_tuple(asio::use_awaitable));
+    } else {
+      auto [error, length] =
+        co_await asio::async_write(*m_socket, asio::buffer(bytes),
+                                   asio::as_tuple(asio::use_awaitable));
+      if (error && error != asio::error::operation_aborted) {
+        m_logWriter.error(_T("Writing the socket failed (error %d)"), error.value());
+        m_reader.fail(std::make_exception_ptr(
+          IOException(_T("Failed to send data to socket."))));
+        co_return;
+      }
+    }
+    asio::cancellation_state state = co_await asio::this_coro::cancellation_state;
+    if (state.cancelled() != asio::cancellation_type::none) {
+      co_return;
+    }
+  }
+}
+
+void RemoteViewerCore::finish(std::exception_ptr failure)
+{
+  if (failure) {
+    try {
+      std::rethrow_exception(failure);
+    } catch (const AuthException &ex) {
+      m_logWriter.message(_T("RemoteVewerCore. Auth exception: %s"), ex.getMessage());
+      try {
+        m_adapter->onAuthError(ex);
+      } catch (const Exception &ex) {
+        m_logWriter.error(_T("Error in CoreEventsAdapter::onAuthError(): %s"), ex.getMessage());
+      } catch (...) {
+        m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onAuthError()"));
+      }
+    } catch (const IOException &ex) {
+      try {
+        StringStorage disconnectMessage(ex.getMessage());
+        m_adapter->onDisconnect(disconnectMessage);
+      } catch (const Exception &ex) {
+        m_logWriter.error(_T("Error in CoreEventsAdapter::onDisconnect(): %s"), ex.getMessage());
+      } catch (...) {
+        m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onDisconnect()"));
+      }
+    } catch (const Exception &ex) {
+      m_logWriter.message(_T("RemoteViewerCore. Exception: %s"), ex.getMessage());
+      try {
+        m_adapter->onError(ex);
+      } catch (...) {
+        m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onError()"));
+      }
+    } catch (...) {
+      StringStorage error;
+      error.format(_T("RemoteViewerCore. Unknown exception"));
+      m_logWriter.message(_T("%s"), error.getString());
+      Exception ex(error.getString());
+      try {
+        m_adapter->onError(ex);
+      } catch (...) {
+        m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onError()"));
+      }
+    }
+  }
+  m_finished.set_value();
 }
 
 Task<UINT32> RemoteViewerCore::receiveServerMessageType()

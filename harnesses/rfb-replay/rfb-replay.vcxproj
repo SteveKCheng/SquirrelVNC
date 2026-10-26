@@ -93,6 +93,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FrameBufferPpm.cpp" />
+    <ClCompile Include="LoopbackServer.cpp" />
     <ClCompile Include="MemoryOutputStream.cpp" />
     <ClCompile Include="ReplayAuthHandler.cpp" />
     <ClCompile Include="ReplayEventsAdapter.cpp" />
@@ -101,6 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FrameBufferPpm.h" />
+    <ClInclude Include="LoopbackServer.h" />
     <ClInclude Include="MemoryOutputStream.h" />
     <ClInclude Include="ReplayAuthHandler.h" />
     <ClInclude Include="ReplayEventsAdapter.h" />

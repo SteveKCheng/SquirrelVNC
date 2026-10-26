@@ -34,9 +34,11 @@
 #include "util/Exception.h"
 #include "util/ScopeExit.h"
 #include "util/TextEncoding.h"
+#include "viewer-core/NetworkThread.h"
 #include "viewer-core/RemoteViewerCore.h"
 
 #include "FrameBufferPpm.h"
+#include "LoopbackServer.h"
 #include "MemoryOutputStream.h"
 #include "ReplayAuthHandler.h"
 #include "ReplayEventsAdapter.h"
@@ -77,6 +79,11 @@ static const TCHAR USAGE[] =
   _T("  --split N          give the core the input N bytes at a time\n")
   _T("  --seed S           with --split, pieces of random sizes from 1 to N,\n")
   _T("                     from a generator seeded with S\n")
+  _T("  --tcp              serve the input over TCP on 127.0.0.1 and connect\n")
+  _T("                     the core to it, as the viewer connects; the end of\n")
+  _T("                     the input then reads \"Connection has been\n")
+  _T("                     gracefully closed\", logged as \"End of stream\n")
+  _T("                     reached\" for comparison\n")
   _T("\n")
   _T("Exit codes: 0 success or match, 1 mismatch, 2 usage or I/O error,\n")
   _T("3 timeout, 4 AddressSanitizer report (ReleaseAsan build).\n");
@@ -136,6 +143,7 @@ struct Options
   size_t splitPiece = 0;
   bool isSeedGiven = false;
   unsigned int seed = 0;
+  bool isTcp = false;
 };
 
 //
@@ -150,7 +158,9 @@ static bool parseOptions(int argc, TCHAR *argv[], Options *options)
   for (int i = 1; i < argc; i++) {
     const TCHAR *arg = argv[i];
     bool hasValue = i + 1 < argc;
-    if (arg[0] == _T('-') && arg[1] == _T('-')) {
+    if (_tcscmp(arg, _T("--tcp")) == 0) {
+      options->isTcp = true;
+    } else if (arg[0] == _T('-') && arg[1] == _T('-')) {
       if (!hasValue) {
         _ftprintf(stderr, _T("Missing value for %s\n\n%s"), arg, USAGE);
         return false;
@@ -194,6 +204,10 @@ static bool parseOptions(int argc, TCHAR *argv[], Options *options)
     }
   }
 
+  if (options->isTcp && options->splitPiece != 0) {
+    _ftprintf(stderr, _T("--tcp and --split cannot be combined\n\n%s"), USAGE);
+    return false;
+  }
   if (options->isSeedGiven && options->splitPiece == 0) {
     _ftprintf(stderr, _T("--seed needs --split\n\n%s"), USAGE);
     return false;
@@ -466,6 +480,21 @@ int _tmain(int argc, TCHAR *argv[])
   RfbInputGate inputGate(inputStream.get());
   RfbOutputGate outputGate(&outputStream);
 
+  // The core's connection runs on the network thread, as in the viewer.
+  // Declared before the core, so that it is joined after the core is gone.
+  NetworkThread network;
+
+  // With --tcp, the input is served over a socket instead of the gates.
+  std::unique_ptr<LoopbackServer> server;
+  if (options.isTcp) {
+    try {
+      server = std::make_unique<LoopbackServer>(input);
+    } catch (const Exception &e) {
+      _ftprintf(stderr, _T("Cannot listen: %s\n"), e.getMessage());
+      return EXIT_ERROR;
+    }
+  }
+
   // The core is never destroyed if the session times out (see below), or
   // fails, so it lives on the heap.
   std::unique_ptr<RemoteViewerCore> core = std::make_unique<RemoteViewerCore>(&logger);
@@ -473,7 +502,11 @@ int _tmain(int argc, TCHAR *argv[])
   try {
     core->setMaxFrameBufferPixels(options.maxPixels);
     authHandler.addAuthCapability(*core);
-    core->start(&inputGate, &outputGate, &adapter, true);
+    if (server) {
+      core->start(_T("127.0.0.1"), server->getPort(), &adapter, true);
+    } else {
+      core->start(&inputGate, &outputGate, &adapter, true);
+    }
 
     if (!adapter.waitForEnd(options.timeoutMs)) {
       // A decoder that loops cannot be stopped from here, and destroying
@@ -494,11 +527,19 @@ int _tmain(int argc, TCHAR *argv[])
     (void)core.release();
     return EXIT_ERROR;
   }
-  // Before the output is read: the core's thread writes it.
+  // Before the output is read: the core writes it on the network thread.
   core.reset();
 
-  std::vector<char> out = outputStream.getData();
+  std::vector<char> out = server ? server->finish() : outputStream.getData();
   std::string eventLog = adapter.getEventLog();
+  if (server) {
+    // The same end of the input, as a socket reports it.
+    const std::string closed = "disconnect \"Connection has been gracefully closed\"";
+    size_t at = eventLog.find(closed);
+    if (at != std::string::npos) {
+      eventLog.replace(at, closed.size(), "disconnect \"End of stream reached\"");
+    }
+  }
   std::vector<char> events(eventLog.begin(), eventLog.end());
 
   StringStorage outFile = options.outFile;

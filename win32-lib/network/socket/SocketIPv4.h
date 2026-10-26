@@ -81,6 +81,17 @@ public:
    * @throws SocketException on fail.
    */
   void shutdown(int how);
+
+  //
+  // Hands the socket over to the caller, who must close it, for another
+  // owner such as an Asio socket (RemoteViewerCore, for a connection
+  // accepted in listening mode).
+  //
+  // Post-conditions: returns the socket; this object has no socket any
+  // more, so its destructor closes nothing, and shutdown() and the other
+  // operations fail.
+  //
+  SOCKET release() noexcept;
   /**
    * Binds socket to specified address.
    * @param bindHost host to bind.
@@ -150,6 +161,12 @@ public:
   // The options set before the failing one stay set.
   //
   void enableKeepAlive(DWORD idleSeconds, DWORD intervalSeconds, DWORD probeCount);
+
+  //
+  // As above, for a socket that no SocketIPv4 holds (an Asio socket's).
+  //
+  static void enableKeepAlive(SOCKET socket, DWORD idleSeconds,
+                              DWORD intervalSeconds, DWORD probeCount);
 
 private:
   WsaStartup m_wsaStartup;

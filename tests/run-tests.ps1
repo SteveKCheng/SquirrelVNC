@@ -13,8 +13,9 @@ tests/fuzz-ini with ini-fuzz.
 .DESCRIPTION
 Each case is one command, rfb-replay --check, which compares the client's
 bytes, the event log and the final frame buffer itself and exits with 0
-for a match. Each case runs three times: with its input whole, one byte
-at a time (--split 1), and in pieces of random sizes (--split 64 --seed 1). The fuzz corpus and regression inputs are one more command,
+for a match. Each case runs four times: with its input whole, one byte
+at a time (--split 1), in pieces of random sizes (--split 64 --seed 1),
+and over TCP (--tcp). The fuzz corpus and regression inputs are one more command,
 rfb-fuzz with every file, which runs each once and exits with 0 if none
 of them crashed. This script only runs those commands and counts
 failures, so that CTest can take over when CMake builds the core
@@ -64,15 +65,17 @@ $failed = @()
 if (Test-Path $replay) {
   $cases = Get-ChildItem (Join-Path $PSScriptRoot 'cases') -Filter "$Filter.rfb" |
     Sort-Object Name
-  # Each case runs three times: with the input given as the core asks for
-  # it; one byte at a time; and in pieces of random sizes up to 64 bytes,
-  # from a fixed seed. All must give the same results, which exercises
-  # every point where the protocol code can suspend (notes/async-networking.md,
-  # Phase 3).
+  # Each case runs four times: with the input given as the core asks for
+  # it; one byte at a time; in pieces of random sizes up to 64 bytes, from a
+  # fixed seed; and over TCP on 127.0.0.1, connecting as the viewer does.
+  # All must give the same results: the first three exercise every point
+  # where the protocol code can suspend (notes/async-networking.md, Phase
+  # 3), the last the connection on the network thread (Phase 4).
   $splits = @(
     @{ Label = ''; Args = @() },
     @{ Label = ' (1 byte at a time)'; Args = @('--split', '1') },
-    @{ Label = ' (random pieces)'; Args = @('--split', '64', '--seed', '1') }
+    @{ Label = ' (random pieces)'; Args = @('--split', '64', '--seed', '1') },
+    @{ Label = ' (over TCP)'; Args = @('--tcp') }
   )
   foreach ($case in $cases) {
     $name = $case.BaseName

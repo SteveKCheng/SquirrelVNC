@@ -117,6 +117,9 @@
     <ClCompile Include="viewer-core\DecoderOfRectangle.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
+    <ClCompile Include="viewer-core\QueuedOutputStream.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
     <ClCompile Include="viewer-core\NetworkThread.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
@@ -181,9 +184,6 @@
       <Filter>viewer-core</Filter>
     </ClCompile>
     <ClCompile Include="viewer-core\RreDecoder.cpp">
-      <Filter>viewer-core</Filter>
-    </ClCompile>
-    <ClCompile Include="viewer-core\TcpConnection.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
     <ClCompile Include="viewer-core\TightDecoder.cpp">
@@ -386,6 +386,9 @@
     <ClInclude Include="viewer-core\DecoderOfRectangle.h">
       <Filter>viewer-core</Filter>
     </ClInclude>
+    <ClInclude Include="viewer-core\QueuedOutputStream.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
     <ClInclude Include="viewer-core\NetworkThread.h">
       <Filter>viewer-core</Filter>
     </ClInclude>
@@ -453,9 +456,6 @@
       <Filter>viewer-core</Filter>
     </ClInclude>
     <ClInclude Include="viewer-core\ServerMessageListener.h">
-      <Filter>viewer-core</Filter>
-    </ClInclude>
-    <ClInclude Include="viewer-core\TcpConnection.h">
       <Filter>viewer-core</Filter>
     </ClInclude>
     <ClInclude Include="viewer-core\TightDecoder.h">

@@ -238,12 +238,17 @@ tests/
   platform, so it finds the executables under `bin\PLATFORM\CONFIG`.
   No logic belongs in it, so it can be replaced without touching the
   tests.
-- **Each case runs three ways** (since Phase 3 of `async-networking.md`):
-  with its input whole, one byte at a time (`--split 1`), and in pieces
-  of random sizes up to 64 bytes (`--split 64 --seed 1`). The protocol
-  code suspends whenever its reader runs short, so the split runs
-  exercise every point where it can stop and resume; all three must give
-  the same results. `SplitInputStream` makes the pieces, with its own
+- **Each case runs four ways** (since Phases 3 and 4 of
+  `async-networking.md`): with its input whole, one byte at a time
+  (`--split 1`), in pieces of random sizes up to 64 bytes (`--split 64
+  --seed 1`), and over TCP (`--tcp`). The protocol code suspends whenever
+  its reader runs short, so the split runs exercise every point where it
+  can stop and resume. With `--tcp`, a `LoopbackServer` on 127.0.0.1
+  serves the input and collects what the client sends, and the core
+  connects to it as the viewer does, on the network thread; the end of
+  the input then reads "Connection has been gracefully closed", which is
+  logged as "End of stream reached" for the comparison. All four must
+  give the same results. `SplitInputStream` makes the pieces, with its own
   xorshift generator, so that a seed gives the same pieces with any
   compiler.
 - **CTest comes with CMake, not before.** Visual Studio ships CTest

@@ -690,6 +690,23 @@ from vcpkg.
   password is still served by the blocking `getPassword()`, now on the
   network thread, stalling other connections while its dialog is open:
   the shortest possible interim.
+  **Done** (2026-10-26). `RemoteViewerCore` is no longer a `Thread`:
+  `start()` spawns `drive()` on `NetworkThread::instance()` (owned by
+  `TvnViewer`, declared before its viewer instances so that it is joined
+  after them; Asio keeps its own WinSock reference, so the order against
+  `WindowsSocket::cleanup()` does not matter). `readLoop()` and
+  `writeLoop()` run in a parallel group with `wait_for_one()`; a
+  `QueuedOutputStream` under `RfbOutputGate` queues each flushed message
+  and posts a wake, while holding its lock, so no wake is lost and none
+  comes after the queue is closed. When the protocol ends by itself, what
+  it queued last is still sent. `stop()` posts the cancellation, which
+  also cancels a lookup or connect in progress. `waitTermination()` waits
+  for the end of the driver, then for a round trip through the loop, so
+  nothing posted for the core is left. `TcpConnection` is gone; the
+  socket options (TCP_NODELAY, keepalive) are set on the Asio socket.
+  `rfb-replay --tcp` runs every case through a real socket
+  (`testing.md`). Not yet tried in the GUI: listening mode, which takes
+  over the accepted socket (`SocketIPv4::release()`).
 - **2c. Ownership.** The state shared by the GUI side and the driver is
   held by `std::shared_ptr`; closing a window no longer waits for its
   connection. `NetworkThread` is a singleton in lifetime: one instance,

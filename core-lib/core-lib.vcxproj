@@ -131,6 +131,7 @@
     <ClCompile Include="viewer-core\DecoderOfRectangle.cpp" />
     <ClCompile Include="viewer-core\DecoderStore.cpp" />
     <ClCompile Include="viewer-core\NetworkThread.cpp" />
+    <ClCompile Include="viewer-core\QueuedOutputStream.cpp" />
     <ClCompile Include="viewer-core\DesktopSizeDecoder.cpp" />
     <ClCompile Include="viewer-core\FbUpdateNotifier.cpp" />
     <ClCompile Include="viewer-core\FileTransferCapability.cpp" />
@@ -151,7 +152,6 @@
     <ClCompile Include="viewer-core\RfbSetPixelFormatClientMessage.cpp" />
     <ClCompile Include="viewer-core\RichCursorDecoder.cpp" />
     <ClCompile Include="viewer-core\RreDecoder.cpp" />
-    <ClCompile Include="viewer-core\TcpConnection.cpp" />
     <ClCompile Include="viewer-core\TightDecoder.cpp" />
     <ClCompile Include="viewer-core\VncAuthentication.cpp" />
     <ClCompile Include="viewer-core\VncAuthenticationHandler.cpp" />
@@ -222,6 +222,7 @@
     <ClInclude Include="viewer-core\DecoderOfRectangle.h" />
     <ClInclude Include="viewer-core\DecoderStore.h" />
     <ClInclude Include="viewer-core\NetworkThread.h" />
+    <ClInclude Include="viewer-core\QueuedOutputStream.h" />
     <ClInclude Include="viewer-core\DesktopSizeDecoder.h" />
     <ClInclude Include="viewer-core\FbUpdateNotifier.h" />
     <ClInclude Include="viewer-core\FileTransferCapability.h" />
@@ -243,7 +244,6 @@
     <ClInclude Include="viewer-core\RichCursorDecoder.h" />
     <ClInclude Include="viewer-core\RreDecoder.h" />
     <ClInclude Include="viewer-core\ServerMessageListener.h" />
-    <ClInclude Include="viewer-core\TcpConnection.h" />
     <ClInclude Include="viewer-core\TightDecoder.h" />
     <ClInclude Include="viewer-core\ViewerBufferSize.h" />
     <ClInclude Include="viewer-core\VncAuthentication.h" />
