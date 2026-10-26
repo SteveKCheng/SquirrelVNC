@@ -24,7 +24,6 @@
 #define _FUZZ_SESSION_H_
 
 #include "log-writer/LogWriter.h"
-#include "network/RfbInputGate.h"
 #include "region/Dimension.h"
 #include "rfb/FrameBuffer.h"
 #include "thread/LocalMutex.h"
@@ -78,19 +77,21 @@ public:
   void run(const UINT8 *data, size_t size);
 
 private:
-  void readServerInit();
-  PixelFormat readPixelFormat();
+  Task<> readSession();
+  Task<> readServerInit();
+  Task<PixelFormat> readPixelFormat();
   void setFrameBuffer(const Dimension &dimension, const PixelFormat &pixelFormat);
-  bool readMessage();
-  void readFbUpdate();
-  bool readFbUpdateRectangle();
-  Task<> readPseudoEncoding(AwaitableReader &reader, const Rect &rect, int encodingType);
-  void skipBytes(size_t length);
+  Task<bool> readMessage();
+  Task<> readFbUpdate();
+  Task<bool> readFbUpdateRectangle();
+  Task<> readPseudoEncoding(const Rect &rect, int encodingType);
+  Task<> skipBytes(size_t length);
 
   FuzzNotifier *m_notifier;
   LogWriter m_logWriter;
   // Valid only during run(); they point to objects local to it.
-  RfbInputGate *m_input;
+  // What the coroutines read: the input, fed by runBlocking().
+  AwaitableReader *m_reader;
   DecoderStore *m_decoderStore;
   FrameBuffer *m_frameBuffer;
   FrameBuffer *m_rectangleFb;

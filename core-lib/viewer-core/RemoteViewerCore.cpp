@@ -382,19 +382,19 @@ void RemoteViewerCore::stopUpdating(bool isStopped)
 Task<PixelFormat> RemoteViewerCore::readPixelFormat()
 {
   PixelFormat pixelFormat;
-  pixelFormat.bitsPerPixel = co_await m_reader->readUInt8();
-  pixelFormat.colorDepth = co_await m_reader->readUInt8();
-  pixelFormat.bigEndian = !!co_await m_reader->readUInt8();
-  bool isTrueColour = co_await m_reader->readUInt8() != 0;
-  pixelFormat.redMax = co_await m_reader->readUInt16();
-  pixelFormat.greenMax = co_await m_reader->readUInt16();
-  pixelFormat.blueMax = co_await m_reader->readUInt16();
-  pixelFormat.redShift = co_await m_reader->readUInt8();
-  pixelFormat.greenShift = co_await m_reader->readUInt8();
-  pixelFormat.blueShift = co_await m_reader->readUInt8();
-  co_await m_reader->readUInt8(); // padding bytes (3)
-  co_await m_reader->readUInt8();
-  co_await m_reader->readUInt8();
+  pixelFormat.bitsPerPixel = co_await m_reader.readUInt8();
+  pixelFormat.colorDepth = co_await m_reader.readUInt8();
+  pixelFormat.bigEndian = !!co_await m_reader.readUInt8();
+  bool isTrueColour = co_await m_reader.readUInt8() != 0;
+  pixelFormat.redMax = co_await m_reader.readUInt16();
+  pixelFormat.greenMax = co_await m_reader.readUInt16();
+  pixelFormat.blueMax = co_await m_reader.readUInt16();
+  pixelFormat.redShift = co_await m_reader.readUInt8();
+  pixelFormat.greenShift = co_await m_reader.readUInt8();
+  pixelFormat.blueShift = co_await m_reader.readUInt8();
+  co_await m_reader.readUInt8(); // padding bytes (3)
+  co_await m_reader.readUInt8();
+  co_await m_reader.readUInt8();
 
   const unsigned short bitsPerPixel = pixelFormat.bitsPerPixel;
   if (bitsPerPixel != 8 && bitsPerPixel != 16 && bitsPerPixel != 32) {
@@ -448,7 +448,7 @@ Task<> RemoteViewerCore::authenticate()
   if (authenticationType != 0) {
     m_logWriter.detail(_T("Authentication..."));
     if (m_authHandlers.find(authenticationType) != m_authHandlers.end()) {
-      co_await m_authHandlers[authenticationType]->authenticate(*m_reader, m_output);
+      co_await m_authHandlers[authenticationType]->authenticate(m_reader, m_output);
     } else {
       // Security type is added automatic, but not by user.
       if (authenticationType != SecurityDefs::NONE) {
@@ -464,7 +464,7 @@ Task<> RemoteViewerCore::authenticate()
   if (m_minor >= 8 || authenticationType != SecurityDefs::NONE) {
     UINT32 authResult = 0;
     if (authenticationType) {
-      authResult = co_await m_reader->readUInt32();
+      authResult = co_await m_reader.readUInt32();
       m_logWriter.detail(_T("Auth result is %u"), authResult);
     }
     static const UINT32 AUTH_RESULT_OK = 0;
@@ -535,15 +535,15 @@ Task<int> RemoteViewerCore::negotiateSecurityType()
 Task<> RemoteViewerCore::readSecurityTypeList(std::vector<UINT32> *secTypes)
 {
   if (m_minor < 7) {
-    UINT32 type = co_await m_reader->readUInt32();
+    UINT32 type = co_await m_reader.readUInt32();
     if (type != 0)
       secTypes->push_back(type);
   } else { // m_minor >= 7
-    int secTypesNumber = co_await m_reader->readUInt8();
+    int secTypesNumber = co_await m_reader.readUInt8();
     if (secTypesNumber != 0) {
       secTypes->resize(secTypesNumber);
       for (std::vector<UINT32>::iterator i = secTypes->begin(); i != secTypes->end(); i++)
-        *i = co_await m_reader->readUInt8();
+        *i = co_await m_reader.readUInt8();
     }
   }
 }
@@ -605,7 +605,7 @@ int RemoteViewerCore::selectSecurityType(const std::vector<UINT32> &secTypes,
 Task<> RemoteViewerCore::initTunnelling()
 {
   m_logWriter.detail(_T("Initialization of tight-tunneling..."));
-  UINT32 tunnelCount = co_await m_reader->readUInt32();
+  UINT32 tunnelCount = co_await m_reader.readUInt32();
   if (tunnelCount > 0) {
     bool hasNoTunnel = false;
     for (UINT32 i = 0; i < tunnelCount; i++) {
@@ -632,7 +632,7 @@ Task<> RemoteViewerCore::initTunnelling()
 Task<int> RemoteViewerCore::initAuthentication()
 {
   m_logWriter.detail(_T("Initialization of tight-authentication..."));
-  UINT32 authTypesNumber = co_await m_reader->readUInt32();
+  UINT32 authTypesNumber = co_await m_reader.readUInt32();
 
   m_logWriter.info(_T("Number of auth-types is %u"), authTypesNumber);
   if (authTypesNumber == 0) {
@@ -734,12 +734,6 @@ StringStorage RemoteViewerCore::getProtocolString() const
 
 Task<> RemoteViewerCore::run()
 {
-  // connect to host and create RfbInputGate/RfbOutputGate
-  // if already connected, then function do nothing
-  m_logWriter.info(_T("Protocol stage is \"Connection establishing\"."));
-  connectToHost();
-  m_reader.emplace(*m_input);
-
   // get server version and set client version
   m_logWriter.info(_T("Protocol stage is \"Handshake\"."));
   co_await handshake();
@@ -823,7 +817,7 @@ Task<> RemoteViewerCore::run()
       if (m_serverMsgHandlers.find(msgType) != m_serverMsgHandlers.end()) {
         m_logWriter.detail(_T("Received message (%u) transmit to capability handler"), msgType);
         try {
-          co_await m_serverMsgHandlers[msgType]->onServerMessage(msgType, *m_reader);
+          co_await m_serverMsgHandlers[msgType]->onServerMessage(msgType, m_reader);
         } catch (const Exception &ex) {
           m_logWriter.error(_T("Error in onServerMessage(): %s"), ex.getMessage());
         } catch (...) {
@@ -848,9 +842,15 @@ Task<> RemoteViewerCore::run()
 void RemoteViewerCore::execute()
 {
   try {
-    // The protocol, a coroutine that never suspends yet: its reads are
-    // always ready (notes/async-networking.md, Phase 2).
-    syncWait(run());
+    // connect to host and create RfbInputGate/RfbOutputGate
+    // if already connected, then function do nothing
+    m_logWriter.info(_T("Protocol stage is \"Connection establishing\"."));
+    connectToHost();
+
+    // The protocol, a coroutine reading through m_reader, which this
+    // thread feeds from m_input with blocking reads; it serves the
+    // password request here too (notes/async-networking-resumption.md).
+    runBlocking(run(), m_reader, *m_input);
   } catch (const AuthException &ex) {
     m_logWriter.message(_T("RemoteVewerCore. Auth exception: %s"), ex.getMessage());
     try {
@@ -897,11 +897,11 @@ Task<UINT32> RemoteViewerCore::receiveServerMessageType()
 
   static const UINT16 SERVER_MSG_SPECIAL_TIGHT_CODE = 0xFC;
 
-  UINT32 msgType = co_await m_reader->readUInt8();
+  UINT32 msgType = co_await m_reader.readUInt8();
   if (msgType == SERVER_MSG_SPECIAL_TIGHT_CODE) {
     for (int i = 0; i < 3; i++) {
       msgType <<= 8;
-      msgType += co_await m_reader->readUInt8();
+      msgType += co_await m_reader.readUInt8();
     }
   }
   co_return msgType;
@@ -912,9 +912,9 @@ Task<> RemoteViewerCore::receiveFbUpdate()
   // message type is already known: 0
 
   // read padding: one byte
-  co_await m_reader->readUInt8();
+  co_await m_reader.readUInt8();
 
-  UINT16 numberOfRectangles = co_await m_reader->readUInt16();
+  UINT16 numberOfRectangles = co_await m_reader.readUInt16();
   m_logWriter.debug(_T("number of rectangles: %d"), numberOfRectangles);
 
   bool isLastRect = false;
@@ -939,12 +939,12 @@ Task<> RemoteViewerCore::receiveFbUpdate()
 Task<bool> RemoteViewerCore::receiveFbUpdateRectangle()
 {
   Rect rect;
-  rect.left = co_await m_reader->readUInt16();
-  rect.top = co_await m_reader->readUInt16();
-  rect.setWidth(co_await m_reader->readUInt16());
-  rect.setHeight(co_await m_reader->readUInt16());
+  rect.left = co_await m_reader.readUInt16();
+  rect.top = co_await m_reader.readUInt16();
+  rect.setWidth(co_await m_reader.readUInt16());
+  rect.setHeight(co_await m_reader.readUInt16());
 
-  int encodingType = co_await m_reader->readInt32();
+  int encodingType = co_await m_reader.readInt32();
 
   m_logWriter.debug(_T("Rectangle: (%d, %d), (%d, %d). Type is %d"), 
                     rect.left, rect.top, rect.right, rect.bottom, encodingType);
@@ -961,7 +961,7 @@ Task<bool> RemoteViewerCore::receiveFbUpdateRectangle()
       m_logWriter.debug(_T("Decoding..."));
 
       DecoderOfRectangle *rectangleDecoder = dynamic_cast<DecoderOfRectangle *>(decoder);
-      co_await rectangleDecoder->process(*m_reader,
+      co_await rectangleDecoder->process(m_reader,
                                          m_frameBuffer, m_rectangleFb, rect, &m_fbLock,
                                          &m_fbUpdateNotifier);
 
@@ -1013,11 +1013,11 @@ Task<> RemoteViewerCore::processPseudoEncoding(const Rect &rect,
       size_t cursorLen = width * height * bytesPerPixel;
       if (cursorLen != 0) {
         cursor.resize(cursorLen);
-        co_await m_reader->readFully(&cursor.front(), cursorLen);
+        co_await m_reader.readFully(&cursor.front(), cursorLen);
 
         size_t bitmaskLen = ((width + 7) / 8) * height;
         bitmask.resize(bitmaskLen);
-        co_await m_reader->readFully(&bitmask.front(), bitmaskLen);
+        co_await m_reader.readFully(&bitmask.front(), bitmaskLen);
       }
       Point hotSpot(rect.left, rect.top);
 
@@ -1048,15 +1048,15 @@ Task<> RemoteViewerCore::receiveSetColorMapEntries()
   // message type is already known: 1
 
   // read padding: 1 byte
-  co_await m_reader->readUInt8();
+  co_await m_reader.readUInt8();
 
   // Colour maps are not supported, so the message is read and ignored.
-  co_await m_reader->readUInt16(); // first-colour
-  UINT16 numberOfColours = co_await m_reader->readUInt16();
+  co_await m_reader.readUInt16(); // first-colour
+  UINT16 numberOfColours = co_await m_reader.readUInt16();
   for (size_t i = 0; i < numberOfColours; i++) {
-    co_await m_reader->readUInt16(); // red
-    co_await m_reader->readUInt16(); // green
-    co_await m_reader->readUInt16(); // blue
+    co_await m_reader.readUInt16(); // red
+    co_await m_reader.readUInt16(); // green
+    co_await m_reader.readUInt16(); // blue
   }
 }
 
@@ -1076,12 +1076,12 @@ void RemoteViewerCore::receiveBell()
 
 Task<StringStorage> RemoteViewerCore::readReason()
 {
-  UINT32 length = co_await m_reader->readUInt32();
+  UINT32 length = co_await m_reader.readUInt32();
   if (length > MAX_REASON_LENGTH) {
     throw IOException(_T("String in the stream is too long"));
   }
   std::vector<std::byte> buffer(length);
-  co_await m_reader->readFully(buffer.data(), length);
+  co_await m_reader.readFully(buffer.data(), length);
   co_return TextEncoding::fromRfbText(buffer);
 }
 
@@ -1090,17 +1090,17 @@ Task<> RemoteViewerCore::receiveServerCutText()
   // message type is already known: 3
 
   // read padding: three byte
-  co_await m_reader->readUInt16();
-  co_await m_reader->readUInt8();
+  co_await m_reader.readUInt16();
+  co_await m_reader.readUInt8();
 
-  UINT32 length = co_await m_reader->readUInt32();
+  UINT32 length = co_await m_reader.readUInt32();
   if (length > MAX_CUT_TEXT_LENGTH) {
     m_logWriter.warning(_T("Cut text is too long (%u bytes), ignoring it"), length);
     co_await skipBytes(length);
     co_return;
   }
   std::vector<std::byte> buffer(length);
-  co_await m_reader->readFully(buffer.data(), length);
+  co_await m_reader.readFully(buffer.data(), length);
   // Latin-1 by the specification, but some servers send UTF-8.
   StringStorage cutText = TextEncoding::fromRfbText(buffer);
 
@@ -1117,7 +1117,7 @@ Task<> RemoteViewerCore::receiveServerCutText()
 
 Task<> RemoteViewerCore::receiveServerCutTextUtf8()
 {
-  UINT32 length = co_await m_reader->readUInt32();
+  UINT32 length = co_await m_reader.readUInt32();
   if (length == 0)
     co_return;
   if (length > MAX_CUT_TEXT_LENGTH) {
@@ -1127,7 +1127,7 @@ Task<> RemoteViewerCore::receiveServerCutTextUtf8()
   }
 
   std::vector<std::byte> buffer(length);
-  co_await m_reader->readFully(buffer.data(), length);
+  co_await m_reader.readFully(buffer.data(), length);
   StringStorage cutText = TextEncoding::fromUtf8(buffer);
 
   // Only the length: the clipboard may hold passwords.
@@ -1148,7 +1148,7 @@ Task<> RemoteViewerCore::skipBytes(size_t length)
   char buffer[4096];
   while (length > 0) {
     size_t chunk = length < sizeof(buffer) ? length : sizeof(buffer);
-    co_await m_reader->readFully(buffer, chunk);
+    co_await m_reader.readFully(buffer, chunk);
     length -= chunk;
   }
 }
@@ -1181,7 +1181,7 @@ Task<> RemoteViewerCore::handshake()
 {
   char serverProtocol[13];
   serverProtocol[12] = 0;
-  co_await m_reader->readFully(serverProtocol, 12);
+  co_await m_reader.readFully(serverProtocol, 12);
 
   m_major = strtol(&serverProtocol[4], nullptr, 10);
   m_minor = strtol(&serverProtocol[8], nullptr, 10);
@@ -1243,8 +1243,8 @@ Task<> RemoteViewerCore::clientAndServerInit()
   m_output->flush();
   m_logWriter.debug(_T("Shared flag is set"));
 
-  UINT16 width = co_await m_reader->readUInt16();
-  UINT16 height = co_await m_reader->readUInt16();
+  UINT16 width = co_await m_reader.readUInt16();
+  UINT16 height = co_await m_reader.readUInt16();
   Dimension screenDimension(width, height);
   PixelFormat serverPixelFormat = co_await readPixelFormat();
   
@@ -1253,12 +1253,12 @@ Task<> RemoteViewerCore::clientAndServerInit()
     setFbProperties(screenDimension, serverPixelFormat);
   }
 
-  UINT32 sizeInBytes = co_await m_reader->readUInt32();
+  UINT32 sizeInBytes = co_await m_reader.readUInt32();
   if (sizeInBytes > MAX_DESKTOP_NAME_LENGTH) {
     throw Exception(_T("Desktop name is too long"));
   }
   std::vector<std::byte> buffer(sizeInBytes);
-  co_await m_reader->readFully(buffer.data(), sizeInBytes);
+  co_await m_reader.readFully(buffer.data(), sizeInBytes);
   m_remoteDesktopName = TextEncoding::fromRfbText(buffer);
   m_logWriter.info(_T("Server remote name: %s"), m_remoteDesktopName.getString());
 
@@ -1280,10 +1280,10 @@ Task<> RemoteViewerCore::clientAndServerInit()
  */
 Task<> RemoteViewerCore::readCapabilities()
 {
-  int nServerMessageTypes = co_await m_reader->readUInt16();
-  int nClientMessageTypes = co_await m_reader->readUInt16();
-  int nEncodingTypes = co_await m_reader->readUInt16();
-  co_await m_reader->readUInt16(); //padding
+  int nServerMessageTypes = co_await m_reader.readUInt16();
+  int nClientMessageTypes = co_await m_reader.readUInt16();
+  int nEncodingTypes = co_await m_reader.readUInt16();
+  co_await m_reader.readUInt16(); //padding
 
   m_logWriter.detail(_T("Server message types (capability):"));
   while (nServerMessageTypes--) {
@@ -1317,9 +1317,9 @@ Task<RfbCapabilityInfo> RemoteViewerCore::readCapability()
 {
   // read capability
   RfbCapabilityInfo cap;
-  cap.code = co_await m_reader->readUInt32();
-  co_await m_reader->readFully(cap.vendorSignature, RfbCapabilityInfo::vendorSigSize);
-  co_await m_reader->readFully(cap.nameSignature, RfbCapabilityInfo::nameSigSize);
+  cap.code = co_await m_reader.readUInt32();
+  co_await m_reader.readFully(cap.vendorSignature, RfbCapabilityInfo::vendorSigSize);
+  co_await m_reader.readFully(cap.nameSignature, RfbCapabilityInfo::nameSigSize);
 
   // transform information for the log and log him; the signatures are
   // ASCII, and not null-terminated when they fill their arrays.

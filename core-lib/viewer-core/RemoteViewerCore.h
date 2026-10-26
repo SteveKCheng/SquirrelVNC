@@ -45,7 +45,6 @@
 
 #include <map>
 #include <mutex>
-#include <optional>
 #include <variant>
 
 //
@@ -537,10 +536,12 @@ private:
   void execute() override;
 
   //
-  // The protocol, from connecting to the end of the session, as a coroutine
-  // (util/Task.h) that reads through m_reader; execute() runs it with
-  // syncWait(), and reports how it ended to the adapter.
+  // The protocol, from the handshake to the end of the session, as a
+  // coroutine (util/Task.h) that reads through m_reader. execute() connects,
+  // then runs it with runBlocking(), and reports how it ended to the
+  // adapter.
   //
+  // Pre-conditions: connected; m_reader has no bytes yet.
   // Post-conditions: when it returns, the session has ended normally, and
   // the adapter has been told with onDisconnect().
   // Throws what the protocol throws: AuthException, IOException when the
@@ -757,10 +758,10 @@ private:
   TcpConnection m_tcpConnection;
 
   RfbInputGate *m_input;
-  // Reads m_input for the coroutines of the protocol (run() and those it
-  // awaits). Made by run() once the connection is established; used only on
-  // the core thread.
-  std::optional<AwaitableReader> m_reader;
+  // What the coroutines of the protocol (run() and those it awaits) read;
+  // execute() feeds it from m_input, with runBlocking(). Used only on the
+  // core thread.
+  AwaitableReader m_reader;
   RfbOutputGate *m_output;
 
   CoreEventsAdapter *m_adapter;

@@ -21,8 +21,8 @@
 //
 
 //
-// Tests of Task, syncWait() (util/Task.h) and AwaitableReader
-// (io-lib/AwaitableReader.h).
+// Tests of Task, syncWait() (util/Task.h), AwaitableReader and
+// runBlocking() (io-lib/AwaitableReader.h).
 //
 
 #include "UnitTest.h"
@@ -32,7 +32,9 @@
 #include "io-lib/IOException.h"
 #include "util/Task.h"
 
+#include <algorithm>
 #include <memory>
+#include <vector>
 #include <stdexcept>
 
 namespace
@@ -156,6 +158,92 @@ namespace
   {
     co_return co_await reader.readUInt32();
   }
+
+  // Gives at most maxChunk bytes per read, as a network connection may.
+  class TrickleInputStream final : public InputStream
+  {
+  public:
+    TrickleInputStream(const char *data, size_t size, size_t maxChunk)
+    : m_stream(data, size),
+      m_maxChunk(maxChunk)
+    {
+    }
+
+    size_t read(void *buffer, size_t len) override
+    {
+      return m_stream.read(buffer, std::min(len, m_maxChunk));
+    }
+
+    size_t available() override
+    {
+      return m_stream.available();
+    }
+
+  private:
+    ByteArrayInputStream m_stream;
+    size_t m_maxChunk;
+  };
+
+  Header readHeaderInChunks(const char *bytes, size_t size, size_t maxChunk)
+  {
+    TrickleInputStream stream(bytes, size, maxChunk);
+    AwaitableReader reader;
+    return runBlocking(readHeader(reader), reader, stream);
+  }
+
+  // Reads the whole of a block of size bytes, then one byte more.
+  Task<UINT8> readBlockThenByte(AwaitableReader &reader, std::vector<char> &block)
+  {
+    co_await reader.readFully(block.data(), block.size());
+    co_return co_await reader.readUInt8();
+  }
+
+  // A request that counts how often it is served, and may throw.
+  class CountingRequest final : public AwaitableReader::Request
+  {
+  public:
+    explicit CountingRequest(bool fails) : m_fails(fails) {}
+
+    void serve() override
+    {
+      served++;
+      if (m_fails) {
+        throw std::runtime_error("refused");
+      }
+    }
+
+    int served = 0;
+
+  private:
+    bool m_fails;
+  };
+
+  Task<UINT8> requestThenRead(AwaitableReader &reader, CountingRequest &request)
+  {
+    co_await reader.request(request);
+    co_return co_await reader.readUInt8();
+  }
+
+  // Awaits a request that fails, catches its exception, then reads.
+  Task<bool> readAfterFailedRequest(AwaitableReader &reader, CountingRequest &request)
+  {
+    try {
+      co_await reader.request(request);
+    } catch (const std::runtime_error &) {
+    }
+    bool threw = false;
+    try {
+      co_await reader.readUInt8();
+    } catch (const std::runtime_error &) {
+      threw = true;
+    }
+    co_return threw;
+  }
+
+  Task<> readString(AwaitableReader &reader, StringStorage &text)
+  {
+    co_await reader.readUTF8(&text);
+  }
 }
 
 void runTaskTests()
@@ -223,19 +311,67 @@ void runTaskTests()
   check(threw, "syncWait throws std::logic_error for a Task that suspends");
 
   const char bytes[] = { 0x05, 0x01, 0x02, 0x00, 0x00, 0x01, 0x00, 'h', 'i' };
-  ByteArrayInputStream byteStream(bytes, sizeof(bytes));
-  DataInputStream dataStream(&byteStream);
-  AwaitableReader reader(dataStream);
-  Header header = syncWait(readHeader(reader));
-  check(header.type == 5 && header.width == 0x0102 && header.length == 0x100 &&
-        header.name[0] == 'h' && header.name[1] == 'i',
-        "AwaitableReader reads as DataInputStream does, big-endian");
+  bool sameEverywhere = true;
+  for (size_t maxChunk : { sizeof(bytes), size_t(1), size_t(2), size_t(4) }) {
+    Header header = readHeaderInChunks(bytes, sizeof(bytes), maxChunk);
+    sameEverywhere = sameEverywhere &&
+      header.type == 5 && header.width == 0x0102 && header.length == 0x100 &&
+      header.name[0] == 'h' && header.name[1] == 'i';
+  }
+  check(sameEverywhere,
+        "AwaitableReader reads as DataInputStream does, big-endian, "
+        "whether the bytes come at once or 1, 2 or 4 at a time");
 
   threw = false;
   try {
-    syncWait(readPastEnd(reader));
+    ByteArrayInputStream shortStream(bytes, 3);
+    AwaitableReader reader;
+    runBlocking(readPastEnd(reader), reader, shortStream);
   } catch (const IOException &) {
     threw = true;
   }
   check(threw, "AwaitableReader throws the stream's IOException from the co_await");
+
+  {
+    std::vector<char> input(100001);
+    for (size_t i = 0; i < input.size(); i++) {
+      input[i] = static_cast<char>(i * 7);
+    }
+    TrickleInputStream stream(input.data(), input.size(), 997);
+    AwaitableReader reader;
+    std::vector<char> block(100000);
+    UINT8 last = runBlocking(readBlockThenByte(reader, block), reader, stream);
+    check(std::equal(block.begin(), block.end(), input.begin()) &&
+          last == static_cast<UINT8>(input.back()),
+          "AwaitableReader completes a read of 100,000 bytes given 997 at a time");
+  }
+
+  {
+    const char one[] = { 0x2A };
+    ByteArrayInputStream stream(one, sizeof(one));
+    AwaitableReader reader;
+    CountingRequest request(false);
+    UINT8 value = runBlocking(requestThenRead(reader, request), reader, stream);
+    check(request.served == 1 && value == 0x2A,
+          "runBlocking serves a request once, and the coroutine goes on");
+  }
+
+  {
+    const char one[] = { 0x2A };
+    ByteArrayInputStream stream(one, sizeof(one));
+    AwaitableReader reader;
+    CountingRequest request(true);
+    bool readThrew = runBlocking(readAfterFailedRequest(reader, request), reader, stream);
+    check(request.served == 1 && readThrew,
+          "a request that throws fails the reader: later reads throw the same");
+  }
+
+  {
+    const char utf8[] = { 0x00, 0x00, 0x00, 0x03, 'a', 'b', 'c' };
+    TrickleInputStream stream(utf8, sizeof(utf8), 1);
+    AwaitableReader reader;
+    StringStorage text;
+    runBlocking(readString(reader, text), reader, stream);
+    check(text.isEqualTo(_T("abc")), "AwaitableReader::readUTF8 reads a string given 1 byte at a time");
+  }
 }

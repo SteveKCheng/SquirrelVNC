@@ -33,7 +33,9 @@ public:
   ~VncAuthenticationHandler() override;
 
   //
-  // Overrides AuthHandler::authenticate().
+  // Overrides AuthHandler::authenticate(). The password is a request to the
+  // driver (AwaitableReader::request()), which the driver serves by calling
+  // getPassword(), outside the coroutines.
   //
   Task<> authenticate(AwaitableReader &reader, DataOutputStream *output) override;
 
@@ -43,7 +45,36 @@ public:
   void addAuthCapability(CapabilitiesManager &capabilitiesManager) override;
 
 protected:
+  //
+  // Gets the password: called by the driver, on the core thread, and it may
+  // block, waiting for the user. Throws AuthCanceledException if the user
+  // cancels.
+  //
   virtual void getPassword(StringStorage *passString) = 0;
+
+private:
+  //
+  // The request for the password, which the driver serves with
+  // getPassword(); password holds the answer.
+  //
+  class PasswordRequest final : public AwaitableReader::Request
+  {
+  public:
+    explicit PasswordRequest(VncAuthenticationHandler &handler)
+    : m_handler(handler)
+    {
+    }
+
+    void serve() override
+    {
+      m_handler.getPassword(&password);
+    }
+
+    StringStorage password;
+
+  private:
+    VncAuthenticationHandler &m_handler;
+  };
 };
 
 #endif

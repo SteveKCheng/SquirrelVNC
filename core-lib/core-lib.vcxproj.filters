@@ -30,6 +30,9 @@
     <ClCompile Include="region\x11region.c">
       <Filter>region</Filter>
     </ClCompile>
+    <ClCompile Include="io-lib\AwaitableReader.cpp">
+      <Filter>io-lib</Filter>
+    </ClCompile>
     <ClCompile Include="io-lib\BufferedInputStream.cpp">
       <Filter>io-lib</Filter>
     </ClCompile>

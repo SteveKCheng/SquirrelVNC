@@ -295,6 +295,53 @@ public:
     return Awaiter(m_handle);
   }
 
+  //
+  // The interface for a driver: code that runs the root of a chain of
+  // Tasks from ordinary code, and resumes it when it suspends (see
+  // notes/async-networking-resumption.md). syncWait() and runBlocking()
+  // (io-lib/AwaitableReader.h) are drivers. Coroutines await Tasks
+  // instead.
+  //
+
+  //
+  // Runs the coroutine until it first suspends, or finishes.
+  //
+  // Pre-conditions (asserted): this Task is not empty, and has not been
+  // started or awaited.
+  // Post-conditions: the coroutine has started. If it suspended, whoever
+  // it is waiting for must resume it, until isDone(): destroying this Task
+  // before then is a bug (see ~Task()).
+  //
+  void start()
+  {
+    assert(m_handle && !m_handle.promise().m_isStarted);
+    m_handle.promise().m_isStarted = true;
+    m_handle.resume();
+  }
+
+  //
+  // Whether the coroutine has finished, with a value or an exception.
+  //
+  // Pre-conditions: this Task is not empty.
+  //
+  bool isDone() const noexcept
+  {
+    return m_handle.done();
+  }
+
+  //
+  // Returns the coroutine's result, moved out, or rethrows the exception
+  // that left its body.
+  //
+  // Pre-conditions (asserted): isDone(); and, for a value, result() has
+  // not been called before.
+  //
+  T result()
+  {
+    assert(m_handle && m_handle.done());
+    return m_handle.promise().takeResult();
+  }
+
 private:
   friend promise_type;
 
@@ -325,8 +372,8 @@ inline Task<void> TaskDetail::Promise<void>::get_return_object() noexcept
 // Runs a Task from ordinary code, and returns its result: the bridge
 // between code that is already a coroutine and code that is not yet
 // (notes/async-networking.md, Phase 2). It does not wait for anything: the
-// Task must finish without suspending, which holds while every read it
-// makes is ready at once (AwaitableReader, for now).
+// Task must finish without suspending. A Task that reads through an
+// AwaitableReader needs runBlocking() instead, which feeds the reader.
 //
 // Pre-conditions (asserted): task is not empty, and has not been awaited.
 // Post-conditions: the coroutine has finished, and its frame is destroyed.
@@ -339,15 +386,12 @@ inline Task<void> TaskDetail::Promise<void>::get_return_object() noexcept
 template<class T>
 T syncWait(Task<T> task)
 {
-  auto handle = task.m_handle;
-  assert(handle && !handle.promise().m_isStarted);
-  handle.promise().m_isStarted = true;
-  handle.resume();
-  if (!handle.done()) {
+  task.start();
+  if (!task.isDone()) {
     task.m_handle = {};
     throw std::logic_error("syncWait(): the task suspended instead of finishing");
   }
-  return handle.promise().takeResult();
+  return task.result();
 }
 
 #endif // _TASK_H_

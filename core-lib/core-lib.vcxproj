@@ -100,6 +100,7 @@
   <ItemGroup>
     <ClCompile Include="region\Region.cpp" />
     <ClCompile Include="region\x11region.c" />
+    <ClCompile Include="io-lib\AwaitableReader.cpp" />
     <ClCompile Include="io-lib\BufferedInputStream.cpp" />
     <ClCompile Include="io-lib\BufferedOutputStream.cpp" />
     <ClCompile Include="io-lib\ByteArrayInputStream.cpp" />
