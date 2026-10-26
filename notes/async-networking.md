@@ -668,6 +668,46 @@ The risky part, split up:
    become plain `std::mutex`), the `network` library, `TcpConnection`,
    `WindowsEvent`, `WsaStartup`, and the locks in the gates.
 
+**Revised order of step 2 onwards** (agreed with Steve, 2026-10-26; the
+numbered list above stays as the original plan). Step 1 is done:
+`NetworkThread`, an `asio::thread_pool` of one thread, with Asio 1.32
+from vcpkg.
+
+- **2a. Resolver**, unused: `GetAddrInfoExW`, asynchronous and
+  cancellable, wrapped with `asio::async_initiate`, IPv4 only for now
+  ("Host name resolution").
+- **2b. The loop takes over the connection.** The driver is an
+  `asio::awaitable` on the network thread: resolve, connect (or
+  `assign()` the socket accepted in listening mode), read with
+  `async_read_some` into the reader. Writes stay as they are:
+  `RfbOutputGate` sits over a stream that queues each flushed message
+  and wakes the loop, whose one writer drains the queue with
+  `async_write`. That keeps the order of flushes from all threads, and
+  batches messages queued together into one send. Writing can stay
+  synchronous for the protocol code because each message is small and
+  complete in memory before it is queued. `RemoteViewerCore` stops being
+  a `Thread`; `waitTermination()` still waits for the driver. The
+  password is still served by the blocking `getPassword()`, now on the
+  network thread, stalling other connections while its dialog is open:
+  the shortest possible interim.
+- **2c. Ownership.** The state shared by the GUI side and the driver is
+  held by `std::shared_ptr`; closing a window no longer waits for its
+  connection. `NetworkThread` is a singleton in lifetime: one instance,
+  made at the start of `TvnViewer` and joined in its destructor, after
+  the connections are stopped and before WinSock is shut down, with a
+  static accessor valid only during that lifetime (test programs make
+  their own). Not a function-local static, whose destruction would come
+  after `main()`, after WinSock cleanup, in no defined order.
+- **2d. The password** as a request served without blocking: posted to
+  the GUI, answered by resuming the driver on the loop, and always
+  completed, with `operation_aborted` on teardown (step 3 above). It
+  comes before typed events because it pins down the GUI ↔ network
+  thread interaction that the rest builds on.
+- **2e. Typed events**: `post()` becomes `asio::post`, encoding on the
+  loop, with pointer moves coalesced; deferred until the byte queue of
+  2b has been proven, to keep each step's risk small.
+- Then steps 4 to 7 as above.
+
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the
 connection. They are kept apart so that a regression points to one or
