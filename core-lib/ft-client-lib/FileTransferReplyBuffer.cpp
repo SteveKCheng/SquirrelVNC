@@ -82,63 +82,63 @@ std::vector<UINT8> FileTransferReplyBuffer::getDownloadBuffer()
   return m_downloadBuffer;
 }
 
-void FileTransferReplyBuffer::readReply(DataInputStream *input, UINT32 rfbMessage)
+Task<> FileTransferReplyBuffer::readReply(AwaitableReader &reader, UINT32 rfbMessage)
 {
   switch (rfbMessage) {
   case FTMessage::COMPRESSION_SUPPORT_REPLY:
-    readCompressionSupportReply(input);
+    co_await readCompressionSupportReply(reader);
     break;
   case FTMessage::FILE_LIST_REPLY:
-    readFileListReply(input);
+    co_await readFileListReply(reader);
     break;
   case FTMessage::DOWNLOAD_START_REPLY:
-    readDownloadReply(input);
+    readDownloadReply();
     break;
   case FTMessage::DOWNLOAD_DATA_REPLY:
-    readDownloadDataReply(input);
+    co_await readDownloadDataReply(reader);
     break;
   case FTMessage::DOWNLOAD_END_REPLY:
-    readDownloadEndReply(input);
+    co_await readDownloadEndReply(reader);
     break;
   case FTMessage::UPLOAD_START_REPLY:
-    readUploadReply(input);
+    readUploadReply();
     break;
   case FTMessage::UPLOAD_DATA_REPLY:
-    readUploadDataReply(input);
+    readUploadDataReply();
     break;
   case FTMessage::UPLOAD_END_REPLY:
-    readUploadEndReply(input);
+    readUploadEndReply();
     break;
   case FTMessage::MD5_REPLY:
-    readMd5DataReply(input);
+    readMd5DataReply();
     break;
   case FTMessage::DIRSIZE_REPLY:
-    readDirSizeReply(input);
+    co_await readDirSizeReply(reader);
     break;
   case FTMessage::RENAME_REPLY:
-    readMvReply(input);
+    readMvReply();
     break;
   case FTMessage::MKDIR_REPLY:
-    readMkdirReply(input);
+    readMkdirReply();
     break;
   case FTMessage::REMOVE_REPLY:
-    readRmReply(input);
+    readRmReply();
     break;
   case FTMessage::LAST_REQUEST_FAILED_REPLY:
-    readLastRequestFailedReply(input);
+    co_await readLastRequestFailedReply(reader);
     break;
   }
 }
 
-void FileTransferReplyBuffer::readCompressionSupportReply(DataInputStream *input)
+Task<> FileTransferReplyBuffer::readCompressionSupportReply(AwaitableReader &reader)
 {
-  m_isCompressionSupported = (input->readUInt8() == 1);
+  m_isCompressionSupported = (co_await reader.readUInt8() == 1);
 
   m_logWriter->info(_T("Received compression support reply: %s\n"),
                     m_isCompressionSupported ? _T("supported") : _T("not supported"));
 }
 
-void FileTransferReplyBuffer::readFileListReply(DataInputStream *input)
+Task<> FileTransferReplyBuffer::readFileListReply(AwaitableReader &reader)
 {
   UINT8 compressionLevel = 0;
   UINT32 compressedSize = 0;
@@ -147,14 +147,14 @@ void FileTransferReplyBuffer::readFileListReply(DataInputStream *input)
   std::vector<UINT8> buffer;
 
   {
-    compressionLevel = input->readUInt8();
-    compressedSize = input->readUInt32();
-    uncompressedSize = input->readUInt32();
+    compressionLevel = co_await reader.readUInt8();
+    compressedSize = co_await reader.readUInt32();
+    uncompressedSize = co_await reader.readUInt32();
 
-    buffer = readCompressedDataBlock(input,
-                                     compressedSize,
-                                     uncompressedSize,
-                                     compressionLevel);
+    buffer = co_await readCompressedDataBlock(reader,
+                                              compressedSize,
+                                              uncompressedSize,
+                                              compressionLevel);
   }
 
   if (!buffer.empty()) {
@@ -198,38 +198,38 @@ void FileTransferReplyBuffer::readFileListReply(DataInputStream *input)
   }
 }
 
-void FileTransferReplyBuffer::readMd5DataReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readMd5DataReply()
 {
   throw OperationNotSupportedException();
 }
 
-void FileTransferReplyBuffer::readUploadReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readUploadReply()
 {
   m_logWriter->info(_T("Received upload reply\n"));
 }
 
-void FileTransferReplyBuffer::readUploadDataReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readUploadDataReply()
 {
   m_logWriter->info(_T("Received upload data reply\n"));
 }
 
-void FileTransferReplyBuffer::readUploadEndReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readUploadEndReply()
 {
   m_logWriter->info(_T("Received upload end reply\n"));
 }
 
-void FileTransferReplyBuffer::readDownloadReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readDownloadReply()
 {
   m_logWriter->info(_T("Received download reply\n"));
 }
 
-void FileTransferReplyBuffer::readDownloadDataReply(DataInputStream *input)
+Task<> FileTransferReplyBuffer::readDownloadDataReply(AwaitableReader &reader)
 {
-  UINT8 coLevel = input->readUInt8();
-  UINT32 coBufferSize = input->readUInt32();
-  UINT32 uncoBufferSize = input->readUInt32();
+  UINT8 coLevel = co_await reader.readUInt8();
+  UINT32 coBufferSize = co_await reader.readUInt32();
+  UINT32 uncoBufferSize = co_await reader.readUInt32();
 
-  m_downloadBuffer = readCompressedDataBlock(input, coBufferSize, uncoBufferSize, coLevel);
+  m_downloadBuffer = co_await readCompressedDataBlock(reader, coBufferSize, uncoBufferSize, coLevel);
   // readCompressedDataBlock() guarantees this is uncoBufferSize, but the
   // buffer's own size is what bounds the reads made with it.
   m_downloadBufferSize = (UINT32)m_downloadBuffer.size();
@@ -241,10 +241,10 @@ void FileTransferReplyBuffer::readDownloadDataReply(DataInputStream *input)
                     coBufferSize, uncoBufferSize, coLevel);
 }
 
-void FileTransferReplyBuffer::readDownloadEndReply(DataInputStream *input)
+Task<> FileTransferReplyBuffer::readDownloadEndReply(AwaitableReader &reader)
 {
-  m_downloadFileFlags = input->readUInt8();
-  m_downloadLastModified = input->readUInt64();
+  m_downloadFileFlags = co_await reader.readUInt8();
+  m_downloadLastModified = co_await reader.readUInt64();
 
   m_logWriter->info(_T("Received download end reply:\n")
                     _T("\tfile flags: %d\n")
@@ -252,38 +252,38 @@ void FileTransferReplyBuffer::readDownloadEndReply(DataInputStream *input)
                     m_downloadFileFlags, m_downloadLastModified);
 }
 
-void FileTransferReplyBuffer::readMkdirReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readMkdirReply()
 {
   m_logWriter->info(_T("Received mkdir reply\n"));
 }
 
-void FileTransferReplyBuffer::readRmReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readRmReply()
 {
   m_logWriter->info(_T("Received rm reply\n"));
 }
 
-void FileTransferReplyBuffer::readMvReply(DataInputStream * /* input */)
+void FileTransferReplyBuffer::readMvReply()
 {
   m_logWriter->info(_T("Received rename reply\n"));
 }
 
-void FileTransferReplyBuffer::readDirSizeReply(DataInputStream *input)
+Task<> FileTransferReplyBuffer::readDirSizeReply(AwaitableReader &reader)
 {
-  m_dirSize = input->readUInt64();
+  m_dirSize = co_await reader.readUInt64();
 
   m_logWriter->info(_T("Received dirsize reply\n"));
 }
 
-void FileTransferReplyBuffer::readLastRequestFailedReply(DataInputStream *input)
+Task<> FileTransferReplyBuffer::readLastRequestFailedReply(AwaitableReader &reader)
 {
-  input->readUTF8(&m_lastErrorMessage);
+  co_await reader.readUTF8(&m_lastErrorMessage);
 
   m_logWriter->info(_T("Received last request failed reply:\n")
                     _T("\terror message: %s\n"),
                     m_lastErrorMessage.getString());
 }
 
-std::vector<UINT8> FileTransferReplyBuffer::readCompressedDataBlock(DataInputStream *input,
+Task<std::vector<UINT8>> FileTransferReplyBuffer::readCompressedDataBlock(AwaitableReader &reader,
                                                                UINT32 compressedSize,
                                                                UINT32 uncompressedSize,
                                                                UINT8 compressionLevel)
@@ -316,13 +316,13 @@ std::vector<UINT8> FileTransferReplyBuffer::readCompressedDataBlock(DataInputStr
     if (uncoSize != 0) {
       throw IOException(_T("Compressed data block is empty"));
     }
-    return coBuffer;
+    co_return coBuffer;
   }
 
-  input->readFully(&coBuffer.front(), coSize);
+  co_await reader.readFully(&coBuffer.front(), coSize);
 
   if (compressionLevel == 0) {
-    return coBuffer;
+    co_return coBuffer;
   }
 
   std::vector<UINT8> uncoBuffer(uncoSize);
@@ -343,5 +343,5 @@ std::vector<UINT8> FileTransferReplyBuffer::readCompressedDataBlock(DataInputStr
     memcpy(&uncoBuffer.front(), m_inflater.getOutput(), uncoSize);
   }
 
-  return uncoBuffer;
+  co_return uncoBuffer;
 }

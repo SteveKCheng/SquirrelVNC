@@ -823,7 +823,8 @@ void RemoteViewerCore::execute()
         if (m_serverMsgHandlers.find(msgType) != m_serverMsgHandlers.end()) {
           m_logWriter.detail(_T("Received message (%u) transmit to capability handler"), msgType);
           try {
-            m_serverMsgHandlers[msgType]->onServerMessage(msgType, m_input);
+            AwaitableReader reader(*m_input);
+            syncWait(m_serverMsgHandlers[msgType]->onServerMessage(msgType, reader));
           } catch (const Exception &ex) {
             m_logWriter.error(_T("Error in onServerMessage(): %s"), ex.getMessage());
           } catch (...) {

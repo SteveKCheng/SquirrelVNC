@@ -24,7 +24,9 @@
 #ifndef _FILE_TRANSFER_REPLY_BUFFER_H_
 #define _FILE_TRANSFER_REPLY_BUFFER_H_
 
+#include "io-lib/AwaitableReader.h"
 #include "io-lib/DataInputStream.h"
+#include "util/Task.h"
 
 #include "ft-common/FileInfo.h"
 #include "util/Inflater.h"
@@ -59,44 +61,49 @@ public:
   UINT64 getDirSize();
 
   //
-  // Reads one file-transfer reply from input, and keeps what it holds for
+  // Reads one file-transfer reply from reader, and keeps what it holds for
   // the getters above (and the operations, through them). Called on the
   // core thread, before the listeners of FileTransferMessageProcessor are
   // notified of the reply. Does nothing for other message types.
   //
-  // Pre-conditions: the message type, rfbMessage, has been read from input.
-  // Post-conditions: the reply has been read from input.
+  // A coroutine (util/Task.h): the read*Reply() functions that read the
+  // stream are coroutines too, and await their reads; those that read
+  // nothing (the reply is the message type alone) only log.
+  //
+  // Pre-conditions: the message type, rfbMessage, has been read from the
+  // stream.
+  // Post-conditions: the reply has been read from the stream.
   // Throws whatever the read*Reply() function for the type throws; then
   // the stream is left in the middle of the reply.
   //
-  void readReply(DataInputStream *input, UINT32 rfbMessage);
+  Task<> readReply(AwaitableReader &reader, UINT32 rfbMessage);
 
 private:
-  void readCompressionSupportReply(DataInputStream *input);
+  Task<> readCompressionSupportReply(AwaitableReader &reader);
   // Reads a file list reply into m_filesInfo, replacing the previous list.
   // If this throws, the previous list is gone and the new one may be partly
   // read: some entries may be left empty.  The count the server sends is
   // rejected if the data is too short to hold that many entries.
-  void readFileListReply(DataInputStream *input);
-  void readMd5DataReply(DataInputStream *input);
+  Task<> readFileListReply(AwaitableReader &reader);
+  void readMd5DataReply();
 
-  void readUploadReply(DataInputStream *input);
-  void readUploadDataReply(DataInputStream *input);
-  void readUploadEndReply(DataInputStream *input);
+  void readUploadReply();
+  void readUploadDataReply();
+  void readUploadEndReply();
 
-  void readDownloadReply(DataInputStream *input);
-  void readDownloadDataReply(DataInputStream *input);
-  void readDownloadEndReply(DataInputStream *input);
+  void readDownloadReply();
+  Task<> readDownloadDataReply(AwaitableReader &reader);
+  Task<> readDownloadEndReply(AwaitableReader &reader);
 
-  void readMkdirReply(DataInputStream *input);
-  void readRmReply(DataInputStream *input);
-  void readMvReply(DataInputStream *input);
+  void readMkdirReply();
+  void readRmReply();
+  void readMvReply();
 
-  void readDirSizeReply(DataInputStream *input);
-  void readLastRequestFailedReply(DataInputStream *input);
+  Task<> readDirSizeReply(AwaitableReader &reader);
+  Task<> readLastRequestFailedReply(AwaitableReader &reader);
 
   /**
-   * Reads a block of compressedSize bytes from input, and inflates it with
+   * Reads a block of compressedSize bytes from reader, and inflates it with
    * m_inflater unless compressionLevel is 0.
    *
    * The sizes come from the server.  The result always holds exactly
@@ -117,10 +124,10 @@ private:
   // are the largest blocks expected.
   static const UINT32 MAX_DATA_BLOCK_SIZE = 64 * 1024 * 1024;
 
-  std::vector<UINT8> readCompressedDataBlock(DataInputStream *input,
-                                        UINT32 compressedSize,
-                                        UINT32 uncompressedSize,
-                                        UINT8 compressionLevel);
+  Task<std::vector<UINT8>> readCompressedDataBlock(AwaitableReader &reader,
+                                                   UINT32 compressedSize,
+                                                   UINT32 uncompressedSize,
+                                                   UINT8 compressionLevel);
 
 protected:
 

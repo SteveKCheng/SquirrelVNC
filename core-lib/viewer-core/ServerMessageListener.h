@@ -24,7 +24,8 @@
 #ifndef _SERVER_MESSAGE_LISTENER_H_
 #define _SERVER_MESSAGE_LISTENER_H_
 
-#include "io-lib/DataInputStream.h"
+#include "io-lib/AwaitableReader.h"
+#include "util/Task.h"
 
 // FIXME: document it.
 class ServerMessageListener
@@ -34,9 +35,10 @@ public:
 
   //
   // This method is called, if received server message with code "msgCode".
-  // Use "input" outside onRequest() is prohibited.
+  // A coroutine (util/Task.h): it reads the rest of the message from reader,
+  // awaiting each read, and must not keep reader once it has finished.
   //
-  virtual void onServerMessage(UINT32 msgCode, DataInputStream *input) = 0;
+  virtual Task<> onServerMessage(UINT32 msgCode, AwaitableReader &reader) = 0;
 };
 
 #endif

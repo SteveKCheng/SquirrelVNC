@@ -51,9 +51,9 @@ public:
   void setOutput(RfbOutputGate *output);
 
   //
-  // Overrides MessageListener::onRequest().
+  // Overrides ServerMessageListener::onServerMessage().
   //
-  void onServerMessage(UINT32 code, DataInputStream *input) override;
+  Task<> onServerMessage(UINT32 code, AwaitableReader &reader) override;
 
   FileTransferCore *getCore();
   void setInterface(FileTransferInterface *ftInterface);

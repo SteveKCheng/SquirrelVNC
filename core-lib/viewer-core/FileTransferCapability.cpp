@@ -68,9 +68,9 @@ void FileTransferCapability::setInterface(FileTransferInterface *ftInterface)
   m_ftCore.setInterface(ftInterface);
 }
 
-void FileTransferCapability::onServerMessage(UINT32 code, DataInputStream *input)
+Task<> FileTransferCapability::onServerMessage(UINT32 code, AwaitableReader &reader)
 {
-  m_ftMessageProcessor.processRfbMessage(input, code);
+  co_await m_ftMessageProcessor.processRfbMessage(reader, code);
 }
 
 void FileTransferCapability::addCapabilities(CapabilitiesManager *capabilities)

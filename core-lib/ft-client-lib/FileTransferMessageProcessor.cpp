@@ -33,12 +33,12 @@ FileTransferMessageProcessor::~FileTransferMessageProcessor()
 {
 }
 
-void FileTransferMessageProcessor::processRfbMessage(DataInputStream *input,
-                                                     UINT32 rfbMessage)
+Task<> FileTransferMessageProcessor::processRfbMessage(AwaitableReader &reader,
+                                                       UINT32 rfbMessage)
 {
   // The only read of the stream: once the stream becomes asynchronous, this
   // is the one call that waits for data, and no lock is held across it.
-  m_replyBuffer.readReply(input, rfbMessage);
+  co_await m_replyBuffer.readReply(reader, rfbMessage);
 
   AutoLock al(&m_listeners);
 
