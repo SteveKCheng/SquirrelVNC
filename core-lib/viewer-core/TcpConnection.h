@@ -49,6 +49,15 @@ public:
   void bind(SocketIPv4 *socket);
   void bind(RfbInputGate *input, RfbOutputGate *output);
 
+  //
+  // Connects to the host given to bind(), or uses the socket or gates given
+  // to it. A socket, whether connected here or given, has Nagle's algorithm
+  // turned off (TCP_NODELAY): RFB's small messages, such as pointer events,
+  // must not wait for earlier data to be acknowledged.
+  //
+  // Throws Exception if nothing was bound; SocketException if the host
+  // cannot be resolved or connected to, or the socket configured.
+  //
   void connect();
   void close();
 

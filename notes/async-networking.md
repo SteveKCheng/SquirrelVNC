@@ -23,6 +23,8 @@ the core on Linux).
 ## Weaknesses of the blocking sockets today
 
 TCP_NODELAY is already set, so Nagle's algorithm is not among these.
+*(Only on outgoing connections, it turned out; accepted ones, in
+listening mode, also have it since 2026-10-26.)*
 
 1. **A dead connection is never noticed.** There is no `SO_KEEPALIVE`,
    no timeouts and no application-level heartbeat, so `recv()` blocks

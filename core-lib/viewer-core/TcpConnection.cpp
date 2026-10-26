@@ -102,11 +102,12 @@ void TcpConnection::connect()
         m_ownSocket = std::make_unique<SocketIPv4>();
         m_socket = m_ownSocket.get();
         m_socket->connect(ipAddress);
-        m_socket->enableNaggleAlgorithm(false);
       } else {
         throw Exception(_T("Connection parameters (host, port, socket, gates) is empty."));
       }
     }
+    // Also for a socket given to bind(), accepted in listening mode.
+    m_socket->enableNaggleAlgorithm(false);
 
     m_logWriter->detail(_T("Initialization of socket stream and input/output gates..."));
     m_socketStream = std::make_unique<SocketStream>(m_socket);
