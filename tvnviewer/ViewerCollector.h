@@ -24,44 +24,89 @@
 #ifndef _VIEWER_COLLECTOR_H_
 #define _VIEWER_COLLECTOR_H_
 
-#include "thread/LocalMutex.h"
+#include "ViewerInstance.h"
+#include "win-system/WindowsApplication.h"
+
+#include <cstddef>
 #include <list>
 #include <memory>
-#include "ViewerInstance.h"
 
-typedef std::list<std::unique_ptr<ViewerInstance> > InstanceList;
-
-// Collector instances.
+//
+// Keeps track of the viewer instances, for cooperative termination only.
+// It owns none: each is owned by the references of its window and of its
+// connection (ViewerInstance), and the deleter given here deletes it on the
+// GUI thread. What is kept here lets the application stop the instances
+// still alive when it ends, and wait until all have been deleted.
+// Used only on the GUI thread, except for the deleter.
+//
 class ViewerCollector final
 {
 public:
-  ViewerCollector();
+  //
+  // Pre-conditions: application outlives this object; its message loop, or
+  // destroyAllInstances(), runs the deletions.
+  //
+  explicit ViewerCollector(WindowsApplication *application);
   ViewerCollector(const ViewerCollector &) = delete;
   ViewerCollector &operator=(const ViewerCollector &) = delete;
   ViewerCollector(ViewerCollector &&) = delete;
   ViewerCollector &operator=(ViewerCollector &&) = delete;
 
+  //
+  // Calls destroyAllInstances(), so its pre-conditions apply.
+  //
   ~ViewerCollector();
 
-  // Adds instance to a self list, which owns it from then on.
-  void addInstance(std::unique_ptr<ViewerInstance> instance);
+  //
+  // Takes instance into shared ownership, and returns the first reference.
+  // Whichever thread drops the last reference, the deleter posts the
+  // deletion to the top of the application's message loop
+  // (WindowsApplication::postToMessageLoop()), where no window procedure of
+  // the instance is on the stack; until it has run, the instance counts as
+  // alive (empty()).
+  //
+  // Pre-conditions: instance is not null.
+  // Post-conditions: the returned pointer owns instance; its deleter refers
+  // to this object, which outlives it (destroyAllInstances()).
+  //
+  std::shared_ptr<ViewerInstance> addInstance(std::unique_ptr<ViewerInstance> instance);
 
-  // Forces terminates all instances, waits until they dies and than
-  // delete them from memory and thread list.
+  //
+  // Cooperative termination: stops every instance still alive
+  // (ViewerInstance::stop()), then waits until all have been deleted,
+  // running their deletions itself (WindowsApplication::runPostedWork()).
+  //
+  // Pre-conditions: the message loop has ended, so no window procedure is
+  // on the stack; the network thread is running.
+  // Post-conditions: no instance is alive.
+  //
   void destroyAllInstances();
 
   // This function decrease counter of connection, requires reconnect.
   void decreaseToReconnect();
 
-  // Return true, if and only if m_instances is empty()
+  //
+  // Whether no instance is alive (not yet deleted), and no reconnection is
+  // pending.
+  //
   bool empty() const;
 
-  // Deletes all stopped instances from memory and removes them from self list.
-  void deleteDeadInstances();
+private:
+  //
+  // The deletion of an instance, posted by its deleter: counts a pending
+  // reconnection, deletes it, and forgets it.
+  //
+  void deleteInstance(ViewerInstance *instance) noexcept;
 
-protected:
-  mutable LocalMutex m_lockObj;
-  InstanceList m_instances;
+  WindowsApplication *m_application;
+
+  // Every instance not yet deleted, without owning it; expired entries are
+  // dropped when an instance is deleted.
+  std::list<std::weak_ptr<ViewerInstance>> m_instances;
+
+  // The number of instances not yet deleted. Not the size of m_instances:
+  // a reference expires before its deletion has run.
+  size_t m_aliveCount;
 
   // This variable contain count of instance, when need to reconnect.
   // If this count isn't 0, shutdown application is denied.

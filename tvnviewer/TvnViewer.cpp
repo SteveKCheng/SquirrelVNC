@@ -31,6 +31,7 @@
 TvnViewer::TvnViewer(HINSTANCE appInstance, const TCHAR *windowClassName,
                      const TCHAR *viewerWindowClassName)
 : WindowsApplication(appInstance, windowClassName),
+  m_instances(this),
   m_viewerWindowClassName(viewerWindowClassName),
   m_hAccelTable(nullptr),
   m_logWriter(ViewerConfig::getInstance()->getLogger()),
@@ -126,18 +127,11 @@ void TvnViewer::stopListening()
   }
 }
 
-void TvnViewer::addInstance(std::unique_ptr<ViewerInstance> viewerInstance)
-{
-  m_instances.addInstance(std::move(viewerInstance));
-}
-
 void TvnViewer::runInstance(const ConnectionData &conData, const ConnectionConfig &config)
 {
-  std::unique_ptr<ViewerInstance> viewerInst =
-    std::make_unique<ViewerInstance>(this, conData, config);
+  std::shared_ptr<ViewerInstance> viewerInst =
+    m_instances.addInstance(std::make_unique<ViewerInstance>(this, conData, config));
   viewerInst->start();
-
-  addInstance(std::move(viewerInst));
 }
 
 bool TvnViewer::isVisibleLoginDialog() const
@@ -170,7 +164,7 @@ void TvnViewer::createWindow(const TCHAR *className)
   WindowsApplication::createWindow(className);
   SetWindowLongPtr(m_mainWindow, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
-  SetTimer(m_mainWindow, TIMER_DELETE_DEAD_INSTANCE, TIMER_DELETE_DEAD_INSTANCE_DELAY, (TIMERPROC)nullptr);
+  SetTimer(m_mainWindow, TIMER_CHECK_SHUTDOWN, TIMER_CHECK_SHUTDOWN_DELAY, (TIMERPROC)nullptr);
 }
 
 void TvnViewer::registerWindowClass(WNDCLASS *wndClass)
@@ -257,6 +251,8 @@ int TvnViewer::processMessages()
     if (ret < 0) {
       return 1;
     }
+    // Deletes viewer instances, among others (ViewerCollector).
+    runPostedWork();
     if (m_hAccelTable && ret != 0) {
       if (TranslateAccelerator(GetActiveWindow(), m_hAccelTable, &msg)) {
         continue;
@@ -284,13 +280,12 @@ void TvnViewer::newListeningConnection()
   if (m_conListener) {
     std::unique_ptr<SocketIPv4> socket = m_conListener->getNewConnection();
     while (socket) {
-      std::unique_ptr<ViewerInstance> viewerInst =
-        std::make_unique<ViewerInstance>(this,
-                                         connectionData,
-                                         connectionConfig,
-                                         std::move(socket));
+      std::shared_ptr<ViewerInstance> viewerInst =
+        m_instances.addInstance(std::make_unique<ViewerInstance>(this,
+                                                                 connectionData,
+                                                                 connectionConfig,
+                                                                 std::move(socket)));
       viewerInst->start();
-      addInstance(std::move(viewerInst));
 
       socket = m_conListener->getNewConnection();
     }
@@ -300,8 +295,7 @@ void TvnViewer::newListeningConnection()
 bool TvnViewer::onTimer(WPARAM idTimer)
 {
   switch (idTimer) {
-  case TIMER_DELETE_DEAD_INSTANCE:
-    m_instances.deleteDeadInstances();
+  case TIMER_CHECK_SHUTDOWN:
     if (m_instances.empty() && 
         !isVisibleLoginDialog() &&
         !m_isListening) {

@@ -48,7 +48,6 @@
 #include <asio/steady_timer.hpp>
 
 #include <atomic>
-#include <condition_variable>
 #include <functional>
 #include <exception>
 #include <future>
@@ -98,23 +97,13 @@ public:
   RemoteViewerCore(RemoteViewerCore &&) = delete;
   RemoteViewerCore &operator=(RemoteViewerCore &&) = delete;
 
-  // FIX DOCUMENTATION: What objects will be destroyed? Will a socket object be destroyed
-  // which has been passed to start()?
   //
-  // The destructor.
+  // Ends the frame buffer notifier's thread, waiting for it, and closes a
+  // socket taken over by start() but never used. Never throws.
   //
-  // Before actually destroying the object, it will terminate its active
-  // threads and will wait until all the threads are actually finished. So
-  // calling the destructor may block the calling thread until all object's
-  // internal threads are gone. To prevent this, call stop() and then
-  // waitTermination() prior to destroying the object.
-  //
-  // The destructor never throws an exception. If something goes wrong, it
-  // just silently does everything possible to destroy the object cleanly, but
-  // is not guaranteed to do so if any object's threads are running at the
-  // moment of calling the destructor. That's another reason to call
-  // stop() and waitTermination() explicitly prior to destroying the object
-  // (unless you are sure there are no active threads).
+  // Pre-conditions: if start() was called, the connection has released
+  // every reference to the adapter it was given (see start()): the object
+  // is destroyed with the adapter's owner, once nothing else holds that.
   //
   ~RemoteViewerCore() override;
 
@@ -137,6 +126,19 @@ public:
   // the CoreEventsAdapter interface (the adapter). To receive these
   // notifications, the application should inherit CoreEventsAdapter and
   // provide a pointer to that subclass to one of the start() functions.
+  //
+  // Ownership (notes/async-networking.md, "Ownership by std::shared_ptr"):
+  // the adapter's owner must keep this object, and everything registered
+  // with it (authentication handlers, capabilities), alive as long as it
+  // holds a reference; typically they are all parts of one object, and the
+  // adapter a std::shared_ptr made with the aliasing constructor, sharing
+  // that object's control block. The connection keeps a reference while it
+  // runs, and each piece of work posted for this object keeps one until it
+  // has run, so the owner is not deleted before the network thread is done
+  // with this object, without anyone waiting. The last of these references
+  // is released after the adapter has been told how the connection ended,
+  // on the network thread, so the owner may be deleted there: an owner
+  // that must be deleted on another thread needs a deleter that sees to it.
   //
   // The threading model is the following. The connection is driven on the
   // network thread (notes/async-networking.md, Phase 4): connecting, reading
@@ -171,7 +173,7 @@ public:
   // tests (rfb-replay).
   //
   void start(RfbInputGate *input, RfbOutputGate *output,
-             CoreEventsAdapter *adapter,
+             std::shared_ptr<CoreEventsAdapter> adapter,
              bool sharedFlag = true);
 
   //
@@ -183,7 +185,7 @@ public:
   //       WindowsSocket::startup() prior to calling function.
   //
   void start(const TCHAR *host, UINT16 port,
-             CoreEventsAdapter *adapter,
+             std::shared_ptr<CoreEventsAdapter> adapter,
              bool sharedFlag = true);
 
   //
@@ -193,7 +195,7 @@ public:
   // the core closes it.
   //
   void start(SocketIPv4 *socket,
-             CoreEventsAdapter *adapter,
+             std::shared_ptr<CoreEventsAdapter> adapter,
              bool sharedFlag = true);
 
   //
@@ -215,45 +217,13 @@ public:
   // frame buffer notifier's thread.
   //
   // This function will return control to the caller immediately, and the
-  // connection may run for some time after the function has finished. To wait
-  // for its end after stop(), call waitTermination().
+  // connection may run for some time after the function has finished. It
+  // releases its references to the adapter once it has ended (see start()).
   //
   // The socket, connected here or taken over, is closed when the connection
   // ends; gates given to start() are not closed.
   //
   void stop();
-
-  //
-  // Wait until the connection has ended on the network thread, and the frame
-  // buffer notifier's thread too. Always call this function prior to
-  // destroying this object and connected objects (CoreEventsAdapter), but
-  // only if remote viewer core was actually started.
-  //
-  // This function does not stop the connection. That can be done by calling
-  // stop(). If stop() was not and will not be called, and no error occures,
-  // this function blocks the calling thread forever.
-  //
-  // Pre-conditions: not called on the network thread (it would wait for
-  // itself), and the network thread is running.
-  // Post-conditions: isFinished(), so the object may be destroyed.
-  //
-  // A GUI need not call it while the connection may still run: the viewer
-  // stops the connection when its window is closed, and deletes it once
-  // isFinished() (ViewerInstance), never waiting on the GUI thread.
-  //
-  // NOTE: If remote viewer core isn't started, then function waitTermination()
-  // blocks the calling thread forever.
-  //
-  void waitTermination();
-
-  //
-  // Whether nothing of this object is left on the network thread: the
-  // connection has ended, finish() has told the adapter, and every piece of
-  // work posted for it (postToLoop()) has run; or start() was never called.
-  // Then the object may be destroyed without waiting. Any thread; does not
-  // wait.
-  //
-  bool isFinished() const;
 
   //
   // Set the specified pixel format. The viewer will request that pixel format
@@ -623,17 +593,17 @@ private:
 
   //
   // Reports how the connection ended to the adapter, as onAuthError(),
-  // onDisconnect() or onError(), and marks the core finished for
-  // waitTermination(). The completion of drive(), on the network thread.
+  // onDisconnect() or onError(), and sets m_isFinished. The completion of
+  // drive(), on the network thread.
   //
   void finish(std::exception_ptr failure);
 
   //
-  // Posts work for this object to the network thread, unless the connection
-  // has finished (finish()), counting it until it has run, so that
-  // isFinished() and waitTermination() know when nothing is left that
-  // refers to this object. Every post for this object goes through here.
-  // Any thread.
+  // Posts work for this object to the network thread, with a reference to
+  // the adapter (m_adapterRef), which keeps this object alive until the
+  // work has run (see start()). Every post for this object goes through
+  // here. Does nothing once no reference is left: the owner is being
+  // deleted, and the connection has ended. Any thread.
   //
   void postToLoop(std::function<void()> work);
 
@@ -658,7 +628,7 @@ private:
   //
   // This one includes common code reused by public start(...) functions.
   //
-  void start(CoreEventsAdapter *adapter, bool sharedFlag);
+  void start(std::shared_ptr<CoreEventsAdapter> adapter, bool sharedFlag);
 
   //
   // RFB protocol implementation.
@@ -888,13 +858,9 @@ private:
   std::atomic<bool> m_isStopping;
   // What left run(), for drive() to rethrow.
   std::exception_ptr m_runError;
-  // Set by finish(); and the number of postToLoop() works not yet run. For
-  // isFinished() and waitTermination(); guarded by m_finishLock, and
-  // m_finishChanged is notified when either changes.
-  mutable std::mutex m_finishLock;
-  std::condition_variable m_finishChanged;
+  // Set by finish(): drive() has completed, and m_stopSignal must not be
+  // emitted any more. Used only on the network thread.
   bool m_isFinished;
-  int m_pendingPosts;
 
   // With gates, the input gate given to start(), read with runBlocking();
   // otherwise null.
@@ -908,7 +874,11 @@ private:
   QueuedOutputStream m_queuedOutput;
   std::unique_ptr<RfbOutputGate> m_ownOutput;
 
+  // The adapter given to start(). The connection holds a reference to it
+  // while it runs, and each piece of posted work while it waits (see
+  // start()); m_adapterRef is where postToLoop() takes them from.
   CoreEventsAdapter *m_adapter;
+  std::weak_ptr<CoreEventsAdapter> m_adapterRef;
 
   // m_decoderStore depends on m_logWriter and must be defined after it.
   // See also: C++ standard 12.6.2 - Initializing bases and members.

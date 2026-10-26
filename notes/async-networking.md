@@ -720,6 +720,31 @@ from vcpkg.
   *First done (37a728a) with deletion once the connection had finished,
   polled by `ViewerCollector`, and no shared ownership; redone with
   `std::shared_ptr` as described below (Steve, 2026-10-26).*
+  **Done** (2026-10-26):
+  - `RemoteViewerCore::start()` takes a `std::shared_ptr<CoreEventsAdapter>`
+    and keeps only a `std::weak_ptr`. The completion handler of
+    `drive()` holds the reference and releases it from a handler of its
+    own, posted after `finish()`, once Asio has finished with the
+    coroutine. `postToLoop()` takes one for each piece of work.
+  - `isFinished()`, `waitTermination()` and the counting of posts are
+    gone; the destructor asserts that no reference is left.
+  - `ViewerInstance` is `enable_shared_from_this`. `start()` gives the
+    core an aliasing pointer to its window, then gives the window its own
+    reference (`ViewerWindow::setOwner()`), released at `WM_NCDESTROY`.
+  - `WindowsApplication::postToMessageLoop()` queues work that
+    `processMessages()` runs before dispatching each message, so never
+    inside a nested loop. `ViewerCollector::addInstance()` gives the
+    instance a deleter that posts its deletion there. The
+    `m_isInPasswordDialog` exception, `WM_USER_STOP` (which sent
+    `WM_DESTROY` without destroying the window) and the timer's
+    deletions are gone; the timer only checks for the end of the
+    application.
+  - `ViewerCollector::destroyAllInstances()` destroys the windows still
+    open and runs the deletions itself (`waitForPostedWork()`,
+    `runPostedWork()`), as the message loop has ended by then.
+  - `rfb-replay` gives the core a reference that owns nothing and
+    fulfils a promise when it is released, in place of
+    `waitTermination()`.
 - **2d. The password** as a request served without blocking: posted to
   the GUI, answered by resuming the driver on the loop, and always
   completed, with `operation_aborted` on teardown (step 3 above). It

@@ -59,17 +59,8 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
 
 ViewerInstance::~ViewerInstance()
 {
-  // Normally the connection has finished by now (isStopped()), and this
-  // does not wait. An accepted socket belongs to the core since start().
-  stop();
-  m_viewerCore.waitTermination();
-}
-
-void ViewerInstance::waitViewer()
-{
-  // A password request may be pending, which only this thread answers.
-  m_viewerWnd.cancelPasswordRequest();
-  m_viewerCore.waitTermination();
+  // An accepted socket belongs to the core since start().
+  m_viewerWnd.destroy();
 }
 
 bool ViewerInstance::requiresReconnect() const
@@ -77,17 +68,9 @@ bool ViewerInstance::requiresReconnect() const
   return m_viewerWnd.requiresReconnect();
 }
 
-bool ViewerInstance::isStopped() const
-{
-  return m_viewerWnd.isStopped() && m_viewerCore.isFinished();
-}
-
 void ViewerInstance::stop()
 {
-  m_viewerWnd.postMessage(ViewerWindow::WM_USER_STOP);
-  m_viewerCore.stop();
-  // A password request may be pending: it ends now, with no password.
-  m_viewerWnd.cancelPasswordRequest();
+  m_viewerWnd.destroy();
 }
 
 void ViewerInstance::start()
@@ -101,15 +84,22 @@ void ViewerInstance::start()
 
   m_fileTransfer.addCapabilities(&m_viewerCore);
 
+  // The core sees only the adapter, but through this object's control
+  // block, which keeps the core and what is registered with it alive.
+  std::shared_ptr<ViewerInstance> self = shared_from_this();
+  std::shared_ptr<CoreEventsAdapter> adapter(self, &m_viewerWnd);
   if (m_socket) {
     m_viewerCore.start(m_socket.get(),
-                       &m_viewerWnd, m_conConf.getSharedFlag());
+                       std::move(adapter), m_conConf.getSharedFlag());
   } else {
     StringStorage strHost;
     m_condata.getReducedHost(&strHost);
     // HostPath only accepts ports from 0 to 65535.
     UINT16 portVal = static_cast<UINT16>(m_condata.getPort());
     m_viewerCore.start(strHost.getString(), portVal,
-                       &m_viewerWnd, m_conConf.getSharedFlag());
+                       std::move(adapter), m_conConf.getSharedFlag());
   }
+  // Last, so that a window whose connection failed to start does not keep
+  // the instance alive.
+  m_viewerWnd.setOwner(std::move(self));
 }

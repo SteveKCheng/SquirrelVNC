@@ -22,10 +22,11 @@
 //
 
 #include "ViewerCollector.h"
-#include "thread/AutoLock.h"
 
-ViewerCollector::ViewerCollector()
-: m_countToReconnect(0)
+ViewerCollector::ViewerCollector(WindowsApplication *application)
+: m_application(application),
+  m_aliveCount(0),
+  m_countToReconnect(0)
 {
 }
 
@@ -34,57 +35,53 @@ ViewerCollector::~ViewerCollector()
   destroyAllInstances();
 }
 
-void ViewerCollector::addInstance(std::unique_ptr<ViewerInstance> viewerInstance)
+std::shared_ptr<ViewerInstance> ViewerCollector::addInstance(std::unique_ptr<ViewerInstance> instance)
 {
-  AutoLock l(&m_lockObj);
-  m_instances.push_back(std::move(viewerInstance));
+  // Counted first: if making the pointer fails, it still calls the deleter.
+  m_aliveCount++;
+  std::shared_ptr<ViewerInstance> shared(instance.release(), [this](ViewerInstance *released) {
+    // Any thread: the last reference is usually the connection's.
+    m_application->postToMessageLoop([this, released] {
+      deleteInstance(released);
+    });
+  });
+  m_instances.push_back(shared);
+  return shared;
 }
 
-void ViewerCollector::deleteDeadInstances()
+void ViewerCollector::deleteInstance(ViewerInstance *instance) noexcept
 {
-  AutoLock l(&m_lockObj);
-
-  InstanceList::iterator iter = m_instances.begin();
-  while (iter != m_instances.end()) {
-    ViewerInstance *instance = iter->get();
-    if (instance->isStopped()) {
-      if (instance->requiresReconnect()) {
-        ++m_countToReconnect;
-      }
-      iter = m_instances.erase(iter);
-    } else {
-      iter++;
-    }
+  if (instance->requiresReconnect()) {
+    ++m_countToReconnect;
   }
+  delete instance;
+  m_aliveCount--;
+  m_instances.remove_if([](const std::weak_ptr<ViewerInstance> &reference) {
+    return reference.expired();
+  });
 }
 
 void ViewerCollector::destroyAllInstances()
 {
-  AutoLock l(&m_lockObj);
-
-  InstanceList::iterator iter;
-  for (iter = m_instances.begin(); iter != m_instances.end(); iter++) {
-    (*iter)->stop();
+  for (const std::weak_ptr<ViewerInstance> &reference : m_instances) {
+    if (std::shared_ptr<ViewerInstance> instance = reference.lock()) {
+      instance->stop();
+    }
   }
-  for (iter = m_instances.begin(); iter != m_instances.end(); iter++) {
-    (*iter)->waitViewer();
+  while (m_aliveCount > 0) {
+    m_application->waitForPostedWork();
+    m_application->runPostedWork();
   }
-
-  deleteDeadInstances();
 }
 
 void ViewerCollector::decreaseToReconnect()
 {
-  AutoLock l(&m_lockObj);
-
   --m_countToReconnect;
 }
 
 bool ViewerCollector::empty() const
 {
-  AutoLock l(&m_lockObj);
-
   // If not active instance and count wait to reconnect is 0,
   // then return true and false otherwise.
-  return m_instances.empty() && (m_countToReconnect == 0);
+  return m_aliveCount == 0 && (m_countToReconnect == 0);
 }

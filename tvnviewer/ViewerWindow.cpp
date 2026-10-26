@@ -24,7 +24,6 @@
 #include "config-lib/IniFileSettingsManager.h"
 #include "util/Exception.h"
 #include "util/ResourceLoader.h"
-#include "util/ScopeExit.h"
 #include "rfb/StandardPixelFormatFactory.h"
 
 #include "AuthenticationDialog.h"
@@ -51,7 +50,6 @@ ViewerWindow::ViewerWindow(WindowsApplication *application,
   m_conData(conData),
   m_dsktWnd(&m_logWriter, conConf),
   m_isPasswordRequestCancelled(false),
-  m_isInPasswordDialog(false),
   m_isConnected(false),
   m_sizeIsChanged(false),
   m_hooksEnabledFirstTime(true),
@@ -284,9 +282,9 @@ bool ViewerWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
     return false;
   case WM_NCDESTROY:
     m_stopped = true;
-    return true;
-  case WM_USER_STOP:
-    SendMessage(m_hWnd, WM_DESTROY, 0, 0);
+    // If it is the last reference, the owner's deleter posts the deletion
+    // (ViewerCollector), so nothing is deleted under this procedure.
+    m_owner.reset();
     return true;
   case WM_USER_FS_WARNING:
     return onFsWarning();
@@ -965,8 +963,8 @@ bool ViewerWindow::onDestroy()
 {
   KillTimer(m_hWnd, TIMER_DESKTOP_STATE);
   m_displayRequest.deactivate();
-  // The connection ends with its window, without waiting here: the
-  // instance is deleted once it has finished (ViewerInstance::isStopped()).
+  // The connection ends with its window, without waiting here: it keeps the
+  // instance alive until it has ended (setOwner()).
   if (m_viewerCore != nullptr) {
     m_viewerCore->stop();
   }
@@ -1311,8 +1309,6 @@ bool ViewerWindow::handlePasswordRequest()
       return true;
     }
   }
-  m_isInPasswordDialog = true;
-  ScopeExit endOfDialog([&] { m_isInPasswordDialog = false; });
   std::optional<StringStorage> password;
   try {
     AuthenticationDialog authDialog;
@@ -1334,9 +1330,17 @@ bool ViewerWindow::requiresReconnect() const
   return m_requiresReconnect;
 }
 
-bool ViewerWindow::isStopped() const
+void ViewerWindow::setOwner(std::shared_ptr<void> owner)
 {
-  return m_stopped && !m_isInPasswordDialog;
+  m_owner = std::move(owner);
+}
+
+void ViewerWindow::destroy()
+{
+  if (!m_stopped) {
+    m_dsktWnd.destroyWindow();
+    destroyWindow();
+  }
 }
 
 void ViewerWindow::adjustWindowSize()

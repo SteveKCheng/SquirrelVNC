@@ -29,8 +29,16 @@
 
 #include "ViewerVncAuthHandler.h"
 
+#include <memory>
 
-class ViewerInstance final
+//
+// A viewer window and its connection. Owned by std::shared_ptr
+// (notes/async-networking.md, "Ownership by std::shared_ptr"): from start(),
+// the window holds a reference until it is destroyed, and the connection
+// until it has ended, so the instance lives as long as either. The last
+// reference deletes it on the GUI thread (ViewerCollector::addInstance()).
+//
+class ViewerInstance final : public std::enable_shared_from_this<ViewerInstance>
 {
 public:
   // creates the viewer instance by using host:port from condata
@@ -52,32 +60,38 @@ public:
   ViewerInstance(ViewerInstance &&) = delete;
   ViewerInstance &operator=(ViewerInstance &&) = delete;
 
+  //
+  // Destroys the window if it is still there, which happens only if start()
+  // was not called or failed; the connection has ended, as it held a
+  // reference until then. Called by the deleter of ViewerCollector, on the
+  // GUI thread, at the top of the message loop.
+  //
   ~ViewerInstance();
 
   bool requiresReconnect() const;
 
   //
-  // Whether the instance may be deleted without waiting: its window is gone
-  // (ViewerWindow::isStopped()) and its connection has finished
-  // (RemoteViewerCore::isFinished()). Closing the window stops the
-  // connection, so this becomes true shortly after; until then, the objects
-  // the connection uses (window, authentication handler, file transfer)
-  // stay alive. GUI thread.
+  // Starts the connection, which holds a reference to this object until it
+  // has ended (RemoteViewerCore::start(), given the window as the adapter,
+  // through this object's control block), and then gives the window its own
+  // reference (ViewerWindow::setOwner()). GUI thread.
   //
-  bool isStopped() const;
+  // Pre-conditions: owned by a std::shared_ptr (ViewerCollector::
+  // addInstance()); called once.
+  // Post-conditions: on an exception, the connection was not started, and
+  // the window holds no reference, so the instance goes with the caller's.
+  //
   void start();
 
   //
-  // Closes the window (posting WM_USER_STOP), stops the connection, and
-  // cancels a pending password request. Does not wait. GUI thread.
+  // For cooperative termination: destroys the window, which stops the
+  // connection and cancels a pending password request. Does not wait; the
+  // instance is deleted once the connection has ended.
+  //
+  // Pre-conditions: GUI thread, with no window procedure of this window on
+  // the stack (ViewerWindow::destroy()).
   //
   void stop();
-
-  // Waits until the core thread has finished. Called on the GUI thread, so
-  // it first cancels a pending password request
-  // (ViewerWindow::cancelPasswordRequest()), which only this thread could
-  // answer.
-  void waitViewer();
 
 protected:
   ConnectionData m_condata;

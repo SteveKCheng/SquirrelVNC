@@ -27,7 +27,11 @@
 #include "util/winhdr.h"
 #include "thread/LocalMutex.h"
 
+#include <condition_variable>
+#include <deque>
+#include <functional>
 #include <list>
+#include <mutex>
 
 /**
  * Base Windows Application class.
@@ -76,6 +80,31 @@ public:
   bool postMessage(UINT message, WPARAM wParam = 0, LPARAM lParam = 0);
 
   /**
+   * Runs work on the GUI thread, from the top of the application's message
+   * loop (processMessages()), where no window procedure is on the stack:
+   * never from the nested loop of a dialog, a message box or a menu. For
+   * deleting objects that own windows. Any thread.
+   * Pre-conditions: work does not throw.
+   * Post-conditions: work is queued after any queued before it, and the
+   * loop is woken (with WM_NULL to the main window). Once the loop has
+   * ended, work runs only if runPostedWork() is called.
+   */
+  void postToMessageLoop(std::function<void()> work);
+
+  /**
+   * Runs the work queued by postToMessageLoop(), in order, including work
+   * queued meanwhile, until none is left.
+   * Pre-conditions: GUI thread, with no window procedure on the stack.
+   */
+  void runPostedWork();
+
+  /**
+   * Waits until postToMessageLoop() has queued work that runPostedWork() has
+   * not run, for when the message loop has ended. GUI thread.
+   */
+  void waitForPostedWork();
+
+  /**
    * Adds modeless dialog to application modeless dialog list to
    * enable switching between controls by pressing tab button.
    * @param dialogWindow HWND of modeless dialog.
@@ -111,6 +140,12 @@ protected:
 private:
   static LocalMutex m_MDLMutex; // Modeless dialog list mutex.
   static std::list<HWND> m_modelessDialogList;
+
+  // The work of postToMessageLoop(), not yet run; m_postedWorkQueued is
+  // notified when some is added.
+  std::mutex m_postedWorkLock;
+  std::condition_variable m_postedWorkQueued;
+  std::deque<std::function<void()>> m_postedWork;
 };
 
 #endif // __WINDOWSAPPLICATION_H__

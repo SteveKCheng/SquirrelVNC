@@ -50,10 +50,13 @@ consequences:
 - The dialog's modal loop now runs on the GUI thread, so other windows
   keep working through it, but without `TvnViewer::processMessages`:
   no accelerators, and no `IsDialogMessage` for modeless dialogs, while
-  it is open. `ViewerWindow::isStopped()` returns false during the
+  it is open. ~~`ViewerWindow::isStopped()` returns false during the
   dialog, so that `ViewerCollector::deleteDeadInstances()`, which can
   run from a timer inside that loop, cannot delete the instance whose
-  handler is still on the stack.
+  handler is still on the stack.~~ *Since Phase 4 step 2c was redone
+  (2026-10-26), an instance is deleted only from the top of the
+  application's message loop (`WindowsApplication::postToMessageLoop()`),
+  never inside a nested loop, so no exception for the dialog is needed.*
 
 ## A framebuffer update, end to end
 
@@ -183,8 +186,9 @@ None of these is a security issue; all are latent.
      will process once the loop has ended, and then waits for its core
      thread, which nothing has stopped. If it were reached with a live
      connection, it would wait until the server disconnected. *Fixed
-     2026-10-26 (Phase 4 step 2c): `ViewerInstance::stop()` stops the
-     connection itself.*
+     2026-10-26 (Phase 4 step 2c): `ViewerInstance::stop()` destroys the
+     window itself, which stops the connection, and
+     `destroyAllInstances()` runs the deletions while it waits.*
 2. **Data races that Windows tolerates:**
    - pixels written into the DIB while it is being painted (deliberate,
      see above);
@@ -225,7 +229,7 @@ that takes the same lock, then checking each hit by hand, confirmed:
 |---|---|---|
 | `DesktopWindow::m_bufferLock` | `onPaint` → `doDraw` → `drawImage`: three acquisitions on every paint | GUI |
 | `FileAccount::m_logMut` | `flush` → `format`; `init` → `setNewFile` → `openFile` | any thread that logs |
-| `ViewerCollector::m_lockObj` | `destroyAllInstances` → `deleteDeadInstances` | GUI |
+| ~~`ViewerCollector::m_lockObj`~~ *(removed 2026-10-26)* | ~~`destroyAllInstances` → `deleteDeadInstances`~~ | GUI |
 
 Plausible but unconfirmed: `WindowsApplication::processDialogMessage`
 holds `m_MDLMutex` while `IsDialogMessage` dispatches to dialogs. A

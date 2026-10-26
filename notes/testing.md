@@ -162,10 +162,17 @@ need it; the generator models whatever the harness does.
   Framebuffer updates and property changes come from the notifier
   thread at times that vary between runs, so they are not logged; the
   PPM covers their result.
-- **Ending.** `waitTermination()` waits for the notifier first, and the
+- **Ending.** ~~`waitTermination()` waits for the notifier first, and the
   notifier runs until `stop()`. So `main()` waits for the adapter's
   end-of-session event, then calls `stop()` and `waitTermination()`,
-  then copies the framebuffer and writes the PPM. The exit code says
+  then copies the framebuffer and writes the PPM.~~ *Since Phase 4 step
+  2c (2026-10-26), the core's connection holds a reference to the
+  adapter until it has ended (`RemoteViewerCore::start()`); `main()`
+  gives it one that owns nothing and fulfils a promise when the last
+  copy is released. So `main()` waits for the adapter's end-of-session
+  event, then calls `stop()` and waits for that release, then copies
+  the framebuffer and writes the PPM; destroying the core ends the
+  notifier.* The exit code says
   whether the program itself failed; whether the session went as
   expected is for the comparison.
 - **PPM.** P6, 8 bits per channel, each component `c` scaled from its

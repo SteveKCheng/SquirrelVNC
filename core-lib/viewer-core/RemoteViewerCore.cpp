@@ -75,6 +75,7 @@
 #include <asio/write.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <stdexcept>
 #include <variant>
 
@@ -110,7 +111,6 @@ RemoteViewerCore::RemoteViewerCore(Logger *logger)
   m_acceptedSocket(INVALID_SOCKET),
   m_isStopping(false),
   m_isFinished(false),
-  m_pendingPosts(0),
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter),
   m_decoderStore(&m_logWriter),
   m_isTightEnabled(true),
@@ -157,17 +157,11 @@ void RemoteViewerCore::init()
 
 RemoteViewerCore::~RemoteViewerCore()
 {
+  // The connection is over, so stop() posts nothing (see start()).
+  assert(m_adapterRef.expired());
   try {
-    // Stop all threads.
-    stop();
-
-    // If core isn't started, then this thread isn't execute,
-    // wait only thead of FbUpdateNotifier.
-    if (wasStarted()) {
-      waitTermination();
-    } else {
-      m_fbUpdateNotifier.wait();
-    }
+    m_fbUpdateNotifier.terminate();
+    m_fbUpdateNotifier.wait();
   } catch (...) {
   }
   // Taken over, but never driven: start() failed.
@@ -176,7 +170,7 @@ RemoteViewerCore::~RemoteViewerCore()
   }
 }
 
-void RemoteViewerCore::start(CoreEventsAdapter *adapter,
+void RemoteViewerCore::start(std::shared_ptr<CoreEventsAdapter> adapter,
                              bool sharedFlag)
 {
   m_logWriter.detail(_T("Starting remote viewer core..."));
@@ -196,47 +190,55 @@ void RemoteViewerCore::start(CoreEventsAdapter *adapter,
   }
 
   m_sharedFlag = sharedFlag;
-  m_adapter = adapter;
+  m_adapter = adapter.get();
+  m_adapterRef = adapter;
 
-  m_fbUpdateNotifier.setAdapter(adapter);
+  m_fbUpdateNotifier.setAdapter(m_adapter);
 
   m_executor = NetworkThread::instance().getExecutor();
   if (m_input == nullptr) {
     m_ownOutput = std::make_unique<RfbOutputGate>(&m_queuedOutput);
     m_output = m_ownOutput.get();
   }
+  // The connection's reference to the adapter's owner is held by the
+  // completion handler.
   asio::co_spawn(m_executor, drive(),
-                 asio::bind_cancellation_slot(m_stopSignal.slot(),
-                                              [this](std::exception_ptr failure) {
-                                                finish(failure);
-                                              }));
+                 asio::bind_cancellation_slot(
+                   m_stopSignal.slot(),
+                   [this, owner = std::move(adapter)](std::exception_ptr failure) mutable {
+                     finish(failure);
+                     // Released from a handler of its own, which runs once
+                     // Asio has finished with the coroutine and with
+                     // m_stopSignal: releasing it may delete this object.
+                     asio::post(m_executor, [owner = std::move(owner)] {});
+                   }));
   m_logWriter.debug(_T("Remote viewer core is started"));
 }
 
 void RemoteViewerCore::start(const TCHAR *host,
                              UINT16 port,
-                             CoreEventsAdapter *adapter,
+                             std::shared_ptr<CoreEventsAdapter> adapter,
                              bool sharedFlag)
 {
   m_host = host;
   m_port = port;
-  start(adapter, sharedFlag);
+  start(std::move(adapter), sharedFlag);
 }
 void RemoteViewerCore::start(SocketIPv4 *socket,
-                             CoreEventsAdapter *adapter,
+                             std::shared_ptr<CoreEventsAdapter> adapter,
                              bool sharedFlag)
 {
   m_acceptedSocket = socket->release();
-  start(adapter, sharedFlag);
+  start(std::move(adapter), sharedFlag);
 }
 
 void RemoteViewerCore::start(RfbInputGate *input, RfbOutputGate *output,
-                             CoreEventsAdapter *adapter,
+                             std::shared_ptr<CoreEventsAdapter> adapter,
                              bool sharedFlag)
 {
   m_input = input;
   m_output = output;
-  start(adapter, sharedFlag);
+  start(std::move(adapter), sharedFlag);
 }
 
 bool RemoteViewerCore::wasStarted() const
@@ -265,44 +267,24 @@ void RemoteViewerCore::stop()
   m_isStopping = true;
   m_fbUpdateNotifier.terminate();
   if (wasStarted()) {
-    // The signal is not thread-safe: it is emitted on the network thread.
+    // The signal is not thread-safe: it is emitted on the network thread,
+    // and only while drive() may still be cancelled.
     postToLoop([this] {
-      m_stopSignal.emit(asio::cancellation_type::terminal);
+      if (!m_isFinished) {
+        m_stopSignal.emit(asio::cancellation_type::terminal);
+      }
     });
   }
 }
 
-void RemoteViewerCore::waitTermination()
-{
-  m_fbUpdateNotifier.wait();
-  std::unique_lock<std::mutex> lock(m_finishLock);
-  m_finishChanged.wait(lock, [this] {
-    return m_isFinished && m_pendingPosts == 0;
-  });
-}
-
-bool RemoteViewerCore::isFinished() const
-{
-  if (!wasStarted()) {
-    return true;
-  }
-  std::lock_guard<std::mutex> lock(m_finishLock);
-  return m_isFinished && m_pendingPosts == 0;
-}
-
 void RemoteViewerCore::postToLoop(std::function<void()> work)
 {
-  std::lock_guard<std::mutex> lock(m_finishLock);
-  if (m_isFinished) {
+  std::shared_ptr<CoreEventsAdapter> owner = m_adapterRef.lock();
+  if (!owner) {
     return;
   }
-  m_pendingPosts++;
-  asio::post(m_executor, [this, work = std::move(work)] {
+  asio::post(m_executor, [owner = std::move(owner), work = std::move(work)] {
     work();
-    std::lock_guard<std::mutex> lock(m_finishLock);
-    m_pendingPosts--;
-    // Under the lock: once it is released, the object may be gone.
-    m_finishChanged.notify_all();
   });
 }
 
@@ -1097,8 +1079,8 @@ asio::awaitable<std::exception_ptr> RemoteViewerCore::serveRequest(AwaitableRead
         });
       }
       request.start([this, shared, slot](std::exception_ptr failure) mutable {
-        // Any thread: back to the network thread, counted, so that the core
-        // is not finished before the handler has run.
+        // Any thread: back to the network thread, with a reference that
+        // keeps the core alive until the handler has run.
         postToLoop([shared, slot, failure]() mutable {
           if (slot.is_connected()) {
             slot.clear();
@@ -1182,10 +1164,7 @@ void RemoteViewerCore::finish(std::exception_ptr failure)
       }
     }
   }
-  std::lock_guard<std::mutex> lock(m_finishLock);
   m_isFinished = true;
-  // Under the lock: once it is released, the object may be gone.
-  m_finishChanged.notify_all();
 }
 
 Task<UINT32> RemoteViewerCore::receiveServerMessageType()

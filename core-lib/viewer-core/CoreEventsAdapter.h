@@ -65,13 +65,13 @@ struct ConnectionInfo
 // remote screen, then you should override two functions: onFrameBufferUpdate()
 // and onFrameBufferPropChange().
 //
-// Threads: the events are called on RemoteViewerCore's thread, except
+// Threads: the events are called on the network thread, except
 // onFrameBufferUpdate() and onFrameBufferPropChange(), which are called on
 // its FbUpdateNotifier thread. An implementation must not wait for the GUI
 // thread: no SendMessage(), and no calls on its windows that Windows turns
 // into one (ShowWindow() and the like). The GUI thread may itself be waiting
-// for these threads to finish, in RemoteViewerCore::waitTermination(). Post
-// to the GUI thread instead.
+// for the notifier thread to finish, in ~RemoteViewerCore(), and the network
+// thread runs every connection. Post to the GUI thread instead.
 //
 
 class CoreEventsAdapter

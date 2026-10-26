@@ -50,6 +50,7 @@
 #include <stdlib.h>
 
 #include <algorithm>
+#include <future>
 #include <memory>
 #include <string.h>
 #include <string>
@@ -498,32 +499,45 @@ int _tmain(int argc, TCHAR *argv[])
   // The core is never destroyed if the session times out (see below), or
   // fails, so it lives on the heap.
   std::unique_ptr<RemoteViewerCore> core = std::make_unique<RemoteViewerCore>(&logger);
+  // What the core's connection holds while it runs (RemoteViewerCore::
+  // start()): a reference that owns nothing, and tells when the last copy
+  // has been released, after which the core may be destroyed. The promise
+  // is shared, as a connection left running on failure may release it
+  // after main() has returned.
+  auto released = std::make_shared<std::promise<void>>();
+  std::future<void> isReleased = released->get_future();
+  std::shared_ptr<CoreEventsAdapter> adapterRef(&adapter, [released](CoreEventsAdapter *) {
+    released->set_value();
+  });
   std::vector<char> ppm;
   try {
     core->setMaxFrameBufferPixels(options.maxPixels);
     authHandler.addAuthCapability(*core);
     if (server) {
-      core->start(_T("127.0.0.1"), server->getPort(), &adapter, true);
+      core->start(_T("127.0.0.1"), server->getPort(), adapterRef, true);
     } else {
-      core->start(&inputGate, &outputGate, &adapter, true);
+      core->start(&inputGate, &outputGate, adapterRef, true);
     }
+    adapterRef.reset();
 
     if (!adapter.waitForEnd(options.timeoutMs)) {
-      // A decoder that loops cannot be stopped from here, and destroying
-      // the core would wait for it, so leave without cleaning up.
+      // A decoder that loops cannot be stopped from here, and the core
+      // cannot be destroyed while its connection runs, so leave without
+      // cleaning up.
       _ftprintf(stderr, _T("The session did not end within the timeout\n"));
       fflush(stderr);
       _exit(EXIT_TIMEOUT);
     }
     core->stop();
-    core->waitTermination();
+    isReleased.wait();
 
     FrameBuffer frameBuffer;
     core->copyFrameBuffer(frameBuffer);
     ppm = frameBufferToPpm(frameBuffer);
   } catch (const Exception &e) {
     _ftprintf(stderr, _T("Error: %s\n"), e.getMessage());
-    // Its thread may still be running: destroying it would wait.
+    // Its connection may still hold references to the adapter, so it must
+    // not be destroyed.
     (void)core.release();
     return EXIT_ERROR;
   }

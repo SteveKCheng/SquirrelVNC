@@ -62,6 +62,7 @@ int WindowsApplication::processMessages()
     if (ret < 0) {
       return 1;
     }
+    runPostedWork();
     if (!processDialogMessage(&msg)) {
       TranslateMessage(&msg);
       DispatchMessage(&msg);
@@ -101,6 +102,41 @@ void WindowsApplication::shutdown()
 bool WindowsApplication::postMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
   return PostMessage(m_mainWindow, message, wParam, lParam) != 0;
+}
+
+void WindowsApplication::postToMessageLoop(std::function<void()> work)
+{
+  {
+    std::lock_guard<std::mutex> lock(m_postedWorkLock);
+    m_postedWork.push_back(std::move(work));
+  }
+  m_postedWorkQueued.notify_all();
+  // Only to wake GetMessage(): the work runs before the message is
+  // dispatched. Once the main window is gone, this fails, and
+  // waitForPostedWork() is what waits.
+  PostMessage(m_mainWindow, WM_NULL, 0, 0);
+}
+
+void WindowsApplication::runPostedWork()
+{
+  for (;;) {
+    std::function<void()> work;
+    {
+      std::lock_guard<std::mutex> lock(m_postedWorkLock);
+      if (m_postedWork.empty()) {
+        return;
+      }
+      work = std::move(m_postedWork.front());
+      m_postedWork.pop_front();
+    }
+    work();
+  }
+}
+
+void WindowsApplication::waitForPostedWork()
+{
+  std::unique_lock<std::mutex> lock(m_postedWorkLock);
+  m_postedWorkQueued.wait(lock, [this] { return !m_postedWork.empty(); });
 }
 
 void WindowsApplication::addModelessDialog(HWND dialogWindow)

@@ -109,9 +109,11 @@ public:
   // This message need send if config is changed.
   static const int WM_USER_CONFIGURATION_RELOAD = WM_USER + 6;
 
-  // This timer is used for deleting dead instances of viewer.
-  static const int TIMER_DELETE_DEAD_INSTANCE = 1;
-  static const int TIMER_DELETE_DEAD_INSTANCE_DELAY = 50;
+  // This timer checks whether the application should end: no viewer
+  // instance left (instances delete themselves; ViewerCollector), no login
+  // dialog, and not listening.
+  static const int TIMER_CHECK_SHUTDOWN = 1;
+  static const int TIMER_CHECK_SHUTDOWN_DELAY = 50;
 
 protected:
   // Starts accepting connections from servers on listeningPort.  On
@@ -149,8 +151,6 @@ protected:
   HACCEL m_hAccelTable;
 
 private:
-  void addInstance(std::unique_ptr<ViewerInstance> viewerInstance);
-
   bool m_isListening;
   
   LogWriter m_logWriter;

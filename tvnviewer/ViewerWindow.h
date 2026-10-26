@@ -66,12 +66,28 @@ public:
   bool requiresReconnect() const;
 
   //
-  // Returns true once the window has been destroyed (m_stopped), and the
-  // instance may be deleted; but false while handlePasswordRequest() is
-  // running, whose dialog runs a message loop in which the instance could
-  // otherwise be deleted (ViewerCollector::deleteDeadInstances()).
+  // Keeps owner, the object this window belongs to (ViewerInstance), alive
+  // until the window is destroyed (WM_NCDESTROY): the Win32 "window deletes
+  // itself" pattern, through a shared reference, so that a connection still
+  // running keeps the owner too (notes/async-networking.md, "Ownership by
+  // std::shared_ptr"). GUI thread.
   //
-  bool isStopped() const;
+  // Pre-conditions: the window exists and has not been destroyed.
+  // Post-conditions: m_owner holds owner until WM_NCDESTROY, which releases
+  // it; the release posts the deletion, if it was the last reference, and
+  // never deletes inside the window procedure.
+  //
+  void setOwner(std::shared_ptr<void> owner);
+
+  //
+  // Destroys the window, unless it is gone already; destroying it stops the
+  // connection and cancels a pending password request (onDestroy()).
+  //
+  // Pre-conditions: GUI thread, with no window procedure of this window on
+  // the stack (from the top of the message loop, or after it has ended).
+  // Post-conditions: the window is gone, and m_owner released.
+  //
+  void destroy();
 
   //
   // Called with the password, or with nothing; see requestPassword().
@@ -103,7 +119,6 @@ public:
   void cancelPasswordRequest() noexcept;
 
   static const int WM_USER_ERROR = WM_USER + 1;
-  static const int WM_USER_STOP = WM_USER + 2;
   static const int WM_USER_DISCONNECT = WM_USER + 3;
   static const int WM_USER_AUTH_ERROR = WM_USER + 4;
   static const int WM_USER_FS_WARNING = WM_USER + 5;
@@ -275,9 +290,6 @@ protected:
   bool m_isPasswordRequestCancelled;
   std::mutex m_passwordRequestLock;
 
-  // True while handlePasswordRequest() runs. Accessed only on the GUI thread.
-  bool m_isInPasswordDialog;
-
   // Flag is set, if now viewer is in full screen mode
   bool m_isFullScr;
   // It's size of work-area in windowed mode. It is necessary for restore size of window.
@@ -299,9 +311,12 @@ protected:
   // Flag is set, if instance is requires to reconnect.
   bool m_requiresReconnect;
 
-  // Flag is set, if viewer instance is stopped.
-  // Destructor of ViewerWindow may be called, if this flag is true.
+  // Set when the window has been destroyed (WM_NCDESTROY).
   bool m_stopped;
+
+  // The owner of this window, kept alive until WM_NCDESTROY (setOwner()).
+  // Accessed only on the GUI thread.
+  std::shared_ptr<void> m_owner;
 private:
   std::vector<int> m_standardScale;
   void changeCursor(int type);
