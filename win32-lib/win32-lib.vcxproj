@@ -105,6 +105,7 @@
     <ClCompile Include="thread\AutoLock.cpp" />
     <ClCompile Include="thread\LocalMutex.cpp" />
     <ClCompile Include="thread\Thread.cpp" />
+    <ClCompile Include="network\HostResolver.cpp" />
     <ClCompile Include="network\RfbInputGate.cpp" />
     <ClCompile Include="network\RfbOutputGate.cpp" />
     <ClCompile Include="network\TcpServer.cpp" />
@@ -195,6 +196,7 @@
     <ClInclude Include="thread\LocalMutex.h" />
     <ClInclude Include="thread\Lockable.h" />
     <ClInclude Include="thread\Thread.h" />
+    <ClInclude Include="network\HostResolver.h" />
     <ClInclude Include="network\RfbInputGate.h" />
     <ClInclude Include="network\RfbOutputGate.h" />
     <ClInclude Include="network\TcpServer.h" />

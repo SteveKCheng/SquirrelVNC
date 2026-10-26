@@ -45,6 +45,9 @@
     <ClCompile Include="thread\Thread.cpp">
       <Filter>thread</Filter>
     </ClCompile>
+    <ClCompile Include="network\HostResolver.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
     <ClCompile Include="network\RfbInputGate.cpp">
       <Filter>network</Filter>
     </ClCompile>
@@ -310,6 +313,9 @@
     </ClInclude>
     <ClInclude Include="thread\Thread.h">
       <Filter>thread</Filter>
+    </ClInclude>
+    <ClInclude Include="network\HostResolver.h">
+      <Filter>network</Filter>
     </ClInclude>
     <ClInclude Include="network\RfbInputGate.h">
       <Filter>network</Filter>
