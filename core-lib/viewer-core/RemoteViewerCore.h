@@ -42,6 +42,7 @@
 #include "TcpConnection.h"
 
 #include <map>
+#include <mutex>
 #include <variant>
 
 //
@@ -289,6 +290,16 @@ public:
   void sendCutTextEvent(const StringStorage &cutText);
 
   //
+  // Timing of setPreferredEncoding(), allowCopyRect(), setJpegQualityLevel(),
+  // setCompressionLevel() and enableCursorShapeUpdates(): they change the
+  // set of decoders, which only the core thread may touch while it runs, so
+  // each only queues its change. The core thread makes the changes in order,
+  // sending SetEncodings where needed, before it reads the next server
+  // message; changes queued before start() are made once the protocol is
+  // initialized, before the first SetEncodings.
+  //
+
+  //
   // Set the preferred encoding type. Note that the server is not guaranteed
   // to use this encoding, this is only a recommendation for the server.
   // By default, Tight encoding (EncodingDefs::TIGHT) is the preferred one.
@@ -484,10 +495,29 @@ private:
                                    IgnoreCursorShapeUpdatesEvent>;
 
   //
-  // Handles event, for now at once, on the calling thread, with its
-  // handle() function. Throws what that throws.
+  // Handles event with its handle() function: at once, on the calling
+  // thread; except for the events that change m_decoderStore
+  // (changesDecoderStore()), which it queues for applyPendingEvents(), on
+  // the core thread. Any thread. Throws what the handler throws, when it is
+  // called here.
   //
   void post(ClientEvent event);
+
+  //
+  // Whether event is one that changes m_decoderStore.
+  //
+  static bool changesDecoderStore(const ClientEvent &event);
+
+  //
+  // Handles the events queued by post(), in the order they were posted.
+  // Called on the core thread only, where no decoder is in use: before each
+  // server message is read, and once after the protocol initialization.
+  //
+  // Post-conditions: the events queued when it was called have been
+  // handled, unless a handler threw; the events after that one are dropped.
+  // Throws what the handlers throw.
+  //
+  void applyPendingEvents();
 
   //
   // The handlers of post(), one for each public method: see that method for
@@ -743,6 +773,11 @@ private:
 
   // This flag is set after call start().
   mutable LocalMutex m_startLock;
+
+  // The events queued by post() for applyPendingEvents(). Guarded by
+  // m_pendingEventsLock.
+  std::vector<ClientEvent> m_pendingEvents;
+  std::mutex m_pendingEventsLock;
   bool m_wasStarted;
 
   // The frame buffer limit, in pixels. Written only before start(), under

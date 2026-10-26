@@ -768,6 +768,10 @@ void RemoteViewerCore::execute()
       m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onConnected()"));
     }
 
+    // The settings queued so far, before m_wasConnected is set, so that
+    // their handlers leave sending SetEncodings to sendEncodings() below.
+    applyPendingEvents();
+
     {
       AutoLock al(&m_connectLock);
       m_wasConnected = true;
@@ -786,6 +790,7 @@ void RemoteViewerCore::execute()
 
     // received server messages
     while (!isTerminating()) {
+      applyPendingEvents();
       UINT32 msgType = receiveServerMessageType();
 
       switch (msgType) {
@@ -1406,7 +1411,35 @@ void RemoteViewerCore::sendEncodings()
 
 void RemoteViewerCore::post(ClientEvent event)
 {
+  // DecoderStore has no lock, and the core thread looks up a decoder for
+  // every rectangle, so changes to it wait for that thread.
+  if (changesDecoderStore(event)) {
+    std::lock_guard<std::mutex> lock(m_pendingEventsLock);
+    m_pendingEvents.push_back(std::move(event));
+    return;
+  }
   std::visit([this](const auto &e) { handle(e); }, event);
+}
+
+bool RemoteViewerCore::changesDecoderStore(const ClientEvent &event)
+{
+  return std::holds_alternative<PreferredEncodingEvent>(event) ||
+         std::holds_alternative<CopyRectEvent>(event) ||
+         std::holds_alternative<JpegQualityEvent>(event) ||
+         std::holds_alternative<CompressionLevelEvent>(event) ||
+         std::holds_alternative<CursorShapeUpdatesEvent>(event);
+}
+
+void RemoteViewerCore::applyPendingEvents()
+{
+  std::vector<ClientEvent> events;
+  {
+    std::lock_guard<std::mutex> lock(m_pendingEventsLock);
+    events.swap(m_pendingEvents);
+  }
+  for (const ClientEvent &event : events) {
+    std::visit([this](const auto &e) { handle(e); }, event);
+  }
 }
 
 void RemoteViewerCore::handle(const PixelFormatEvent &event)
