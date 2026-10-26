@@ -34,6 +34,8 @@
 
 #include "FuzzNotifier.h"
 
+#include <vector>
+
 //
 // Reads one fuzz input: what a server sends after the security handshake,
 // in a session where the client never changes the pixel format, that is
@@ -66,17 +68,48 @@ public:
   ~FuzzSession();
 
   //
-  // Read the whole input.
+  // The largest piece in which run() gives the input the second time.
+  //
+  static const size_t MAX_SPLIT_PIECE = 64;
+
+  //
+  // Read the whole input, twice: given as the reader asks for it, then in
+  // pieces of random sizes up to MAX_SPLIT_PIECE bytes, from a seed taken
+  // from the input. The protocol code suspends whenever its reader runs
+  // short, so the second run stops and resumes it at many points
+  // (notes/async-networking.md, Phase 3); both runs must end the same way,
+  // with the same frame buffer, or run() aborts: a finding.
   //
   // Pre-conditions: data points to size bytes (data may be 0 if size is 0).
   // Post-conditions: the input has been read up to its end, or up to the
   // first point where the viewer would reject it; rejection (Exception) is
   // caught, as it is correct behaviour. Anything else (a crash, an ASan
-  // report, a hang) is a finding. The notifier's region is empty again.
+  // report, a hang, the two runs differing) is a finding. The notifier's
+  // region is empty again.
   //
   void run(const UINT8 *data, size_t size);
 
 private:
+  //
+  // How one run ended: whether the input was rejected, and the frame
+  // buffer at the end.
+  //
+  struct Outcome
+  {
+    bool isRejected = false;
+    Dimension dimension;
+    PixelFormat pixelFormat;
+    std::vector<char> pixels;
+
+    bool operator==(const Outcome &other) const;
+  };
+
+  //
+  // Reads the input from stream once, as run() describes, with new
+  // decoders and frame buffers.
+  //
+  Outcome runOnce(InputStream &stream);
+
   Task<> readSession();
   Task<> readServerInit();
   Task<PixelFormat> readPixelFormat();

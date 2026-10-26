@@ -39,7 +39,13 @@
 #include "viewer-core/ViewerBufferSize.h"
 #include "viewer-core/ZrleDecoder.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <vector>
+
+// Shared with rfb-replay.
+#include "../rfb-replay/SplitInputStream.h"
 
 // As in RemoteViewerCore.cpp.
 static const UINT32 MAX_DESKTOP_NAME_LENGTH = 64 * 1024;
@@ -61,7 +67,36 @@ FuzzSession::~FuzzSession()
 
 void FuzzSession::run(const UINT8 *data, size_t size)
 {
-  ByteArrayInputStream stream(reinterpret_cast<const char *>(data), size);
+  const char *bytes = reinterpret_cast<const char *>(data);
+  ByteArrayInputStream whole(bytes, size);
+  Outcome wholeOutcome = runOnce(whole);
+
+  // The seed comes from the input (FNV-1a), so that a run can be repeated.
+  UINT32 seed = 2166136261u;
+  for (size_t i = 0; i < size; i++) {
+    seed = (seed ^ data[i]) * 16777619u;
+  }
+  SplitInputStream split(bytes, size, MAX_SPLIT_PIECE, seed);
+  Outcome splitOutcome = runOnce(split);
+
+  if (!(wholeOutcome == splitOutcome)) {
+    fprintf(stderr, "rfb-fuzz: the input split into pieces (seed %u) gave a "
+                    "different result from the input whole\n", seed);
+    abort();
+  }
+}
+
+bool FuzzSession::Outcome::operator==(const Outcome &other) const
+{
+  return isRejected == other.isRejected &&
+         dimension.isEqualTo(other.dimension) &&
+         pixelFormat.isEqualTo(other.pixelFormat) &&
+         pixels == other.pixels;
+}
+
+FuzzSession::Outcome FuzzSession::runOnce(InputStream &stream)
+{
+  Outcome outcome;
   AwaitableReader reader;
 
   // New decoders for each input, so that their state (the zlib streams of
@@ -94,6 +129,13 @@ void FuzzSession::run(const UINT8 *data, size_t size)
     runBlocking(readSession(), reader, stream);
   } catch (const Exception &) {
     // The viewer rejects the input here: correct behaviour.
+    outcome.isRejected = true;
+  }
+  outcome.dimension = frameBuffer.getDimension();
+  outcome.pixelFormat = frameBuffer.getPixelFormat();
+  const char *pixels = static_cast<const char *>(frameBuffer.getBuffer());
+  if (pixels != nullptr) {
+    outcome.pixels.assign(pixels, pixels + frameBuffer.getBufferSize());
   }
   m_reader = nullptr;
   m_frameBuffer = nullptr;
@@ -101,6 +143,7 @@ void FuzzSession::run(const UINT8 *data, size_t size)
   m_decoderStore = nullptr;
   m_cursorPainter = nullptr;
   m_notifier->clearUpdates();
+  return outcome;
 }
 
 // The whole input: ServerInit, then messages until one that the viewer

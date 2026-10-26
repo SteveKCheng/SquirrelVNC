@@ -111,6 +111,7 @@
   <ItemGroup>
     <ClCompile Include="FuzzSession.cpp" />
     <ClCompile Include="rfb-fuzz.cpp" />
+    <ClCompile Include="..\rfb-replay\SplitInputStream.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FuzzNotifier.h" />
