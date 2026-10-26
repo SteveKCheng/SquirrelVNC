@@ -535,6 +535,44 @@ thread.*
 - Checked against the protocol tests and the fuzz corpus: identical
   output.
 
+**Done** (2026-10-26), in five commits, each building in Debug Win32,
+Debug x64, ReleaseAsan x64 and ReleaseFuzz x64 with the replay cases and
+the fuzz corpus passing:
+
+1. The rectangle decoders (`DecoderOfRectangle::process()`/`decode()`
+   and Tight's and ZRLE's helpers that read the network). ZRLE's tile
+   readers stay synchronous: they read the inflated data from memory.
+2. `processPseudoEncoding()` (the rich cursor).
+3. File transfer: `FileTransferReplyBuffer::readReply()` and the six
+   `read*Reply()` functions that read, `readCompressedDataBlock()`,
+   `processRfbMessage()` and `ServerMessageListener::onServerMessage()`.
+   The replies that are only a message type lost their unused stream
+   parameter; the file list is still parsed synchronously from memory.
+4. `AuthHandler::authenticate()` and `VncAuthentication::vncAuthenticate()`.
+   Writes stay synchronous.
+5. `RemoteViewerCore`: the 19 functions that read, or call those that
+   do, read through a member `std::optional<AwaitableReader> m_reader`;
+   `execute()` keeps its `catch` handlers around `syncWait(run())`.
+
+Remarks for Phase 3:
+
+- `rfb-fuzz`'s `FuzzSession` still reads messages synchronously and runs
+  the decoders and pseudo-encodings with `syncWait()`; it has to become a
+  driver too before fuzzing with split input.
+- No `co_await` is in a scope that holds a lock: checked over all 49
+  coroutines with `tools/coroutine-colouring/check-locks.py`, which is to
+  be run again in the Phase 3 audit.
+- Decoder and pseudo-encoding coroutines take a borrowed
+  `AwaitableReader &`, and frame-buffer pointers and references; safe
+  because each `Task` is awaited at once.
+
+**Scripts** (`tools/coroutine-colouring/`): `colour.py` made layer 1, and
+`colour-core.py` with `split-execute.py` layer 5; `realign.py` re-aligns
+continuation lines after a changed `(`, and `dropmarked.py` removes the
+lines marked for deletion (done after realigning, which needs the line
+count unchanged). Layers 2 to 4 were small enough to edit with one-off
+scripts, not kept. Each result was reviewed by hand.
+
 ### Phase 3: really resumable, still on the core thread
 
 - The reader suspends when its buffer runs short. A small driver on the
