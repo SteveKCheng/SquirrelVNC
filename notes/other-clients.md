@@ -195,6 +195,21 @@ checked against neatvnc's `include/rfb-proto.h`.
 | Audio (QEMU audio) | ✓ | | ✓ | |
 | RSA-AES | ✓ | ✓ | ✓ | Not to be implemented; see above. |
 
+**neatvnc and changes of encoding or pixel format** (found 2026-10-26).
+A SetEncodings or SetPixelFormat that reaches neatvnc while it is
+encoding or sending a frame makes it drop that frame, unless the client
+supports Fence (`finish_fb_update()` in `src/server.c`, "Client changed
+pixel format or encoding with in-flight buffer"). It has already
+exchanged the client's damage for an empty region when it started the
+frame, so the areas of the dropped frame are not sent again until they
+change: the viewer keeps whatever it had there, black on the first
+frame. TightVNC's viewer sent an unchanged SetEncodings right after
+connecting, which showed this as black areas in the first screen while
+a movie played (Steve's test). SquirrelVNC now sends SetEncodings only
+when it changes something, and after a change during a session asks for
+the whole screen with the next update request. Fence support, which is
+in the plan anyway (`async-networking.md`), would avoid the drop.
+
 UltraVNC also has extensions that work only with its own server: its
 keepalive message, monitor selection (`rfbSetSW`, `rfbMonitorInfo`),
 a cache encoding, zstd and xz encodings, GII touch input, and text chat.

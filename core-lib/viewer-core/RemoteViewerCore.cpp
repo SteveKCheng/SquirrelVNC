@@ -1640,6 +1640,14 @@ void RemoteViewerCore::registerDecoderHandler(UINT32 code, std::unique_ptr<Decod
   m_decoderPriority[code] = priority;
 }
 
+void RemoteViewerCore::sendChangedEncodings()
+{
+  sendEncodings();
+  if (wasConnected()) {
+    refreshFrameBuffer();
+  }
+}
+
 void RemoteViewerCore::sendEncodings()
 {
   // If core isn't connected, then m_output may be isn't initialized.
@@ -1768,7 +1776,7 @@ void RemoteViewerCore::handle(const PreferredEncodingEvent &event)
   const auto &[encodingType] = event;
   // Only if it changed: see DecoderStore::setPreferredEncoding().
   if (m_decoderStore.setPreferredEncoding(encodingType)) {
-    sendEncodings();
+    sendChangedEncodings();
   }
 }
 
@@ -1777,7 +1785,7 @@ void RemoteViewerCore::handle(const CopyRectEvent &event)
   const auto &[allow] = event;
   // Only if it changed: see DecoderStore::setPreferredEncoding().
   if (m_decoderStore.allowCopyRect(allow)) {
-    sendEncodings();
+    sendChangedEncodings();
   }
 }
 
@@ -1798,7 +1806,7 @@ void RemoteViewerCore::handle(const CompressionLevelEvent &event)
 
   needUpdate |= m_decoderStore.addDecoder(std::make_unique<CompressionLevel>(&m_logWriter, newLevel), -1);
   if (needUpdate) {
-    sendEncodings();
+    sendChangedEncodings();
   }
 }
 
@@ -1819,7 +1827,7 @@ void RemoteViewerCore::handle(const JpegQualityEvent &event)
 
   needUpdate |= m_decoderStore.addDecoder(std::make_unique<JpegQualityLevel>(&m_logWriter, newLevel), -1);
   if (needUpdate) {
-    sendEncodings();
+    sendChangedEncodings();
   }
 }
 
@@ -1836,7 +1844,7 @@ void RemoteViewerCore::handle(const CursorShapeUpdatesEvent &event)
   }
   
   if (needUpdate) {
-    sendEncodings();
+    sendChangedEncodings();
   }
 }
 

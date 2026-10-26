@@ -768,6 +768,16 @@ private:
   void sendEncodings();
 
   //
+  // Sends SetEncodings after a setting changed them during the session,
+  // then makes the next update request ask for the whole screen
+  // (refreshFrameBuffer()). A server may drop the frame it is encoding when
+  // the encodings change, without sending its areas again later: neatvnc
+  // does, unless the client supports Fence (finish_fb_update()). Before the
+  // connection, only as sendEncodings().
+  //
+  void sendChangedEncodings();
+
+  //
   // This function return true, if flag m_wasConnected is true.
   // This flag is true after onConnected().
   //
