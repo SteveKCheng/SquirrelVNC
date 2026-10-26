@@ -49,6 +49,7 @@ SOFTWARE.
 #define REGIONSTRUCT_H
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "util/inttypes.h"
 
 /* Return values from RectIn() */
@@ -67,10 +68,6 @@ SOFTWARE.
 #endif
 
 #define CT_YXBANDED 18
-
-#define xalloc(n)        malloc(n)
-#define xrealloc(ptr, n) realloc((ptr), (n))
-#define xfree(ptr)       free(ptr)
 
 /*
  * X data types
@@ -211,7 +208,7 @@ extern RegDataRec miBrokenData;
     { \
 	(_pReg)->extents = miEmptyBox; \
 	if (((_size) > 1) && ((_pReg)->data = \
-			     (RegDataPtr)xalloc(REGION_SZOF(_size)))) \
+			     (RegDataPtr)malloc(REGION_SZOF(_size)))) \
 	{ \
 	    (_pReg)->data->size = (_size); \
 	    (_pReg)->data->numRects = 0; \
@@ -224,7 +221,7 @@ extern RegDataRec miBrokenData;
 #define REGION_UNINIT(_pReg) \
 { \
     if ((_pReg)->data && (_pReg)->data->size) { \
-	xfree((_pReg)->data); \
+	free((_pReg)->data); \
 	(_pReg)->data = NULL; \
     } \
 }

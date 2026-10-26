@@ -74,6 +74,15 @@ SOFTWARE.
 
 #include "x11region.h"
 
+/*
+ * Defined here rather than in x11region.h, which Region.h includes: a
+ * macro named xalloc in every file that includes it breaks <xiosbase>,
+ * whose std::ios_base has a member function of that name.
+ */
+#define xalloc(n)        malloc(n)
+#define xrealloc(ptr, n) realloc((ptr), (n))
+#define xfree(ptr)       free(ptr)
+
 #ifdef WIN32
 // warning C4244: '=' : conversion from '__int64' to 'int', possible loss of data
 #pragma warning(disable : 4244)
