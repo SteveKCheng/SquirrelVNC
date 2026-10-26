@@ -3,6 +3,7 @@
 **Table of Contents**
 
   - [Making the network code asynchronous](async-networking.md)
+  - [How the asynchronous protocol code is suspended and resumed](async-networking-resumption.md)
   - [The change of branding to SquirrelVNC and its icon artwork](branding-and-icons.md)
   - [How to use `clang-tidy` on this codebase](clang-tidy.md)
   - [Issues with clipboard handling](clipboard.md)
