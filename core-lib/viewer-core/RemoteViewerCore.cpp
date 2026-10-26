@@ -1766,15 +1766,19 @@ void RemoteViewerCore::handle(const CutTextEvent &event)
 void RemoteViewerCore::handle(const PreferredEncodingEvent &event)
 {
   const auto &[encodingType] = event;
-  m_decoderStore.setPreferredEncoding(encodingType);
-  sendEncodings();
+  // Only if it changed: see DecoderStore::setPreferredEncoding().
+  if (m_decoderStore.setPreferredEncoding(encodingType)) {
+    sendEncodings();
+  }
 }
 
 void RemoteViewerCore::handle(const CopyRectEvent &event)
 {
   const auto &[allow] = event;
-  m_decoderStore.allowCopyRect(allow);
-  sendEncodings();
+  // Only if it changed: see DecoderStore::setPreferredEncoding().
+  if (m_decoderStore.allowCopyRect(allow)) {
+    sendEncodings();
+  }
 }
 
 void RemoteViewerCore::handle(const CompressionLevelEvent &event)

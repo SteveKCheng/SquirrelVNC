@@ -53,4 +53,13 @@ void runDecoderStoreTests()
         "DecoderStore no longer finds the decoder removed");
   check(!store.removeDecoder(EncodingDefs::RAW),
         "DecoderStore reports a decoder it does not have");
+
+  // So that SetEncodings is sent only when it changes something.
+  check(!store.setPreferredEncoding(EncodingDefs::TIGHT) &&
+        store.setPreferredEncoding(EncodingDefs::ZRLE) &&
+        !store.setPreferredEncoding(EncodingDefs::ZRLE),
+        "DecoderStore::setPreferredEncoding reports whether it changed anything");
+  check(!store.allowCopyRect(true) && store.allowCopyRect(false) &&
+        !store.allowCopyRect(false),
+        "DecoderStore::allowCopyRect reports whether it changed anything");
 }

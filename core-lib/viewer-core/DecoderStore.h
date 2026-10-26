@@ -56,8 +56,17 @@ public:
   // return false, if decoder not exist
   bool removeDecoder(INT32 decoderId);
 
-  void setPreferredEncoding(INT32 encodingType);
-  void allowCopyRect(bool allow);
+  //
+  // Sets the encoding to put first in getDecoderIds(), or whether to list
+  // CopyRect there.
+  //
+  // Post-conditions: returns true if that changed what getDecoderIds()
+  // gives, so that SetEncodings needs to be sent again; false if it was so
+  // already. A SetEncodings that changes nothing is not harmless: neatvnc
+  // drops the frame it is encoding, without sending its areas again later.
+  //
+  bool setPreferredEncoding(INT32 encodingType);
+  bool allowCopyRect(bool allow);
 
 private:
   LogWriter *m_logWriter;

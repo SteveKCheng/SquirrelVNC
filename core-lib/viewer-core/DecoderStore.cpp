@@ -85,9 +85,12 @@ std::vector<INT32> DecoderStore::getDecoderIds()
 bool DecoderStore::addDecoder(std::unique_ptr<Decoder> decoder, int priority)
 {
   INT32 code = decoder->getCode();
-  m_logWriter->detail(_T("Decoder %d added"), code);
   // Does nothing, and decoder is freed, if the code is already there.
-  return m_decoders.try_emplace(code, priority, std::move(decoder)).second;
+  bool isAdded = m_decoders.try_emplace(code, priority, std::move(decoder)).second;
+  if (isAdded) {
+    m_logWriter->detail(_T("Decoder %d added"), code);
+  }
+  return isAdded;
 }
 
 bool DecoderStore::removeDecoder(INT32 decoderId)
@@ -99,18 +102,26 @@ bool DecoderStore::removeDecoder(INT32 decoderId)
   return false;
 }
 
-void DecoderStore::setPreferredEncoding(INT32 encodingType)
+bool DecoderStore::setPreferredEncoding(INT32 encodingType)
 {
+  if (encodingType == m_preferredEncoding) {
+    return false;
+  }
   m_logWriter->detail(_T("Decoder store: preferred encoding is \"%d\"."), encodingType);
   m_preferredEncoding = encodingType;
+  return true;
 }
 
-void DecoderStore::allowCopyRect(bool allow)
+bool DecoderStore::allowCopyRect(bool allow)
 {
+  if (allow == m_allowCopyRect) {
+    return false;
+  }
   if (allow) {
     m_logWriter->detail(_T("Decoder store: enable Copy Rect"));
   } else {
     m_logWriter->detail(_T("Decoder store: disable Copy Rect"));
   }
   m_allowCopyRect = allow;
+  return true;
 }
