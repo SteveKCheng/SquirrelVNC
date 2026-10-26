@@ -948,9 +948,25 @@ Decisions (Steve, 2026-10-25):
     nested class has access to the enclosing class's members; it holds no
     reference to the window, only its `HWND`, the desktop window (for the
     frame buffer events) and the file transfer. It keeps what the
-    connection reports under its own lock, and its GUI-thread side is
-    private, for `ViewerWindow` (friend). At `WM_NCDESTROY` the window
-    detaches it, so nothing is posted to a handle that may be reused.
+    connection reports under its own lock. ~~Its GUI-thread side is
+    private, for `ViewerWindow` (friend).~~ *Its GUI-thread side is
+    public, documented as for `ViewerWindow` only: a friend would have
+    opened its data to the window too. It inherits `CoreEventsAdapter`
+    privately, with private events, so only the core can call them,
+    through `getAdapter(owner)`, which makes the aliasing pointer.* At
+    `WM_NCDESTROY` the window detaches it, so nothing is posted to a
+    handle that may be reused.
+  - **Which references are shared** (Steve, 2026-10-26). A
+    `std::shared_ptr` is a claim held by an *activity* that can outlive
+    the owner's own reasons to exist: the running connection, each piece
+    of posted work, the window until `WM_NCDESTROY`. Each ends with its
+    activity, so no cycle forms. Members of the same owner that refer to
+    each other (the authentication handler to `ViewerCoreEvents`, the
+    core to its capabilities) use plain references: they are made and
+    destroyed together, and a `std::shared_ptr` among them, sharing the
+    owner's control block, would make the owner own itself and never be
+    deleted. New code, such as file transfer on the loop (step 5),
+    follows the same rule.
 - For this to be safe, the driver never blocks on the GUI (it only posts
   to it), and cancellation always completes a pending password or
   certificate prompt with `operation_aborted` (Phase 4 step 3).

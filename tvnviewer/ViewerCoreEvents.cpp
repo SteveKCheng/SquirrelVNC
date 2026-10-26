@@ -39,6 +39,11 @@ ViewerCoreEvents::~ViewerCoreEvents()
 {
 }
 
+std::shared_ptr<CoreEventsAdapter> ViewerCoreEvents::getAdapter(const std::shared_ptr<void> &owner)
+{
+  return std::shared_ptr<CoreEventsAdapter>(owner, this);
+}
+
 void ViewerCoreEvents::attach(HWND window)
 {
   std::lock_guard<std::mutex> lock(m_lock);

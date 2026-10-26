@@ -28,6 +28,7 @@
 #include "viewer-core/FileTransferCapability.h"
 
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <optional>
 
@@ -43,14 +44,15 @@ class DesktopWindow;
 // (ViewerWindow) takes it from here on the GUI thread. It is not nested in
 // ViewerWindow, which would give it access to the window's members.
 //
-// The side for the GUI thread is private, for ViewerWindow only (friend):
-// the window may reach in here, but not the other way.
+// The adapter is inherited privately, and its events are private: only the
+// core calls them, through the interface that getAdapter() gives it, and
+// they cannot be called by mistake through a ViewerCoreEvents.
 //
 // Lifetime: a member of ViewerWindow, given to the core as the adapter
 // through ViewerInstance's control block (notes/async-networking.md,
 // "Ownership by std::shared_ptr").
 //
-class ViewerCoreEvents final : public CoreEventsAdapter
+class ViewerCoreEvents final : private CoreEventsAdapter
 {
 public:
   //
@@ -86,22 +88,16 @@ public:
   ~ViewerCoreEvents() override;
 
   //
-  // The events of CoreEventsAdapter. Each keeps what it is given, if
-  // anything, and posts the message of the same name; onEstablished() does
-  // nothing, and the frame buffer events go to the desktop window.
-  // onConnected() also gives the file transfer its output, and the
-  // operations the server supports, before posting, so that they are ready
-  // when the window enables file transfer.
+  // This object as the core's adapter (RemoteViewerCore::start()), sharing
+  // owner's control block (the aliasing constructor), so that the
+  // connection's references keep the owner, and so this object, alive.
   //
-  void onBell() override;
-  void onEstablished() override;
-  void onConnected(RfbOutputGate *output, const ConnectionInfo &info) override;
-  void onDisconnect(const StringStorage &message) override;
-  void onAuthError(const AuthException &exception) override;
-  void onError(const Exception &exception) override;
-  void onFrameBufferUpdate(const FrameBuffer &fb, const Rect &rect) override;
-  void onFrameBufferPropChange(const FrameBuffer &fb) override;
-  void onCutText(const StringStorage &cutText) override;
+  // Pre-conditions: owner owns this object: it is the ViewerInstance whose
+  // window this belongs to. This cannot be checked.
+  // Post-conditions: the result points to this object, and shares
+  // ownership with owner.
+  //
+  std::shared_ptr<CoreEventsAdapter> getAdapter(const std::shared_ptr<void> &owner);
 
   //
   // Asks the user for the password of the connection, without waiting: the
@@ -128,8 +124,10 @@ public:
   //
   void cancelPasswordRequest() noexcept;
 
-private:
-  friend class ViewerWindow;
+  //
+  // The rest of the public functions are for ViewerWindow, which owns this
+  // object, and only it calls them.
+  //
 
   //
   // For ViewerWindow, on the GUI thread, before the connection starts.
@@ -169,6 +167,25 @@ private:
   //
   bool hasPasswordRequest() const;
   void answerPasswordRequest(std::optional<StringStorage> password) noexcept;
+
+private:
+  //
+  // The events of CoreEventsAdapter. Each keeps what it is given, if
+  // anything, and posts the message of the same name; onEstablished() does
+  // nothing, and the frame buffer events go to the desktop window.
+  // onConnected() also gives the file transfer its output, and the
+  // operations the server supports, before posting, so that they are ready
+  // when the window enables file transfer.
+  //
+  void onBell() override;
+  void onEstablished() override;
+  void onConnected(RfbOutputGate *output, const ConnectionInfo &info) override;
+  void onDisconnect(const StringStorage &message) override;
+  void onAuthError(const AuthException &exception) override;
+  void onError(const Exception &exception) override;
+  void onFrameBufferUpdate(const FrameBuffer &fb, const Rect &rect) override;
+  void onFrameBufferPropChange(const FrameBuffer &fb) override;
+  void onCutText(const StringStorage &cutText) override;
 
   //
   // Posts message to the window, unless it is not attached. Returns
