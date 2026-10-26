@@ -503,6 +503,11 @@ thread.*
 - The reader suspends when its buffer runs short. A small driver on the
   existing core thread does a blocking `recv`, appends the bytes and
   resumes the coroutine.
+- The core's other waits (the password, later the certificate prompt
+  and the start of TLS) become requests to the driver in the same way;
+  see "The boundary between the core and Asio" below. In this phase the
+  driver serves the password request with the blocking wait of Phase 1
+  step 2.
 - This is the first change in behaviour, and it does not touch threads.
 - **Test:** the same streams delivered one byte at a time, and at
   random split points, must give identical results. That exercises
@@ -534,9 +539,12 @@ The risky part, split up:
      with the driver is held by `std::shared_ptr`, so the GUI side does
      not wait for one connection; the only synchronous wait is joining
      the network thread at process exit.
-3. **The password wait** becomes a `co_await` on a GUI-completed
-   operation (`asio::async_initiate`), which resumes on the loop and is
-   always completed, with `operation_aborted` on teardown, so no
+3. **The password wait** becomes a `co_await` ~~on a GUI-completed
+   operation (`asio::async_initiate`)~~ *in the driver, on a
+   GUI-completed operation (`asio::async_initiate`), serving the core's
+   password request (see "The boundary between the core and Asio"); the
+   core itself only suspends on the request*, which resumes on the loop
+   and is always completed, with `operation_aborted` on teardown, so no
    coroutine is left suspended forever. Objects passed through
    `LPARAM` are deleted by the receiver, or by the sender if
    `PostMessage` fails.
@@ -697,6 +705,62 @@ Decisions (Steve, 2026-10-25):
   be decided after Phase 4; it is orthogonal to the rest.
 - **The interface of `RemoteViewerCore` is narrowed before the rewrite**,
   as far as is reasonable, at the end of Phase 1 (step 6).
+
+### The boundary between the core and Asio (2026-10-26)
+
+Decided with Steve after `Task<T>` was written (Phase 1 step 4).
+
+**The protocol core uses our `Task<T>` throughout, also after Phase 4**:
+the handshake, the message loop, the decoders and the file-transfer
+reply parser. `asio::awaitable` appears only in the driver and the
+transport. Asio's headers, which are heavy, stay out of the core, and
+the fuzzers and replay tests drive the whole core without Asio.
+
+**Asio enforces this boundary itself.** Inside an `asio::awaitable`,
+`co_await` accepts only another `asio::awaitable`, an Asio asynchronous
+operation, or Asio's `this_coro::` tokens (`awaitable_frame_base::await_transform`
+has no generic overload). So the driver cannot `co_await` a `Task`; it
+drives the core from outside. This is unlike .NET, where any type
+following the awaitable pattern can be awaited anywhere. Resumption
+itself is not restricted: any `std::coroutine_handle` can be resumed
+from anywhere, including from an Asio completion handler. The
+restriction is on what an Asio coroutine may await.
+
+**How the driver runs the core:**
+
+1. The core is a chain of `Task`s, started by the driver. It runs until
+   its leaf awaitable (the reader) cannot proceed, stores the handle of
+   the coroutine awaiting it, and suspends; control returns to the
+   driver, which last resumed the chain.
+2. The leaf states what it is waiting for:
+   - **more bytes**, the common case;
+   - **a request** to the host: "need the password", later "ask
+     whether to trust this certificate" and "start TLS now" (VeNCrypt,
+     partway through the RFB handshake).
+3. The driver, an `asio::awaitable` on the network thread, serves the
+   need with Asio (`async_read_some`; a GUI-completed operation; a TLS
+   handshake on the transport), puts the result into the reader, and
+   resumes the stored handle.
+4. When the driver's operation fails or is cancelled, it puts the error
+   into the reader instead, and resumes the core: `await_resume` throws,
+   and the chain unwinds by itself (cooperative unwinding, above). The
+   core needs neither Asio's executors (it only runs when the driver
+   resumes it, on the network thread) nor its cancellation slots.
+
+The write side needs no coroutines: encoding a client message appends to
+the connection's output buffer synchronously, and only the driver's
+writer awaits the socket.
+
+An alternative considered and rejected: the handshake as an
+`asio::awaitable` at driver level, calling `Task`-based helpers for each
+part. Less machinery, but the handshake could then be tested only with
+Asio. With requests, the key operations are also explicit at the driver
+level, and the core has one kind of suspension point.
+
+Where the earlier sections describe the TLS negotiation as `co_await
+tls.async_handshake(...)` and `co_await askUserToTrust(cert)` ("TLS",
+under "Features"), read those as requests from the core that the driver
+serves this way.
 
 Reference information:
 
