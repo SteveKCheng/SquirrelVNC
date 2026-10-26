@@ -13,7 +13,8 @@ tests/fuzz-ini with ini-fuzz.
 .DESCRIPTION
 Each case is one command, rfb-replay --check, which compares the client's
 bytes, the event log and the final frame buffer itself and exits with 0
-for a match. The fuzz corpus and regression inputs are one more command,
+for a match. Each case runs three times: with its input whole, one byte
+at a time (--split 1), and in pieces of random sizes (--split 64 --seed 1). The fuzz corpus and regression inputs are one more command,
 rfb-fuzz with every file, which runs each once and exits with 0 if none
 of them crashed. This script only runs those commands and counts
 failures, so that CTest can take over when CMake builds the core
@@ -63,19 +64,32 @@ $failed = @()
 if (Test-Path $replay) {
   $cases = Get-ChildItem (Join-Path $PSScriptRoot 'cases') -Filter "$Filter.rfb" |
     Sort-Object Name
+  # Each case runs three times: with the input given as the core asks for
+  # it; one byte at a time; and in pieces of random sizes up to 64 bytes,
+  # from a fixed seed. All must give the same results, which exercises
+  # every point where the protocol code can suspend (notes/async-networking.md,
+  # Phase 3).
+  $splits = @(
+    @{ Label = ''; Args = @() },
+    @{ Label = ' (1 byte at a time)'; Args = @('--split', '1') },
+    @{ Label = ' (random pieces)'; Args = @('--split', '64', '--seed', '1') }
+  )
   foreach ($case in $cases) {
     $name = $case.BaseName
     $prefix = Join-Path $case.DirectoryName $name
-    $total++
-    # The core's log goes to stderr; show it only for failures.
-    $output = & $replay --check $prefix --log 1 2>&1 | ForEach-Object { "$_" }
-    $code = $LASTEXITCODE
-    if ($code -eq 0) {
-      Write-Host "PASS $name"
-    } else {
-      $failed += $name
-      Write-Host "FAIL $name ($(Get-Reason $code))"
-      $output | ForEach-Object { Write-Host "     $_" }
+    foreach ($split in $splits) {
+      $total++
+      $label = "$name$($split.Label)"
+      # The core's log goes to stderr; show it only for failures.
+      $output = & $replay --check $prefix --log 1 @($split.Args) 2>&1 | ForEach-Object { "$_" }
+      $code = $LASTEXITCODE
+      if ($code -eq 0) {
+        Write-Host "PASS $label"
+      } else {
+        $failed += $label
+        Write-Host "FAIL $label ($(Get-Reason $code))"
+        $output | ForEach-Object { Write-Host "     $_" }
+      }
     }
   }
 } else {

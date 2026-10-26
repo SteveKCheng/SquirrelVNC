@@ -97,12 +97,14 @@
     <ClCompile Include="ReplayAuthHandler.cpp" />
     <ClCompile Include="ReplayEventsAdapter.cpp" />
     <ClCompile Include="rfb-replay.cpp" />
+    <ClCompile Include="SplitInputStream.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FrameBufferPpm.h" />
     <ClInclude Include="MemoryOutputStream.h" />
     <ClInclude Include="ReplayAuthHandler.h" />
     <ClInclude Include="ReplayEventsAdapter.h" />
+    <ClInclude Include="SplitInputStream.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\core-lib\core-lib.vcxproj">

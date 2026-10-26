@@ -238,6 +238,14 @@ tests/
   platform, so it finds the executables under `bin\PLATFORM\CONFIG`.
   No logic belongs in it, so it can be replaced without touching the
   tests.
+- **Each case runs three ways** (since Phase 3 of `async-networking.md`):
+  with its input whole, one byte at a time (`--split 1`), and in pieces
+  of random sizes up to 64 bytes (`--split 64 --seed 1`). The protocol
+  code suspends whenever its reader runs short, so the split runs
+  exercise every point where it can stop and resume; all three must give
+  the same results. `SplitInputStream` makes the pieces, with its own
+  xorshift generator, so that a seed gives the same pieces with any
+  compiler.
 - **CTest comes with CMake, not before.** Visual Studio ships CTest
   (4.3.1 in VS 2026), and it could run these tests today from a
   test-only `CMakeLists.txt`, but that means generating a CMake build

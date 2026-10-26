@@ -40,6 +40,7 @@
 #include "MemoryOutputStream.h"
 #include "ReplayAuthHandler.h"
 #include "ReplayEventsAdapter.h"
+#include "SplitInputStream.h"
 
 #include <fcntl.h>
 #include <io.h>
@@ -73,6 +74,9 @@ static const TCHAR USAGE[] =
   _T("  --timeout SECONDS  give up on a session that has not ended\n")
   _T("                     (default: 30)\n")
   _T("  --log LEVEL        core log on stderr, 0 to 9 (default: 1, errors)\n")
+  _T("  --split N          give the core the input N bytes at a time\n")
+  _T("  --seed S           with --split, pieces of random sizes from 1 to N,\n")
+  _T("                     from a generator seeded with S\n")
   _T("\n")
   _T("Exit codes: 0 success or match, 1 mismatch, 2 usage or I/O error,\n")
   _T("3 timeout, 4 AddressSanitizer report (ReleaseAsan build).\n");
@@ -128,6 +132,10 @@ struct Options
   UINT64 maxPixels = 4096 * 4096;
   DWORD timeoutMs = 30 * 1000;
   int logLevel = 1;
+  // 0: the input in as few pieces as the core asks for.
+  size_t splitPiece = 0;
+  bool isSeedGiven = false;
+  unsigned int seed = 0;
 };
 
 //
@@ -165,6 +173,15 @@ static bool parseOptions(int argc, TCHAR *argv[], Options *options)
         options->timeoutMs = static_cast<DWORD>(_tcstoul(value, nullptr, 10)) * 1000;
       } else if (_tcscmp(arg, _T("--log")) == 0) {
         options->logLevel = _tstoi(value);
+      } else if (_tcscmp(arg, _T("--split")) == 0) {
+        options->splitPiece = _tcstoul(value, nullptr, 10);
+        if (options->splitPiece == 0) {
+          _ftprintf(stderr, _T("--split needs a number of bytes from 1\n\n%s"), USAGE);
+          return false;
+        }
+      } else if (_tcscmp(arg, _T("--seed")) == 0) {
+        options->seed = static_cast<unsigned int>(_tcstoul(value, nullptr, 10));
+        options->isSeedGiven = true;
       } else {
         _ftprintf(stderr, _T("Unknown option %s\n\n%s"), arg, USAGE);
         return false;
@@ -177,6 +194,10 @@ static bool parseOptions(int argc, TCHAR *argv[], Options *options)
     }
   }
 
+  if (options->isSeedGiven && options->splitPiece == 0) {
+    _ftprintf(stderr, _T("--seed needs --split\n\n%s"), USAGE);
+    return false;
+  }
   if (options->input.isEmpty() == options->checkCase.isEmpty()) {
     _ftprintf(stderr, _T("Give either INPUT or --check CASE\n\n%s"), USAGE);
     return false;
@@ -431,9 +452,18 @@ int _tmain(int argc, TCHAR *argv[])
   StderrLogger logger(options.logLevel);
   ReplayEventsAdapter adapter;
   ReplayAuthHandler authHandler(options.password.getString());
-  ByteArrayInputStream inputStream(input.data(), input.size());
+  std::unique_ptr<InputStream> inputStream;
+  if (options.splitPiece == 0) {
+    inputStream = std::make_unique<ByteArrayInputStream>(input.data(), input.size());
+  } else if (options.isSeedGiven) {
+    inputStream = std::make_unique<SplitInputStream>(input.data(), input.size(),
+                                                     options.splitPiece, options.seed);
+  } else {
+    inputStream = std::make_unique<SplitInputStream>(input.data(), input.size(),
+                                                     options.splitPiece);
+  }
   MemoryOutputStream outputStream;
-  RfbInputGate inputGate(&inputStream);
+  RfbInputGate inputGate(inputStream.get());
   RfbOutputGate outputGate(&outputStream);
 
   // The core is never destroyed if the session times out (see below), or
