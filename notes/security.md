@@ -29,6 +29,11 @@ the code trusts it:
   buffer(length)`, `new FileInfo[count]`. The server can ask for up to
   4 GiB, or far more for a count. Limit it, or check it against the data
   that must follow.
+  ZRLE allocated the length of a rectangle's zlib data this way, which
+  the fuzzer found in 2026-10; it is now bounded by what the rectangle can
+  need (`ZrleDecoder::getMaxCompressedSize()`). A bound on compressed data
+  must allow for expansion: an encoder may make incompressible data
+  larger, by up to 12.5% for static Huffman blocks.
 - **`length + 1` in 32-bit arithmetic** wraps to 0 for 0xFFFFFFFF. The
   buffer is then empty and `&buffer.front()` is null.
 - **Two sizes for one buffer**: a compressed and an uncompressed size, of

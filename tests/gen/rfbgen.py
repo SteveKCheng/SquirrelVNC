@@ -809,6 +809,27 @@ class ZrleRect:
         return out
 
 
+class ZrleLength:
+    """A ZRLE rectangle header followed only by the length of its zlib
+    data, larger than any data the rectangle can need, and nothing else.
+    The viewer rejects the length before allocating for it
+    (ZrleDecoder::readAndInflate()), so the session ends with an error
+    there; error is set to its message.
+    """
+
+    ERROR = 'Error in protocol: ZRLE data is longer than its rectangle can need'
+
+    def __init__(self, x, y, w, h, length):
+        self.x, self.y, self.w, self.h = x, y, w, h
+        self.length = length
+        self.error = self.ERROR
+        self.disconnect = None
+
+    def encode(self, fb):
+        return (u16(self.x) + u16(self.y) + u16(self.w) + u16(self.h)
+                + s32(ZRLE) + u32(self.length))
+
+
 class Case:
     """One replay case: the server's bytes, and what is expected back."""
 

@@ -50,7 +50,38 @@ protected:
                 const Rect &dstRect) override;
 
 
+  //
+  // Reads the length of the rectangle's zlib data, then the data, and
+  // inflates it with m_inflater, expecting at most maximalUnpackedSize
+  // bytes.
+  //
+  // The length comes from the server, and the data is allocated before any
+  // of it is read, so a length over getMaxCompressedSize() is rejected
+  // first: otherwise four bytes could make the viewer allocate up to
+  // 4 GiB.
+  //
+  // A coroutine (util/Task.h).
+  // Throws Exception for a length over getMaxCompressedSize(), leaving the
+  // data unread; ZLibException if the data cannot be inflated; or what
+  // reading throws.
+  //
   Task<> readAndInflate(AwaitableReader &reader, size_t maximalUnpackedSize);
+
+  //
+  // The largest length of zlib data accepted for data that inflates to at
+  // most maximalUnpackedSize bytes. It allows for any reasonable deflate
+  // encoder, not only zlib's (whose worst case, compressBound(), adds about
+  // 0.03%): static Huffman blocks, which zlib-ng's fastest level writes
+  // whatever the data, spend up to 9 bits on a byte, 12.5% more; stored
+  // blocks add 5 bytes in 65,535; and the zlib header, the flush marker
+  // that ends each rectangle's data, and block headers fit in the
+  // constant. It is not a validation, only a bound that keeps the
+  // allocation in proportion to the rectangle.
+  //
+  // Pre-conditions: maximalUnpackedSize is far below SIZE_MAX, as
+  // getMaxSizeOfRectangle() of a rectangle inside the frame buffer is.
+  //
+  static size_t getMaxCompressedSize(size_t maximalUnpackedSize);
 
   int readType(DataInputStream *input);
 

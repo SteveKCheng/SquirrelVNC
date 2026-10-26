@@ -144,6 +144,9 @@ Task<> ZrleDecoder::decode(AwaitableReader &reader,
 Task<> ZrleDecoder::readAndInflate(AwaitableReader &reader, size_t maximalUnpackedSize)
 {
   UINT32 length = co_await reader.readUInt32();
+  if (length > getMaxCompressedSize(maximalUnpackedSize)) {
+    throw Exception(_T("Error in protocol: ZRLE data is longer than its rectangle can need"));
+  }
   std::vector<char> zlibData;
   zlibData.resize(length);
   if (length == 0) {
@@ -154,6 +157,16 @@ Task<> ZrleDecoder::readAndInflate(AwaitableReader &reader, size_t maximalUnpack
   m_inflater.setInput(&zlibData.front(), length);
   m_inflater.setUnpackedSize(maximalUnpackedSize);
   m_inflater.inflate();
+}
+
+size_t ZrleDecoder::getMaxCompressedSize(size_t maximalUnpackedSize)
+{
+  size_t n = maximalUnpackedSize;
+  // 9 bits a byte in static Huffman blocks (n / 8 more), the 5 bytes of a
+  // stored block per 65,535 (less than n / 4096), and headers, trailer and
+  // flush markers.
+  static const size_t OVERHEAD = 1024;
+  return n + (n >> 3) + (n >> 12) + OVERHEAD;
 }
 
 size_t ZrleDecoder::getMaxSizeOfRectangle(const Rect &dstRect)

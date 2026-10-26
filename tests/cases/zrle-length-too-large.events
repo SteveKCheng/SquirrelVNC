@@ -1,0 +1,4 @@
+established
+desktop-name "test"
+connected
+error "Error in protocol: ZRLE data is longer than its rectangle can need"

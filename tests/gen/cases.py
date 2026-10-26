@@ -35,8 +35,8 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from rfbgen import (HARNESS_PASSWORD, RGB565, Case, CopyRect, HextileRect,  # noqa: E402
-                    HextileTile, Image, RawRect, RreRect, TightRect, ZrleRect,
-                    ZrleTile, load_ppm)
+                    HextileTile, Image, RawRect, RreRect, TightRect, ZrleLength,
+                    ZrleRect, ZrleTile, load_ppm)
 
 CASES = []
 
@@ -662,6 +662,20 @@ def zrle_short_data():
     z = c.zrle_stream()
     image = Image.pattern(160, 80, seed=10)
     c.update([ZrleRect(0, 0, 80, 70, zrle_tiles(image), z, shorten=5)])
+    return c
+
+
+@case
+def zrle_length_too_large():
+    """A ZRLE rectangle whose zlib data is said to be almost 4 GiB long,
+    which the viewer used to allocate before reading any of it. It is
+    rejected at once, as more than the rectangle's data can need.
+    """
+    c = Case('zrle-length-too-large')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    raw_session(c, 160, 80)
+    c.update([ZrleLength(0, 0, 80, 70, 0xFFFFFFF0)])
     return c
 
 

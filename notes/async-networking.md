@@ -613,8 +613,9 @@ explained in `async-networking-resumption.md`.
 - Audit: `check-locks.py` finds no `co_await` under a lock in the 57
   coroutines.
 - Found while fuzzing, not caused by the change: `ZrleDecoder::readAndInflate()`
-  allocates the compressed length the server sends (up to 4 GiB) before
-  reading any of it.
+  allocated the compressed length the server sends (up to 4 GiB) before
+  reading any of it. Fixed with a bound from the rectangle's size
+  (`[SECURITY]` commit; `notes/security.md`).
 
 ### Phase 4: the event loop
 
