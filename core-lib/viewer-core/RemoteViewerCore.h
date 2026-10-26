@@ -45,6 +45,7 @@
 
 #include <map>
 #include <mutex>
+#include <optional>
 #include <variant>
 
 //
@@ -536,6 +537,18 @@ private:
   void execute() override;
 
   //
+  // The protocol, from connecting to the end of the session, as a coroutine
+  // (util/Task.h) that reads through m_reader; execute() runs it with
+  // syncWait(), and reports how it ended to the adapter.
+  //
+  // Post-conditions: when it returns, the session has ended normally, and
+  // the adapter has been told with onDisconnect().
+  // Throws what the protocol throws: AuthException, IOException when the
+  // connection fails, or Exception.
+  //
+  Task<> run();
+
+  //
   // Initialization, called by the constructor.
   //
   void init();
@@ -554,7 +567,7 @@ private:
   // If the code is 0xFC then it's a beginning of TightVNC-specific extended
   // code so we read next 3 bytes and compose UINT32 message type.
   //
-  UINT32 receiveServerMessageType();
+  Task<UINT32> receiveServerMessageType();
 
   //
   // Read pixel format from the data connection and return it.
@@ -567,7 +580,7 @@ private:
   // Throws Exception if the bits per pixel are not 8, 16 or 32, or if a
   // true-colour format is not valid.
   //
-  PixelFormat readPixelFormat();
+  Task<PixelFormat> readPixelFormat();
 
   //
   // This method processes FramebufferUpdate server message (code 0):
@@ -575,7 +588,7 @@ private:
   //   * then call receiveFrameBufferUpdRectangle() for each rectangle,
   //   * then send FramebufferUpdateRequest client message (code 3).
   //
-  void receiveFbUpdate();
+  Task<> receiveFbUpdate();
 
   //
   // Receive rectangle, decode it and notify m_fbUpdateNotifier.
@@ -584,7 +597,7 @@ private:
   // false otherwise. This is needed to support LastRect pseudo-encoding
   // (code -224).
   //
-  bool receiveFbUpdateRectangle();
+  Task<bool> receiveFbUpdateRectangle();
 
   //
   // Process a fake rectangle which represents a pseudo-encoding.
@@ -600,7 +613,7 @@ private:
   // A coroutine (util/Task.h): it awaits its reads from reader, and takes
   // m_fbLock only where it does not read.
   //
-  Task<> processPseudoEncoding(AwaitableReader &reader, const Rect &rect, int encType);
+  Task<> processPseudoEncoding(const Rect &rect, int encType);
 
   //
   // Send FramebufferUpdateRequest client message (code 3).
@@ -621,7 +634,7 @@ private:
   // Throws IOException if the length is over MAX_REASON_LENGTH, leaving
   // the text unread; otherwise whatever reading the input throws.
   //
-  StringStorage readReason();
+  Task<StringStorage> readReason();
 
   //
   // Receive ServerCutText server message (code 3) and send event to the
@@ -635,7 +648,7 @@ private:
   // skipped with a warning. Exceptions from the adapter are logged, not
   // passed on. Throws whatever reading the input throws.
   //
-  void receiveServerCutText();
+  Task<> receiveServerCutText();
 
   //
   // Receive TightVNC's ServerCutTextUtf8 message (code 0xfc000200) and
@@ -648,24 +661,24 @@ private:
   // zero byte. Exceptions from the adapter are logged, not passed on.
   // Throws whatever reading the input throws.
   //
-  void receiveServerCutTextUtf8();
+  Task<> receiveServerCutTextUtf8();
 
   // Read and discard length bytes from the input.
-  void skipBytes(size_t length);
+  Task<> skipBytes(size_t length);
 
   //
   // Receive SetColourMapEntries server message (code 1) and forget it:
   // for now, color maps are not supported.
   //
-  void receiveSetColorMapEntries();
+  Task<> receiveSetColorMapEntries();
 
   bool isRfbProtocolString(const char protocol[12]) const;
   void connectToHost();
-  void handshake();
-  int negotiateSecurityType();
-  void authenticate();
-  void clientAndServerInit();
-  void readSecurityTypeList(std::vector<UINT32> *secTypes);
+  Task<> handshake();
+  Task<int> negotiateSecurityType();
+  Task<> authenticate();
+  Task<> clientAndServerInit();
+  Task<> readSecurityTypeList(std::vector<UINT32> *secTypes);
   StringStorage getSecurityTypeName(UINT32 securityType) const;
   StringStorage getAuthenticationTypeName(UINT32 authenticationType) const;
   //
@@ -678,10 +691,10 @@ private:
   int selectSecurityType(const std::vector<UINT32> &secTypes,
                          const std::map<UINT32, AuthHandler *> &authHandlers,
                          const bool isTightEnabled) const;
-  void initTunnelling();
-  int initAuthentication();
-  void readCapabilities();
-  RfbCapabilityInfo readCapability();
+  Task<> initTunnelling();
+  Task<int> initAuthentication();
+  Task<> readCapabilities();
+  Task<RfbCapabilityInfo> readCapability();
   void sendEncodings();
 
   //
@@ -744,6 +757,10 @@ private:
   TcpConnection m_tcpConnection;
 
   RfbInputGate *m_input;
+  // Reads m_input for the coroutines of the protocol (run() and those it
+  // awaits). Made by run() once the connection is established; used only on
+  // the core thread.
+  std::optional<AwaitableReader> m_reader;
   RfbOutputGate *m_output;
 
   CoreEventsAdapter *m_adapter;
