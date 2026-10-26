@@ -498,7 +498,7 @@ int _tmain(int argc, TCHAR *argv[])
 
   // The core is never destroyed if the session times out (see below), or
   // fails, so it lives on the heap.
-  std::unique_ptr<RemoteViewerCore> core = std::make_unique<RemoteViewerCore>(&logger);
+  std::unique_ptr<RemoteViewerCore> core = std::make_unique<RemoteViewerCore>(network.getExecutor(), &logger);
   // What the core's connection holds while it runs (RemoteViewerCore::
   // start()): a reference that owns nothing, and tells when the last copy
   // has been released, after which the core may be destroyed. The promise

@@ -44,13 +44,17 @@ public:
   // creates the viewer instance by using host:port from condata
   //
   // Both constructors copy condata and conConf. The second takes
-  // ownership of socket.
+  // ownership of socket. The connection runs on executor (that of the
+  // application's NetworkThread), whose execution context must outlive the
+  // instance (RemoteViewerCore::RemoteViewerCore()).
   ViewerInstance(WindowsApplication *application,
+                 asio::any_io_executor executor,
                  const ConnectionData &condata,
                  const ConnectionConfig &conConf);
 
   // creates the viewer instance if we have the socket
   ViewerInstance(WindowsApplication *application,
+                 asio::any_io_executor executor,
                  const ConnectionData &condata,
                  const ConnectionConfig &conConf,
                  std::unique_ptr<SocketIPv4> socket);

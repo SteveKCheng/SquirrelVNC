@@ -85,13 +85,18 @@ class RemoteViewerCore final : public CapabilitiesManager
 {
 public:
   //
-  // Creates an object that does no protocol work, and starts no thread,
-  // until start() is called.
+  // Creates an object that does no protocol work until start() is called.
+  // The connection will run on executor: in the viewer, that of its
+  // NetworkThread, a loop that every connection shares.
   //
   // To allow logging, pass a pointer to an object which implements the Logger
   // interface (see log-writer/Logger.h). Logging is disabled by default.
   //
-  RemoteViewerCore(Logger *logger = nullptr);
+  // Pre-conditions: the execution context of executor (the NetworkThread's
+  // thread pool) outlives this object and the work it posts there; a
+  // NetworkThread waits for that work when it is destroyed.
+  //
+  RemoteViewerCore(asio::any_io_executor executor, Logger *logger = nullptr);
 
   RemoteViewerCore(const RemoteViewerCore &) = delete;
   RemoteViewerCore &operator=(const RemoteViewerCore &) = delete;
@@ -119,7 +124,7 @@ public:
   // at startup. For example, one of them initiates new TCP connection.
   //
   // These functions start the connection on the network thread
-  // (NetworkThread::instance(), which must exist) and return control to the
+  // (the executor given to the constructor) and return control to the
   // calling thread. Only one of these functions should be called, and it
   // should be called just once.
   //
@@ -819,7 +824,8 @@ private:
   UINT16 m_port;
   SOCKET m_acceptedSocket;
 
-  // The network thread's executor, for the connection.
+  // The network thread's executor, for the connection: given to the
+  // constructor.
   asio::any_io_executor m_executor;
   // The connection's socket, made by drive(); used only on the network
   // thread.

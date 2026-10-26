@@ -33,14 +33,13 @@
 // code itself only ever runs when its driver resumes it, so on this
 // thread (notes/async-networking-resumption.md).
 //
-// The program makes one, at start, and destroys it at exit, after every
+// The viewer makes one, at start, and destroys it at exit, after every
 // connection has been told to stop: the destructor waits for them to
 // finish. That join is the only synchronous wait for the network
-// (notes/async-networking.md, "Corrections and decisions"). While it
-// exists, instance() gives it: a singleton in lifetime, but owned by the
-// program (TvnViewer), not a static, so that it is joined before WinSock is
-// shut down rather than after main() (notes/async-networking.md, Phase 4
-// step 2c). Test programs make their own the same way.
+// (notes/async-networking.md, "Corrections and decisions"). The program
+// owns it (TvnViewer), not a static, so that it is joined before WinSock is
+// shut down rather than after main(), and gives its executor to each
+// RemoteViewerCore. Test programs make their own, as many as they need.
 //
 // Threads: getExecutor() may be called from any thread; work is posted to
 // the executor from any thread, which is how other threads reach the
@@ -50,9 +49,7 @@ class NetworkThread final
 {
 public:
   //
-  // Pre-conditions: no other NetworkThread exists.
-  // Post-conditions: the thread is running, waiting for work; instance()
-  // is this object.
+  // Post-conditions: the thread is running, waiting for work.
   // Throws std::system_error if it cannot be started.
   //
   NetworkThread();
@@ -68,17 +65,8 @@ public:
   //
   // Pre-conditions: every connection has been told to stop, so that its
   // work ends; otherwise this waits for it.
-  // Post-conditions: instance() has no object.
   //
   ~NetworkThread();
-
-  //
-  // The NetworkThread that exists.
-  //
-  // Throws std::logic_error if none exists: a bug in the program's start
-  // or exit order.
-  //
-  static NetworkThread &instance();
 
   //
   // The executor of the loop, for spawning connections and posting to them.
@@ -95,9 +83,6 @@ public:
 
 private:
   asio::thread_pool m_pool;
-
-  // The one that exists, or null.
-  static NetworkThread *s_instance;
 };
 
 #endif // _NETWORK_THREAD_H_

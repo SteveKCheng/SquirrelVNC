@@ -27,6 +27,7 @@
 #include "viewer-core/FileTransferCapability.h"
 
 ViewerInstance::ViewerInstance(WindowsApplication *application,
+                               asio::any_io_executor executor,
                                const ConnectionData &condata,
                                const ConnectionConfig &conConf)
 : m_conConf(conConf),
@@ -36,11 +37,12 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
               &m_conConf,
               ViewerConfig::getInstance()->getLogger()),
   m_vncAuthHandler(&m_condata, m_viewerWnd.getCoreEvents()),
-  m_viewerCore(ViewerConfig::getInstance()->getLogger())
+  m_viewerCore(std::move(executor), ViewerConfig::getInstance()->getLogger())
 {
 }
 
 ViewerInstance::ViewerInstance(WindowsApplication *application,
+                               asio::any_io_executor executor,
                                const ConnectionData &condata,
                                const ConnectionConfig &conConf,
                                std::unique_ptr<SocketIPv4> socket)
@@ -52,7 +54,7 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
               &m_conConf,
               ViewerConfig::getInstance()->getLogger()),
   m_vncAuthHandler(&m_condata, m_viewerWnd.getCoreEvents()),
-  m_viewerCore(ViewerConfig::getInstance()->getLogger())
+  m_viewerCore(std::move(executor), ViewerConfig::getInstance()->getLogger())
 {
 }
 

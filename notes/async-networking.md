@@ -713,12 +713,18 @@ from vcpkg.
 - **2c. Ownership.** The viewer instance is shared by the GUI side and
   the driver (`std::shared_ptr`; see "Ownership by `std::shared_ptr`"
   below), so closing a window no longer waits for its connection.
-  `NetworkThread` is a singleton in lifetime: one instance,
+  `NetworkThread` is ~~a singleton in lifetime:~~ one instance,
   made at the start of `TvnViewer` and joined in its destructor, after
-  the connections are stopped and before WinSock is shut down, with a
+  the connections are stopped and before WinSock is shut down~~, with a
   static accessor valid only during that lifetime (test programs make
-  their own). Not a function-local static, whose destruction would come
-  after `main()`, after WinSock cleanup, in no defined order.
+  their own)~~. Not a function-local static, whose destruction would come
+  after `main()`, after WinSock cleanup, in no defined order. *The
+  static accessor `NetworkThread::instance()` is gone (Steve,
+  2026-10-26): `TvnViewer` owns the thread and gives its executor to
+  each `ViewerInstance`, which gives it to the constructor of
+  `RemoteViewerCore`. No action at a distance, and a test may run as
+  many loops as it likes. The execution context must outlive the core
+  and its posted work, a documented precondition, as before.*
   *First done (37a728a) with deletion once the connection had finished,
   polled by `ViewerCollector`, and no shared ownership; redone with
   `std::shared_ptr` as described below (Steve, 2026-10-26).*

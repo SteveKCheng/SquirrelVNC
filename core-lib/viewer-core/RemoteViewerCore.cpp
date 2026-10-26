@@ -43,7 +43,6 @@
 #include "RfbPointerEventClientMessage.h"
 #include "RfbSetEncodingsClientMessage.h"
 #include "RfbSetPixelFormatClientMessage.h"
-#include "NetworkThread.h"
 #include "ViewerBufferSize.h"
 
 #include "RawDecoder.h"
@@ -105,10 +104,11 @@ static IOException makeReadException(const std::error_code &error)
   return IOException(_T("Failed to recv data from socket."));
 }
 
-RemoteViewerCore::RemoteViewerCore(Logger *logger)
+RemoteViewerCore::RemoteViewerCore(asio::any_io_executor executor, Logger *logger)
 : m_logWriter(logger),
   m_port(0),
   m_acceptedSocket(INVALID_SOCKET),
+  m_executor(std::move(executor)),
   m_isStopping(false),
   m_isFinished(false),
   m_isAtMessageBoundary(false),
@@ -196,7 +196,6 @@ void RemoteViewerCore::start(std::shared_ptr<CoreEventsAdapter> adapter,
 
   m_fbUpdateNotifier.setAdapter(m_adapter);
 
-  m_executor = NetworkThread::instance().getExecutor();
   if (m_input == nullptr) {
     m_ownOutput = std::make_unique<RfbOutputGate>(&m_queuedOutput);
     m_output = m_ownOutput.get();

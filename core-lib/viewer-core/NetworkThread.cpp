@@ -22,30 +22,14 @@
 
 #include "NetworkThread.h"
 
-#include <cassert>
-#include <stdexcept>
-
-NetworkThread *NetworkThread::s_instance = nullptr;
-
 NetworkThread::NetworkThread()
 : m_pool(1)
 {
-  assert(s_instance == nullptr);
-  s_instance = this;
 }
 
 NetworkThread::~NetworkThread()
 {
   join();
-  s_instance = nullptr;
-}
-
-NetworkThread &NetworkThread::instance()
-{
-  if (s_instance == nullptr) {
-    throw std::logic_error("NetworkThread::instance(): no NetworkThread exists");
-  }
-  return *s_instance;
 }
 
 asio::any_io_executor NetworkThread::getExecutor() noexcept
