@@ -42,6 +42,7 @@
 #include "TcpConnection.h"
 
 #include <map>
+#include <variant>
 
 //
 // RemoteViewerCore implements a local representation of a live remote screen
@@ -397,6 +398,113 @@ private:
   // protocol initialization.
   //
   void allowUtf8Clipboard();
+
+  //
+  // Events from the GUI side: each public method that sends a client
+  // message, or changes a setting of the session, makes one and passes it
+  // to post(), which hands it to the matching handle() function. The
+  // handlers do what those methods used to do themselves.
+  //
+  // This is the representation that the queue to the network thread is to
+  // hold (notes/async-networking.md, Phase 4); the public methods stay, so
+  // that their callers do not change when it does.
+  //
+  struct KeyEvent
+  {
+    bool isDown;
+    UINT32 keySym;
+  };
+
+  struct PointerEvent
+  {
+    UINT8 buttonMask;
+    Point position;
+  };
+
+  struct CutTextEvent
+  {
+    StringStorage text;
+  };
+
+  struct StopUpdatingEvent
+  {
+    bool isStopped;
+  };
+
+  struct RefreshEvent
+  {
+  };
+
+  struct PixelFormatEvent
+  {
+    PixelFormat pixelFormat;
+  };
+
+  struct PreferredEncodingEvent
+  {
+    INT32 encodingType;
+  };
+
+  struct CopyRectEvent
+  {
+    bool isAllowed;
+  };
+
+  struct JpegQualityEvent
+  {
+    int level;
+  };
+
+  struct CompressionLevelEvent
+  {
+    int level;
+  };
+
+  struct CursorShapeUpdatesEvent
+  {
+    bool isEnabled;
+  };
+
+  struct IgnoreCursorShapeUpdatesEvent
+  {
+    bool isIgnored;
+  };
+
+  using ClientEvent = std::variant<KeyEvent,
+                                   PointerEvent,
+                                   CutTextEvent,
+                                   StopUpdatingEvent,
+                                   RefreshEvent,
+                                   PixelFormatEvent,
+                                   PreferredEncodingEvent,
+                                   CopyRectEvent,
+                                   JpegQualityEvent,
+                                   CompressionLevelEvent,
+                                   CursorShapeUpdatesEvent,
+                                   IgnoreCursorShapeUpdatesEvent>;
+
+  //
+  // Handles event, for now at once, on the calling thread, with its
+  // handle() function. Throws what that throws.
+  //
+  void post(ClientEvent event);
+
+  //
+  // The handlers of post(), one for each public method: see that method for
+  // what each does, and what it may throw.
+  //
+  void handle(const KeyEvent &event);
+  void handle(const PointerEvent &event);
+  void handle(const CutTextEvent &event);
+  void handle(const StopUpdatingEvent &event);
+  void handle(const RefreshEvent &event);
+  void handle(const PixelFormatEvent &event);
+  void handle(const PreferredEncodingEvent &event);
+  void handle(const CopyRectEvent &event);
+  void handle(const JpegQualityEvent &event);
+  void handle(const CompressionLevelEvent &event);
+  void handle(const CursorShapeUpdatesEvent &event);
+  void handle(const IgnoreCursorShapeUpdatesEvent &event);
 
   //
   // Overrides Thread::execute(). Implements the input thread.

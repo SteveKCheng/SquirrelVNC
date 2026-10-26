@@ -58,6 +58,7 @@
 #include "RichCursorDecoder.h"
 
 #include <algorithm>
+#include <variant>
 
 // Limits on lengths sent by the server, so that a malicious or broken server
 // cannot make the viewer allocate an arbitrary amount of memory.
@@ -219,10 +220,7 @@ void RemoteViewerCore::waitTermination()
 
 void RemoteViewerCore::setPixelFormat(const PixelFormat &pixelFormat)
 {
-  m_logWriter.detail(_T("Pixel format will changed"));
-  AutoLock al(&m_pixelFormatLock);
-  m_isNewPixelFormat = true;
-  m_viewerPixelFormat = pixelFormat;
+  post(PixelFormatEvent{pixelFormat});
 }
 
 bool RemoteViewerCore::updatePixelFormat()
@@ -266,9 +264,7 @@ bool RemoteViewerCore::updatePixelFormat()
 
 void RemoteViewerCore::refreshFrameBuffer()
 {
-  m_logWriter.detail(_T("Frame buffer will refreshed"));
-  AutoLock al(&m_refreshingLock);
-  m_isRefreshing = true;
+  post(RefreshEvent{});
 }
 
 void RemoteViewerCore::sendFbUpdateRequest(bool incremental)
@@ -317,73 +313,28 @@ void RemoteViewerCore::sendFbUpdateRequest(bool incremental)
 
 void RemoteViewerCore::sendKeyboardEvent(bool downFlag, UINT32 key)
 {
-  // If core isn't connected, then m_output may be isn't initialized.
-  // Exit from function, if it is.
-  if (!wasConnected()) {
-    return;
-  }
-
-  m_logWriter.detail(_T("Sending key event: %d, %u..."), downFlag, key);
-  RfbKeyEventClientMessage keyMessage(downFlag, key);
-  keyMessage.send(*m_output);
-  m_logWriter.debug(_T("Key event: %d, %u is sent"), downFlag, key);
+  post(KeyEvent{downFlag, key});
 }
 
 void RemoteViewerCore::sendPointerEvent(UINT8 buttonMask,
                                         const Point &position)
 {
-  // If core isn't connected, then m_output may be isn't initialized.
-  // Exit from function, if it is.
-  if (!wasConnected()) {
-    return;
-  }
-
-  m_logWriter.detail(_T("Sending pointer event 0x%X, (%d, %d)..."),
-                     static_cast<int>(buttonMask), position.x, position.y);
-  // send position to server
-  RfbPointerEventClientMessage pointerMessage(buttonMask, position);
-  pointerMessage.send(*m_output);
-  // update position
-  m_fbUpdateNotifier.updatePointerPos(position);
-
-  m_logWriter.debug(_T("Pointer event: 0x%X, (%d, %d) is sent"),
-                    static_cast<int>(buttonMask), position.x, position.y);
+  post(PointerEvent{buttonMask, position});
 }
 
 void RemoteViewerCore::sendCutTextEvent(const StringStorage &cutText)
 {
-  // If core isn't connected, then m_output may be isn't initialized.
-  // Exit from function, if it is.
-
-  if (!wasConnected()) {
-    return;
-  }
-
-  RfbCutTextEventClientMessage cutTextMessage(cutText);
-  if (m_isUtf8ClipboardEnabled) {
-    // The clipboard may hold passwords, so only its length is logged.
-    m_logWriter.detail(_T("Sending UTF-8 clipboard cut text (%zu characters)..."),
-                       cutText.getLength());
-    cutTextMessage.sendUtf8(*m_output);
-  }
-  else {
-    m_logWriter.detail(_T("Sending clipboard cut text (%zu characters)..."),
-                       cutText.getLength());
-    cutTextMessage.send(*m_output);
-  }
-  m_logWriter.debug(_T("Clipboard cut text is sent"));
+  post(CutTextEvent{cutText});
 }
 
 void RemoteViewerCore::setPreferredEncoding(INT32 encodingType)
 {
-  m_decoderStore.setPreferredEncoding(encodingType);
-  sendEncodings();
+  post(PreferredEncodingEvent{encodingType});
 }
 
 void RemoteViewerCore::allowCopyRect(bool allow)
 {
-  m_decoderStore.allowCopyRect(allow);
-  sendEncodings();
+  post(CopyRectEvent{allow});
 }
 
 void RemoteViewerCore::allowUtf8Clipboard()
@@ -405,77 +356,27 @@ void RemoteViewerCore::allowUtf8Clipboard()
 
 void RemoteViewerCore::setCompressionLevel(int newLevel)
 {
-  bool needUpdate = false;
-  for (int level = CompressionLevel::COMPRESSION_LEVEL_MIN;
-       level <= CompressionLevel::COMPRESSION_LEVEL_MAX;
-       level++)
-    if (level != newLevel)
-      needUpdate |= m_decoderStore.removeDecoder(CompressionLevel(&m_logWriter, level).getCode());
-
-  // new compression level is valid?
-  if (newLevel < CompressionLevel::COMPRESSION_LEVEL_MIN ||
-      newLevel > CompressionLevel::COMPRESSION_LEVEL_MAX)
-    return;
-
-  needUpdate |= m_decoderStore.addDecoder(std::make_unique<CompressionLevel>(&m_logWriter, newLevel), -1);
-  if (needUpdate) {
-    sendEncodings();
-  }
+  post(CompressionLevelEvent{newLevel});
 }
 
 void RemoteViewerCore::setJpegQualityLevel(int newLevel)
 {
-  bool needUpdate = false;
-  for (int level = JpegQualityLevel::JPEG_QUALITY_LEVEL_MIN;
-       level <= JpegQualityLevel::JPEG_QUALITY_LEVEL_MAX;
-       level++)
-    if (level != newLevel)
-      needUpdate |= m_decoderStore.removeDecoder(JpegQualityLevel(&m_logWriter, level).getCode());
-
-  // new jpeg quality level is valid?
-  if (newLevel < JpegQualityLevel::JPEG_QUALITY_LEVEL_MIN ||
-      newLevel > JpegQualityLevel::JPEG_QUALITY_LEVEL_MAX)
-    return;
-
-  needUpdate |= m_decoderStore.addDecoder(std::make_unique<JpegQualityLevel>(&m_logWriter, newLevel), -1);
-  if (needUpdate) {
-    sendEncodings();
-  }
+  post(JpegQualityEvent{newLevel});
 }
 
 void RemoteViewerCore::enableCursorShapeUpdates(bool enabled)
 {
-  bool needUpdate = false;
-  if (enabled) {
-    needUpdate |= m_decoderStore.addDecoder(std::make_unique<RichCursorDecoder>(&m_logWriter), -1);
-    needUpdate |= m_decoderStore.addDecoder(std::make_unique<PointerPosDecoder>(&m_logWriter), -1);
-  } else {
-    needUpdate |= m_decoderStore.removeDecoder(PseudoEncDefs::RICH_CURSOR);
-    needUpdate |= m_decoderStore.removeDecoder(PseudoEncDefs::POINTER_POS);
-  }
-  
-  if (needUpdate) {
-    sendEncodings();
-  }
+  post(CursorShapeUpdatesEvent{enabled});
 }
 
 void RemoteViewerCore::ignoreCursorShapeUpdates(bool ignored)
 {
-  m_fbUpdateNotifier.setIgnoreShapeUpdates(ignored);
+  post(IgnoreCursorShapeUpdatesEvent{ignored});
 }
 
 void RemoteViewerCore::stopUpdating(bool isStopped)
 {
-  {
-    AutoLock al(&m_freezeLock);
-    if (isStopped == m_isFreeze)
-      return;
-    m_isFreeze = isStopped;
-  }
-  if (!isStopped) {
-    m_logWriter.detail(_T("Sending of frame buffer update request..."));
-    sendFbUpdateRequest(!m_forceFullUpdate);
-  }
+  post(StopUpdatingEvent{isStopped});
 }
 
 PixelFormat RemoteViewerCore::readPixelFormat()
@@ -1501,6 +1402,182 @@ void RemoteViewerCore::sendEncodings()
   std::vector<INT32> decoderIds = m_decoderStore.getDecoderIds();
   RfbSetEncodingsClientMessage encodingsMessage(&decoderIds);
   encodingsMessage.send(*m_output);
+}
+
+void RemoteViewerCore::post(ClientEvent event)
+{
+  std::visit([this](const auto &e) { handle(e); }, event);
+}
+
+void RemoteViewerCore::handle(const PixelFormatEvent &event)
+{
+  const auto &[pixelFormat] = event;
+  m_logWriter.detail(_T("Pixel format will changed"));
+  AutoLock al(&m_pixelFormatLock);
+  m_isNewPixelFormat = true;
+  m_viewerPixelFormat = pixelFormat;
+}
+
+void RemoteViewerCore::handle(const RefreshEvent &/* event */)
+{
+  m_logWriter.detail(_T("Frame buffer will refreshed"));
+  AutoLock al(&m_refreshingLock);
+  m_isRefreshing = true;
+}
+
+void RemoteViewerCore::handle(const KeyEvent &event)
+{
+  const auto &[downFlag, key] = event;
+  // If core isn't connected, then m_output may be isn't initialized.
+  // Exit from function, if it is.
+  if (!wasConnected()) {
+    return;
+  }
+
+  m_logWriter.detail(_T("Sending key event: %d, %u..."), downFlag, key);
+  RfbKeyEventClientMessage keyMessage(downFlag, key);
+  keyMessage.send(*m_output);
+  m_logWriter.debug(_T("Key event: %d, %u is sent"), downFlag, key);
+}
+
+void RemoteViewerCore::handle(const PointerEvent &event)
+{
+  const auto &[buttonMask, position] = event;
+  // If core isn't connected, then m_output may be isn't initialized.
+  // Exit from function, if it is.
+  if (!wasConnected()) {
+    return;
+  }
+
+  m_logWriter.detail(_T("Sending pointer event 0x%X, (%d, %d)..."),
+                     static_cast<int>(buttonMask), position.x, position.y);
+  // send position to server
+  RfbPointerEventClientMessage pointerMessage(buttonMask, position);
+  pointerMessage.send(*m_output);
+  // update position
+  m_fbUpdateNotifier.updatePointerPos(position);
+
+  m_logWriter.debug(_T("Pointer event: 0x%X, (%d, %d) is sent"),
+                    static_cast<int>(buttonMask), position.x, position.y);
+}
+
+void RemoteViewerCore::handle(const CutTextEvent &event)
+{
+  const auto &[cutText] = event;
+  // If core isn't connected, then m_output may be isn't initialized.
+  // Exit from function, if it is.
+
+  if (!wasConnected()) {
+    return;
+  }
+
+  RfbCutTextEventClientMessage cutTextMessage(cutText);
+  if (m_isUtf8ClipboardEnabled) {
+    // The clipboard may hold passwords, so only its length is logged.
+    m_logWriter.detail(_T("Sending UTF-8 clipboard cut text (%zu characters)..."),
+                       cutText.getLength());
+    cutTextMessage.sendUtf8(*m_output);
+  }
+  else {
+    m_logWriter.detail(_T("Sending clipboard cut text (%zu characters)..."),
+                       cutText.getLength());
+    cutTextMessage.send(*m_output);
+  }
+  m_logWriter.debug(_T("Clipboard cut text is sent"));
+}
+
+void RemoteViewerCore::handle(const PreferredEncodingEvent &event)
+{
+  const auto &[encodingType] = event;
+  m_decoderStore.setPreferredEncoding(encodingType);
+  sendEncodings();
+}
+
+void RemoteViewerCore::handle(const CopyRectEvent &event)
+{
+  const auto &[allow] = event;
+  m_decoderStore.allowCopyRect(allow);
+  sendEncodings();
+}
+
+void RemoteViewerCore::handle(const CompressionLevelEvent &event)
+{
+  const auto &[newLevel] = event;
+  bool needUpdate = false;
+  for (int level = CompressionLevel::COMPRESSION_LEVEL_MIN;
+       level <= CompressionLevel::COMPRESSION_LEVEL_MAX;
+       level++)
+    if (level != newLevel)
+      needUpdate |= m_decoderStore.removeDecoder(CompressionLevel(&m_logWriter, level).getCode());
+
+  // new compression level is valid?
+  if (newLevel < CompressionLevel::COMPRESSION_LEVEL_MIN ||
+      newLevel > CompressionLevel::COMPRESSION_LEVEL_MAX)
+    return;
+
+  needUpdate |= m_decoderStore.addDecoder(std::make_unique<CompressionLevel>(&m_logWriter, newLevel), -1);
+  if (needUpdate) {
+    sendEncodings();
+  }
+}
+
+void RemoteViewerCore::handle(const JpegQualityEvent &event)
+{
+  const auto &[newLevel] = event;
+  bool needUpdate = false;
+  for (int level = JpegQualityLevel::JPEG_QUALITY_LEVEL_MIN;
+       level <= JpegQualityLevel::JPEG_QUALITY_LEVEL_MAX;
+       level++)
+    if (level != newLevel)
+      needUpdate |= m_decoderStore.removeDecoder(JpegQualityLevel(&m_logWriter, level).getCode());
+
+  // new jpeg quality level is valid?
+  if (newLevel < JpegQualityLevel::JPEG_QUALITY_LEVEL_MIN ||
+      newLevel > JpegQualityLevel::JPEG_QUALITY_LEVEL_MAX)
+    return;
+
+  needUpdate |= m_decoderStore.addDecoder(std::make_unique<JpegQualityLevel>(&m_logWriter, newLevel), -1);
+  if (needUpdate) {
+    sendEncodings();
+  }
+}
+
+void RemoteViewerCore::handle(const CursorShapeUpdatesEvent &event)
+{
+  const auto &[enabled] = event;
+  bool needUpdate = false;
+  if (enabled) {
+    needUpdate |= m_decoderStore.addDecoder(std::make_unique<RichCursorDecoder>(&m_logWriter), -1);
+    needUpdate |= m_decoderStore.addDecoder(std::make_unique<PointerPosDecoder>(&m_logWriter), -1);
+  } else {
+    needUpdate |= m_decoderStore.removeDecoder(PseudoEncDefs::RICH_CURSOR);
+    needUpdate |= m_decoderStore.removeDecoder(PseudoEncDefs::POINTER_POS);
+  }
+  
+  if (needUpdate) {
+    sendEncodings();
+  }
+}
+
+void RemoteViewerCore::handle(const IgnoreCursorShapeUpdatesEvent &event)
+{
+  const auto &[ignored] = event;
+  m_fbUpdateNotifier.setIgnoreShapeUpdates(ignored);
+}
+
+void RemoteViewerCore::handle(const StopUpdatingEvent &event)
+{
+  const auto &[isStopped] = event;
+  {
+    AutoLock al(&m_freezeLock);
+    if (isStopped == m_isFreeze)
+      return;
+    m_isFreeze = isStopped;
+  }
+  if (!isStopped) {
+    m_logWriter.detail(_T("Sending of frame buffer update request..."));
+    sendFbUpdateRequest(!m_forceFullUpdate);
+  }
 }
 
 void RemoteViewerCore::copyFrameBuffer(FrameBuffer &dst)
