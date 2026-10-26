@@ -38,9 +38,11 @@ public:
   // written and flushed: the challenge encrypted with DES, keyed with the
   // first 8 bytes of the password in UTF-8, padded with zeros.
   // Throws whatever reading or writing throws.
+  // A coroutine (util/Task.h): password must stay valid until it has
+  // finished, which awaiting it at once ensures.
   //
-  static void vncAuthenticate(DataInputStream *input, DataOutputStream *output,
-                    const StringStorage &password);
+  static Task<> vncAuthenticate(AwaitableReader &reader, DataOutputStream *output,
+                                const StringStorage &password);
 
   // TODO: removed duplicate code: ServerConfig.h
   static const int VNC_PASSWORD_SIZE = 8;

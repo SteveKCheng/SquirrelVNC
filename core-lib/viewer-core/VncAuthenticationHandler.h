@@ -35,7 +35,7 @@ public:
   //
   // Overrides AuthHandler::authenticate().
   //
-  void authenticate(DataInputStream *input, DataOutputStream *output) override;
+  Task<> authenticate(AwaitableReader &reader, DataOutputStream *output) override;
 
   //
   // Overrides AuthHandler::addAuthCapability().

@@ -448,7 +448,8 @@ void RemoteViewerCore::authenticate()
   if (authenticationType != 0) {
     m_logWriter.detail(_T("Authentication..."));
     if (m_authHandlers.find(authenticationType) != m_authHandlers.end()) {
-      m_authHandlers[authenticationType]->authenticate(m_input, m_output);
+      AwaitableReader reader(*m_input);
+      syncWait(m_authHandlers[authenticationType]->authenticate(reader, m_output));
     } else {
       // Security type is added automatic, but not by user.
       if (authenticationType != SecurityDefs::NONE) {

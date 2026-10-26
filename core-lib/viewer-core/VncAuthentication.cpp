@@ -28,9 +28,9 @@
 
 #include <algorithm>
 
-void VncAuthentication::vncAuthenticate(DataInputStream *input,
-                                        DataOutputStream *output,
-                                        const StringStorage &password)
+Task<> VncAuthentication::vncAuthenticate(AwaitableReader &reader,
+                                          DataOutputStream *output,
+                                          const StringStorage &password)
 {
   // TODO: removed duplicate code: ControlAuth.cpp
 
@@ -47,7 +47,7 @@ void VncAuthentication::vncAuthenticate(DataInputStream *input,
   UINT8 challenge[16];
   UINT8 response[16];
 
-  input->readFully(challenge, sizeof(challenge));
+  co_await reader.readFully(challenge, sizeof(challenge));
   DesCrypt desCrypt;
   desCrypt.encrypt(response, challenge, sizeof(challenge), m_password);
   output->writeFully(response, sizeof(response));

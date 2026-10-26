@@ -38,13 +38,13 @@ VncAuthenticationHandler::~VncAuthenticationHandler()
 }
 
 
-void VncAuthenticationHandler::authenticate(DataInputStream *input,
-                                            DataOutputStream *output)
+Task<> VncAuthenticationHandler::authenticate(AwaitableReader &reader,
+                                              DataOutputStream *output)
 {
   StringStorage password;
   getPassword(&password);
 
-  VncAuthentication::vncAuthenticate(input, output, password);
+  co_await VncAuthentication::vncAuthenticate(reader, output, password);
 }
 
 void VncAuthenticationHandler::addAuthCapability(CapabilitiesManager &capManager)

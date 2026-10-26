@@ -24,8 +24,9 @@
 #ifndef _AUTH_HANDLER_H_
 #define _AUTH_HANDLER_H_
 
-#include "io-lib/DataInputStream.h"
+#include "io-lib/AwaitableReader.h"
 #include "io-lib/DataOutputStream.h"
+#include "util/Task.h"
 #include "rfb/AuthDefs.h"
 #include "util/Exception.h"
 
@@ -77,10 +78,12 @@ public:
 
   //
   // This abstract method that performs the authentication.
-  // Use "input" and "output" outside authenticate() is prohibited.
+  // Use "reader" and "output" outside authenticate() is prohibited.
+  // A coroutine (util/Task.h): it awaits each read from reader; writes to
+  // output are synchronous.
   //
   // FIXME: AUTH: document throwing AuthCanceledException
-  virtual void authenticate(DataInputStream *input, DataOutputStream *output) = 0;
+  virtual Task<> authenticate(AwaitableReader &reader, DataOutputStream *output) = 0;
 
   //
   // This abstract method that add auth-capability in RemoveViewerCore.
