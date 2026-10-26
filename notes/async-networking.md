@@ -806,7 +806,15 @@ from vcpkg.
     `Internal`: by convention for `RemoteViewerCore` and its unit tests
     only (Steve), so that the coalescing rule is tested directly
     (`ClientEventsTests.cpp`).
-- Then steps 4 to 7 as above.
+- ~~Then steps 4 to 7 as above.~~ *Then steps 5 to 7; step 4 is
+  deferred (Steve, 2026-10-26).* Profiling (`cpu-usage.md`) shows that
+  removing `FbUpdateNotifier` costs nothing once the decoders write
+  straight into the DIB, but that the per-pixel loops and the JPEG
+  conversion should be fixed first, and that step 4 as written (the
+  loop copies into the DIB) would only move the notifier's copy onto
+  the network thread. It becomes "decode into the DIB", after the fixes
+  in `cpu-usage.md`, "What to do". Until then step 7 keeps
+  `WindowsEvent`, which the notifier uses.
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the
