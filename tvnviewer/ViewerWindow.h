@@ -35,20 +35,16 @@
 #include "log-writer/LogWriter.h"
 #include "viewer-core/FileTransferCapability.h"
 #include "viewer-core/RemoteViewerCore.h"
-#include "viewer-core/CoreEventsAdapter.h"
 #include "viewer-core/VncAuthentication.h"
+#include "ViewerCoreEvents.h"
 #include "win-system/DisplayRequest.h"
 #include "win-system/SystemInformation.h"
 #include "win-system/WindowsApplication.h"
 #include "win-system/WinHooks.h"
 
-#include <functional>
 #include <memory>
-#include <mutex>
-#include <optional>
 
 class ViewerWindow final : public BaseWindow,
-                     public CoreEventsAdapter,
                      private HookEventListener
 {
 public:
@@ -90,51 +86,16 @@ public:
   void destroy();
 
   //
-  // Called with the password, or with nothing; see requestPassword().
+  // The part of this window that its connection calls, on the network
+  // thread: the adapter of RemoteViewerCore, and the password prompt of
+  // ViewerVncAuthHandler. It lives as long as this window. GUI thread.
   //
-  using PasswordReply = std::function<void(std::optional<StringStorage>)>;
+  ViewerCoreEvents &getCoreEvents();
 
-  //
-  // Asks the user for the password of the connection, without waiting:
-  // the dialog runs on the GUI thread (handlePasswordRequest()), and reply
-  // gets the answer.
-  //
-  // Pre-conditions: called on the network thread (by
-  // ViewerVncAuthHandler), and not again before reply has been called.
-  // Post-conditions: reply is called exactly once: on the GUI thread with
-  // what the user entered, or with nothing if the user cancelled; or with
-  // nothing, on the calling thread, if the request is cancelled by
-  // cancelPasswordRequest() (before or after this call) or cannot be posted.
-  //
-  void requestPassword(PasswordReply reply);
-
-  //
-  // Ends a pending requestPassword() with no password, and makes later
-  // calls reply with nothing at once. Called when the window or its
-  // connection ends; the dialog, if open, stays open, and its answer is
-  // ignored. Any thread; reply is called on the calling thread.
-  //
-  // Post-conditions: no request is pending, and none will be.
-  //
-  void cancelPasswordRequest() noexcept;
-
-  static const int WM_USER_ERROR = WM_USER + 1;
-  static const int WM_USER_DISCONNECT = WM_USER + 3;
-  static const int WM_USER_AUTH_ERROR = WM_USER + 4;
+  // WM_USER + 1 to 4 and 6 to 9 are ViewerCoreEvents' messages.
   static const int WM_USER_FS_WARNING = WM_USER + 5;
 
 protected:
-  //
-  // Posted by the CoreEventsAdapter callbacks of the same names, which run on
-  // the core thread, so that the work on the window is done on the GUI
-  // thread. Handled by handleConnected(), handleBell() and handleCutText().
-  //
-  static const int WM_USER_CONNECTED = WM_USER + 6;
-  static const int WM_USER_BELL = WM_USER + 7;
-  static const int WM_USER_CUT_TEXT = WM_USER + 8;
-  // Posted by requestPassword(); handled by handlePasswordRequest().
-  static const int WM_USER_PASSWORD = WM_USER + 9;
-
   static const int TIMER_DESKTOP_STATE = 1;
   static const int TIMER_DESKTOP_STATE_DELAY = 50;
 
@@ -146,11 +107,18 @@ protected:
   bool onError();
 
   //
+  // The handlers of ViewerCoreEvents' messages, on the GUI thread, which
+  // take what the connection reported from m_coreEvents: onDisconnect()
+  // (WM_USER_DISCONNECT), onAuthError() (WM_USER_AUTH_ERROR) and onError()
+  // (WM_USER_ERROR) tell the user, and destroy the window.
+  //
+
+  //
   // Handles WM_USER_CONNECTED, on the GUI thread: marks the window as
   // connected, shows it and applies the settings.
   //
-  // Pre-condition: posted by onConnected(), after the protocol
-  // initialization of m_viewerCore has completed.
+  // Pre-condition: posted by ViewerCoreEvents::onConnected(), after the
+  // protocol initialization of m_viewerCore has completed.
   // Post-condition: m_isConnected is true, and m_connectionInfo holds what
   // onConnected() was given.
   //
@@ -163,10 +131,9 @@ protected:
   bool handleBell();
 
   //
-  // Handles WM_USER_CUT_TEXT, on the GUI thread: puts the text in
-  // m_pendingCutText, if any, on the clipboard (if the clipboard is enabled).
-  //
-  // Post-condition: m_pendingCutText is empty.
+  // Handles WM_USER_CUT_TEXT, on the GUI thread: puts the latest text from
+  // the server, if not taken already, on the clipboard (if the clipboard is
+  // enabled).
   //
   bool handleCutText();
 
@@ -179,15 +146,6 @@ protected:
   // Post-conditions: no request is pending.
   //
   bool handlePasswordRequest();
-
-  //
-  // Answers the pending request of requestPassword() with the given
-  // password, calling its reply on this thread, or does nothing if none is
-  // pending. Any thread.
-  //
-  // Post-conditions: no request is pending.
-  //
-  void answerPasswordRequest(std::optional<StringStorage> password) noexcept;
 
   bool onFsWarning();
   bool onSize(WPARAM wParam, LPARAM lParam);
@@ -216,26 +174,6 @@ protected:
   void commandScale100();
   void commandScaleAuto();
 
-  //
-  // It is implementation of CoreEventsAdapter functions.
-  //
-  // They run on the core thread (onFrameBufferUpdate() and
-  // onFrameBufferPropChange() on the FbUpdateNotifier thread). onBell(),
-  // onConnected() and onCutText() leave all work on the window to the GUI
-  // thread by posting a message, as onDisconnect(), onAuthError() and
-  // onError() already do: a call on a window of the GUI thread can wait for
-  // that thread, and the state the work touches stays on one thread.
-  //
-  void onBell() override;
-  void onEstablished() override;
-  void onConnected(RfbOutputGate *output, const ConnectionInfo &info) override;
-  void onDisconnect(const StringStorage &message) override;
-  void onAuthError(const AuthException &exception) override;
-  void onError(const Exception &exception) override;
-  void onFrameBufferUpdate(const FrameBuffer &fb, const Rect &rect) override;
-  void onFrameBufferPropChange(const FrameBuffer &fb) override;
-  void onCutText(const StringStorage &cutText) override;
-
   int translateAccelToTB(int val);
   void applyScreenChanges(bool isFullScreen);
   
@@ -255,40 +193,17 @@ protected:
   FileTransferCapability *m_fileTransfer;
   std::unique_ptr<FileTransferMainDialog> m_ftDialog;
   DesktopWindow m_dsktWnd;
+  // Called by the connection; posts to this window (getCoreEvents()).
+  ViewerCoreEvents m_coreEvents;
   StringStorage m_strToolTip;
   ToolBar m_toolbar;
   ViewerMenu m_menu;
   ConnectionData *m_conData;
   SystemInformation m_sysinf;
 
-  // This variable save Exception after call onError().
-  Exception m_error;
-  // This variable save disconnect-message after call onDisconnect().
-  StringStorage m_disconnectMessage;
-
-  // The latest cut text from the server not yet put on the clipboard: set
-  // by onCutText() on the core thread, and taken by handleCutText() on the
-  // GUI thread. Only the latest text matters, so a newer one replaces it.
-  // Guarded by m_pendingCutTextLock.
-  std::optional<StringStorage> m_pendingCutText;
-  std::mutex m_pendingCutTextLock;
-
-  // What onConnected() was given, on the core thread, until
-  // handleConnected() takes it, on the GUI thread. Guarded by
-  // m_pendingConnectionInfoLock.
-  std::optional<ConnectionInfo> m_pendingConnectionInfo;
-  std::mutex m_pendingConnectionInfoLock;
-
   // The connection's details, once handleConnected() has run; empty
   // before. Accessed only on the GUI thread.
   ConnectionInfo m_connectionInfo;
-
-  // The reply of the pending requestPassword(), if any, and whether
-  // cancelPasswordRequest() has been called. Guarded by
-  // m_passwordRequestLock.
-  PasswordReply m_passwordRequest;
-  bool m_isPasswordRequestCancelled;
-  std::mutex m_passwordRequestLock;
 
   // Flag is set, if now viewer is in full screen mode
   bool m_isFullScr;
@@ -311,7 +226,8 @@ protected:
   // Flag is set, if instance is requires to reconnect.
   bool m_requiresReconnect;
 
-  // Set when the window has been destroyed (WM_NCDESTROY).
+  // Set when the window has been destroyed (WM_NCDESTROY). Accessed only on
+  // the GUI thread.
   bool m_stopped;
 
   // The owner of this window, kept alive until WM_NCDESTROY (setOwner()).

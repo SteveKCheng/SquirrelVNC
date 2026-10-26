@@ -72,8 +72,9 @@ public:
 
   //
   // Starts the connection, which holds a reference to this object until it
-  // has ended (RemoteViewerCore::start(), given the window as the adapter,
-  // through this object's control block), and then gives the window its own
+  // has ended (RemoteViewerCore::start(), given the window's
+  // ViewerCoreEvents as the adapter, through this object's control block),
+  // and then gives the window its own
   // reference (ViewerWindow::setOwner()). GUI thread.
   //
   // Pre-conditions: owned by a std::shared_ptr (ViewerCollector::

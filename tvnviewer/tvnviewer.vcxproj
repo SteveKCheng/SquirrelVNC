@@ -121,6 +121,7 @@
     <ClCompile Include="TvnViewer.cpp" />
     <ClCompile Include="ViewerCmdLine.cpp" />
     <ClCompile Include="ViewerCollector.cpp" />
+    <ClCompile Include="ViewerCoreEvents.cpp" />
     <ClCompile Include="ViewerInstance.cpp" />
     <ClCompile Include="ViewerMenu.cpp" />
     <ClCompile Include="ViewerVncAuthHandler.cpp" />
@@ -151,6 +152,7 @@
     <ClInclude Include="TvnViewer.h" />
     <ClInclude Include="ViewerCmdLine.h" />
     <ClInclude Include="ViewerCollector.h" />
+    <ClInclude Include="ViewerCoreEvents.h" />
     <ClInclude Include="ViewerInstance.h" />
     <ClInclude Include="ViewerMenu.h" />
     <ClInclude Include="ViewerVncAuthHandler.h" />

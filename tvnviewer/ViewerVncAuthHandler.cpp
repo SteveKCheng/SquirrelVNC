@@ -22,10 +22,10 @@
 //
 
 #include "ViewerVncAuthHandler.h"
-#include "ViewerWindow.h"
+#include "ViewerCoreEvents.h"
 
 ViewerVncAuthHandler::ViewerVncAuthHandler(ConnectionData *connectionData,
-                                           ViewerWindow &passwordPrompt)
+                                           ViewerCoreEvents &passwordPrompt)
 : m_connectionData(connectionData),
   m_passwordPrompt(passwordPrompt)
 {

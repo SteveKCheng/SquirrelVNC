@@ -35,7 +35,7 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
               &m_condata,
               &m_conConf,
               ViewerConfig::getInstance()->getLogger()),
-  m_vncAuthHandler(&m_condata, m_viewerWnd),
+  m_vncAuthHandler(&m_condata, m_viewerWnd.getCoreEvents()),
   m_viewerCore(ViewerConfig::getInstance()->getLogger())
 {
 }
@@ -51,7 +51,7 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
               &m_condata,
               &m_conConf,
               ViewerConfig::getInstance()->getLogger()),
-  m_vncAuthHandler(&m_condata, m_viewerWnd),
+  m_vncAuthHandler(&m_condata, m_viewerWnd.getCoreEvents()),
   m_viewerCore(ViewerConfig::getInstance()->getLogger())
 {
 }
@@ -87,7 +87,7 @@ void ViewerInstance::start()
   // The core sees only the adapter, but through this object's control
   // block, which keeps the core and what is registered with it alive.
   std::shared_ptr<ViewerInstance> self = shared_from_this();
-  std::shared_ptr<CoreEventsAdapter> adapter(self, &m_viewerWnd);
+  std::shared_ptr<CoreEventsAdapter> adapter(self, &m_viewerWnd.getCoreEvents());
   if (m_socket) {
     m_viewerCore.start(m_socket.get(),
                        std::move(adapter), m_conConf.getSharedFlag());

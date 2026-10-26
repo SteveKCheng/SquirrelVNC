@@ -937,12 +937,20 @@ Decisions (Steve, 2026-10-25):
     them, and a count of instances not yet deleted, which keeps the
     application alive until their deletions have run, before the
     network thread is joined.
-  - **The adapter as an object of its own** (Steve, to follow): the
+  - **The adapter as an object of its own** (Steve): the
     adapter is called on the network thread, and must not touch the
     window's other members, which belong to the GUI thread. An explicit
     private interior object, rather than `ViewerWindow` inheriting
     `CoreEventsAdapter`, documents that, and denies such access by
-    default.
+    default. **Done** (2026-10-26): `ViewerCoreEvents`, a member of
+    `ViewerWindow` and also the password prompt of
+    `ViewerVncAuthHandler`. It is not nested in `ViewerWindow`, as a
+    nested class has access to the enclosing class's members; it holds no
+    reference to the window, only its `HWND`, the desktop window (for the
+    frame buffer events) and the file transfer. It keeps what the
+    connection reports under its own lock, and its GUI-thread side is
+    private, for `ViewerWindow` (friend). At `WM_NCDESTROY` the window
+    detaches it, so nothing is posted to a handle that may be reused.
 - For this to be safe, the driver never blocks on the GUI (it only posts
   to it), and cancellation always completes a pending password or
   certificate prompt with `operation_aborted` (Phase 4 step 3).

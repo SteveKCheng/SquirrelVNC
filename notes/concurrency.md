@@ -195,9 +195,12 @@ None of these is a security issue; all are latent.
    - `DesktopWindow::m_scManager` read in `repaint()` on the notifier
      thread while the GUI thread changes it in `onSize` /
      `calcClientArea` without the lock;
-   - `m_isBackgroundDirty`, and the core's `m_error` /
-     `m_disconnectMessage`, written without locks (the later
-     `PostMessage` gives ordering in practice);
+   - `m_isBackgroundDirty`, ~~and the core's `m_error` /
+     `m_disconnectMessage`,~~ written without locks (the later
+     `PostMessage` gives ordering in practice); *the error and disconnect
+     message, and `ViewerWindow::m_stopped` read on the network thread,
+     fixed 2026-10-26: they belong to `ViewerCoreEvents` now, under its
+     lock, and the network thread no longer reads `m_stopped`;*
    - `Thread::m_terminated` is a `volatile bool`. That works with MSVC's
      x86/x64 `volatile` semantics, but not under ISO semantics (Clang,
      or MSVC on ARM64). It should be `std::atomic<bool>`.

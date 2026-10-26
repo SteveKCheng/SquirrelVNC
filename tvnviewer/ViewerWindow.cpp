@@ -49,7 +49,7 @@ ViewerWindow::ViewerWindow(WindowsApplication *application,
   m_fileTransfer(nullptr),
   m_conData(conData),
   m_dsktWnd(&m_logWriter, conConf),
-  m_isPasswordRequestCancelled(false),
+  m_coreEvents(m_dsktWnd, logger),
   m_isConnected(false),
   m_sizeIsChanged(false),
   m_hooksEnabledFirstTime(true),
@@ -78,6 +78,7 @@ ViewerWindow::ViewerWindow(WindowsApplication *application,
   m_dsktWnd.createWindow(subTitleName,
                          WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_CHILD,
                          getHWnd());
+  m_coreEvents.attach(getHWnd());
 
   SetTimer(m_hWnd, TIMER_DESKTOP_STATE, TIMER_DESKTOP_STATE_DELAY, (TIMERPROC)nullptr);
 }
@@ -93,6 +94,12 @@ ViewerWindow::~ViewerWindow()
 void ViewerWindow::setFileTransfer(FileTransferCapability *ft)
 {
   m_fileTransfer = ft;
+  m_coreEvents.setFileTransfer(ft);
+}
+
+ViewerCoreEvents &ViewerWindow::getCoreEvents()
+{
+  return m_coreEvents;
 }
 
 void ViewerWindow::setRemoteViewerCore(RemoteViewerCore *pCore)
@@ -282,6 +289,8 @@ bool ViewerWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
     return false;
   case WM_NCDESTROY:
     m_stopped = true;
+    // The handle may be reused from now on.
+    m_coreEvents.detach();
     // If it is the last reference, the owner's deleter posts the deletion
     // (ViewerCollector), so nothing is deleted under this procedure.
     m_owner.reset();
@@ -296,19 +305,19 @@ bool ViewerWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
     return onCreate((LPCREATESTRUCT) lParam);
   case WM_SIZE:
     return onSize(wParam, lParam);
-  case WM_USER_AUTH_ERROR:
+  case ViewerCoreEvents::WM_USER_AUTH_ERROR:
     return onAuthError(wParam);
-  case WM_USER_ERROR:
+  case ViewerCoreEvents::WM_USER_ERROR:
     return onError();
-  case WM_USER_DISCONNECT:
+  case ViewerCoreEvents::WM_USER_DISCONNECT:
     return onDisconnect();
-  case WM_USER_CONNECTED:
+  case ViewerCoreEvents::WM_USER_CONNECTED:
     return handleConnected();
-  case WM_USER_BELL:
+  case ViewerCoreEvents::WM_USER_BELL:
     return handleBell();
-  case WM_USER_CUT_TEXT:
+  case ViewerCoreEvents::WM_USER_CUT_TEXT:
     return handleCutText();
-  case WM_USER_PASSWORD:
+  case ViewerCoreEvents::WM_USER_PASSWORD:
     return handlePasswordRequest();
   case WM_ACTIVATE:
     if (!m_isFullScr) {
@@ -968,7 +977,7 @@ bool ViewerWindow::onDestroy()
   if (m_viewerCore != nullptr) {
     m_viewerCore->stop();
   }
-  cancelPasswordRequest();
+  m_coreEvents.cancelPasswordRequest();
   return true;
 }
 
@@ -1019,7 +1028,7 @@ void ViewerWindow::showWindow()
 bool ViewerWindow::onDisconnect()
 {
   MessageBox(getHWnd(),
-             m_disconnectMessage.getString(),
+             m_coreEvents.getDisconnectMessage().getString(),
              formatWindowName().getString(),
              MB_OK);
 
@@ -1032,7 +1041,7 @@ bool ViewerWindow::onAuthError(WPARAM wParam)
 {
   // If authentication is canceled, then do quiet exit, else show error-message.
   if (wParam != AuthException::AUTH_CANCELED) {
-    StringStorage error = m_error.getMessage();
+    StringStorage error = m_coreEvents.getError().getMessage();
     int result = MessageBox(nullptr,
                             error.getString(),
                             formatWindowName().getString(),
@@ -1064,7 +1073,8 @@ bool ViewerWindow::onAuthError(WPARAM wParam)
 bool ViewerWindow::onError()
 {
   StringStorage error;
-  error.format(_T("Error in %s: %s"), ProductNames::VIEWER_PRODUCT_NAME, m_error.getMessage());
+  error.format(_T("Error in %s: %s"), ProductNames::VIEWER_PRODUCT_NAME,
+               m_coreEvents.getError().getMessage());
   MessageBox(getHWnd(),
              error.getString(),
              formatWindowName().getString(),
@@ -1087,11 +1097,6 @@ bool ViewerWindow::onFocus(WPARAM /* wParam */)
 {
   SetFocus(m_dsktWnd.getHWnd());
   return true;
-}
-
-void ViewerWindow::onBell()
-{
-  postMessage(WM_USER_BELL);
 }
 
 bool ViewerWindow::handleBell()
@@ -1147,38 +1152,10 @@ Rect ViewerWindow::calculateDefaultSize()
   return defaultRect;
 }
 
-void ViewerWindow::onEstablished()
-{
-  // Nothing to do until the protocol is initialized (onConnected()).
-}
-
-void ViewerWindow::onConnected(RfbOutputGate *output, const ConnectionInfo &info)
-{
-  // Set output for client-to-server messages in file transfer.
-  m_fileTransfer->setOutput(output);
-
-  // Update list of supported operation for file transfer.
-  m_fileTransfer->getCore()->updateSupportedOperations(info.clientMsgCodes,
-                                                       info.serverMsgCodes);
-
-  {
-    std::lock_guard<std::mutex> lock(m_pendingConnectionInfoLock);
-    m_pendingConnectionInfo = info;
-  }
-
-  // The file-transfer state above is complete before the GUI thread sees
-  // the message, which applySettings() needs to enable the button.
-  postMessage(WM_USER_CONNECTED);
-}
-
 bool ViewerWindow::handleConnected()
 {
-  {
-    std::lock_guard<std::mutex> lock(m_pendingConnectionInfoLock);
-    if (m_pendingConnectionInfo) {
-      m_connectionInfo = std::move(*m_pendingConnectionInfo);
-      m_pendingConnectionInfo.reset();
-    }
+  if (std::optional<ConnectionInfo> info = m_coreEvents.takeConnectionInfo()) {
+    m_connectionInfo = std::move(*info);
   }
 
   // Set flags.
@@ -1199,115 +1176,20 @@ bool ViewerWindow::handleConnected()
   return true;
 }
 
-void ViewerWindow::onDisconnect(const StringStorage &message)
-{
-  m_logWriter.info(_T("onDisconnect: %s"), message.getString());
-  m_disconnectMessage = message;
-  if (!m_stopped) {
-    postMessage(WM_USER_DISCONNECT);
-  }
-}
-
-void ViewerWindow::onAuthError(const AuthException &exception)
-{
-  m_logWriter.info(_T("onAuthError (%d): %s"),
-                   exception.getAuthCode(), exception.getMessage());
-  int authCode = exception.getAuthCode();
-  m_error = exception;
-  postMessage(WM_USER_AUTH_ERROR, authCode);
-}
-
-void ViewerWindow::onError(const Exception &exception)
-{
-  m_error = exception;
-  postMessage(WM_USER_ERROR);
-}
-
-void ViewerWindow::onFrameBufferUpdate(const FrameBuffer &fb, const Rect &rect)
-{
-  m_dsktWnd.updateFramebuffer(fb, rect);
-}
-
-void ViewerWindow::onFrameBufferPropChange(const FrameBuffer &fb)
-{
-  m_dsktWnd.setNewFramebuffer(fb);
-}
-
-void ViewerWindow::onCutText(const StringStorage &cutText)
-{
-  {
-    std::lock_guard<std::mutex> lock(m_pendingCutTextLock);
-    m_pendingCutText = cutText;
-  }
-  // Posted every time, so that a lost message cannot strand a later text;
-  // handleCutText() does nothing for the messages after the first.
-  postMessage(WM_USER_CUT_TEXT);
-}
-
 bool ViewerWindow::handleCutText()
 {
-  std::optional<StringStorage> cutText;
-  {
-    std::lock_guard<std::mutex> lock(m_pendingCutTextLock);
-    cutText.swap(m_pendingCutText);
-  }
+  std::optional<StringStorage> cutText = m_coreEvents.takeCutText();
   if (cutText) {
     m_dsktWnd.setClipboardData(*cutText);
   }
   return true;
 }
 
-void ViewerWindow::requestPassword(PasswordReply reply)
-{
-  bool isCancelled;
-  {
-    std::lock_guard<std::mutex> lock(m_passwordRequestLock);
-    isCancelled = m_isPasswordRequestCancelled;
-    if (!isCancelled) {
-      m_passwordRequest = std::move(reply);
-    }
-  }
-  if (isCancelled) {
-    reply(std::nullopt);
-    return;
-  }
-  // Not BaseWindow::postMessage(), which does not report failure: the
-  // request would then never be answered.
-  if (!PostMessage(getHWnd(), WM_USER_PASSWORD, 0, 0)) {
-    answerPasswordRequest(std::nullopt);
-  }
-}
-
-void ViewerWindow::cancelPasswordRequest() noexcept
-{
-  {
-    std::lock_guard<std::mutex> lock(m_passwordRequestLock);
-    m_isPasswordRequestCancelled = true;
-  }
-  answerPasswordRequest(std::nullopt);
-}
-
-void ViewerWindow::answerPasswordRequest(std::optional<StringStorage> password) noexcept
-{
-  PasswordReply reply;
-  {
-    std::lock_guard<std::mutex> lock(m_passwordRequestLock);
-    reply = std::exchange(m_passwordRequest, nullptr);
-  }
-  // Outside the lock: the reply may post to the network thread.
-  if (reply) {
-    reply(std::move(password));
-  }
-}
-
 bool ViewerWindow::handlePasswordRequest()
 {
-  {
-    std::lock_guard<std::mutex> lock(m_passwordRequestLock);
-    if (!m_passwordRequest) {
-      // Cancelled before the message arrived.
-      return true;
-    }
+  if (!m_coreEvents.hasPasswordRequest()) {
+    // Cancelled before the message arrived.
+    return true;
   }
   std::optional<StringStorage> password;
   try {
@@ -1318,10 +1200,10 @@ bool ViewerWindow::handlePasswordRequest()
       password = authDialog.getPassword();
     }
   } catch (...) {
-    answerPasswordRequest(std::nullopt);
+    m_coreEvents.answerPasswordRequest(std::nullopt);
     throw;
   }
-  answerPasswordRequest(std::move(password));
+  m_coreEvents.answerPasswordRequest(std::move(password));
   return true;
 }
 
