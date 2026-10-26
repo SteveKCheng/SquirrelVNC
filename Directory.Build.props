@@ -41,5 +41,16 @@
   <PropertyGroup Condition="'$(Configuration)' == 'ReleaseFuzz'">
     <EnableASAN>true</EnableASAN>
   </PropertyGroup>
+  <!--
+    The Windows version targeted, defined for every file, as
+    win32-lib/util/winhdr.h also defines it: Asio (from vcpkg) selects
+    its features from _WIN32_WINNT, and must see the same value wherever
+    it is included, also in files that do not include winhdr.h first.
+  -->
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>WINVER=0x0A00;_WIN32_WINNT=0x0A00;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <Import Project="$(TvnVcpkgMSBuildDir)vcpkg.props" />
 </Project>

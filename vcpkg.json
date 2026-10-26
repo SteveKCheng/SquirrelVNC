@@ -1,5 +1,6 @@
 {
   "dependencies": [
+    "asio",
     "libjpeg-turbo",
     "simpleini",
     "zlib-ng"

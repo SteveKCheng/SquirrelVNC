@@ -117,6 +117,9 @@
     <ClCompile Include="viewer-core\DecoderOfRectangle.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
+    <ClCompile Include="viewer-core\NetworkThread.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
     <ClCompile Include="viewer-core\DecoderStore.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
@@ -381,6 +384,9 @@
       <Filter>viewer-core</Filter>
     </ClInclude>
     <ClInclude Include="viewer-core\DecoderOfRectangle.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="viewer-core\NetworkThread.h">
       <Filter>viewer-core</Filter>
     </ClInclude>
     <ClInclude Include="viewer-core\DecoderStore.h">

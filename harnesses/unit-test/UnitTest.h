@@ -51,5 +51,6 @@ void runExceptionTests();
 void runTaskTests();
 void runSocketTests();
 void runBufferedInputStreamTests();
+void runNetworkThreadTests();
 
 #endif // _UNIT_TEST_H_

@@ -98,6 +98,7 @@
     <ClCompile Include="FileTests.cpp" />
     <ClCompile Include="HostPathTests.cpp" />
     <ClCompile Include="IniTests.cpp" />
+    <ClCompile Include="NetworkThreadTests.cpp" />
     <ClCompile Include="ScopeExitTests.cpp" />
     <ClCompile Include="SocketTests.cpp" />
     <ClCompile Include="TaskTests.cpp" />

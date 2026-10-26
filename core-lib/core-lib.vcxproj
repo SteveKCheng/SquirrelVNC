@@ -130,6 +130,7 @@
     <ClCompile Include="viewer-core\Decoder.cpp" />
     <ClCompile Include="viewer-core\DecoderOfRectangle.cpp" />
     <ClCompile Include="viewer-core\DecoderStore.cpp" />
+    <ClCompile Include="viewer-core\NetworkThread.cpp" />
     <ClCompile Include="viewer-core\DesktopSizeDecoder.cpp" />
     <ClCompile Include="viewer-core\FbUpdateNotifier.cpp" />
     <ClCompile Include="viewer-core\FileTransferCapability.cpp" />
@@ -220,6 +221,7 @@
     <ClInclude Include="viewer-core\Decoder.h" />
     <ClInclude Include="viewer-core\DecoderOfRectangle.h" />
     <ClInclude Include="viewer-core\DecoderStore.h" />
+    <ClInclude Include="viewer-core\NetworkThread.h" />
     <ClInclude Include="viewer-core\DesktopSizeDecoder.h" />
     <ClInclude Include="viewer-core\FbUpdateNotifier.h" />
     <ClInclude Include="viewer-core\FileTransferCapability.h" />
