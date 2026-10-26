@@ -219,21 +219,6 @@ public:
   void waitTermination();
 
   //
-  // Informational function which returns the protocol identification string
-  // in a free format. If protocol version is not known yet, an empty string
-  // is returned.
-  //
-  StringStorage getProtocolString() const;
-
-  //
-  // Informational function which returns the remote desktop name (as received
-  // from the server). If the desktop name is not available for any reason
-  // (e.g. before entering the protocol phase where it will be sent), an empty
-  // string is returned.
-  //
-  StringStorage getRemoteDesktopName() const;
-
-  //
   // Set the specified pixel format. The viewer will request that pixel format
   // from the server, as well as a full screen update. The pixel format is not
   // guaranteed to be applied immediately. It will be applied when allowed by
@@ -401,6 +386,13 @@ private:
   // connection has ended, as it only records that start() was called.
   //
   bool wasStarted() const;
+
+  //
+  // The protocol version in use, as the version message gives it:
+  // "RFB 003.008\n" and so on. Meaningful once the core thread has read the
+  // server's version, in handshake().
+  //
+  StringStorage getProtocolString() const;
 
   //
   // If the server announced the UTF8CUTT capability, allows sending

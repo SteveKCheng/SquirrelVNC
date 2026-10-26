@@ -492,6 +492,31 @@ Each step is useful on its own.
    implemented over today's threads, so Phase 4 replaces what is behind
    the handle without touching the GUI. How far this goes is decided
    when we get there.
+   **Done** (2026-10-26), as far as was reasonable:
+   - Unused public parts removed: the constructors that started the core
+     themselves, and `getDesktops()`. `wasStarted()`,
+     `allowUtf8Clipboard()` and `getProtocolString()` are private.
+   - Steve's decision: the public methods stay as the interface
+     (`sendKeyboardEvent()`, `setPixelFormat()` and so on), and the event
+     representation is private, so that callers and text searches do not
+     depend on it. Each method makes a small event struct and passes it to
+     the private `post()`, which dispatches a private `std::variant`,
+     `ClientEvent`, to one `handle()` overload per event. In Phase 4,
+     `post()` queues the events for the network thread.
+   - Already now, `post()` queues the five events that change the decoder
+     set (preferred encoding, CopyRect, JPEG quality, compression level,
+     cursor shape updates), and the core thread handles them between
+     server messages: `DecoderStore` has no lock, and the GUI thread used
+     to change its map while the core thread looked up decoders in it.
+     The other events are still handled on the calling thread.
+   - `CoreEventsAdapter::onConnected()` receives a `ConnectionInfo`
+     (desktop name, protocol string, enabled message capabilities), which
+     `ViewerWindow` keeps on the GUI thread; `getRemoteDesktopName()` is
+     gone.
+   - Left for Phase 4, as planned: file-transfer requests still go to the
+     output gate directly, from the GUI and core threads (step 5), and
+     the frame-buffer callbacks still come from the notifier thread
+     (step 4).
 
 ~~The writing side needs no preparation: every write already goes through
 `RfbOutputGate` under its lock, so the gate can be re-implemented later

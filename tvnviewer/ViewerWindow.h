@@ -130,7 +130,8 @@ protected:
   //
   // Pre-condition: posted by onConnected(), after the protocol
   // initialization of m_viewerCore has completed.
-  // Post-condition: m_isConnected is true.
+  // Post-condition: m_isConnected is true, and m_connectionInfo holds what
+  // onConnected() was given.
   //
   bool handleConnected();
 
@@ -205,7 +206,7 @@ protected:
   //
   void onBell() override;
   void onEstablished() override;
-  void onConnected(RfbOutputGate *output) override;
+  void onConnected(RfbOutputGate *output, const ConnectionInfo &info) override;
   void onDisconnect(const StringStorage &message) override;
   void onAuthError(const AuthException &exception) override;
   void onError(const Exception &exception) override;
@@ -249,6 +250,16 @@ protected:
   // Guarded by m_pendingCutTextLock.
   std::optional<StringStorage> m_pendingCutText;
   std::mutex m_pendingCutTextLock;
+
+  // What onConnected() was given, on the core thread, until
+  // handleConnected() takes it, on the GUI thread. Guarded by
+  // m_pendingConnectionInfoLock.
+  std::optional<ConnectionInfo> m_pendingConnectionInfo;
+  std::mutex m_pendingConnectionInfoLock;
+
+  // The connection's details, once handleConnected() has run; empty
+  // before. Accessed only on the GUI thread.
+  ConnectionInfo m_connectionInfo;
 
   // The promise of the pending askPassword(), if any, and whether
   // cancelPasswordRequest() has been called. Guarded by

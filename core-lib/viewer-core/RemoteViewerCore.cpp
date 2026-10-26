@@ -731,10 +731,6 @@ StringStorage RemoteViewerCore::getProtocolString() const
   return protocolString;
 }
 
-StringStorage RemoteViewerCore::getRemoteDesktopName() const
-{
-  return m_remoteDesktopName;
-}
 
 void RemoteViewerCore::execute()
 {
@@ -761,7 +757,12 @@ void RemoteViewerCore::execute()
     m_logWriter.info(_T("Protocol stage is \"Is connected\"."));
 
     try {
-      m_adapter->onConnected(m_output);
+      ConnectionInfo info;
+      info.desktopName = m_remoteDesktopName;
+      info.protocolString = getProtocolString();
+      getEnabledClientMsgCapabilities(&info.clientMsgCodes);
+      getEnabledServerMsgCapabilities(&info.serverMsgCodes);
+      m_adapter->onConnected(m_output, info);
     } catch (const Exception &ex) {
       m_logWriter.error(_T("Error in CoreEventsAdapter::onConnected(): %s"), ex.getMessage());
     } catch (...) {

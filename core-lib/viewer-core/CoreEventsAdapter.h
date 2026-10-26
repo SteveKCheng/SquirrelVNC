@@ -34,6 +34,28 @@
 
 #include "AuthHandler.h"
 
+#include <vector>
+
+//
+// What the protocol initialization established, for the application: given
+// to CoreEventsAdapter::onConnected(), as a copy the application can keep,
+// so that it does not read the core's state while the core runs.
+//
+struct ConnectionInfo
+{
+  // The desktop name from ServerInit.
+  StringStorage desktopName;
+  // The protocol version in use, such as "RFB 003.008\n" (with the newline
+  // of the version message).
+  StringStorage protocolString;
+  // The codes of the client-to-server and server-to-client messages that
+  // both sides support (TightVNC's capabilities), as
+  // CapabilitiesManager::getEnabledClientMsgCapabilities() and
+  // getEnabledServerMsgCapabilities() give them.
+  std::vector<UINT32> clientMsgCodes;
+  std::vector<UINT32> serverMsgCodes;
+};
+
 //
 // CoreEventsAdapter interface is used to pass events from RemoteViewerCore to
 // your application.
@@ -80,9 +102,11 @@ public:
   // Protocol has entered the normal interactive phase (in other words,
   // protocol initialization has been completed).
   //
-  // FIXME: document it.
-  // Output need for capability, e.g. FT.
-  virtual void onConnected(RfbOutputGate *output) = 0;
+  // output is the connection's output gate, for capabilities that send
+  // their own messages, such as file transfer; it stays valid while the
+  // core runs. info is what the initialization established.
+  //
+  virtual void onConnected(RfbOutputGate *output, const ConnectionInfo &info) = 0;
 
   //
   // RemoteViewerCore has been disconnected by calling stop()

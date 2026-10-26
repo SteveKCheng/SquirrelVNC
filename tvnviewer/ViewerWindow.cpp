@@ -409,8 +409,8 @@ void ViewerWindow::dialogConnectionInfo()
   StringStorage str;
   str.format(StringTable::getString(IDS_CONNECTION_INFO_FORMAT),
              host.getString(),
-             m_viewerCore->getRemoteDesktopName().getString(),
-             m_viewerCore->getProtocolString().getString(),
+             m_connectionInfo.desktopName.getString(),
+             m_connectionInfo.protocolString.getString(),
              geometry.getWidth(),
              geometry.getHeight(),
              pixelSize,
@@ -1146,19 +1146,19 @@ void ViewerWindow::onEstablished()
   // Nothing to do until the protocol is initialized (onConnected()).
 }
 
-void ViewerWindow::onConnected(RfbOutputGate *output)
+void ViewerWindow::onConnected(RfbOutputGate *output, const ConnectionInfo &info)
 {
   // Set output for client-to-server messages in file transfer.
   m_fileTransfer->setOutput(output);
 
   // Update list of supported operation for file transfer.
-  std::vector<UINT32> clientMsgCodes;
-  m_viewerCore->getEnabledClientMsgCapabilities(&clientMsgCodes);
+  m_fileTransfer->getCore()->updateSupportedOperations(info.clientMsgCodes,
+                                                       info.serverMsgCodes);
 
-  std::vector<UINT32> serverMsgCodes;
-  m_viewerCore->getEnabledServerMsgCapabilities(&serverMsgCodes);
-
-  m_fileTransfer->getCore()->updateSupportedOperations(clientMsgCodes, serverMsgCodes);
+  {
+    std::lock_guard<std::mutex> lock(m_pendingConnectionInfoLock);
+    m_pendingConnectionInfo = info;
+  }
 
   // The file-transfer state above is complete before the GUI thread sees
   // the message, which applySettings() needs to enable the button.
@@ -1167,6 +1167,14 @@ void ViewerWindow::onConnected(RfbOutputGate *output)
 
 bool ViewerWindow::handleConnected()
 {
+  {
+    std::lock_guard<std::mutex> lock(m_pendingConnectionInfoLock);
+    if (m_pendingConnectionInfo) {
+      m_connectionInfo = std::move(*m_pendingConnectionInfo);
+      m_pendingConnectionInfo.reset();
+    }
+  }
+
   // Set flags.
   m_isConnected = true;
   m_sizeIsChanged = false;
@@ -1367,7 +1375,7 @@ void ViewerWindow::updateKeyState()
 
 StringStorage ViewerWindow::formatWindowName() const
 {
-  StringStorage desktopName = m_viewerCore->getRemoteDesktopName();
+  StringStorage desktopName = m_connectionInfo.desktopName;
   if (desktopName.isEmpty() && !m_conData->getHost().isEmpty()) {
     desktopName = m_conData->getHost();
   }

@@ -30,8 +30,6 @@
 #include <string>
 #include <vector>
 
-class RemoteViewerCore;
-
 //
 // The CoreEventsAdapter of rfb-replay: records the events that come from
 // the protocol thread as lines of text, and signals the end of the session.
@@ -52,20 +50,14 @@ public:
   ReplayEventsAdapter();
   ~ReplayEventsAdapter() override;
 
-  //
-  // Give the core whose events this adapter records, so that
-  // onConnected() can log the desktop name from ServerInit as a
-  // "desktop-name" event, just before "connected".
-  //
-  // Pre-conditions: called before core->start(), and core outlives the
-  // session.
-  //
-  void setCore(RemoteViewerCore *core);
-
   void onBell() override;
   void onCutText(const StringStorage &cutText) override;
   void onEstablished() override;
-  void onConnected(RfbOutputGate *output) override;
+  //
+  // Logs the desktop name from ServerInit as a "desktop-name" event, then
+  // "connected".
+  //
+  void onConnected(RfbOutputGate *output, const ConnectionInfo &info) override;
   void onDisconnect(const StringStorage &message) override;
   void onAuthError(const AuthException &exception) override;
   void onError(const Exception &exception) override;
@@ -101,7 +93,6 @@ private:
   //
   void addEvent(const char *name, const StringStorage &text);
 
-  RemoteViewerCore *m_core;
   LocalMutex m_lock;
   std::vector<std::string> m_events;
   bool m_hasEnded;

@@ -24,17 +24,10 @@
 
 #include "thread/AutoLock.h"
 #include "util/TextEncoding.h"
-#include "viewer-core/RemoteViewerCore.h"
 
 ReplayEventsAdapter::ReplayEventsAdapter()
-: m_core(nullptr),
-  m_hasEnded(false)
+: m_hasEnded(false)
 {
-}
-
-void ReplayEventsAdapter::setCore(RemoteViewerCore *core)
-{
-  m_core = core;
 }
 
 ReplayEventsAdapter::~ReplayEventsAdapter()
@@ -56,13 +49,10 @@ void ReplayEventsAdapter::onEstablished()
   addEvent("established");
 }
 
-void ReplayEventsAdapter::onConnected(RfbOutputGate * /*output*/)
+void ReplayEventsAdapter::onConnected(RfbOutputGate * /*output*/,
+                                      const ConnectionInfo &info)
 {
-  // ServerInit has been read by now, on this thread.
-  if (m_core != nullptr) {
-    StringStorage name = m_core->getRemoteDesktopName();
-    addEvent("desktop-name", name);
-  }
+  addEvent("desktop-name", info.desktopName);
   addEvent("connected");
 }
 

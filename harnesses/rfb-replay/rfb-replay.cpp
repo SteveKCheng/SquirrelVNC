@@ -443,7 +443,6 @@ int _tmain(int argc, TCHAR *argv[])
   try {
     core->setMaxFrameBufferPixels(options.maxPixels);
     authHandler.addAuthCapability(*core);
-    adapter.setCore(core.get());
     core->start(&inputGate, &outputGate, &adapter, true);
 
     if (!adapter.waitForEnd(options.timeoutMs)) {
