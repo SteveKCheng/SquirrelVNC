@@ -616,6 +616,15 @@ explained in `async-networking-resumption.md`.
   allocated the compressed length the server sends (up to 4 GiB) before
   reading any of it. Fixed with a bound from the rectangle's size
   (`[SECURITY]` commit; `notes/security.md`).
+- Regression found in the GUI (Steve, 2026-10-26): updates were missed.
+  The driver asks its input for up to 64 KiB, and
+  `BufferedInputStream::read()`, given more than it held, copied what it
+  had and then blocked in `recv()` for the rest, holding bytes that the
+  protocol code needed before it would send the next update request: a
+  deadlock until the server sent something of its own accord. It now
+  returns what it holds. The replay tests could not catch it: their
+  input never blocks. A unit test now counts the reads of a
+  `BufferedInputStream`'s source.
 
 ### Phase 4: the event loop
 

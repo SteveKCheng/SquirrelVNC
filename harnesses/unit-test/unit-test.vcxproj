@@ -91,6 +91,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BufferedInputStreamTests.cpp" />
     <ClCompile Include="DecoderStoreTests.cpp" />
     <ClCompile Include="ExceptionTests.cpp" />
     <ClCompile Include="FileInfoListTests.cpp" />

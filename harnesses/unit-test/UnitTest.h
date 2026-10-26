@@ -50,5 +50,6 @@ void runScopeExitTests();
 void runExceptionTests();
 void runTaskTests();
 void runSocketTests();
+void runBufferedInputStreamTests();
 
 #endif // _UNIT_TEST_H_

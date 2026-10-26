@@ -38,6 +38,13 @@ size_t BufferedInputStream::read(void *buffer, size_t len) {
   memcpy(buf, &m_buffer[m_pos], m_have);
   size_t copied = m_have;
   m_pos = 0;
+  // Return what was buffered, without reading more: the caller may not get
+  // more until it has acted on these bytes (a reply to a request), so
+  // blocking here can deadlock.
+  if (copied > 0) {
+    m_have = 0;
+    return copied;
+  }
   if (m_buffer.size() > INITIAL_BUFFER_SIZE) {
     m_buffer.resize(INITIAL_BUFFER_SIZE);
   }  

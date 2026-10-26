@@ -12,6 +12,17 @@ public:
 
   ~BufferedInputStream() override;
 
+  //
+  // Reads up to len bytes into buffer: those buffered, if any, without
+  // reading the underlying stream; otherwise it reads the underlying
+  // stream once, which may block, buffers what it gets, and returns up to
+  // len bytes of it.
+  //
+  // Pre-conditions: buffer holds len bytes.
+  // Post-conditions: returns the number of bytes copied, at least 1 if len
+  // is not 0.
+  // Throws what the underlying stream throws.
+  //
   size_t read(void *buffer, size_t len) override;
 
   size_t available() override;
