@@ -180,6 +180,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="util\ScopeExit.h" />
+    <ClInclude Include="util\Task.h" />
     <ClInclude Include="region\Dimension.h" />
     <ClInclude Include="region\Point.h" />
     <ClInclude Include="region\Rect.h" />
@@ -189,6 +190,7 @@
     <ClInclude Include="io-lib\BufferedOutputStream.h" />
     <ClInclude Include="io-lib\ByteArrayInputStream.h" />
     <ClInclude Include="io-lib\Channel.h" />
+    <ClInclude Include="io-lib\AwaitableReader.h" />
     <ClInclude Include="io-lib\DataInputStream.h" />
     <ClInclude Include="io-lib\DataOutputStream.h" />
     <ClInclude Include="io-lib\InputStream.h" />

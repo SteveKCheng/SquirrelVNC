@@ -443,7 +443,33 @@ Each step is useful on its own.
 4. **Coroutine infrastructure, unused:** a small lazy `Task<T>` of our
    own, `syncWait`, and a reader awaitable over today's blocking
    stream, with unit tests. Asio stays out of the protocol core
-   entirely, so the fuzzers drive it without Asio.
+   entirely, so the fuzzers drive it without Asio. **Done** (2026-10-25):
+   `core-lib/util/Task.h` (`Task<T>`, `syncWait`) and
+   `core-lib/io-lib/AwaitableReader.h`, tested by
+   `harnesses/unit-test/TaskTests.cpp`. Choices, agreed with Steve:
+   - **Lazy**, not eager like .NET: no atomics, since nothing can complete
+     on another thread before it is awaited; destroying an unstarted
+     Task is harmless; and only lazy frames can be elided (the child's
+     lifetime provably nests in the parent's). The cost is that the
+     arguments must stay alive until the Task is awaited, so
+     `operator co_await` takes only an rvalue: `co_await f(...)`, or a
+     visible `co_await std::move(task)`.
+   - **Symmetric transfer.** A loop of a million awaits that complete
+     without suspending, and a chain of 100,000 nested Tasks, run in
+     bounded stack in Debug and Release, Win32 and x64: MSVC makes the
+     transfer a tail call even without optimisation. As a check of the
+     test, a variant whose final awaiter calls `resume()` instead
+     overflows the stack in Debug x64.
+   - Exceptions are stored and rethrown at the `co_await`. Destroying a
+     started but unfinished Task is asserted against, as unwinding is
+     meant to be cooperative. `syncWait` throws `std::logic_error` if the
+     Task suspends, leaking its frame rather than destroying a
+     half-finished chain.
+   - Frames come from the global `operator new`; a pool can come later
+     (`cpp-coro.md`).
+   - `AwaitableReader`'s awaitables are always ready, and read, blocking,
+     in `await_resume`, so exceptions come from the `co_await` as from
+     the calls they replace.
 5. **Keepalive.** Independent; this is just a convenient place for it.
 6. **A narrow interface for `RemoteViewerCore`** (added 2026-10-25; see
    "Corrections and decisions" at the end). The GUI side

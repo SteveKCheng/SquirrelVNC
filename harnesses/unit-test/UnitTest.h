@@ -48,5 +48,6 @@ void runFileTests(const std::wstring &dir);
 void runFileInfoListTests();
 void runScopeExitTests();
 void runExceptionTests();
+void runTaskTests();
 
 #endif // _UNIT_TEST_H_

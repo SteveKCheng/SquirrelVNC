@@ -278,6 +278,9 @@
     <ClInclude Include="util\ScopeExit.h">
       <Filter>util</Filter>
     </ClInclude>
+    <ClInclude Include="util\Task.h">
+      <Filter>util</Filter>
+    </ClInclude>
     <ClInclude Include="region\x11region.h">
       <Filter>region</Filter>
     </ClInclude>
@@ -291,6 +294,9 @@
       <Filter>io-lib</Filter>
     </ClInclude>
     <ClInclude Include="io-lib\Channel.h">
+      <Filter>io-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="io-lib\AwaitableReader.h">
       <Filter>io-lib</Filter>
     </ClInclude>
     <ClInclude Include="io-lib\DataInputStream.h">
