@@ -48,6 +48,8 @@
 #include <asio/steady_timer.hpp>
 
 #include <atomic>
+#include <condition_variable>
+#include <functional>
 #include <exception>
 #include <future>
 #include <map>
@@ -233,15 +235,26 @@ public:
   //
   // Pre-conditions: not called on the network thread (it would wait for
   // itself), and the network thread is running.
-  // Post-conditions: no work of this object is left on the network thread,
-  // including work posted to it before (the end of the connection is
-  // followed by a round trip through the loop), so the object may be
-  // destroyed.
+  // Post-conditions: isFinished(), so the object may be destroyed.
+  //
+  // A GUI should not call it while the connection may still run: until
+  // step 2d of Phase 4, the network thread may be waiting for the GUI
+  // thread, for a password. The viewer stops the connection when its window
+  // is closed, and deletes it once isFinished() (ViewerInstance).
   //
   // NOTE: If remote viewer core isn't started, then function waitTermination()
   // blocks the calling thread forever.
   //
   void waitTermination();
+
+  //
+  // Whether nothing of this object is left on the network thread: the
+  // connection has ended, finish() has told the adapter, and every piece of
+  // work posted for it (postToLoop()) has run; or start() was never called.
+  // Then the object may be destroyed without waiting. Any thread; does not
+  // wait.
+  //
+  bool isFinished() const;
 
   //
   // Set the specified pixel format. The viewer will request that pixel format
@@ -607,6 +620,15 @@ private:
   void finish(std::exception_ptr failure);
 
   //
+  // Posts work for this object to the network thread, unless the connection
+  // has finished (finish()), counting it until it has run, so that
+  // isFinished() and waitTermination() know when nothing is left that
+  // refers to this object. Every post for this object goes through here.
+  // Any thread.
+  //
+  void postToLoop(std::function<void()> work);
+
+  //
   // The protocol, from the handshake to the end of the session, as a
   // coroutine (util/Task.h) that reads through m_reader. drive() connects,
   // then runs it, and finish() reports how it ended to the adapter.
@@ -857,9 +879,13 @@ private:
   std::atomic<bool> m_isStopping;
   // What left run(), for drive() to rethrow.
   std::exception_ptr m_runError;
-  // Set by finish(), for waitTermination().
-  std::promise<void> m_finished;
-  std::shared_future<void> m_finishedFuture;
+  // Set by finish(); and the number of postToLoop() works not yet run. For
+  // isFinished() and waitTermination(); guarded by m_finishLock, and
+  // m_finishChanged is notified when either changes.
+  mutable std::mutex m_finishLock;
+  std::condition_variable m_finishChanged;
+  bool m_isFinished;
+  int m_pendingPosts;
 
   // With gates, the input gate given to start(), read with runBlocking();
   // otherwise null.

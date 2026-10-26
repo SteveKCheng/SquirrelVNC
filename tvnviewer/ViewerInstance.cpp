@@ -59,19 +59,9 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
 
 ViewerInstance::~ViewerInstance()
 {
-  if (m_socket) {
-    // shutdown() throws if it fails (the connection may be gone), and
-    // nothing may leave a destructor.
-    try {
-      m_socket->shutdown(SD_BOTH);
-    } catch (...) {
-    }
-    m_socket->close();
-  }
-
-  m_viewerCore.stop();
-  // The core thread may be waiting for the password from this thread.
-  m_viewerWnd.cancelPasswordRequest();
+  // Normally the connection has finished by now (isStopped()), and this
+  // does not wait. An accepted socket belongs to the core since start().
+  stop();
   m_viewerCore.waitTermination();
 }
 
@@ -89,12 +79,15 @@ bool ViewerInstance::requiresReconnect() const
 
 bool ViewerInstance::isStopped() const
 {
-  return m_viewerWnd.isStopped();
+  return m_viewerWnd.isStopped() && m_viewerCore.isFinished();
 }
 
 void ViewerInstance::stop()
 {
   m_viewerWnd.postMessage(ViewerWindow::WM_USER_STOP);
+  m_viewerCore.stop();
+  // The network thread may be waiting for the password from this thread.
+  m_viewerWnd.cancelPasswordRequest();
 }
 
 void ViewerInstance::start()

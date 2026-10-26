@@ -55,8 +55,22 @@ public:
   ~ViewerInstance();
 
   bool requiresReconnect() const;
+
+  //
+  // Whether the instance may be deleted without waiting: its window is gone
+  // (ViewerWindow::isStopped()) and its connection has finished
+  // (RemoteViewerCore::isFinished()). Closing the window stops the
+  // connection, so this becomes true shortly after; until then, the objects
+  // the connection uses (window, authentication handler, file transfer)
+  // stay alive. GUI thread.
+  //
   bool isStopped() const;
   void start();
+
+  //
+  // Closes the window (posting WM_USER_STOP), stops the connection, and
+  // cancels a pending password request. Does not wait. GUI thread.
+  //
   void stop();
 
   // Waits until the core thread has finished. Called on the GUI thread, so

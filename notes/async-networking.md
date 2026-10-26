@@ -645,10 +645,12 @@ The risky part, split up:
      `asio::ip::tcp::socket::assign()` takes over its native `SOCKET`.
    - `RemoteViewerCore` stops being a `Thread`. `stop()` posts a
      cancellation to the loop~~, and `waitTermination()` waits for the
-     connection's coroutine to finish~~. *Superseded:* the state shared
+     connection's coroutine to finish~~. *Superseded:* ~~the state shared
      with the driver is held by `std::shared_ptr`, so the GUI side does
-     not wait for one connection; the only synchronous wait is joining
-     the network thread at process exit.
+     not wait for one connection;~~ *the GUI side deletes a connection
+     once it has finished (step 2c below), so it does not wait for one;*
+     the only synchronous wait is joining the network thread at process
+     exit.
 3. **The password wait** becomes a `co_await` ~~on a GUI-completed
    operation (`asio::async_initiate`)~~ *in the driver, on a
    GUI-completed operation (`asio::async_initiate`), serving the core's
@@ -706,15 +708,17 @@ from vcpkg.
   socket options (TCP_NODELAY, keepalive) are set on the Asio socket.
   `rfb-replay --tcp` runs every case through a real socket
   (`testing.md`). Not yet tried in the GUI: listening mode, which takes
-  over the accepted socket (`SocketIPv4::release()`).
-- **2c. Ownership.** The state shared by the GUI side and the driver is
-  held by `std::shared_ptr`; closing a window no longer waits for its
-  connection. `NetworkThread` is a singleton in lifetime: one instance,
+  over the accepted socket (`SocketIPv4::release()`); deferred by Steve.
+- **2c. Ownership.** ~~The state shared by the GUI side and the driver is
+  held by `std::shared_ptr`;~~ closing a window no longer waits for its
+  connection *(see "Ownership: deletion once finished" below)*.
+  `NetworkThread` is a singleton in lifetime: one instance,
   made at the start of `TvnViewer` and joined in its destructor, after
   the connections are stopped and before WinSock is shut down, with a
   static accessor valid only during that lifetime (test programs make
   their own). Not a function-local static, whose destruction would come
   after `main()`, after WinSock cleanup, in no defined order.
+  **2c done** (2026-10-26) as described there.
 - **2d. The password** as a request served without blocking: posted to
   the GUI, answered by resuming the driver on the loop, and always
   completed, with `operation_aborted` on teardown (step 3 above). It
@@ -851,15 +855,16 @@ Decisions (Steve, 2026-10-25):
   reader awaitable's `await_resume`, rather than having its coroutine
   frame destroyed. This matches the `IOException` behaviour of today's
   code, and `catch` handlers keep running.
-- **Ownership by `std::shared_ptr`.** The state shared between the GUI
+- ~~**Ownership by `std::shared_ptr`.** The state shared between the GUI
   side and the driver is held by a `std::shared_ptr`. The GUI side holds
   one reference and the driver coroutine receives the other *by value*
   when it is spawned; each side then borrows from its own reference, so
   the reference count is not touched per operation. When a window
   closes, its GUI objects can go at once while the driver finishes
-  unwinding; no wait is needed. Several connections share one network
-  thread, and the only synchronous wait is at *process* exit, joining
-  that thread.
+  unwinding; no wait is needed.~~ *Replaced: see "Ownership: deletion
+  once finished" below.* Several connections share one network thread,
+  and the only synchronous wait is at *process* exit, joining that
+  thread.
 - For this to be safe, the driver never blocks on the GUI (it only posts
   to it), and cancellation always completes a pending password or
   certificate prompt with `operation_aborted` (Phase 4 step 3).
@@ -872,6 +877,31 @@ Decisions (Steve, 2026-10-25):
   be decided after Phase 4; it is orthogonal to the rest.
 - **The interface of `RemoteViewerCore` is narrowed before the rewrite**,
   as far as is reasonable, at the end of Phase 1 (step 6).
+
+**Ownership: deletion once finished** (decided with Steve, 2026-10-26,
+replacing the `std::shared_ptr` decision above, before it was
+implemented). The driver does not use `RemoteViewerCore`'s state alone:
+it calls into GUI-side objects that `ViewerInstance` owns, the adapter
+(`ViewerWindow`), the authentication handler, and
+`FileTransferCapability`, whose coroutines can be suspended mid-reply
+with references into it. A shared pointer to the core's state would not
+make those safe to destroy; they would all have to be shared, or
+detached from the network thread first. Whatever the GUI registers with
+the connection, it must unregister on the network thread, so there is
+always a moment when the window is closed but the resources behind it
+are not yet gone. Accepting that, no shared ownership is needed:
+
+- Closing the window stops the connection (`ViewerWindow::onDestroy()`)
+  and cancels a password request, without waiting.
+- `ViewerInstance::isStopped()` is true once the window is gone and
+  `RemoteViewerCore::isFinished()`: the connection has ended, the
+  adapter has been told, and every piece of work posted for the core
+  has run (`postToLoop()` counts them, and posts nothing once the
+  connection has finished). `ViewerCollector`'s timer deletes the
+  instance then, without waiting.
+- `waitTermination()` is left for process exit and test programs; no
+  GUI wait on the network thread remains, which matters while the
+  network thread may wait for the GUI (the password, until step 2d).
 
 ### The boundary between the core and Asio (2026-10-26)
 

@@ -173,7 +173,9 @@ None of these is a security issue; all are latent.
      instance by posting `WM_USER_STOP` to its window, which nothing
      will process once the loop has ended, and then waits for its core
      thread, which nothing has stopped. If it were reached with a live
-     connection, it would wait until the server disconnected.
+     connection, it would wait until the server disconnected. *Fixed
+     2026-10-26 (Phase 4 step 2c): `ViewerInstance::stop()` stops the
+     connection itself.*
 2. **Data races that Windows tolerates:**
    - pixels written into the DIB while it is being painted (deliberate,
      see above);

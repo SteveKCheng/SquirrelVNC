@@ -963,6 +963,12 @@ bool ViewerWindow::onDestroy()
 {
   KillTimer(m_hWnd, TIMER_DESKTOP_STATE);
   m_displayRequest.deactivate();
+  // The connection ends with its window, without waiting here: the
+  // instance is deleted once it has finished (ViewerInstance::isStopped()).
+  if (m_viewerCore != nullptr) {
+    m_viewerCore->stop();
+  }
+  cancelPasswordRequest();
   return true;
 }
 

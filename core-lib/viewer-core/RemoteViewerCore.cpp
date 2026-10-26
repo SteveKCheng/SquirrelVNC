@@ -107,7 +107,8 @@ RemoteViewerCore::RemoteViewerCore(Logger *logger)
   m_port(0),
   m_acceptedSocket(INVALID_SOCKET),
   m_isStopping(false),
-  m_finishedFuture(m_finished.get_future().share()),
+  m_isFinished(false),
+  m_pendingPosts(0),
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter),
   m_decoderStore(&m_logWriter),
   m_isTightEnabled(true),
@@ -263,7 +264,7 @@ void RemoteViewerCore::stop()
   m_fbUpdateNotifier.terminate();
   if (wasStarted()) {
     // The signal is not thread-safe: it is emitted on the network thread.
-    asio::post(m_executor, [this] {
+    postToLoop([this] {
       m_stopSignal.emit(asio::cancellation_type::terminal);
     });
   }
@@ -272,15 +273,35 @@ void RemoteViewerCore::stop()
 void RemoteViewerCore::waitTermination()
 {
   m_fbUpdateNotifier.wait();
-  m_finishedFuture.wait();
-  // A round trip through the loop, which runs what is posted to it in
-  // order: whatever was posted for this object before, such as stop()'s
-  // cancellation or a wake of writeLoop(), has run by its end.
-  std::promise<void> drained;
-  asio::post(m_executor, [&drained] {
-    drained.set_value();
+  std::unique_lock<std::mutex> lock(m_finishLock);
+  m_finishChanged.wait(lock, [this] {
+    return m_isFinished && m_pendingPosts == 0;
   });
-  drained.get_future().wait();
+}
+
+bool RemoteViewerCore::isFinished() const
+{
+  if (!wasStarted()) {
+    return true;
+  }
+  std::lock_guard<std::mutex> lock(m_finishLock);
+  return m_isFinished && m_pendingPosts == 0;
+}
+
+void RemoteViewerCore::postToLoop(std::function<void()> work)
+{
+  std::lock_guard<std::mutex> lock(m_finishLock);
+  if (m_isFinished) {
+    return;
+  }
+  m_pendingPosts++;
+  asio::post(m_executor, [this, work = std::move(work)] {
+    work();
+    std::lock_guard<std::mutex> lock(m_finishLock);
+    m_pendingPosts--;
+    // Under the lock: once it is released, the object may be gone.
+    m_finishChanged.notify_all();
+  });
 }
 
 void RemoteViewerCore::setPixelFormat(const PixelFormat &pixelFormat)
@@ -918,7 +939,7 @@ asio::awaitable<void> RemoteViewerCore::drive()
 
   m_writeWake.emplace(m_executor);
   m_queuedOutput.open([this] {
-    asio::post(m_executor, [this] {
+    postToLoop([this] {
       m_writeWake->cancel();
     });
   });
@@ -1121,7 +1142,10 @@ void RemoteViewerCore::finish(std::exception_ptr failure)
       }
     }
   }
-  m_finished.set_value();
+  std::lock_guard<std::mutex> lock(m_finishLock);
+  m_isFinished = true;
+  // Under the lock: once it is released, the object may be gone.
+  m_finishChanged.notify_all();
 }
 
 Task<UINT32> RemoteViewerCore::receiveServerMessageType()
