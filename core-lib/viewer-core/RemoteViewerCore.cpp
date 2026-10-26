@@ -111,6 +111,7 @@ RemoteViewerCore::RemoteViewerCore(Logger *logger)
   m_acceptedSocket(INVALID_SOCKET),
   m_isStopping(false),
   m_isFinished(false),
+  m_isAtMessageBoundary(false),
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter),
   m_decoderStore(&m_logWriter),
   m_isTightEnabled(true),
@@ -840,7 +841,9 @@ Task<> RemoteViewerCore::run()
   // received server messages
   while (!m_isStopping) {
     applyPendingEvents();
+    m_isAtMessageBoundary = true;
     UINT32 msgType = co_await receiveServerMessageType();
+    m_isAtMessageBoundary = false;
 
     switch (msgType) {
     case ServerMsgDefs::FB_UPDATE:
@@ -1739,7 +1742,7 @@ void RemoteViewerCore::dispatch(const ClientEvent &event)
   // DecoderStore has no lock, and the protocol looks up a decoder for every
   // rectangle, and may be suspended in one, so changes to it wait for a
   // message boundary.
-  if (Internal::changesDecoderStore(event)) {
+  if (Internal::changesDecoderStore(event) && !m_isAtMessageBoundary) {
     m_pendingEvents.push_back(event);
     return;
   }

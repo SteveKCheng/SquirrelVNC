@@ -257,7 +257,12 @@ public:
   //
   // Request full refresh of the framebuffer, so that the whole screen will be
   // re-sent from the server. The refresh is not guaranteed to happen
-  // immediately, it will be completed when allowed by the protocol.
+  // immediately, it will be completed when allowed by the protocol: the
+  // next FramebufferUpdateRequest, sent once the server has answered the one
+  // outstanding, is non-incremental. An idle server may not answer for a
+  // long time. Sending a request at once is not allowed: with two
+  // outstanding, the viewer could no longer tell when none is, as RFB
+  // requires before SetPixelFormat. That needs Fence (Continuous Updates).
   //
   // This function does nothing when called before entering the main phase of
   // the protocol (when the framebuffer does not exist yet).
@@ -294,11 +299,13 @@ public:
   // Timing of setPreferredEncoding(), allowCopyRect(), setJpegQualityLevel(),
   // setCompressionLevel() and enableCursorShapeUpdates(): they change the
   // set of decoders, which the protocol uses for each rectangle, so each
-  // is posted to the network thread, and queued there until the protocol
-  // is between messages. It makes the changes in order, sending SetEncodings
-  // where needed, before it reads the next server message; changes made
-  // before start() are made once the protocol is initialized, before the
-  // first SetEncodings.
+  // is posted to the network thread, and made there once the protocol is
+  // between messages: at once if it is waiting for the next server message,
+  // otherwise before it reads that message. The changes are made in order,
+  // sending SetEncodings and asking for a refresh (refreshFrameBuffer())
+  // where needed; changes made before
+  // start() are made once the protocol is initialized, before the first
+  // SetEncodings.
   //
 
   //
@@ -452,7 +459,8 @@ private:
   //
   // Handles event with its handle() function, except that the events that
   // change m_decoderStore (Internal::changesDecoderStore()) are queued for
-  // applyPendingEvents(). Does nothing once the connection has finished
+  // applyPendingEvents(), unless the protocol is between messages
+  // (m_isAtMessageBoundary). Does nothing once the connection has finished
   // (m_isFinished). On the network thread, or before start().
   //
   void dispatch(const ClientEvent &event);
@@ -827,6 +835,10 @@ private:
   // Set by finish(): drive() has completed, and m_stopSignal must not be
   // emitted any more. Used only on the network thread.
   bool m_isFinished;
+  // Set while run() waits for the type of the next server message: no
+  // decoder is in use then, so dispatch() applies changes to the decoder
+  // set at once. Used only on the network thread.
+  bool m_isAtMessageBoundary;
 
   // With gates, the input gate given to start(), read with runBlocking();
   // otherwise null.

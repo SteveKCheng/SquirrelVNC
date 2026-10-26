@@ -773,9 +773,23 @@ from vcpkg.
     boundary (`applyPendingEvents()`). A handler on the loop runs
     whenever the protocol is suspended, often in the middle of a
     rectangle that holds a decoder the event could remove. Only the lock
-    of that queue goes: it is used on the network thread alone. Applying
+    of that queue goes: it is used on the network thread alone. ~~Applying
     them at once when the protocol is idle at a boundary is deferred
-    (Steve: minor).
+    (Steve: minor).~~ *Done after Steve met it (an idle server never sent
+    the message that would apply them): while `run()` waits for the type
+    of the next message (`m_isAtMessageBoundary`), they are applied at
+    once, sending SetEncodings.*
+  - *Refresh on an idle server still waits* (2026-10-26).
+    `refreshFrameBuffer()` makes the next FramebufferUpdateRequest
+    non-incremental, and that request is sent only once the server has
+    answered the one outstanding, which an idle server may not do for a
+    long time. Sending a full request at once was tried and reverted
+    before committing: RFB forbids SetPixelFormat with a request
+    outstanding ("impossible to determine if the next FramebufferUpdate
+    is using the new or the previous pixel format"), and one update may
+    answer several requests, so with two outstanding the viewer could
+    never again tell when none is. Doing it right needs Fence, with
+    Continuous Updates.
   - Key, pointer and cut-text events go to `Internal::InputEventQueue`,
     which `writeLoop()` encodes before each send. While a send is in
     progress, a pointer move replaces the move just before it; a press
@@ -798,7 +812,9 @@ the other. The largest diff is Phase 2, but it is mechanical.
 - IPv6: resolve with `AF_UNSPEC`, and the bracketed host syntax in
   `networking.md`.
 - Timeouts, and pointer coalescing in the post-to-loop path.
-- TLS, then Continuous Updates with Fence.
+- TLS, then Continuous Updates with Fence. With them, a refresh (and
+  the refresh after an encoding change) can take effect on an idle
+  server: see Phase 4 step 2e.
 - Independent of all this, on the configuration side: settings in
   `.ini` files only, and saved passwords in Windows Credential Manager
   keyed by `user@host`, separately from the `.ini` files.
