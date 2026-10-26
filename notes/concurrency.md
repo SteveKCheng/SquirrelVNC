@@ -28,16 +28,25 @@ Those are the only `Thread` subclasses. Every window lives on the GUI
 thread. Until 2026-10-25 there was one exception: the **password dialog
 ran on the core thread**. `ViewerVncAuthHandler::getPassword()` is
 called from `authenticate()` and showed a modal `AuthenticationDialog`
-there, with its own message loop. Now (step 2 of Phase 1 in
+there, with its own message loop. ~~Now (step 2 of Phase 1 in
 `async-networking.md`) it calls `ViewerWindow::askPassword()`, which
 posts `WM_USER_PASSWORD` and waits on a `std::future`; the GUI thread
-shows the dialog and fulfils the promise. Two consequences:
+shows the dialog and fulfils the promise.~~ *From Phase 4 step 2d
+(2026-10-26), the password is a request that the network thread serves
+without waiting: `ViewerVncAuthHandler::requestPassword()` calls
+`ViewerWindow::requestPassword()`, which posts `WM_USER_PASSWORD`; the
+GUI thread shows the dialog, and its answer resumes the connection on
+the network thread. Other connections go on meanwhile.* Two
+consequences:
 
-- The GUI thread must never wait for a core thread that may be waiting
+- ~~The GUI thread must never wait for a core thread that may be waiting
   for it. `ViewerInstance` therefore calls
   `ViewerWindow::cancelPasswordRequest()` before waiting; the
   cancellation also refuses requests made after it, so a core thread
-  that asks just too late does not wait either.
+  that asks just too late does not wait either.~~ *A request must
+  always be answered, so that the connection can end:
+  `ViewerWindow::cancelPasswordRequest()`, when the window closes or the
+  connection stops, answers it with nothing, and refuses later ones.*
 - The dialog's modal loop now runs on the GUI thread, so other windows
   keep working through it, but without `TvnViewer::processMessages`:
   no accelerators, and no `IsDialogMessage` for modeless dialogs, while

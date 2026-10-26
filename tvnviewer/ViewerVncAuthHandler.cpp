@@ -35,15 +35,22 @@ ViewerVncAuthHandler::~ViewerVncAuthHandler()
 {
 }
 
-void ViewerVncAuthHandler::getPassword(StringStorage *passString)
+void ViewerVncAuthHandler::requestPassword(PasswordReply reply)
 {
-  // get password from ConnectionData or User Interface
-  if (!m_connectionData->isSetPassword()) {
-    std::optional<StringStorage> password = m_passwordPrompt.askPassword();
-    if (!password) {
-      throw AuthCanceledException();
-    }
-    m_connectionData->setPlainPassword(*password);
+  if (m_connectionData->isSetPassword()) {
+    reply(m_connectionData->getPlainPassword());
+    return;
   }
-  *passString = m_connectionData->getPlainPassword();
+  m_passwordPrompt.requestPassword([this, reply](std::optional<StringStorage> password) {
+    // On the GUI thread, which also reads m_connectionData (to reconnect).
+    if (password) {
+      m_connectionData->setPlainPassword(*password);
+    }
+    reply(std::move(password));
+  });
+}
+
+void ViewerVncAuthHandler::cancelPasswordRequest() noexcept
+{
+  m_passwordPrompt.cancelPasswordRequest();
 }

@@ -198,18 +198,20 @@ namespace
     co_return co_await reader.readUInt8();
   }
 
-  // A request that counts how often it is served, and may throw.
+  // A request that counts how often it is served, and may fail.
   class CountingRequest final : public AwaitableReader::Request
   {
   public:
     explicit CountingRequest(bool fails) : m_fails(fails) {}
 
-    void serve() override
+    void start(std::function<void(std::exception_ptr)> done) override
     {
       served++;
-      if (m_fails) {
-        throw std::runtime_error("refused");
-      }
+      done(m_fails ? std::make_exception_ptr(std::runtime_error("refused")) : nullptr);
+    }
+
+    void cancel() noexcept override
+    {
     }
 
     int served = 0;

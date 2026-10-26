@@ -35,7 +35,9 @@ public:
   //
   // The password is taken from connectionData if it has one; otherwise the
   // user is asked through passwordPrompt, and the answer stored in
-  // connectionData. Both must outlive the handler's use by the core thread.
+  // connectionData. Both must outlive the handler's use by the network
+  // thread (ViewerInstance deletes them only once its connection has
+  // finished).
   //
   ViewerVncAuthHandler(ConnectionData *connectionData,
                        ViewerWindow &passwordPrompt);
@@ -43,14 +45,17 @@ public:
 
 private:
   //
-  // Called on the core thread. Waits for the user if the password is not
-  // known yet (ViewerWindow::askPassword()).
+  // Called on the network thread. Replies at once if m_connectionData has
+  // the password; otherwise asks the user (ViewerWindow::requestPassword()),
+  // stores the answer in m_connectionData, on the GUI thread, and replies
+  // with it.
   //
-  // Post-conditions: passString and m_connectionData hold the password.
-  // Throws AuthCanceledException if the user cancelled, or the request was
-  // cancelled (ViewerWindow::cancelPasswordRequest()).
+  void requestPassword(PasswordReply reply) override;
+
   //
-  void getPassword(StringStorage *passString) override;
+  // Cancels the user's prompt (ViewerWindow::cancelPasswordRequest()).
+  //
+  void cancelPasswordRequest() noexcept override;
 
   ConnectionData *m_connectionData;
   ViewerWindow &m_passwordPrompt;

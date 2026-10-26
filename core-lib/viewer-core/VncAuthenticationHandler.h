@@ -26,6 +26,9 @@
 
 #include "viewer-core/AuthHandler.h"
 
+#include <functional>
+#include <optional>
+
 class VncAuthenticationHandler : public AuthHandler
 {
 public:
@@ -35,9 +38,16 @@ public:
   //
   // Overrides AuthHandler::authenticate(). The password is a request to the
   // driver (AwaitableReader::request()), which the driver serves by calling
-  // getPassword(), outside the coroutines.
+  // requestPassword(), outside the coroutines, and waiting for its reply
+  // without blocking. Throws AuthCanceledException if there is no password.
   //
   Task<> authenticate(AwaitableReader &reader, DataOutputStream *output) override;
+
+  //
+  // Called with the password, or with nothing if the user cancelled or the
+  // request was cancelled.
+  //
+  using PasswordReply = std::function<void(std::optional<StringStorage>)>;
 
   //
   // Overrides AuthHandler::addAuthCapability().
@@ -46,16 +56,25 @@ public:
 
 protected:
   //
-  // Gets the password: called by the driver, on the core thread, and it may
-  // block, waiting for the user. Throws AuthCanceledException if the user
-  // cancels.
+  // Asks for the password, without waiting for it. Called by the driver, on
+  // the network thread.
   //
-  virtual void getPassword(StringStorage *passString) = 0;
+  // Post-conditions: reply is called exactly once, on any thread: perhaps
+  // before this returns, if the password is known; or once the user has
+  // answered; or with nothing, if cancelPasswordRequest() is called first.
+  //
+  virtual void requestPassword(PasswordReply reply) = 0;
+
+  //
+  // Ends a pending requestPassword() early: its reply is called with nothing,
+  // if it has not been called. On the network thread; does not wait.
+  //
+  virtual void cancelPasswordRequest() noexcept = 0;
 
 private:
   //
   // The request for the password, which the driver serves with
-  // getPassword(); password holds the answer.
+  // requestPassword(); password holds the answer once it is done.
   //
   class PasswordRequest final : public AwaitableReader::Request
   {
@@ -65,9 +84,22 @@ private:
     {
     }
 
-    void serve() override
+    void start(std::function<void(std::exception_ptr)> done) override
     {
-      m_handler.getPassword(&password);
+      // The coroutine that owns this request waits until done is called.
+      m_handler.requestPassword([this, done](std::optional<StringStorage> answer) {
+        if (answer) {
+          password = std::move(*answer);
+          done(nullptr);
+        } else {
+          done(std::make_exception_ptr(AuthCanceledException()));
+        }
+      });
+    }
+
+    void cancel() noexcept override
+    {
+      m_handler.cancelPasswordRequest();
     }
 
     StringStorage password;

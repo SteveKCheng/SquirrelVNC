@@ -42,7 +42,7 @@
 #include "win-system/WindowsApplication.h"
 #include "win-system/WinHooks.h"
 
-#include <future>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -74,27 +74,33 @@ public:
   bool isStopped() const;
 
   //
-  // Asks the user for the password of the connection, and waits for the
-  // answer. The dialog runs on the GUI thread (handlePasswordRequest()).
+  // Called with the password, or with nothing; see requestPassword().
   //
-  // Pre-conditions: called on the core thread (by ViewerVncAuthHandler),
-  // and not again before it has returned.
-  // Post-conditions: no request is pending.
-  // Returns the password, or nothing if the user cancelled, if the request
-  // has been cancelled by cancelPasswordRequest() (before or during this
-  // call), or if the request could not be posted.
-  //
-  std::optional<StringStorage> askPassword();
+  using PasswordReply = std::function<void(std::optional<StringStorage>)>;
 
   //
-  // Ends a pending askPassword() with no password, and makes later calls
-  // return nothing at once. Called before waiting for the core thread to
-  // finish, which may otherwise wait for a GUI thread that is waiting for
-  // it. Any thread.
+  // Asks the user for the password of the connection, without waiting:
+  // the dialog runs on the GUI thread (handlePasswordRequest()), and reply
+  // gets the answer.
+  //
+  // Pre-conditions: called on the network thread (by
+  // ViewerVncAuthHandler), and not again before reply has been called.
+  // Post-conditions: reply is called exactly once: on the GUI thread with
+  // what the user entered, or with nothing if the user cancelled; or with
+  // nothing, on the calling thread, if the request is cancelled by
+  // cancelPasswordRequest() (before or after this call) or cannot be posted.
+  //
+  void requestPassword(PasswordReply reply);
+
+  //
+  // Ends a pending requestPassword() with no password, and makes later
+  // calls reply with nothing at once. Called when the window or its
+  // connection ends; the dialog, if open, stays open, and its answer is
+  // ignored. Any thread; reply is called on the calling thread.
   //
   // Post-conditions: no request is pending, and none will be.
   //
-  void cancelPasswordRequest();
+  void cancelPasswordRequest() noexcept;
 
   static const int WM_USER_ERROR = WM_USER + 1;
   static const int WM_USER_STOP = WM_USER + 2;
@@ -111,7 +117,7 @@ protected:
   static const int WM_USER_CONNECTED = WM_USER + 6;
   static const int WM_USER_BELL = WM_USER + 7;
   static const int WM_USER_CUT_TEXT = WM_USER + 8;
-  // Posted by askPassword(); handled by handlePasswordRequest().
+  // Posted by requestPassword(); handled by handlePasswordRequest().
   static const int WM_USER_PASSWORD = WM_USER + 9;
 
   static const int TIMER_DESKTOP_STATE = 1;
@@ -160,12 +166,13 @@ protected:
   bool handlePasswordRequest();
 
   //
-  // Answers the pending request of askPassword() with the given password,
-  // or does nothing if none is pending. Any thread.
+  // Answers the pending request of requestPassword() with the given
+  // password, calling its reply on this thread, or does nothing if none is
+  // pending. Any thread.
   //
   // Post-conditions: no request is pending.
   //
-  void answerPasswordRequest(std::optional<StringStorage> password);
+  void answerPasswordRequest(std::optional<StringStorage> password) noexcept;
 
   bool onFsWarning();
   bool onSize(WPARAM wParam, LPARAM lParam);
@@ -261,10 +268,10 @@ protected:
   // before. Accessed only on the GUI thread.
   ConnectionInfo m_connectionInfo;
 
-  // The promise of the pending askPassword(), if any, and whether
+  // The reply of the pending requestPassword(), if any, and whether
   // cancelPasswordRequest() has been called. Guarded by
   // m_passwordRequestLock.
-  std::optional<std::promise<std::optional<StringStorage>>> m_passwordRequest;
+  PasswordReply m_passwordRequest;
   bool m_isPasswordRequestCancelled;
   std::mutex m_passwordRequestLock;
 

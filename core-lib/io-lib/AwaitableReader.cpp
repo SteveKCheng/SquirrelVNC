@@ -66,11 +66,10 @@ void AwaitableReader::append(const void *data, size_t len)
   m_buffer.insert(m_buffer.end(), bytes, bytes + len);
 }
 
-void AwaitableReader::serveRequest()
+AwaitableReader::Request &AwaitableReader::takeRequest()
 {
   assert(m_request != nullptr);
-  Request *request = std::exchange(m_request, nullptr);
-  request->serve();
+  return *std::exchange(m_request, nullptr);
 }
 
 void AwaitableReader::fail(std::exception_ptr error) noexcept

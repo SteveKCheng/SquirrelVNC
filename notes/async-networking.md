@@ -723,7 +723,17 @@ from vcpkg.
   the GUI, answered by resuming the driver on the loop, and always
   completed, with `operation_aborted` on teardown (step 3 above). It
   comes before typed events because it pins down the GUI ↔ network
-  thread interaction that the rest builds on.
+  thread interaction that the rest builds on. **Done** (2026-10-26):
+  `AwaitableReader::Request` has `start(done)` and `cancel()` instead
+  of a blocking `serve()`; the driver awaits it with an Asio operation
+  (`RemoteViewerCore::serveRequest()`), whose completion is counted by
+  `postToLoop()` and whose cancellation slot calls `cancel()`. The
+  password: `VncAuthenticationHandler::requestPassword(reply)` and
+  `cancelPasswordRequest()`; `ViewerWindow::requestPassword(reply)` posts
+  to the GUI, and the dialog's answer, or a cancellation, calls `reply`
+  exactly once. `runBlocking()` still waits for a request, on its own
+  thread. `rfb-replay`'s `ReplayAuthHandler` replies from a thread of
+  its own, so the tests cover a reply from another thread.
 - **2e. Typed events**: `post()` becomes `asio::post`, encoding on the
   loop, with pointer moves coalesced; deferred until the byte queue of
   2b has been proven, to keep each step's risk small.

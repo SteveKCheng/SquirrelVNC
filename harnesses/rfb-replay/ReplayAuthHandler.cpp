@@ -29,9 +29,22 @@ ReplayAuthHandler::ReplayAuthHandler(const TCHAR *password)
 
 ReplayAuthHandler::~ReplayAuthHandler()
 {
+  if (m_replier.joinable()) {
+    m_replier.join();
+  }
 }
 
-void ReplayAuthHandler::getPassword(StringStorage *passString)
+void ReplayAuthHandler::requestPassword(PasswordReply reply)
 {
-  *passString = m_password;
+  if (m_replier.joinable()) {
+    m_replier.join();
+  }
+  m_replier = std::thread([reply, password = m_password] {
+    reply(password);
+  });
+}
+
+void ReplayAuthHandler::cancelPasswordRequest() noexcept
+{
+  // The reply comes without waiting for anything: nothing to cancel.
 }

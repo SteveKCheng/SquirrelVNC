@@ -67,7 +67,7 @@ ViewerInstance::~ViewerInstance()
 
 void ViewerInstance::waitViewer()
 {
-  // The core thread may be waiting for the password from this thread.
+  // A password request may be pending, which only this thread answers.
   m_viewerWnd.cancelPasswordRequest();
   m_viewerCore.waitTermination();
 }
@@ -86,7 +86,7 @@ void ViewerInstance::stop()
 {
   m_viewerWnd.postMessage(ViewerWindow::WM_USER_STOP);
   m_viewerCore.stop();
-  // The network thread may be waiting for the password from this thread.
+  // A password request may be pending: it ends now, with no password.
   m_viewerWnd.cancelPasswordRequest();
 }
 

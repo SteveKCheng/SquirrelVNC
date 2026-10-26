@@ -237,10 +237,9 @@ public:
   // itself), and the network thread is running.
   // Post-conditions: isFinished(), so the object may be destroyed.
   //
-  // A GUI should not call it while the connection may still run: until
-  // step 2d of Phase 4, the network thread may be waiting for the GUI
-  // thread, for a password. The viewer stops the connection when its window
-  // is closed, and deletes it once isFinished() (ViewerInstance).
+  // A GUI need not call it while the connection may still run: the viewer
+  // stops the connection when its window is closed, and deletes it once
+  // isFinished() (ViewerInstance), never waiting on the GUI thread.
   //
   // NOTE: If remote viewer core isn't started, then function waitTermination()
   // blocks the calling thread forever.
@@ -598,12 +597,22 @@ private:
   //
   // The driver of the protocol (notes/async-networking-resumption.md): runs
   // run(), reading from m_socket whenever m_reader runs short, and serving
-  // its requests (for now with the blocking getPassword(), stalling the
-  // network thread while a password dialog is open). Ends when run() has
-  // finished, its exception kept in m_runError; a read error, or a
+  // its requests (serveRequest()). Ends when run() has finished, its
+  // exception kept in m_runError; a read error, a failed request, or a
   // cancellation, is given to m_reader, so that the protocol code unwinds.
   //
   asio::awaitable<void> readLoop();
+
+  //
+  // Serves a request of the protocol code, such as the password, without
+  // blocking the network thread: starts it (Request::start()) and waits
+  // until it is done, on whichever thread. A cancellation of the driver
+  // (stop()) cancels the request (Request::cancel()), which is still
+  // waited for, so that no request is left to complete after the end.
+  //
+  // Returns the exception the request failed with, or null.
+  //
+  asio::awaitable<std::exception_ptr> serveRequest(AwaitableReader::Request &request);
 
   //
   // Sends what m_output queues (m_queuedOutput), whenever it is woken, until

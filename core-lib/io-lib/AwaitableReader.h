@@ -33,6 +33,8 @@
 #include <coroutine>
 #include <cstddef>
 #include <exception>
+#include <functional>
+#include <future>
 #include <stdexcept>
 #include <type_traits>
 #include <vector>
@@ -78,7 +80,8 @@ public:
   //
   // A request from the protocol code to the driver, for something other
   // than bytes: see request(). The protocol code makes one, and keeps it
-  // until the co_await on request() completes; the driver serves it.
+  // until the co_await on request() completes; the driver serves it, by
+  // starting it and waiting, without blocking, until it is done.
   //
   class Request
   {
@@ -86,11 +89,22 @@ public:
     virtual ~Request() = default;
 
     //
-    // Called by the driver (serveRequest()), outside the coroutines, to do
-    // what was asked: for now, it may block. An exception from it fails
-    // the connection (fail()), and the co_await on request() throws it.
+    // Starts doing what was asked, without waiting for it. Called by the
+    // driver (after takeRequest()), outside the coroutines.
     //
-    virtual void serve() = 0;
+    // Post-conditions: done is called exactly once, on any thread, when
+    // the request has been served (with null) or has failed (with the
+    // exception, which the driver gives to fail(), so that the co_await on
+    // request() throws it); possibly before start() returns.
+    //
+    virtual void start(std::function<void(std::exception_ptr)> done) = 0;
+
+    //
+    // Asks for the request to end early, as when the connection stops:
+    // done is still called, with an exception, if it has not been. On the
+    // driver's thread.
+    //
+    virtual void cancel() noexcept = 0;
   };
 
   //
@@ -249,13 +263,13 @@ public:
   Task<> readUTF8(StringStorage *storage);
 
   //
-  // Suspends until the driver has served request (request.serve()). The
+  // Suspends until the driver has served request (Request::start()). The
   // way for the protocol code to wait for something other than bytes: the
   // driver does the waiting (notes/async-networking-resumption.md,
   // "Requests").
   //
-  // Throws, from the co_await, what serve() threw, or the connection's
-  // error.
+  // Throws, from the co_await, the exception the request failed with, or
+  // the connection's error.
   //
   RequestAwaiter request(Request &request)
   {
@@ -276,8 +290,8 @@ public:
   }
 
   //
-  // Whether the waiter waits for a request, which serveRequest() serves,
-  // rather than for bytes.
+  // Whether the waiter waits for a request, which the driver takes with
+  // takeRequest() and serves, rather than for bytes.
   //
   bool hasRequest() const noexcept
   {
@@ -291,14 +305,14 @@ public:
   void append(const void *data, size_t len);
 
   //
-  // Serves the request that the waiter waits for.
+  // Takes the request that the waiter waits for, for the driver to serve
+  // (Request::start()). Once it is done, the driver calls fail() if it
+  // failed, then resumeWaiter().
   //
   // Pre-conditions (asserted): hasRequest().
-  // Post-conditions: !hasRequest(), and the request has been served.
-  // Throws what Request::serve() throws; the driver then calls fail()
-  // with it.
+  // Post-conditions: !hasRequest(); the waiter still waits.
   //
-  void serveRequest();
+  Request &takeRequest();
 
   //
   // Fails the connection: the waiter, when resumed, and every read after
@@ -349,7 +363,7 @@ private:
 // The blocking driver (notes/async-networking-resumption.md, "The
 // driver"): runs task, whose coroutines read through reader, to the end,
 // reading from input whenever reader runs short, and serving reader's
-// requests on this thread. Used by RemoteViewerCore on its own thread, by
+// requests, waiting on this thread until each is done. Used by RemoteViewerCore on its own thread, by
 // rfb-fuzz, and by tests.
 //
 // Pre-conditions: task has not been started; reader is read by task's
@@ -376,7 +390,15 @@ T runBlocking(Task<T> task, AwaitableReader &reader, InputStream &input)
     }
     try {
       if (reader.hasRequest()) {
-        reader.serveRequest();
+        // Served on this thread, waiting for it to be done.
+        std::promise<std::exception_ptr> done;
+        reader.takeRequest().start([&done](std::exception_ptr failure) {
+          done.set_value(failure);
+        });
+        std::exception_ptr failure = done.get_future().get();
+        if (failure) {
+          std::rethrow_exception(failure);
+        }
       } else {
         size_t length = input.read(chunk.data(), chunk.size());
         if (length == 0) {

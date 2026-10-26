@@ -33,6 +33,8 @@
 #include "TvnViewer.h"
 #include "ViewerWindow.h"
 
+#include <utility>
+
 ViewerWindow::ViewerWindow(WindowsApplication *application,
                            ConnectionData *conData,
                            ConnectionConfig *conConf,
@@ -1257,26 +1259,28 @@ bool ViewerWindow::handleCutText()
   return true;
 }
 
-std::optional<StringStorage> ViewerWindow::askPassword()
+void ViewerWindow::requestPassword(PasswordReply reply)
 {
-  std::future<std::optional<StringStorage>> answer;
+  bool isCancelled;
   {
     std::lock_guard<std::mutex> lock(m_passwordRequestLock);
-    if (m_isPasswordRequestCancelled) {
-      return std::nullopt;
+    isCancelled = m_isPasswordRequestCancelled;
+    if (!isCancelled) {
+      m_passwordRequest = std::move(reply);
     }
-    m_passwordRequest.emplace();
-    answer = m_passwordRequest->get_future();
+  }
+  if (isCancelled) {
+    reply(std::nullopt);
+    return;
   }
   // Not BaseWindow::postMessage(), which does not report failure: the
   // request would then never be answered.
   if (!PostMessage(getHWnd(), WM_USER_PASSWORD, 0, 0)) {
     answerPasswordRequest(std::nullopt);
   }
-  return answer.get();
 }
 
-void ViewerWindow::cancelPasswordRequest()
+void ViewerWindow::cancelPasswordRequest() noexcept
 {
   {
     std::lock_guard<std::mutex> lock(m_passwordRequestLock);
@@ -1285,15 +1289,16 @@ void ViewerWindow::cancelPasswordRequest()
   answerPasswordRequest(std::nullopt);
 }
 
-void ViewerWindow::answerPasswordRequest(std::optional<StringStorage> password)
+void ViewerWindow::answerPasswordRequest(std::optional<StringStorage> password) noexcept
 {
-  std::optional<std::promise<std::optional<StringStorage>>> request;
+  PasswordReply reply;
   {
     std::lock_guard<std::mutex> lock(m_passwordRequestLock);
-    request.swap(m_passwordRequest);
+    reply = std::exchange(m_passwordRequest, nullptr);
   }
-  if (request) {
-    request->set_value(std::move(password));
+  // Outside the lock: the reply may post to the network thread.
+  if (reply) {
+    reply(std::move(password));
   }
 }
 

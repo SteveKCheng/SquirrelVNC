@@ -25,6 +25,8 @@
 
 #include "viewer-core/VncAuthenticationHandler.h"
 
+#include <thread>
+
 //
 // VNC authentication for rfb-replay: gives a fixed password instead of
 // asking the user.
@@ -34,16 +36,21 @@ class ReplayAuthHandler final : public VncAuthenticationHandler
 public:
   //
   // Pre-conditions: password is not 0.
-  // Post-conditions: getPassword() gives a copy of password.
+  // Post-conditions: requestPassword() replies with a copy of password,
+  // from a thread of its own, as the GUI thread replies in the viewer.
   //
   ReplayAuthHandler(const TCHAR *password);
+  // Waits for the thread of the last reply.
   ~ReplayAuthHandler() override;
 
 protected:
-  void getPassword(StringStorage *passString) override;
+  void requestPassword(PasswordReply reply) override;
+  void cancelPasswordRequest() noexcept override;
 
 private:
   StringStorage m_password;
+  // The thread that gives the last reply.
+  std::thread m_replier;
 };
 
 #endif // _REPLAY_AUTH_HANDLER_H_

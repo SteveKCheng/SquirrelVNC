@@ -61,7 +61,9 @@
 #include "PointerPosDecoder.h"
 #include "RichCursorDecoder.h"
 
+#include <asio/any_completion_handler.hpp>
 #include <asio/as_tuple.hpp>
+#include <asio/associated_cancellation_slot.hpp>
 #include <asio/bind_cancellation_slot.hpp>
 #include <asio/co_spawn.hpp>
 #include <asio/connect.hpp>
@@ -1045,7 +1047,10 @@ asio::awaitable<void> RemoteViewerCore::readLoop()
     }
     try {
       if (m_reader.hasRequest()) {
-        m_reader.serveRequest();
+        std::exception_ptr failure = co_await serveRequest(m_reader.takeRequest());
+        if (failure) {
+          std::rethrow_exception(failure);
+        }
       } else {
         auto [error, length] =
           co_await m_socket->async_read_some(asio::buffer(chunk),
@@ -1072,6 +1077,41 @@ asio::awaitable<void> RemoteViewerCore::readLoop()
   } catch (...) {
     m_runError = std::current_exception();
   }
+}
+
+asio::awaitable<std::exception_ptr> RemoteViewerCore::serveRequest(AwaitableReader::Request &request)
+{
+  // The handler of the operation, shared by the request's done function
+  // (which a std::function must be able to copy) and taken once.
+  using Handler = asio::any_completion_handler<void(std::exception_ptr)>;
+  // as_tuple: with use_awaitable alone, the exception would be thrown here.
+  auto token = asio::as_tuple(asio::use_awaitable);
+  auto [failure] = co_await asio::async_initiate<decltype(token), void(std::exception_ptr)>(
+    [this, &request](Handler handler) {
+      auto shared = std::make_shared<Handler>(std::move(handler));
+      asio::cancellation_slot slot = asio::get_associated_cancellation_slot(*shared);
+      if (slot.is_connected()) {
+        // stop(): the request ends early, and done is still called.
+        slot.assign([&request](asio::cancellation_type) {
+          request.cancel();
+        });
+      }
+      request.start([this, shared, slot](std::exception_ptr failure) mutable {
+        // Any thread: back to the network thread, counted, so that the core
+        // is not finished before the handler has run.
+        postToLoop([shared, slot, failure]() mutable {
+          if (slot.is_connected()) {
+            slot.clear();
+          }
+          if (*shared) {
+            Handler handler = std::move(*shared);
+            std::move(handler)(failure);
+          }
+        });
+      });
+    },
+    token);
+  co_return failure;
 }
 
 asio::awaitable<void> RemoteViewerCore::writeLoop()
