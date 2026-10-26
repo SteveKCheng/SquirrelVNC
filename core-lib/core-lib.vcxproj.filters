@@ -386,6 +386,9 @@
     <ClInclude Include="viewer-core\DecoderOfRectangle.h">
       <Filter>viewer-core</Filter>
     </ClInclude>
+    <ClInclude Include="viewer-core\ClientEvents.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
     <ClInclude Include="viewer-core\QueuedOutputStream.h">
       <Filter>viewer-core</Filter>
     </ClInclude>

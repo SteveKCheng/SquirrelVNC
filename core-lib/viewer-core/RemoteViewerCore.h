@@ -37,6 +37,7 @@
 #include "DecoderStore.h"
 #include "io-lib/AwaitableReader.h"
 #include "util/Task.h"
+#include "ClientEvents.h"
 #include "FbUpdateNotifier.h"
 #include "QueuedOutputStream.h"
 #include "ServerMessageListener.h"
@@ -241,11 +242,10 @@ public:
   //   when the GUI thread handles the connection, which races as below; the
   //   format is the same, so nothing more is sent.)
   // - Called later from the GUI thread, when the user changes the colour
-  //   setting, it races with the protocol thread, so which request carries
-  //   it varies from run to run.
-  // FIXME: after the asynchronous rewrite (notes/async-networking.md), check
-  // that a change from the GUI is posted to the network loop and applied in
-  // order with the update requests, so that this timing is deterministic too.
+  //   setting, it is posted to the network thread (post()), and applied
+  //   with the first update request sent after it is handled there; which
+  //   request that is depends on when the server's messages arrive, but it
+  //   no longer races with the protocol.
   //
   void setPixelFormat(const PixelFormat &viewerPixelFormat);
 
@@ -263,6 +263,15 @@ public:
   // the protocol (when the framebuffer does not exist yet).
   //
   void refreshFrameBuffer();
+
+  //
+  // Timing of sendKeyboardEvent(), sendPointerEvent() and sendCutTextEvent():
+  // they are posted to the network thread, and sent in the order they were
+  // called, before what the writer sends next; nothing is sent before the
+  // protocol is initialized. While the link is busy, pointer moves with
+  // the same buttons are coalesced to the latest position
+  // (Internal::InputEventQueue).
+  //
 
   //
   // Send a keyboard event. Arguments specify the event as defined in the
@@ -284,11 +293,12 @@ public:
   //
   // Timing of setPreferredEncoding(), allowCopyRect(), setJpegQualityLevel(),
   // setCompressionLevel() and enableCursorShapeUpdates(): they change the
-  // set of decoders, which only the core thread may touch while it runs, so
-  // each only queues its change. The core thread makes the changes in order,
-  // sending SetEncodings where needed, before it reads the next server
-  // message; changes queued before start() are made once the protocol is
-  // initialized, before the first SetEncodings.
+  // set of decoders, which the protocol uses for each rectangle, so each
+  // is posted to the network thread, and queued there until the protocol
+  // is between messages. It makes the changes in order, sending SetEncodings
+  // where needed, before it reads the next server message; changes made
+  // before start() are made once the protocol is initialized, before the
+  // first SetEncodings.
   //
 
   //
@@ -410,107 +420,48 @@ private:
   void allowUtf8Clipboard();
 
   //
-  // Events from the GUI side: each public method that sends a client
-  // message, or changes a setting of the session, makes one and passes it
-  // to post(), which hands it to the matching handle() function. The
-  // handlers do what those methods used to do themselves.
+  // The events of the public methods (ClientEvents.h).
   //
-  // This is the representation that the queue to the network thread is to
-  // hold (notes/async-networking.md, Phase 4); the public methods stay, so
-  // that their callers do not change when it does.
-  //
-  struct KeyEvent
-  {
-    bool isDown;
-    UINT32 keySym;
-  };
-
-  struct PointerEvent
-  {
-    UINT8 buttonMask;
-    Point position;
-  };
-
-  struct CutTextEvent
-  {
-    StringStorage text;
-  };
-
-  struct StopUpdatingEvent
-  {
-    bool isStopped;
-  };
-
-  struct RefreshEvent
-  {
-  };
-
-  struct PixelFormatEvent
-  {
-    PixelFormat pixelFormat;
-  };
-
-  struct PreferredEncodingEvent
-  {
-    INT32 encodingType;
-  };
-
-  struct CopyRectEvent
-  {
-    bool isAllowed;
-  };
-
-  struct JpegQualityEvent
-  {
-    int level;
-  };
-
-  struct CompressionLevelEvent
-  {
-    int level;
-  };
-
-  struct CursorShapeUpdatesEvent
-  {
-    bool isEnabled;
-  };
-
-  struct IgnoreCursorShapeUpdatesEvent
-  {
-    bool isIgnored;
-  };
-
-  using ClientEvent = std::variant<KeyEvent,
-                                   PointerEvent,
-                                   CutTextEvent,
-                                   StopUpdatingEvent,
-                                   RefreshEvent,
-                                   PixelFormatEvent,
-                                   PreferredEncodingEvent,
-                                   CopyRectEvent,
-                                   JpegQualityEvent,
-                                   CompressionLevelEvent,
-                                   CursorShapeUpdatesEvent,
-                                   IgnoreCursorShapeUpdatesEvent>;
+  using ClientEvent = Internal::ClientEvent;
+  using KeyEvent = Internal::KeyEvent;
+  using PointerEvent = Internal::PointerEvent;
+  using CutTextEvent = Internal::CutTextEvent;
+  using StopUpdatingEvent = Internal::StopUpdatingEvent;
+  using RefreshEvent = Internal::RefreshEvent;
+  using PixelFormatEvent = Internal::PixelFormatEvent;
+  using PreferredEncodingEvent = Internal::PreferredEncodingEvent;
+  using CopyRectEvent = Internal::CopyRectEvent;
+  using JpegQualityEvent = Internal::JpegQualityEvent;
+  using CompressionLevelEvent = Internal::CompressionLevelEvent;
+  using CursorShapeUpdatesEvent = Internal::CursorShapeUpdatesEvent;
+  using IgnoreCursorShapeUpdatesEvent = Internal::IgnoreCursorShapeUpdatesEvent;
 
   //
-  // Handles event with its handle() function: at once, on the calling
-  // thread; except for the events that change m_decoderStore
-  // (changesDecoderStore()), which it queues for applyPendingEvents(), on
-  // the core thread. Any thread. Throws what the handler throws, when it is
-  // called here.
+  // Hands event to dispatch(): on the network thread (postToLoop()) once
+  // start() has been called, so that the events are handled in the order
+  // they were posted, between the steps of the protocol; before start(), at
+  // once, on the calling thread, as nothing runs yet. An exception from a
+  // handler on the network thread is logged, and the event dropped.
+  //
+  // Pre-conditions: before start(), called on the thread that calls
+  // start(); after it, any thread.
+  // Throws what the handler throws, before start().
   //
   void post(ClientEvent event);
 
   //
-  // Whether event is one that changes m_decoderStore.
+  // Handles event with its handle() function, except that the events that
+  // change m_decoderStore (Internal::changesDecoderStore()) are queued for
+  // applyPendingEvents(). Does nothing once the connection has finished
+  // (m_isFinished). On the network thread, or before start().
   //
-  static bool changesDecoderStore(const ClientEvent &event);
+  void dispatch(const ClientEvent &event);
 
   //
-  // Handles the events queued by post(), in the order they were posted.
-  // Called on the core thread only, where no decoder is in use: before each
-  // server message is read, and once after the protocol initialization.
+  // Handles the events queued by dispatch(), in the order they were posted.
+  // Called on the network thread, by the protocol, where no decoder is in
+  // use: before each server message is read, and once after the protocol
+  // initialization.
   //
   // Post-conditions: the events queued when it was called have been
   // handled, unless a handler threw; the events after that one are dropped.
@@ -520,7 +471,11 @@ private:
 
   //
   // The handlers of post(), one for each public method: see that method for
-  // what each does, and what it may throw.
+  // what each does, and what it may throw. Input (KeyEvent, PointerEvent,
+  // CutTextEvent) is dropped until the protocol is initialized; then, for a
+  // socket, it is queued in m_inputEvents for writeLoop(), which sends it
+  // with send() when the link allows, and the pointer position is given to
+  // the frame buffer notifier at once; with gates, it is sent at once.
   //
   void handle(const KeyEvent &event);
   void handle(const PointerEvent &event);
@@ -534,6 +489,15 @@ private:
   void handle(const CompressionLevelEvent &event);
   void handle(const CursorShapeUpdatesEvent &event);
   void handle(const IgnoreCursorShapeUpdatesEvent &event);
+
+  //
+  // Encode input events into m_output: the client messages KeyEvent,
+  // PointerEvent and ClientCutText (or ClientCutTextUtf8). On the network
+  // thread, once the protocol is initialized.
+  //
+  void send(const KeyEvent &event);
+  void send(const PointerEvent &event);
+  void send(const CutTextEvent &event);
 
   //
   // The connection, on the network thread: an Asio coroutine, spawned by
@@ -587,7 +551,9 @@ private:
   //
   // Sends what m_output queues (m_queuedOutput), whenever it is woken, until
   // cancelled or a send fails; a failure is given to m_reader as an
-  // IOException, so that the protocol code ends too.
+  // IOException, so that the protocol code ends too. Before each send, it
+  // encodes the input queued meanwhile (m_inputEvents), so that pointer
+  // moves are coalesced while a send is in progress.
   //
   asio::awaitable<void> writeLoop();
 
@@ -903,10 +869,11 @@ private:
   // This flag is set after call start().
   mutable LocalMutex m_startLock;
 
-  // The events queued by post() for applyPendingEvents(). Guarded by
-  // m_pendingEventsLock.
+  // The events queued by dispatch() for applyPendingEvents(). Used before
+  // start() on the thread that calls it, then only on the network thread.
   std::vector<ClientEvent> m_pendingEvents;
-  std::mutex m_pendingEventsLock;
+  // The input waiting for writeLoop(). Used only on the network thread.
+  Internal::InputEventQueue m_inputEvents;
   bool m_wasStarted;
 
   // The frame buffer limit, in pixels. Written only before start(), under

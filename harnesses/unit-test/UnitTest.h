@@ -53,5 +53,6 @@ void runSocketTests();
 void runBufferedInputStreamTests();
 void runNetworkThreadTests();
 void runHostResolverTests();
+void runClientEventsTests();
 
 #endif // _UNIT_TEST_H_

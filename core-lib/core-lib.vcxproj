@@ -222,6 +222,7 @@
     <ClInclude Include="viewer-core\DecoderOfRectangle.h" />
     <ClInclude Include="viewer-core\DecoderStore.h" />
     <ClInclude Include="viewer-core\NetworkThread.h" />
+    <ClInclude Include="viewer-core\ClientEvents.h" />
     <ClInclude Include="viewer-core\QueuedOutputStream.h" />
     <ClInclude Include="viewer-core\DesktopSizeDecoder.h" />
     <ClInclude Include="viewer-core\FbUpdateNotifier.h" />

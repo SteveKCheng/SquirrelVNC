@@ -1099,6 +1099,16 @@ asio::awaitable<std::exception_ptr> RemoteViewerCore::serveRequest(AwaitableRead
 asio::awaitable<void> RemoteViewerCore::writeLoop()
 {
   for (;;) {
+    // Only input is queued there.
+    for (const ClientEvent &event : m_inputEvents.take()) {
+      if (const KeyEvent *key = std::get_if<KeyEvent>(&event)) {
+        send(*key);
+      } else if (const PointerEvent *pointer = std::get_if<PointerEvent>(&event)) {
+        send(*pointer);
+      } else if (const CutTextEvent *cutText = std::get_if<CutTextEvent>(&event)) {
+        send(*cutText);
+      }
+    }
     std::vector<char> bytes = m_queuedOutput.take();
     if (bytes.empty()) {
       // Woken by being cancelled: by a write, or by the end.
@@ -1706,32 +1716,40 @@ void RemoteViewerCore::sendEncodings()
 
 void RemoteViewerCore::post(ClientEvent event)
 {
-  // DecoderStore has no lock, and the core thread looks up a decoder for
-  // every rectangle, so changes to it wait for that thread.
-  if (changesDecoderStore(event)) {
-    std::lock_guard<std::mutex> lock(m_pendingEventsLock);
-    m_pendingEvents.push_back(std::move(event));
+  if (!wasStarted()) {
+    dispatch(event);
+    return;
+  }
+  postToLoop([this, event = std::move(event)] {
+    try {
+      dispatch(event);
+    } catch (const Exception &e) {
+      m_logWriter.error(_T("Cannot handle an event: %s"), e.getMessage());
+    } catch (const std::exception &e) {
+      m_logWriter.error(_T("Cannot handle an event: %hs"), e.what());
+    }
+  });
+}
+
+void RemoteViewerCore::dispatch(const ClientEvent &event)
+{
+  if (m_isFinished) {
+    return;
+  }
+  // DecoderStore has no lock, and the protocol looks up a decoder for every
+  // rectangle, and may be suspended in one, so changes to it wait for a
+  // message boundary.
+  if (Internal::changesDecoderStore(event)) {
+    m_pendingEvents.push_back(event);
     return;
   }
   std::visit([this](const auto &e) { handle(e); }, event);
 }
 
-bool RemoteViewerCore::changesDecoderStore(const ClientEvent &event)
-{
-  return std::holds_alternative<PreferredEncodingEvent>(event) ||
-         std::holds_alternative<CopyRectEvent>(event) ||
-         std::holds_alternative<JpegQualityEvent>(event) ||
-         std::holds_alternative<CompressionLevelEvent>(event) ||
-         std::holds_alternative<CursorShapeUpdatesEvent>(event);
-}
-
 void RemoteViewerCore::applyPendingEvents()
 {
   std::vector<ClientEvent> events;
-  {
-    std::lock_guard<std::mutex> lock(m_pendingEventsLock);
-    events.swap(m_pendingEvents);
-  }
+  events.swap(m_pendingEvents);
   for (const ClientEvent &event : events) {
     std::visit([this](const auto &e) { handle(e); }, event);
   }
@@ -1755,50 +1773,72 @@ void RemoteViewerCore::handle(const RefreshEvent &/* event */)
 
 void RemoteViewerCore::handle(const KeyEvent &event)
 {
-  const auto &[downFlag, key] = event;
   // If core isn't connected, then m_output may be isn't initialized.
   // Exit from function, if it is.
   if (!wasConnected()) {
     return;
   }
+  if (m_input != nullptr) {
+    send(event);
+    return;
+  }
+  m_inputEvents.push(event);
+  m_writeWake->cancel();
+}
 
+void RemoteViewerCore::handle(const PointerEvent &event)
+{
+  if (!wasConnected()) {
+    return;
+  }
+  // At once, even if the message waits: the local cursor follows the mouse.
+  m_fbUpdateNotifier.updatePointerPos(event.position);
+  if (m_input != nullptr) {
+    send(event);
+    return;
+  }
+  m_inputEvents.push(event);
+  m_writeWake->cancel();
+}
+
+void RemoteViewerCore::handle(const CutTextEvent &event)
+{
+  if (!wasConnected()) {
+    return;
+  }
+  if (m_input != nullptr) {
+    send(event);
+    return;
+  }
+  m_inputEvents.push(event);
+  m_writeWake->cancel();
+}
+
+void RemoteViewerCore::send(const KeyEvent &event)
+{
+  const auto &[downFlag, key] = event;
   m_logWriter.detail(_T("Sending key event: %d, %u..."), downFlag, key);
   RfbKeyEventClientMessage keyMessage(downFlag, key);
   keyMessage.send(*m_output);
   m_logWriter.debug(_T("Key event: %d, %u is sent"), downFlag, key);
 }
 
-void RemoteViewerCore::handle(const PointerEvent &event)
+void RemoteViewerCore::send(const PointerEvent &event)
 {
   const auto &[buttonMask, position] = event;
-  // If core isn't connected, then m_output may be isn't initialized.
-  // Exit from function, if it is.
-  if (!wasConnected()) {
-    return;
-  }
-
   m_logWriter.detail(_T("Sending pointer event 0x%X, (%d, %d)..."),
                      static_cast<int>(buttonMask), position.x, position.y);
   // send position to server
   RfbPointerEventClientMessage pointerMessage(buttonMask, position);
   pointerMessage.send(*m_output);
-  // update position
-  m_fbUpdateNotifier.updatePointerPos(position);
 
   m_logWriter.debug(_T("Pointer event: 0x%X, (%d, %d) is sent"),
                     static_cast<int>(buttonMask), position.x, position.y);
 }
 
-void RemoteViewerCore::handle(const CutTextEvent &event)
+void RemoteViewerCore::send(const CutTextEvent &event)
 {
   const auto &[cutText] = event;
-  // If core isn't connected, then m_output may be isn't initialized.
-  // Exit from function, if it is.
-
-  if (!wasConnected()) {
-    return;
-  }
-
   RfbCutTextEventClientMessage cutTextMessage(cutText);
   if (m_isUtf8ClipboardEnabled) {
     // The clipboard may hold passwords, so only its length is logged.

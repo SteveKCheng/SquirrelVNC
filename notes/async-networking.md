@@ -11,8 +11,10 @@ the core on Linux).
 
 - **Fewer explicit threads.** Concurrency through tasks and coroutines,
   leaving threads to a lower layer.
-- **The GUI thread never blocks on the network.** Today it writes key,
-  pointer and clipboard messages directly to the socket.
+- **The GUI thread never blocks on the network.** ~~Today it writes key,
+  pointer and clipboard messages directly to the socket.~~ *Done for
+  input in Phase 4 step 2e: those messages are posted to the network
+  thread; file-transfer messages remain (step 5).*
 - **Connect, lookup and authentication can be cancelled, with
   timeouts.**
 - **New features that the current threading makes hard:** TLS, and
@@ -762,7 +764,28 @@ from vcpkg.
   its own, so the tests cover a reply from another thread.
 - **2e. Typed events**: `post()` becomes `asio::post`, encoding on the
   loop, with pointer moves coalesced; deferred until the byte queue of
-  2b has been proven, to keep each step's risk small.
+  2b has been proven, to keep each step's risk small. **Done**
+  (2026-10-26):
+  - After `start()`, `post()` posts each event to the network thread
+    (`postToLoop()`); before it, the event is handled at once, as nothing
+    runs yet.
+  - The five events that change the decoder set still wait for a message
+    boundary (`applyPendingEvents()`). A handler on the loop runs
+    whenever the protocol is suspended, often in the middle of a
+    rectangle that holds a decoder the event could remove. Only the lock
+    of that queue goes: it is used on the network thread alone. Applying
+    them at once when the protocol is idle at a boundary is deferred
+    (Steve: minor).
+  - Key, pointer and cut-text events go to `Internal::InputEventQueue`,
+    which `writeLoop()` encodes before each send. While a send is in
+    progress, a pointer move replaces the move just before it; a press
+    or release (a change of button mask) is never merged, nor is a move
+    across a key or cut text. The pointer position goes to the frame
+    buffer notifier at once.
+  - The event types live in `viewer-core/ClientEvents.h`, in namespace
+    `Internal`: by convention for `RemoteViewerCore` and its unit tests
+    only (Steve), so that the coalescing rule is tested directly
+    (`ClientEventsTests.cpp`).
 - Then steps 4 to 7 as above.
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
