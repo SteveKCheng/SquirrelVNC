@@ -246,6 +246,7 @@ bool FuzzSession::readFbUpdateRectangle()
   rect.setHeight(m_input->readUInt16());
 
   int encodingType = m_input->readInt32();
+  AwaitableReader reader(*m_input);
 
   if (encodingType == PseudoEncDefs::LAST_RECT)
     return true;
@@ -261,12 +262,11 @@ bool FuzzSession::readFbUpdateRectangle()
     // As in the core, the result of the cast is not checked: every
     // decoder registered for an encoding that is not pseudo is one.
     DecoderOfRectangle *rectangleDecoder = dynamic_cast<DecoderOfRectangle *>(decoder);
-    AwaitableReader reader(*m_input);
     syncWait(rectangleDecoder->process(reader,
                                        *m_frameBuffer, *m_rectangleFb, rect, &m_fbLock,
                                        m_notifier));
   } else {
-    readPseudoEncoding(rect, encodingType);
+    syncWait(readPseudoEncoding(reader, rect, encodingType));
   }
   return false;
 }
@@ -274,7 +274,8 @@ bool FuzzSession::readFbUpdateRectangle()
 // Mirrors RemoteViewerCore::processPseudoEncoding(), with the calls the
 // core makes on FbUpdateNotifier made on the CursorPainter directly, as
 // the notifier does.
-void FuzzSession::readPseudoEncoding(const Rect &rect, int encodingType)
+Task<> FuzzSession::readPseudoEncoding(AwaitableReader &reader, const Rect &rect,
+                                       int encodingType)
 {
   switch (encodingType) {
   case PseudoEncDefs::DESKTOP_SIZE:
@@ -303,11 +304,11 @@ void FuzzSession::readPseudoEncoding(const Rect &rect, int encodingType)
       size_t cursorLen = width * height * bytesPerPixel;
       if (cursorLen != 0) {
         cursor.resize(cursorLen);
-        m_input->readFully(&cursor.front(), cursorLen);
+        co_await reader.readFully(&cursor.front(), cursorLen);
 
         size_t bitmaskLen = ((width + 7) / 8) * height;
         bitmask.resize(bitmaskLen);
-        m_input->readFully(&bitmask.front(), bitmaskLen);
+        co_await reader.readFully(&bitmask.front(), bitmaskLen);
       }
       Point hotSpot(rect.left, rect.top);
 

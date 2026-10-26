@@ -30,6 +30,8 @@
 #include "thread/LocalMutex.h"
 #include "viewer-core/CursorPainter.h"
 #include "viewer-core/DecoderStore.h"
+#include "io-lib/AwaitableReader.h"
+#include "util/Task.h"
 
 #include "FuzzNotifier.h"
 
@@ -82,7 +84,7 @@ private:
   bool readMessage();
   void readFbUpdate();
   bool readFbUpdateRectangle();
-  void readPseudoEncoding(const Rect &rect, int encodingType);
+  Task<> readPseudoEncoding(AwaitableReader &reader, const Rect &rect, int encodingType);
   void skipBytes(size_t length);
 
   FuzzNotifier *m_notifier;

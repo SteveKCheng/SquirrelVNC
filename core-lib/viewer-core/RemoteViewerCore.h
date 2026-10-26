@@ -37,6 +37,8 @@
 #include "CapsContainer.h"
 #include "CoreEventsAdapter.h"
 #include "DecoderStore.h"
+#include "io-lib/AwaitableReader.h"
+#include "util/Task.h"
 #include "FbUpdateNotifier.h"
 #include "ServerMessageListener.h"
 #include "TcpConnection.h"
@@ -595,7 +597,10 @@ private:
   // taller than ViewerBufferSize::MAX_CURSOR_SIZE, or a desktop size that
   // setFbProperties() rejects; IOException if the input fails.
   //
-  void processPseudoEncoding(const Rect &rect, int encType);
+  // A coroutine (util/Task.h): it awaits its reads from reader, and takes
+  // m_fbLock only where it does not read.
+  //
+  Task<> processPseudoEncoding(AwaitableReader &reader, const Rect &rect, int encType);
 
   //
   // Send FramebufferUpdateRequest client message (code 3).

@@ -941,6 +941,8 @@ bool RemoteViewerCore::receiveFbUpdateRectangle()
   m_logWriter.debug(_T("Rectangle: (%d, %d), (%d, %d). Type is %d"), 
                     rect.left, rect.top, rect.right, rect.bottom, encodingType);
 
+  AwaitableReader reader(*m_input);
+
   if (encodingType == PseudoEncDefs::LAST_RECT)
     return true;
   if (!Decoder::isPseudo(encodingType)) {
@@ -953,7 +955,6 @@ bool RemoteViewerCore::receiveFbUpdateRectangle()
       m_logWriter.debug(_T("Decoding..."));
 
       DecoderOfRectangle *rectangleDecoder = dynamic_cast<DecoderOfRectangle *>(decoder);
-      AwaitableReader reader(*m_input);
       syncWait(rectangleDecoder->process(reader,
                                          m_frameBuffer, m_rectangleFb, rect, &m_fbLock,
                                          &m_fbUpdateNotifier));
@@ -967,13 +968,14 @@ bool RemoteViewerCore::receiveFbUpdateRectangle()
     } 
   } else { // it's pseudo encoding
     m_logWriter.debug(_T("It's pseudo encoding"));
-    processPseudoEncoding(rect, encodingType);
+    syncWait(processPseudoEncoding(reader, rect, encodingType));
   }
   return false;
 }
 
-void RemoteViewerCore::processPseudoEncoding(const Rect &rect,
-                                             int encodingType)
+Task<> RemoteViewerCore::processPseudoEncoding(AwaitableReader &reader,
+                                               const Rect &rect,
+                                               int encodingType)
 {
   switch (encodingType) {
   case PseudoEncDefs::DESKTOP_SIZE:
@@ -1006,11 +1008,11 @@ void RemoteViewerCore::processPseudoEncoding(const Rect &rect,
       size_t cursorLen = width * height * bytesPerPixel;
       if (cursorLen != 0) {
         cursor.resize(cursorLen);
-        m_input->readFully(&cursor.front(), cursorLen);
+        co_await reader.readFully(&cursor.front(), cursorLen);
 
         size_t bitmaskLen = ((width + 7) / 8) * height;
         bitmask.resize(bitmaskLen);
-        m_input->readFully(&bitmask.front(), bitmaskLen);
+        co_await reader.readFully(&bitmask.front(), bitmaskLen);
       }
       Point hotSpot(rect.left, rect.top);
 
