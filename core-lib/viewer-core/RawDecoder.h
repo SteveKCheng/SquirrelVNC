@@ -35,17 +35,17 @@ public:
   //
   // This method is inherited from DecoderOfRectangle.
   //
-  void process(RfbInputGate &input,
-               FrameBuffer &frameBuffer,
-               FrameBuffer &secondFrameBuffer,
-               const Rect &rect,
-               LocalMutex *fbLock,
-               FbUpdateNotifier *fbNotifier) override;
+  Task<> process(AwaitableReader &reader,
+                 FrameBuffer &frameBuffer,
+                 FrameBuffer &secondFrameBuffer,
+                 const Rect &rect,
+                 LocalMutex *fbLock,
+                 FbUpdateNotifier *fbNotifier) override;
 
 protected:
-  void decode(RfbInputGate &input,
-              FrameBuffer &frameBuffer,
-              const Rect &rect) override;
+  Task<> decode(AwaitableReader &reader,
+                FrameBuffer &frameBuffer,
+                const Rect &rect) override;
 
 private:
   static const size_t AREA_OF_ONE_PART = 1024 * 64;

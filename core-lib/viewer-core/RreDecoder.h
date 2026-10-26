@@ -43,9 +43,9 @@ protected:
   // subrectangle does not lie within dstRect; IOException if the input
   // fails.
   //
-  void decode(RfbInputGate &input,
-              FrameBuffer &framebuffer,
-              const Rect &dstRect) override;
+  Task<> decode(AwaitableReader &reader,
+                FrameBuffer &framebuffer,
+                const Rect &dstRect) override;
 };
 
 #endif

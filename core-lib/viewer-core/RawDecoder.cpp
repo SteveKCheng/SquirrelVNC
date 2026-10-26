@@ -34,16 +34,16 @@ RawDecoder::~RawDecoder()
 {
 }
 
-void RawDecoder::process(RfbInputGate &input,
-                         FrameBuffer &frameBuffer,
-                         FrameBuffer &secondFrameBuffer,
-                         const Rect &rect,
-                         LocalMutex *fbLock,
-                         FbUpdateNotifier *fbNotifier)
+Task<> RawDecoder::process(AwaitableReader &reader,
+                           FrameBuffer &frameBuffer,
+                           FrameBuffer &secondFrameBuffer,
+                           const Rect &rect,
+                           LocalMutex *fbLock,
+                           FbUpdateNotifier *fbNotifier)
 {
   // If area of rectangle is 0, then exit from process: nothing update.
   if (rect.area() == 0) {
-    return;
+    co_return;
   }
 
   int width = rect.getWidth();
@@ -57,9 +57,9 @@ void RawDecoder::process(RfbInputGate &input,
   // Process all rectangle without last part of rectangle or 
   // two last part, if area of last part is less half of AREA_OF_ONE_PART.
   while (deltaRect.bottom + deltaHeight / 2 < rect.bottom) {
-    DecoderOfRectangle::process(input,
-                                frameBuffer, secondFrameBuffer, deltaRect, fbLock,
-                                fbNotifier);
+    co_await DecoderOfRectangle::process(reader,
+                                         frameBuffer, secondFrameBuffer, deltaRect, fbLock,
+                                         fbNotifier);
 
     // Increment position of rectangle.
     deltaRect.move(0, deltaHeight);
@@ -68,12 +68,12 @@ void RawDecoder::process(RfbInputGate &input,
   // And process remainder parts of rectangle.
   deltaRect.top = std::max(rect.top, deltaRect.bottom - deltaHeight);
   deltaRect.bottom = rect.bottom;
-  DecoderOfRectangle::process(input,
-                              frameBuffer, secondFrameBuffer, deltaRect, fbLock,
-                              fbNotifier);
+  co_await DecoderOfRectangle::process(reader,
+                                       frameBuffer, secondFrameBuffer, deltaRect, fbLock,
+                                       fbNotifier);
 }
 
-void RawDecoder::decode(RfbInputGate &input,
+Task<> RawDecoder::decode(AwaitableReader &reader,
                      FrameBuffer &frameBuffer,
                      const Rect &rect)
 {
@@ -83,5 +83,5 @@ void RawDecoder::decode(RfbInputGate &input,
   if (!frameBuffer.getDimension().getRect().intersection(rect).isEqualTo(rect))
     throw Exception(_T("Error in protocol: incorrect size of rectangle"));
   for (int y = rect.top; y < rect.bottom; y++)
-    input.readFully(frameBuffer.getBufferPtr(rect.left, y), bytesPerLine);
+    co_await reader.readFully(frameBuffer.getBufferPtr(rect.left, y), bytesPerLine);
 }

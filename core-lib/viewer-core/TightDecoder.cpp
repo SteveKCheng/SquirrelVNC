@@ -41,9 +41,9 @@ TightDecoder::~TightDecoder()
 {
 }
 
-void TightDecoder::decode(RfbInputGate &input,
-                          FrameBuffer &fb,
-                          const Rect &dstRect)
+Task<> TightDecoder::decode(AwaitableReader &reader,
+                            FrameBuffer &fb,
+                            const Rect &dstRect)
 {
  // The width of any Tight-encoded rectangle cannot exceed 2048
  // pixels. If a rectangle is wider, it must be split into several rectangles
@@ -56,7 +56,7 @@ void TightDecoder::decode(RfbInputGate &input,
     m_isCPixel = true;
 }
 
-  UINT8 compressionControl = input.readUInt8();
+  UINT8 compressionControl = co_await reader.readUInt8();
   resetDecoders(compressionControl);
   UINT8 compressionType = (compressionControl >> 4) & 0x0F;
 
@@ -70,12 +70,12 @@ void TightDecoder::decode(RfbInputGate &input,
     throw Exception(_T("Error in protocol: incorrect size of rectangle (tight-decoder)"));
 
   if (compressionType == FILL_TYPE) {
-    UINT32 color = readTightPixel(input, bytesPerCPixel);
+    UINT32 color = co_await readTightPixel(reader, bytesPerCPixel);
     fb.fillRect(dstRect, color);
   } else if (compressionType == JPEG_TYPE) {
-    processJpeg(input, fb, dstRect);
+    co_await processJpeg(reader, fb, dstRect);
   } else
-    processBasicTypes(input, fb, dstRect, compressionControl);
+    co_await processBasicTypes(reader, fb, dstRect, compressionControl);
 }
 
 std::vector<UINT8> TightDecoder::transformArray(const std::vector<UINT8> &buffer)
@@ -90,21 +90,21 @@ std::vector<UINT8> TightDecoder::transformArray(const std::vector<UINT8> &buffer
   return result;
 }
 
-UINT32 TightDecoder::readTightPixel(RfbInputGate &input, int bytesPerCPixel)
+Task<UINT32> TightDecoder::readTightPixel(AwaitableReader &reader, int bytesPerCPixel)
 {
   UINT32 color = 0;
   UINT8 buffer[sizeof(color)];
   if (!m_isCPixel) {
-    input.readFully(buffer, bytesPerCPixel);
+    co_await reader.readFully(buffer, bytesPerCPixel);
   } else {
-    input.readFully(buffer, 3);
+    co_await reader.readFully(buffer, 3);
     UINT8 t = buffer[2];
     buffer[2] = buffer[0];
     buffer[0] = t;
     buffer[3] = 0;
   }
   memcpy(&color, buffer, bytesPerCPixel);
-  return color;
+  co_return color;
 }
 
 void TightDecoder::reset()
@@ -129,35 +129,35 @@ void TightDecoder::replaceInflater(int i)
   m_inflater[i] = std::make_unique<Inflater>();
 }
 
-int TightDecoder::readCompactSize(RfbInputGate &input)
+Task<int> TightDecoder::readCompactSize(AwaitableReader &reader)
 {
-  int b = input.readUInt8();
+  int b = co_await reader.readUInt8();
   int size = b & 0x7F;
   if ((b & 0x80) != 0) {
-    b = input.readUInt8();
+    b = co_await reader.readUInt8();
     size += (b & 0x7F) << 7;
     if ((b & 0x80) != 0) {
-      size += input.readUInt8() << 14;
+      size += co_await reader.readUInt8() << 14;
     }
   }
-  return size;
+  co_return size;
 }
 
-void TightDecoder::processJpeg(RfbInputGate &input,
-                               FrameBuffer &frameBuffer,
-                               const Rect &dstRect)
+Task<> TightDecoder::processJpeg(AwaitableReader &reader,
+                                 FrameBuffer &frameBuffer,
+                                 const Rect &dstRect)
 {
   if (!ViewerBufferSize::fitsDecoderBuffer(dstRect.getWidth(), dstRect.getHeight(),
                                             JpegDecompressor::BYTES_PER_PIXEL)) {
     throw Exception(_T("Tight JPEG rectangle is too large"));
   }
 
-  UINT32 jpegBufLen = readCompactSize(input);
+  UINT32 jpegBufLen = co_await readCompactSize(reader);
   if (jpegBufLen == 0)
     throw Exception(_T("Error in protocol: empty byffer of jpeg (tight-decoder)"));
   std::vector<UINT8> buffer;
   buffer.resize(jpegBufLen);
-  input.readFully(&buffer.front(), jpegBufLen);
+  co_await reader.readFully(&buffer.front(), jpegBufLen);
 
   if (dstRect.area() != 0) {
     std::vector<UINT8> pixels;
@@ -180,15 +180,15 @@ void TightDecoder::processJpeg(RfbInputGate &input,
   }
 }
 
-void TightDecoder::processBasicTypes(RfbInputGate &input,
-                                     FrameBuffer &fb,
-                                     const Rect &dstRect,
-                                     UINT8 compressionControl)
+Task<> TightDecoder::processBasicTypes(AwaitableReader &reader,
+                                       FrameBuffer &fb,
+                                       const Rect &dstRect,
+                                       UINT8 compressionControl)
 {
   int decoderId = (compressionControl & STREAM_ID_MASK) >> 4;
   int filterId = COPY_FILTER;
   if ((compressionControl & FILTER_ID_MASK) != 0) {
-    filterId = input.readUInt8();
+    filterId = co_await reader.readUInt8();
   }
 
   int bytesPerCPixel = fb.getBytesPerPixel();
@@ -201,7 +201,7 @@ void TightDecoder::processBasicTypes(RfbInputGate &input,
 
   switch (filterId) {
   case COPY_FILTER:
-    readTightData(input, buffer, lengthCurrentBpp, decoderId);
+    co_await readTightData(reader, buffer, lengthCurrentBpp, decoderId);
     if (m_isCPixel) {
       buffer = transformArray(buffer);
     }
@@ -212,19 +212,19 @@ void TightDecoder::processBasicTypes(RfbInputGate &input,
   // when bits-per-pixel value is either 16 or 32, not 8.
   case PALETTE_FILTER:
     {
-      int paletteSize = input.readUInt8() + 1;
-      std::vector<UINT32> palette = readPalette(input, paletteSize, bytesPerCPixel);
+      int paletteSize = co_await reader.readUInt8() + 1;
+      std::vector<UINT32> palette = co_await readPalette(reader, paletteSize, bytesPerCPixel);
       size_t dataLength = dstRect.area();
       if (paletteSize == 2) {
         dataLength = (dstRect.getWidth() + 7) / 8 * dstRect.getHeight();
       }
-      readTightData(input, buffer, dataLength, decoderId);
+      co_await readTightData(reader, buffer, dataLength, decoderId);
       drawPalette(fb, palette, buffer, dstRect);
     }
     break;
 
   case GRADIENT_FILTER:
-    readTightData(input, buffer, lengthCurrentBpp, decoderId);
+    co_await readTightData(reader, buffer, lengthCurrentBpp, decoderId);
     drawGradient(fb, buffer, dstRect);
     break;
 
@@ -233,44 +233,44 @@ void TightDecoder::processBasicTypes(RfbInputGate &input,
   }
 }
 
-std::vector<UINT32> TightDecoder::readPalette(RfbInputGate &input,
+Task<std::vector<UINT32>> TightDecoder::readPalette(AwaitableReader &reader,
                                       int paletteSize,
                                       int bytesPerCPixel)
 {
   std::vector<UINT32> palette(paletteSize);
   for (int i = 0; i < paletteSize; i++) {
-    palette[i] = readTightPixel(input, bytesPerCPixel);
+    palette[i] = co_await readTightPixel(reader, bytesPerCPixel);
   }
-  return palette;
+  co_return palette;
 }
 
-void TightDecoder::readTightData(RfbInputGate &input,
-                                 std::vector<UINT8> &buffer,
-                                 size_t expectedLength,
-                                 const int decoderId)
+Task<> TightDecoder::readTightData(AwaitableReader &reader,
+                                   std::vector<UINT8> &buffer,
+                                   size_t expectedLength,
+                                   const int decoderId)
 {
   if (expectedLength < MIN_SIZE_TO_COMPRESS) {
     buffer.resize(expectedLength);
     if (expectedLength != 0) {
-      input.readFully(&buffer.front(), expectedLength);
+      co_await reader.readFully(&buffer.front(), expectedLength);
     }
   } else {
-    readCompressedData(input, buffer, expectedLength, decoderId);
+    co_await readCompressedData(reader, buffer, expectedLength, decoderId);
   }
 }
 
-void TightDecoder::readCompressedData(RfbInputGate &input,
-                                      std::vector<UINT8> &buffer,
-                                      size_t expectedLength,
-                                      const int decoderId)
+Task<> TightDecoder::readCompressedData(AwaitableReader &reader,
+                                        std::vector<UINT8> &buffer,
+                                        size_t expectedLength,
+                                        const int decoderId)
 {
-  size_t rawDataLength = readCompactSize(input);
+  size_t rawDataLength = co_await readCompactSize(reader);
 
   std::vector<char> compressed(rawDataLength);
 
   // read compressed (raw) data behind space allocated for decompressed data
   if (rawDataLength != 0) {
-    input.readFully(&compressed.front(), rawDataLength);
+    co_await reader.readFully(&compressed.front(), rawDataLength);
 
     Inflater *decoder = m_inflater[decoderId].get();
     decoder->setInput(&compressed.front(), rawDataLength);

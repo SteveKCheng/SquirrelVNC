@@ -32,12 +32,12 @@ CopyRectDecoder::~CopyRectDecoder()
 {
 }
 
-void CopyRectDecoder::decode(RfbInputGate &input,
-                             FrameBuffer & /* frameBuffer */,
-                             const Rect & /* dstRect */)
+Task<> CopyRectDecoder::decode(AwaitableReader &reader,
+                               FrameBuffer & /* frameBuffer */,
+                               const Rect & /* dstRect */)
 {
-  m_sourcePosition.x = input.readInt16();
-  m_sourcePosition.y = input.readInt16();
+  m_sourcePosition.x = co_await reader.readInt16();
+  m_sourcePosition.y = co_await reader.readInt16();
 }
 
 void CopyRectDecoder::copy(FrameBuffer &dstFrameBuffer,

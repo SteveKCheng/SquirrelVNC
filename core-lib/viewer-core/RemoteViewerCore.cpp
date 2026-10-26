@@ -953,9 +953,10 @@ bool RemoteViewerCore::receiveFbUpdateRectangle()
       m_logWriter.debug(_T("Decoding..."));
 
       DecoderOfRectangle *rectangleDecoder = dynamic_cast<DecoderOfRectangle *>(decoder);
-      rectangleDecoder->process(*m_input,
-                                m_frameBuffer, m_rectangleFb, rect, &m_fbLock,
-                                &m_fbUpdateNotifier);
+      AwaitableReader reader(*m_input);
+      syncWait(rectangleDecoder->process(reader,
+                                         m_frameBuffer, m_rectangleFb, rect, &m_fbLock,
+                                         &m_fbUpdateNotifier));
 
       m_logWriter.debug(_T("Decoded"));
     } else { // decoder is 0

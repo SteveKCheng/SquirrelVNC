@@ -32,24 +32,24 @@ RreDecoder::~RreDecoder()
 {
 }
 
-void RreDecoder::decode(RfbInputGate &input,
-                        FrameBuffer &frameBuffer,
-                        const Rect &dstRect)
+Task<> RreDecoder::decode(AwaitableReader &reader,
+                          FrameBuffer &frameBuffer,
+                          const Rect &dstRect)
 {
-  UINT32 numberRectangle = input.readUInt32();
+  UINT32 numberRectangle = co_await reader.readUInt32();
   size_t bytesPerPixel = frameBuffer.getBytesPerPixel();
 
   UINT32 backgroundColor;
-  input.readFully(&backgroundColor, bytesPerPixel);
+  co_await reader.readFully(&backgroundColor, bytesPerPixel);
   frameBuffer.fillRect(dstRect, backgroundColor);
 
   while (numberRectangle--) {
     UINT32 color;
-    input.readFully(&color, bytesPerPixel);
-    UINT32 x = input.readUInt16();
-    UINT32 y = input.readUInt16();
-    UINT32 w = input.readUInt16();
-    UINT32 h = input.readUInt16();
+    co_await reader.readFully(&color, bytesPerPixel);
+    UINT32 x = co_await reader.readUInt16();
+    UINT32 y = co_await reader.readUInt16();
+    UINT32 w = co_await reader.readUInt16();
+    UINT32 h = co_await reader.readUInt16();
 
     // Subrectangles are positioned relative to the rectangle, and must lie
     // within it.

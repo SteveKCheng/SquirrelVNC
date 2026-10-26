@@ -48,9 +48,9 @@ protected:
   // Pre: framebuffer has the pixel format the server sends, so that each
   // colour read is framebuffer->getBytesPerPixel() bytes.
   //
-  void decode(RfbInputGate &input,
-              FrameBuffer &framebuffer,
-              const Rect &dstRect) override;
+  Task<> decode(AwaitableReader &reader,
+                FrameBuffer &framebuffer,
+                const Rect &dstRect) override;
 private:
   static const int TILE_SIZE = 16;
 };

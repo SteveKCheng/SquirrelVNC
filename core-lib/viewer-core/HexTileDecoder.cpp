@@ -34,9 +34,9 @@ HexTileDecoder::~HexTileDecoder()
 {
 }
 
-void HexTileDecoder::decode(RfbInputGate &input,
-                            FrameBuffer &framebuffer,
-                            const Rect &dstRect)
+Task<> HexTileDecoder::decode(AwaitableReader &reader,
+                              FrameBuffer &framebuffer,
+                              const Rect &dstRect)
 {
   // shorcut
   const int bytesPerPixel = framebuffer.getBytesPerPixel();
@@ -56,15 +56,15 @@ void HexTileDecoder::decode(RfbInputGate &input,
       if (!framebuffer.getDimension().getRect().intersection(tileRect).isEqualTo(tileRect))
         throw Exception(_T("Error in protocol: incorrect size of tile in hextile-decoder"));
 
-      UINT8 flags = input.readUInt8();
+      UINT8 flags = co_await reader.readUInt8();
       // If tile-coding is RAW.
       if (flags & 0x1) {
         for (int row = tileRect.top; row < tileRect.bottom; row++)
-          input.readFully(framebuffer.getBufferPtr(tileRect.left, row),
+          co_await reader.readFully(framebuffer.getBufferPtr(tileRect.left, row),
                            tileRect.getWidth() * bytesPerPixel);
       } else {
         if (flags & 0x2) {
-          input.readFully(&background, bytesPerPixel);
+          co_await reader.readFully(&background, bytesPerPixel);
           backgroundAccepted = true;
         }
 
@@ -72,18 +72,18 @@ void HexTileDecoder::decode(RfbInputGate &input,
           framebuffer.fillRect(tileRect, background);
 
         if (flags & 0x4)
-          input.readFully(&foreground, bytesPerPixel);
+          co_await reader.readFully(&foreground, bytesPerPixel);
 
         if (flags & 0x8) {
-          UINT8 numberOfSubrectangles = input.readUInt8();
+          UINT8 numberOfSubrectangles = co_await reader.readUInt8();
 
           for (int i = 0; i < numberOfSubrectangles; i++) {
 
             if (flags & 0x10 && !(flags & 0x4))
-              input.readFully(&foreground, bytesPerPixel);
+              co_await reader.readFully(&foreground, bytesPerPixel);
 
-            UINT8 xy = input.readUInt8();
-            UINT8 wh = input.readUInt8();
+            UINT8 xy = co_await reader.readUInt8();
+            UINT8 wh = co_await reader.readUInt8();
             int subX = (xy >> 4) & 0xF;
             int subY = xy & 0xF;
             int w = ((wh >> 4) & 0xF) + 1;

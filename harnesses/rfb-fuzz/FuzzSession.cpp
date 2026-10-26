@@ -261,9 +261,10 @@ bool FuzzSession::readFbUpdateRectangle()
     // As in the core, the result of the cast is not checked: every
     // decoder registered for an encoding that is not pseudo is one.
     DecoderOfRectangle *rectangleDecoder = dynamic_cast<DecoderOfRectangle *>(decoder);
-    rectangleDecoder->process(*m_input,
-                              *m_frameBuffer, *m_rectangleFb, rect, &m_fbLock,
-                              m_notifier);
+    AwaitableReader reader(*m_input);
+    syncWait(rectangleDecoder->process(reader,
+                                       *m_frameBuffer, *m_rectangleFb, rect, &m_fbLock,
+                                       m_notifier));
   } else {
     readPseudoEncoding(rect, encodingType);
   }

@@ -26,6 +26,9 @@
 
 #include "Decoder.h"
 
+#include "io-lib/AwaitableReader.h"
+#include "util/Task.h"
+
 class FbUpdateNotifier;
 
 class DecoderOfRectangle : public Decoder
@@ -37,7 +40,7 @@ public:
 
   //
   // This function does the following:
-  //   1. read update of dstRect from input
+  //   1. read update of dstRect from reader
   //   2. decode rectangle on "secondFrameBuffer"
   //   3. copy rectangle from secondFrameBuffer to "frameBuffer"
   //   4. notify fbNotifier
@@ -45,20 +48,26 @@ public:
   //
   // This function is thread-safe for frameBuffer.
   //
-  virtual void process(RfbInputGate &input,
-                       FrameBuffer &frameBuffer,
-                       FrameBuffer &secondFrameBuffer,
-                       const Rect &rect,
-                       LocalMutex *fbLock,
-                       FbUpdateNotifier *fbNotifier);
+  // A coroutine (util/Task.h), as decode() is: it reads through reader, and
+  // takes fbLock only after the reads, in copy(), which does not suspend.
+  // The arguments must stay valid until the Task has finished; awaiting it
+  // at once, as callers do, ensures that.
+  //
+  virtual Task<> process(AwaitableReader &reader,
+                         FrameBuffer &frameBuffer,
+                         FrameBuffer &secondFrameBuffer,
+                         const Rect &rect,
+                         LocalMutex *fbLock,
+                         FbUpdateNotifier *fbNotifier);
 
 protected:
   //
-  // This method read rectangle-update from input and decode on frameBuffer.
+  // This method read rectangle-update from reader and decode on frameBuffer.
+  // A coroutine: each read is awaited.
   //
-  virtual void decode(RfbInputGate &input,
-                      FrameBuffer &frameBuffer,
-                      const Rect &rect) = 0;
+  virtual Task<> decode(AwaitableReader &reader,
+                        FrameBuffer &frameBuffer,
+                        const Rect &rect) = 0;
 
   //
   // This method copy rectangle from srcFrameBuffer to dstFrameBuffer.

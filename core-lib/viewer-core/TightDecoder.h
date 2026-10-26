@@ -39,9 +39,9 @@ public:
   ~TightDecoder() override;
 
 protected:
-  void decode(RfbInputGate &input,
-              FrameBuffer &frameBuffer,
-              const Rect &dstRect) override;
+  Task<> decode(AwaitableReader &reader,
+                FrameBuffer &frameBuffer,
+                const Rect &dstRect) override;
 
 private:
   void reset();
@@ -53,26 +53,26 @@ private:
   // throws, m_inflater[i] is unchanged.
   //
   void replaceInflater(int i);
-  UINT32 readTightPixel(RfbInputGate &input, int bytesPerCPixel);
-  int readCompactSize(RfbInputGate &input);
-  std::vector<UINT32> readPalette(RfbInputGate &input,
+  Task<UINT32> readTightPixel(AwaitableReader &reader, int bytesPerCPixel);
+  Task<int> readCompactSize(AwaitableReader &reader);
+  Task<std::vector<UINT32>> readPalette(AwaitableReader &reader,
                           int paletteSize,
                           int bytesPerCPixel);
-  void processJpeg(RfbInputGate &input,
-                   FrameBuffer &frameBuffer,
-                   const Rect &dstRect);
-  void processBasicTypes(RfbInputGate &input,
-                         FrameBuffer &frameBuffer,
-                         const Rect &dstRect,
-                         UINT8 compControl);
-  void readTightData(RfbInputGate &input,
-                     std::vector<UINT8> &buffer,
-                     size_t expectedLength,
-                     const int decoderId);
-  void readCompressedData(RfbInputGate &input,
-                          std::vector<UINT8> &buffer,
-                          size_t expectedLength,
-                          const int decoderId);
+  Task<> processJpeg(AwaitableReader &reader,
+                     FrameBuffer &frameBuffer,
+                     const Rect &dstRect);
+  Task<> processBasicTypes(AwaitableReader &reader,
+                           FrameBuffer &frameBuffer,
+                           const Rect &dstRect,
+                           UINT8 compControl);
+  Task<> readTightData(AwaitableReader &reader,
+                       std::vector<UINT8> &buffer,
+                       size_t expectedLength,
+                       const int decoderId);
+  Task<> readCompressedData(AwaitableReader &reader,
+                            std::vector<UINT8> &buffer,
+                            size_t expectedLength,
+                            const int decoderId);
   void drawPalette(FrameBuffer &fb,
                    const std::vector<UINT32> &palette,
                    const std::vector<UINT8> &pixels,

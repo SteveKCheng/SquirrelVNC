@@ -38,12 +38,12 @@ ZrleDecoder::~ZrleDecoder()
 {
 }
 
-void ZrleDecoder::decode(RfbInputGate &input,
-                         FrameBuffer &frameBuffer,
-                         const Rect &dstRect)
+Task<> ZrleDecoder::decode(AwaitableReader &reader,
+                           FrameBuffer &frameBuffer,
+                           const Rect &dstRect)
 {
   size_t maxUnpackedSize = getMaxSizeOfRectangle(dstRect);
-  readAndInflate(input, maxUnpackedSize);
+  co_await readAndInflate(reader, maxUnpackedSize);
 
   size_t unpackedDataSize = m_inflater.getOutputSize();
   if (unpackedDataSize == 0) {
@@ -51,7 +51,7 @@ void ZrleDecoder::decode(RfbInputGate &input,
     if (dstRect.area() != 0) {
       throw Exception(_T("Bad data received from the server: Empty unpacked data in ZRLE decoder."));
     }
-    return;
+    co_return;
   }
 
   std::vector<unsigned char> unpackedData;
@@ -141,15 +141,15 @@ void ZrleDecoder::decode(RfbInputGate &input,
   } // tile(..., y)
 }
 
-void ZrleDecoder::readAndInflate(RfbInputGate &input, size_t maximalUnpackedSize)
+Task<> ZrleDecoder::readAndInflate(AwaitableReader &reader, size_t maximalUnpackedSize)
 {
-  UINT32 length = input.readUInt32();
+  UINT32 length = co_await reader.readUInt32();
   std::vector<char> zlibData;
   zlibData.resize(length);
   if (length == 0) {
     zlibData.resize(1);
   }
-  input.readFully(&zlibData.front(), length);
+  co_await reader.readFully(&zlibData.front(), length);
 
   m_inflater.setInput(&zlibData.front(), length);
   m_inflater.setUnpackedSize(maximalUnpackedSize);

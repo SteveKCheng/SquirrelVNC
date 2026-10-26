@@ -45,12 +45,12 @@ protected:
   // high 3 bytes, which is not supported.
   // Pre-condition: the frame buffer's pixel format is valid
   // (PixelFormat::isValid()).
-  void decode(RfbInputGate &input,
-              FrameBuffer &frameBuffer,
-              const Rect &dstRect) override;
+  Task<> decode(AwaitableReader &reader,
+                FrameBuffer &frameBuffer,
+                const Rect &dstRect) override;
 
 
-  void readAndInflate(RfbInputGate &input, size_t maximalUnpackedSize);
+  Task<> readAndInflate(AwaitableReader &reader, size_t maximalUnpackedSize);
 
   int readType(DataInputStream *input);
 

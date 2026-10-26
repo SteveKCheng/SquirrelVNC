@@ -34,14 +34,14 @@ DecoderOfRectangle::~DecoderOfRectangle()
 {
 }
 
-void DecoderOfRectangle::process(RfbInputGate &input,
+Task<> DecoderOfRectangle::process(AwaitableReader &reader,
                      FrameBuffer &frameBuffer,
                      FrameBuffer &secondFrameBuffer,
                      const Rect &rect,
                      LocalMutex *fbLock,
                      FbUpdateNotifier *fbNotifier)
 {
-  decode(input, secondFrameBuffer, rect);
+  co_await decode(reader, secondFrameBuffer, rect);
   copy(frameBuffer, secondFrameBuffer, rect, fbLock);
   notify(fbNotifier, rect);
 }

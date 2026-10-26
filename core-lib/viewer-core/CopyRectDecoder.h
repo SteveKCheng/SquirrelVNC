@@ -38,9 +38,9 @@ protected:
   //
   // This method inherited by DecoderOfRectangle.
   //
-  void decode(RfbInputGate &input,
-              FrameBuffer &frameBuffer,
-              const Rect &dstRect) override;
+  Task<> decode(AwaitableReader &reader,
+                FrameBuffer &frameBuffer,
+                const Rect &dstRect) override;
 
   //
   // This method inherited by DecoderOfRectangle.
