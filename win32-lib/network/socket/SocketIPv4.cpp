@@ -231,6 +231,15 @@ void SocketIPv4::enableNaggleAlgorithm(bool enabled)
   setSocketOptions(IPPROTO_TCP, TCP_NODELAY, &disabled, sizeof(disabled));
 }
 
+void SocketIPv4::enableKeepAlive(DWORD idleSeconds, DWORD intervalSeconds, DWORD probeCount)
+{
+  BOOL enabled = TRUE;
+  setSocketOptions(SOL_SOCKET, SO_KEEPALIVE, &enabled, sizeof(enabled));
+  setSocketOptions(IPPROTO_TCP, TCP_KEEPIDLE, &idleSeconds, sizeof(idleSeconds));
+  setSocketOptions(IPPROTO_TCP, TCP_KEEPINTVL, &intervalSeconds, sizeof(intervalSeconds));
+  setSocketOptions(IPPROTO_TCP, TCP_KEEPCNT, &probeCount, sizeof(probeCount));
+}
+
 void SocketIPv4::setExclusiveAddrUse()
 {
   int val = 1;

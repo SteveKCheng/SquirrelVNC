@@ -46,8 +46,11 @@ listening mode, also have it since 2026-10-26.)*
 5. **Lookup and connect cannot be cancelled** (`networking.md`).
 
 **Keepalive is worth fixing now**, independently of the rewrite: a few
-lines with `SO_KEEPALIVE` plus `SIO_KEEPALIVE_VALS` on Windows
-(`TCP_KEEPIDLE` and so on elsewhere).
+lines with `SO_KEEPALIVE` plus ~~`SIO_KEEPALIVE_VALS` on Windows
+(`TCP_KEEPIDLE` and so on elsewhere)~~ *`TCP_KEEPIDLE`, `TCP_KEEPINTVL`
+and `TCP_KEEPCNT`, which Windows has too since Windows 10 version 1709,
+with the same names as Linux; `SIO_KEEPALIVE_VALS` cannot set the probe
+count.* Done in Phase 1 step 5 (below).
 
 Not the main cause of slow updates: if frame rate is the problem, look
 first at the request/update loop (one round trip of idle time per
@@ -473,6 +476,13 @@ Each step is useful on its own.
      in `await_resume`, so exceptions come from the `co_await` as from
      the calls they replace.
 5. **Keepalive.** Independent; this is just a convenient place for it.
+   **Done** (2026-10-26): `SocketIPv4::enableKeepAlive()`, called by
+   `TcpConnection::connect()` for every socket, outgoing or accepted:
+   30 seconds idle, then a probe every 5 seconds, reset after 10
+   unanswered, so a dead server is noticed after about 80 seconds. A
+   failure to set the options is logged, and the connection goes on
+   without them. (Doing this showed that accepted connections had no
+   TCP_NODELAY; fixed separately.)
 6. **A narrow interface for `RemoteViewerCore`** (added 2026-10-25; see
    "Corrections and decisions" at the end). The GUI side
    (`ViewerInstance`, `ViewerWindow` and the dialogs) talks to the

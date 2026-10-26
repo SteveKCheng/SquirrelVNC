@@ -108,6 +108,13 @@ void TcpConnection::connect()
     }
     // Also for a socket given to bind(), accepted in listening mode.
     m_socket->enableNaggleAlgorithm(false);
+    try {
+      m_socket->enableKeepAlive(KEEPALIVE_IDLE_SECONDS,
+                                KEEPALIVE_INTERVAL_SECONDS,
+                                KEEPALIVE_PROBE_COUNT);
+    } catch (const SocketException &e) {
+      m_logWriter->error(_T("Cannot turn on TCP keepalive: %s"), e.getMessage());
+    }
 
     m_logWriter->detail(_T("Initialization of socket stream and input/output gates..."));
     m_socketStream = std::make_unique<SocketStream>(m_socket);

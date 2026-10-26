@@ -137,6 +137,20 @@ public:
   void enableNaggleAlgorithm(bool enabled);
   void setExclusiveAddrUse();
 
+  //
+  // Turns on TCP keepalive (SO_KEEPALIVE), so that a connection whose peer
+  // has gone without closing it (rebooted, unplugged, asleep) ends with an
+  // error instead of waiting for data forever: after idleSeconds without
+  // traffic, a probe is sent every intervalSeconds, and the connection is
+  // reset once probeCount probes in a row are unanswered.
+  //
+  // Pre-conditions: the socket is a TCP socket; each argument is at least 1.
+  // Throws SocketException if an option cannot be set. TCP_KEEPIDLE and
+  // TCP_KEEPINTVL need Windows 10 version 1709, TCP_KEEPCNT version 1703.
+  // The options set before the failing one stay set.
+  //
+  void enableKeepAlive(DWORD idleSeconds, DWORD intervalSeconds, DWORD probeCount);
+
 private:
   WsaStartup m_wsaStartup;
 

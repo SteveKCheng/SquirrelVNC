@@ -53,7 +53,12 @@ public:
   // Connects to the host given to bind(), or uses the socket or gates given
   // to it. A socket, whether connected here or given, has Nagle's algorithm
   // turned off (TCP_NODELAY): RFB's small messages, such as pointer events,
-  // must not wait for earlier data to be acknowledged.
+  // must not wait for earlier data to be acknowledged. It also has TCP
+  // keepalive turned on (KEEPALIVE_* below), so that a peer gone without
+  // closing the connection is noticed; a view-only connection sends
+  // nothing, and would otherwise wait for an update forever. If keepalive
+  // cannot be turned on, that is logged, and the connection goes on
+  // without it.
   //
   // Throws Exception if nothing was bound; SocketException if the host
   // cannot be resolved or connected to, or the socket configured.
@@ -63,6 +68,13 @@ public:
 
   RfbInputGate *getInput() const;
   RfbOutputGate *getOutput() const;
+
+  // TCP keepalive (SocketIPv4::enableKeepAlive()): a dead peer is noticed
+  // after about 30 + 10 * 5 = 80 seconds without traffic.
+  static constexpr DWORD KEEPALIVE_IDLE_SECONDS = 30;
+  static constexpr DWORD KEEPALIVE_INTERVAL_SECONDS = 5;
+  static constexpr DWORD KEEPALIVE_PROBE_COUNT = 10;
+
 private:
   StringStorage m_host;
   UINT16 m_port;

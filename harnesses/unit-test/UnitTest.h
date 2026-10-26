@@ -49,5 +49,6 @@ void runFileInfoListTests();
 void runScopeExitTests();
 void runExceptionTests();
 void runTaskTests();
+void runSocketTests();
 
 #endif // _UNIT_TEST_H_

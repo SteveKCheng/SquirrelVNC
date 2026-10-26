@@ -67,6 +67,7 @@ int wmain()
     runScopeExitTests();
     runExceptionTests();
     runTaskTests();
+    runSocketTests();
   } catch (const Exception &e) {
     printf("FAIL unexpected exception: %ls\n", e.getMessage());
     g_failures++;
