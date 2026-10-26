@@ -594,6 +594,28 @@ explained in `async-networking-resumption.md`.
 - **Audit:** no lock may be held across a `co_await`. It is harmless on
   one thread, but becomes wrong in Phase 4.
 
+**Done** (2026-10-26):
+
+- `AwaitableReader` holds the bytes received, the pending read, the
+  waiter, a request and a sticky error; `runBlocking()` is the blocking
+  driver; `Task` has `start()`, `isDone()` and `result()`. Unit tests in
+  `TaskTests.cpp`.
+- `RemoteViewerCore::execute()` connects, then runs `run()` with
+  `runBlocking()` over `m_input`. Connecting is the driver's part, as it
+  will be in Phase 4.
+- The VNC password is a request (`VncAuthenticationHandler`'s
+  `PasswordRequest`), served by the driver with the blocking
+  `getPassword()`.
+- Tests: `run-tests.ps1` replays every case whole, one byte at a time,
+  and in random pieces (`rfb-replay --split`, `--seed`); all pass.
+  `rfb-fuzz` reads every input whole and in random pieces and aborts if
+  the results differ (checked against a planted bug).
+- Audit: `check-locks.py` finds no `co_await` under a lock in the 57
+  coroutines.
+- Found while fuzzing, not caused by the change: `ZrleDecoder::readAndInflate()`
+  allocates the compressed length the server sends (up to 4 GiB) before
+  reading any of it.
+
 ### Phase 4: the event loop
 
 The risky part, split up:
