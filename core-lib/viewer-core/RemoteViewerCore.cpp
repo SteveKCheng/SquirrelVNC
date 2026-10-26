@@ -77,54 +77,6 @@ RemoteViewerCore::RemoteViewerCore(Logger *logger)
   init();
 }
 
-RemoteViewerCore::RemoteViewerCore(const TCHAR *host, UINT16 port,
-                                   CoreEventsAdapter *adapter,
-                                   Logger *logger,
-                                   bool sharedFlag)
-: m_logWriter(logger),
-  m_tcpConnection(&m_logWriter),
-  m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter),
-  m_decoderStore(&m_logWriter),
-  m_isTightEnabled(true),
-  m_isUtf8ClipboardEnabled(false)
-{
-  init();
-
-  start(host, port, adapter, sharedFlag);
-}
-
-RemoteViewerCore::RemoteViewerCore(SocketIPv4 *socket,
-                                   CoreEventsAdapter *adapter,
-                                   Logger *logger,
-                                   bool sharedFlag)
-: m_logWriter(logger),
-  m_tcpConnection(&m_logWriter),
-  m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter),
-  m_decoderStore(&m_logWriter),
-  m_isTightEnabled(true),
-  m_isUtf8ClipboardEnabled(false)
-{
-  init();
-
-  start(socket, adapter, sharedFlag);
-}
-
-RemoteViewerCore::RemoteViewerCore(RfbInputGate *input, RfbOutputGate *output,
-                                   CoreEventsAdapter *adapter,
-                                   Logger *logger,
-                                   bool sharedFlag)
-: m_logWriter(logger),
-  m_tcpConnection(&m_logWriter),
-  m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter),
-  m_decoderStore(&m_logWriter),
-  m_isTightEnabled(true),
-  m_isUtf8ClipboardEnabled(false)
-{
-  init();
-
-  start(input, output, adapter, sharedFlag);
-}
-
 void RemoteViewerCore::init()
 {
   m_decoderStore.addDecoder(std::make_unique<RawDecoder>(&m_logWriter), 0);
@@ -1549,11 +1501,6 @@ void RemoteViewerCore::sendEncodings()
   std::vector<INT32> decoderIds = m_decoderStore.getDecoderIds();
   RfbSetEncodingsClientMessage encodingsMessage(&decoderIds);
   encodingsMessage.send(*m_output);
-}
-
-std::vector<Rect> RemoteViewerCore::getDesktops()
-{
-  return m_desktops;
 }
 
 void RemoteViewerCore::copyFrameBuffer(FrameBuffer &dst)

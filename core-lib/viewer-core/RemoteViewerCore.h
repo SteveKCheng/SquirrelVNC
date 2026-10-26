@@ -71,65 +71,13 @@ class RemoteViewerCore final : public CapabilitiesManager,
 {
 public:
   //
-  // Dummy constructor.
-  //
-  // It creates an "empty" object which will not start new threads and thus
-  // will not do any protocol work until start() is called. This constructor
-  // should be used only when you cannot use the constructor with parameters.
-  //
-  // Call start() to "activate" an object created with this constructor.
+  // Creates an object that does no protocol work, and starts no thread,
+  // until start() is called.
   //
   // To allow logging, pass a pointer to an object which implements the Logger
   // interface (see log-writer/Logger.h). Logging is disabled by default.
   //
   RemoteViewerCore(Logger *logger = nullptr);
-
-  //
-  // Active constructors.
-  //
-  // These constructors create and initialize the object, attach it to the
-  // specified data connection (e.g. an open TCP/IP socket), set callbacks for
-  // events originating in the object, and start operation. To do that, they
-  // call the corresponding start() function, so start() should not be called
-  // explicitly for objects created with these constructors.
-  //
-  // See also: start() for the details on operation and threading model.
-  //
-  // To allow logging, pass a pointer to an object which implements the Logger
-  // interface (see log-writer/Logger.h). Logging is disabled by default.
-  //
-
-  //
-  // This constructor takes any type of connection that can be specified via
-  // a pair of abstract "gates" (RfbInputGate and RfbOutputGate).
-  //
-  RemoteViewerCore(RfbInputGate *input, RfbOutputGate *output,
-                   CoreEventsAdapter *adapter,
-                   Logger *logger = nullptr,
-                   bool sharedFlag = true);
-
-  //
-  // This constructor initiates new TCP connection to the specified host and
-  // port, and then uses the established connection for data exchange.
-  //
-  // NOTE: RemoteViewerCore will not initialize Windows sockets for you.
-  //       If you use this component under Windows, you should call
-  //       WindowsSocket::startup() prior to calling this constructor.
-  //
-  RemoteViewerCore(const TCHAR *host, UINT16 port,
-                   CoreEventsAdapter *adapter,
-                   Logger *logger = nullptr,
-                   bool sharedFlag = true);
-
-  // FIX DOCUMENTATION: Clarify differents between the constructor with sockets and gates.
-  //
-  // This constructor expects a connected TCP socket. For example, it can be
-  // used for reverse connections (when servers connect to viewers).
-  //
-  RemoteViewerCore(SocketIPv4 *socket,
-                   CoreEventsAdapter *adapter,
-                   Logger *logger = nullptr,
-                   bool sharedFlag = true);
 
   RemoteViewerCore(const RemoteViewerCore &) = delete;
   RemoteViewerCore &operator=(const RemoteViewerCore &) = delete;
@@ -137,7 +85,7 @@ public:
   RemoteViewerCore &operator=(RemoteViewerCore &&) = delete;
 
   // FIX DOCUMENTATION: What objects will be destroyed? Will a socket object be destroyed
-  // which has been passed with the constructor?
+  // which has been passed to start()?
   //
   // The destructor.
   //
@@ -163,21 +111,17 @@ public:
   // (e.g. an open TCP/IP socket), set callbacks for events originating in the
   // object, and actually start operation.
   //
-  // Three overloaded start() functions correspond to three active
-  // constructors. All those constructors call the corresponding start()
-  // function. All start() functions work similarly, but may do different work
+  // All three start() functions work similarly, but may do different work
   // at startup. For example, one of them initiates new TCP connection.
   //
   // These functions start a number of threads and return control to the
   // calling thread. Only one of these functions should be called, and it
-  // should be called just once, and only if the object was created with the
-  // dummy constructor.
+  // should be called just once.
   //
   // On various events, corresponding callback functions will be called via
   // the CoreEventsAdapter interface (the adapter). To receive these
   // notifications, the application should inherit CoreEventsAdapter and
-  // provide a pointer to that subclass either to one of the start() functions
-  // or to the constructor of this object.
+  // provide a pointer to that subclass to one of the start() functions.
   //
   // The threading model is the following. One thread created by start()
   // performs all read operations from the input gate of the data connection.
@@ -231,23 +175,12 @@ public:
              bool sharedFlag = true);
 
   //
-  // Check if the object was started, by either calling start() or by using
-  // one of the active constructors.
-  //
-  // If the object was started and then shut down via stop() or on error, this
-  // function will still return true, as it only reports the fact that start()
-  // was called, regardless of the actual state of the object.
-  //
-  bool wasStarted() const;
-
-  //
   // Set the largest frame buffer the server may ask for, in pixels
   // (width * height). The limit applies to the size in ServerInit and to
   // DesktopSize updates. The default is
   // ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS.
   //
-  // Pre-conditions: the object has not been started, so it was made with
-  // the passive constructor and start() has not been called.
+  // Pre-conditions: start() has not been called.
   // Post-conditions: a larger frame buffer ends the session with an
   // Exception, reported through CoreEventsAdapter::onError().
   // Throws Exception, and changes nothing, if the object was started.
@@ -264,7 +197,7 @@ public:
   //
   // Note that this function does not close the actual data connection if that
   // connection was not created by this class. It will be closed only if you
-  // passed host and port information either to a constructor or to start().
+  // passed host and port information to start().
   //
   void stop();
 
@@ -370,12 +303,6 @@ public:
   void allowCopyRect(bool allow);
 
   //
-  // If the server anounced UTF8CUTT capability allow sending ClientCutTextUtf8 messages.
-  // If the server anounced UTF8CUTT and UTF8CUTE capabilities sends EnableCutTextUtf8 message.
-  //
-  void allowUtf8Clipboard();
-
-  //
   // Set JPEG image quality level for Tight encoding (in theory, it can apply
   // to other encodings if they use JPEG, but currently, only Tight encoding
   // supports that). Valid levels are in the range 0..9. Also, -1 can be used
@@ -440,9 +367,6 @@ public:
   void getEnabledServerMsgCapabilities(std::vector<UINT32> *codes) const override;
   void getEnabledEncodingCapabilities(std::vector<UINT32> *codes) const override;
 
-  // returns list of server displays offsets and dimensions
-  std::vector<Rect> getDesktops();
-
   //
   // Copy the frame buffer, as the decoders have left it, into dst.
   //
@@ -461,12 +385,26 @@ public:
 
 private:
   //
+  // Whether start() has been called. Stays true after stop(), or after the
+  // connection has ended, as it only records that start() was called.
+  //
+  bool wasStarted() const;
+
+  //
+  // If the server announced the UTF8CUTT capability, allows sending
+  // ClientCutTextUtf8 messages. If it announced UTF8CUTT and UTF8CUTE, sends
+  // the EnableCutTextUtf8 message. Called on the core thread, after the
+  // protocol initialization.
+  //
+  void allowUtf8Clipboard();
+
+  //
   // Overrides Thread::execute(). Implements the input thread.
   //
   void execute() override;
 
   //
-  // This function includes common initialization code used by constructors.
+  // Initialization, called by the constructor.
   //
   void init();
 
@@ -716,8 +654,6 @@ private:
   LocalMutex m_fbLock;
   FrameBuffer m_frameBuffer;
 
-  // list of server dispalys
-  std::vector<Rect> m_desktops;
   Dimension m_desktopSize;
 
   // Decoder work with this framebuffer. It is not actual frame buffer,
