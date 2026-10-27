@@ -31,8 +31,7 @@
 //
 // What the file transfer reports to its user interface. FileTransferCore
 // calls it on the network thread, and a local delete on its own thread;
-// each function says which. None may block, except onFtTargetFileExists()
-// for now.
+// each function says which. None may block.
 //
 class FileTransferInterface
 {
@@ -40,13 +39,18 @@ public:
   virtual ~FileTransferInterface();
 
   //
-  // From an operation, on the network thread: what to do with a target
-  // file that exists already. Returns one of CopyFileEventListener's TFE_*
-  // values.
+  // From an operation, on the network thread: asks the user what to do
+  // with targetFileInfo, a target file that exists already, without
+  // waiting. The answer, one of CopyFileEventListener's TFE_* values, is
+  // given later to FileTransferCore::answerTargetFileExists(), on the
+  // network thread.
   //
-  virtual int onFtTargetFileExists(FileInfo *sourceFileInfo,
-                                   FileInfo *targetFileInfo,
-                                   const TCHAR *pathToTargetFile) = 0;
+  // Post-conditions: returns whether the question was asked; if not, no
+  // answer will come.
+  //
+  virtual bool onFtTargetFileExists(const FileInfo &sourceFileInfo,
+                                    const FileInfo &targetFileInfo,
+                                    const TCHAR *pathToTargetFile) = 0;
   //
   // From an operation, on the network thread.
   // Progress is in interval [0.0, 1.0].

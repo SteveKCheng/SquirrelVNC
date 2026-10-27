@@ -74,16 +74,6 @@ public:
   //
   bool tryClose();
 
-  //
-  // For FileTransferEvents, which passes on the event of
-  // FileTransferInterface of the same name. It is called on the network
-  // thread, and shows a modal dialog there: an interim, until the question
-  // is posted (notes/async-networking.md, Phase 4 step 5c). Returns one of
-  // CopyFileEventListener's TFE_* values.
-  //
-  int onFtTargetFileExists(FileInfo *sourceFileInfo,
-                           FileInfo *targetFileInfo,
-                           const TCHAR *pathToTargetFile);
 
 protected:
 
@@ -188,6 +178,15 @@ private:
   // Post-conditions: not busy.
   //
   void onConnectionEnded();
+
+  //
+  // Handles WM_FT_TARGET_FILE_EXISTS: asks the user what to do with the
+  // existing target (FileExistDialog), and posts the answer to the
+  // network thread (FileTransferCore::answerTargetFileExists()).
+  //
+  // Post-conditions: if a question was pending, it has been answered.
+  //
+  void onTargetFileExists();
 
   //
   // Shows files in the remote list view, which points into

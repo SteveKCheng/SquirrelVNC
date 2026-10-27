@@ -265,7 +265,8 @@ void DownloadOperation::startDownload()
     processFile();
   } // if not directory
 
-  if (isTerminating()) {
+  // While a question is pending, its answer finishes the operation.
+  if (isTerminating() && !isAskingTargetFileExists()) {
     killOp();
     return ;
   } // if terminating
@@ -282,31 +283,43 @@ void DownloadOperation::processFile()
     FileInfo targetFileInfo(targetFile);
 
     //
-    // Copy listener must decide what to do with this situation
+    // Copy listener must decide what to do with this situation; the
+    // download goes on in onTargetFileExistsAnswer().
     //
 
-    int action = m_copyListener->targetFileExists(sourceFileInfo,
-                                                  &targetFileInfo,
-                                                  m_pathToTargetFile.getString());
-    switch (action) {
-    case CopyFileEventListener::TFE_OVERWRITE:
-      break;
-    case CopyFileEventListener::TFE_SKIP:
-      m_totalBytesCopied += sourceFileInfo->getSize();
-      gotoNext();
-      return ;
-    case CopyFileEventListener::TFE_APPEND:
-      m_fileOffset = targetFileInfo.getSize();
-      break;
-    case CopyFileEventListener::TFE_CANCEL:
-      if (!isTerminating()) {
-        terminate();
-      } // if not terminating
-      return ;
-    default:
-      _ASSERT(FALSE);
-    } // switch
+    if (!askTargetFileExists(*sourceFileInfo, targetFileInfo)) {
+      // Nobody can answer: stop, as on a cancel.
+      terminate();
+    }
+    return ;
   } // if target file exists
+
+  // Send request that we want to download file
+  m_sender->sendDownloadRequest(m_pathToSourceFile.getString(), m_fileOffset);
+}
+
+void DownloadOperation::onTargetFileExistsAnswer(int action)
+{
+  if (action == CopyFileEventListener::TFE_CANCEL || isTerminating()) {
+    terminate();
+    killOp();
+    return ;
+  }
+
+  switch (action) {
+  case CopyFileEventListener::TFE_OVERWRITE:
+    break;
+  case CopyFileEventListener::TFE_SKIP:
+    m_totalBytesCopied += m_toCopy->getFileInfo()->getSize();
+    gotoNext();
+    return ;
+  case CopyFileEventListener::TFE_APPEND:
+    m_fileOffset = m_existingTargetInfo.getSize();
+    break;
+  default:
+    _ASSERT(FALSE);
+    return ;
+  } // switch
 
   // Send request that we want to download file
   m_sender->sendDownloadRequest(m_pathToSourceFile.getString(), m_fileOffset);

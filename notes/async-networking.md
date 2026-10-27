@@ -875,7 +875,27 @@ from vcpkg.
     `startUpload()` and `startDownload()` check `isTerminating()` and
     finish the operation (`killOp()`); Steve confirmed that Stop works.
     The continuation must keep that: a "cancel" answer finishes the
-    operation.*
+    operation.* **Done** (2026-10-27):
+    - `CopyOperation::askTargetFileExists()` keeps a copy of the
+      existing target's info and asks through the listener, which
+      returns whether the question was posted; the operation returns
+      without sending anything. `FileTransferCore::answerTargetFileExists()`
+      passes the answer, posted by the dialog, to the current operation,
+      which ignores it unless a question is pending, and goes on in
+      `onTargetFileExistsAnswer()`: overwrite, append and skip as before;
+      a cancel, or an answer to an operation told to stop meanwhile
+      (the connection ended), finishes it. A question that cannot be
+      posted (no dialog) stops the operation, as a cancel did.
+    - `startUpload()` and `startDownload()` do not finish the operation
+      while a question is pending, so that it finishes only once.
+    - Upload asks for the first remote file of the same name only; it
+      used to ask again for each further one, which only a server
+      listing a name twice could cause.
+    - The dialog shows `FileExistDialog` on the GUI thread, where its
+      "skip all" and "overwrite all" memory now lives alone. A result
+      other than its buttons' (it could not be shown) counts as a
+      cancel, not, as before, as overwrite. `FileTransferEvents` no
+      longer calls the dialog at all.
   - **5d. The local delete on a pool for blocking work**, an
     `asio::thread_pool` of one thread owned by `TvnViewer`, created on
     first use (Steve: its threads start in its constructor) and kept;

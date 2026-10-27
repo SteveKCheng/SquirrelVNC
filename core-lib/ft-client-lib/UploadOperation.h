@@ -139,9 +139,25 @@ protected:
 
   //
   // Tryies to start upload of current file (notated by m_toCopy member).
+  // If the target exists, asks what to do (askTargetFileExists()), and
+  // goes on when the answer comes; otherwise uploadFile(0).
   //
 
   void processFile();
+
+  //
+  // Inherited from CopyOperation: goes on with the current file as the
+  // answer says, or finishes the operation on a cancel.
+  //
+  void onTargetFileExistsAnswer(int action) override;
+
+  //
+  // Opens the current file, seeks to initialFileOffset, and sends the
+  // upload request, which overwrites the target if the offset is 0, and
+  // otherwise appends to it. If the file cannot be opened, reports it and
+  // goes on with the next file.
+  //
+  void uploadFile(UINT64 initialFileOffset);
 
   //
   // Calls gotoNext method with true 'fake' argument

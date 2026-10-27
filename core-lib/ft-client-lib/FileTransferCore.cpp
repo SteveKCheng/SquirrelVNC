@@ -67,9 +67,9 @@ void FileTransferCore::dataChunkCopied(UINT64 totalBytesCopied, UINT64 totalByte
   }
 }
 
-int FileTransferCore::targetFileExists(FileInfo *sourceFileInfo,
-                                       FileInfo *targetFileInfo,
-                                       const TCHAR *pathToTargetFile)
+bool FileTransferCore::targetFileExists(const FileInfo &sourceFileInfo,
+                                        const FileInfo &targetFileInfo,
+                                        const TCHAR *pathToTargetFile)
 {
   return m_ftInterface->onFtTargetFileExists(sourceFileInfo,
                                              targetFileInfo,
@@ -261,6 +261,13 @@ void FileTransferCore::terminateCurrentOperation()
 {
   if (m_currentOperation) {
     m_currentOperation->terminate();
+  }
+}
+
+void FileTransferCore::answerTargetFileExists(int action)
+{
+  if (CopyOperation *copy = dynamic_cast<CopyOperation *>(m_currentOperation.get())) {
+    copy->answerTargetFileExists(action);
   }
 }
 

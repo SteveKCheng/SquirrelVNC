@@ -128,6 +128,14 @@ public:
   void terminateCurrentOperation();
 
   //
+  // The user's answer to FileTransferInterface::onFtTargetFileExists(),
+  // one of CopyFileEventListener's TFE_* values, for the current operation
+  // (CopyOperation::answerTargetFileExists()); ignored if the current
+  // operation asked nothing.
+  //
+  void answerTargetFileExists(int action);
+
+  //
   // For the dialog, once it has handled the end of the operation (posted
   // in reply to FileTransferInterface::onFtOpFinished()): the operation
   // gets no more replies.
@@ -151,9 +159,10 @@ protected:
 
   void dataChunkCopied(UINT64 totalBytesCopied, UINT64 totalBytesToCopy) override;
 
-  int targetFileExists(FileInfo *sourceFileInfo,
-                       FileInfo *targetFileInfo,
-                       const TCHAR *pathToTargetFile) override;
+  // Asks through the interface (onFtTargetFileExists()).
+  bool targetFileExists(const FileInfo &sourceFileInfo,
+                        const FileInfo &targetFileInfo,
+                        const TCHAR *pathToTargetFile) override;
 
   //
   // Inherited from OperationEventListener

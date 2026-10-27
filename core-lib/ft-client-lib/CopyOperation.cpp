@@ -28,7 +28,8 @@ CopyOperation::CopyOperation(LogWriter *logWriter)
   m_copyListener(nullptr),
   m_totalBytesToCopy(0),
   m_totalBytesCopied(0),
-  m_toCopy(nullptr)
+  m_toCopy(nullptr),
+  m_isAskingTargetFileExists(false)
 {
 }
 
@@ -39,4 +40,28 @@ CopyOperation::~CopyOperation()
 void CopyOperation::setCopyProcessListener(CopyFileEventListener *listener)
 {
   m_copyListener = listener;
+}
+
+void CopyOperation::answerTargetFileExists(int action)
+{
+  if (!m_isAskingTargetFileExists) {
+    return;
+  }
+  m_isAskingTargetFileExists = false;
+  onTargetFileExistsAnswer(action);
+}
+
+bool CopyOperation::askTargetFileExists(const FileInfo &sourceFileInfo,
+                                        const FileInfo &targetFileInfo)
+{
+  m_existingTargetInfo = targetFileInfo;
+  m_isAskingTargetFileExists = m_copyListener->targetFileExists(sourceFileInfo,
+                                                                targetFileInfo,
+                                                                m_pathToTargetFile.getString());
+  return m_isAskingTargetFileExists;
+}
+
+bool CopyOperation::isAskingTargetFileExists() const
+{
+  return m_isAskingTargetFileExists;
 }

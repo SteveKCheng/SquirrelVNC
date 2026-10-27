@@ -25,11 +25,11 @@
 
 #include "ft-client-lib/FileTransferInterface.h"
 
+#include "util/StringStorage.h"
+
 #include <mutex>
 #include <optional>
 #include <vector>
-
-class FileTransferMainDialog;
 
 //
 // The part of the file-transfer dialog that the file transfer calls: its
@@ -59,6 +59,19 @@ public:
   static const UINT WM_FT_PROGRESS = WM_USER + 3;
   static const UINT WM_FT_MESSAGES = WM_USER + 4;
   static const UINT WM_FT_CONNECTION_ENDED = WM_USER + 5;
+  static const UINT WM_FT_TARGET_FILE_EXISTS = WM_USER + 6;
+
+  //
+  // The question of onFtTargetFileExists(), for WM_FT_TARGET_FILE_EXISTS:
+  // what to do with target, which exists already, when copying source to
+  // path.
+  //
+  struct TargetFileExistsQuestion
+  {
+    FileInfo source;
+    FileInfo target;
+    StringStorage path;
+  };
 
   //
   // Nothing is posted until attach().
@@ -87,17 +100,16 @@ public:
   // For the dialog, when its window is created (WM_INITDIALOG), before it
   // starts any operation.
   //
-  // Pre-conditions: no dialog is attached; window is dialog's window;
-  // dialog stays valid until detach().
+  // Pre-conditions: no dialog is attached; window is the dialog's window.
   // Post-conditions: the events are posted to window, and what earlier
   // events left untaken is dropped.
   //
-  void attach(FileTransferMainDialog &dialog, HWND window);
+  void attach(HWND window);
 
   //
   // For the dialog, when its window is being destroyed (WM_DESTROY):
   // nothing is posted any more, as the handle may be reused by another
-  // window, and the dialog is not called.
+  // window.
   //
   // Post-conditions: no dialog is attached.
   //
@@ -108,11 +120,13 @@ public:
   // call. takeProgress() gives the latest progress, in [0.0, 1.0], if any
   // has come; takeMessages() the errors and information in the order they
   // came; takeFileList() the remote folder of the last successful file
-  // list, for WM_FT_FINISHED. They leave nothing behind.
+  // list, for WM_FT_FINISHED; takeTargetFileExistsQuestion() the pending
+  // question, for WM_FT_TARGET_FILE_EXISTS. They leave nothing behind.
   //
   std::optional<double> takeProgress();
   std::vector<StringStorage> takeMessages();
   std::optional<std::vector<FileInfo>> takeFileList();
+  std::optional<TargetFileExistsQuestion> takeTargetFileExistsQuestion();
 
 private:
   //
@@ -134,15 +148,13 @@ private:
   void onFtConnectionEnded() override;
 
   //
-  // Asks the attached dialog, synchronously, on the calling thread, which
-  // is the network thread: an interim, until the question is posted as a
-  // request (notes/async-networking.md, Phase 4 step 5c). Returns
-  // CopyFileEventListener::TFE_CANCEL if no dialog is attached. A cancel is
-  // logged as a message.
+  // Keeps the question, and posts WM_FT_TARGET_FILE_EXISTS; returns
+  // whether it was posted. The dialog posts the answer to the network
+  // thread.
   //
-  int onFtTargetFileExists(FileInfo *sourceFileInfo,
-                           FileInfo *targetFileInfo,
-                           const TCHAR *pathToTargetFile) override;
+  bool onFtTargetFileExists(const FileInfo &sourceFileInfo,
+                            const FileInfo &targetFileInfo,
+                            const TCHAR *pathToTargetFile) override;
 
   //
   // Posts message to the dialog's window, unless none is attached. Returns
@@ -153,8 +165,7 @@ private:
 
   // Guards everything below.
   std::mutex m_lock;
-  // The dialog and its window; null before attach() and after detach().
-  FileTransferMainDialog *m_dialog;
+  // The dialog's window; null before attach() and after detach().
   HWND m_window;
   // The latest progress not yet taken; while it is set, a WM_FT_PROGRESS is
   // waiting.
@@ -164,6 +175,8 @@ private:
   std::vector<StringStorage> m_pendingMessages;
   // The list of onFtFileList(), until the dialog takes it.
   std::optional<std::vector<FileInfo>> m_pendingFileList;
+  // The question of onFtTargetFileExists(), until the dialog takes it.
+  std::optional<TargetFileExistsQuestion> m_pendingQuestion;
 };
 
 #endif

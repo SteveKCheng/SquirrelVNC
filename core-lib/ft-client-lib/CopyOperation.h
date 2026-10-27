@@ -47,7 +47,47 @@ public:
   // Sets copy event listener
   void setCopyProcessListener(CopyFileEventListener *listener);
 
+  //
+  // The answer to the question of askTargetFileExists(), one of
+  // CopyFileEventListener's TFE_* values: the operation goes on
+  // (onTargetFileExistsAnswer()). Does nothing unless a question is
+  // pending: an answer that comes late, or unasked, is ignored.
+  //
+  // Post-conditions: no question is pending.
+  //
+  void answerTargetFileExists(int action);
+
 protected:
+  //
+  // Asks the copy listener what to do with targetFileInfo, the existing
+  // target of the current file, sourceFileInfo, keeping a copy of it in
+  // m_existingTargetInfo. If the question was asked, the caller returns
+  // without sending anything, and the operation waits for the answer; if
+  // not, no answer will come, and the caller stops the operation as on a
+  // cancel.
+  //
+  // Pre-conditions: no question is pending; m_copyListener is set.
+  // Post-conditions: returns whether the question was asked, and so is
+  // pending.
+  //
+  bool askTargetFileExists(const FileInfo &sourceFileInfo,
+                           const FileInfo &targetFileInfo);
+
+  //
+  // Whether a question of askTargetFileExists() is waiting for its answer.
+  //
+  bool isAskingTargetFileExists() const;
+
+  //
+  // Goes on with the current file after the answer to
+  // askTargetFileExists(). A cancel, or an answer to an operation that is
+  // terminating, finishes the operation.
+  //
+  virtual void onTargetFileExistsAnswer(int action) = 0;
+
+  // The existing target of the last question, as asked.
+  FileInfo m_existingTargetInfo;
+
   // The tree of files to copy, which owns all of it, and the file that is
   // currently being copied in it (0 once the operation has ended).
   std::unique_ptr<FileInfoList> m_toCopyRoot;
@@ -72,6 +112,9 @@ protected:
   // and how many left to copy
   UINT64 m_totalBytesToCopy;
   UINT64 m_totalBytesCopied;
+
+private:
+  bool m_isAskingTargetFileExists;
 };
 
 #endif

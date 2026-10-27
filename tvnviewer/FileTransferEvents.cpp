@@ -22,15 +22,10 @@
 
 #include "FileTransferEvents.h"
 
-#include "FileTransferMainDialog.h"
-
-#include "ft-client-lib/CopyFileEventListener.h"
-
 #include <utility>
 
 FileTransferEvents::FileTransferEvents()
-: m_dialog(nullptr),
-  m_window(nullptr)
+: m_window(nullptr)
 {
 }
 
@@ -43,20 +38,19 @@ FileTransferInterface &FileTransferEvents::getInterface()
   return *this;
 }
 
-void FileTransferEvents::attach(FileTransferMainDialog &dialog, HWND window)
+void FileTransferEvents::attach(HWND window)
 {
   std::lock_guard<std::mutex> lock(m_lock);
-  m_dialog = &dialog;
   m_window = window;
   m_pendingProgress.reset();
   m_pendingMessages.clear();
   m_pendingFileList.reset();
+  m_pendingQuestion.reset();
 }
 
 void FileTransferEvents::detach() noexcept
 {
   std::lock_guard<std::mutex> lock(m_lock);
-  m_dialog = nullptr;
   m_window = nullptr;
 }
 
@@ -76,6 +70,13 @@ std::optional<std::vector<FileInfo>> FileTransferEvents::takeFileList()
 {
   std::lock_guard<std::mutex> lock(m_lock);
   return std::exchange(m_pendingFileList, std::nullopt);
+}
+
+std::optional<FileTransferEvents::TargetFileExistsQuestion>
+FileTransferEvents::takeTargetFileExistsQuestion()
+{
+  std::lock_guard<std::mutex> lock(m_lock);
+  return std::exchange(m_pendingQuestion, std::nullopt);
 }
 
 bool FileTransferEvents::post(UINT message, WPARAM wParam, LPARAM lParam) noexcept
@@ -133,24 +134,16 @@ void FileTransferEvents::onFtConnectionEnded()
   post(WM_FT_CONNECTION_ENDED);
 }
 
-int FileTransferEvents::onFtTargetFileExists(FileInfo *sourceFileInfo,
-                                             FileInfo *targetFileInfo,
-                                             const TCHAR *pathToTargetFile)
+bool FileTransferEvents::onFtTargetFileExists(const FileInfo &sourceFileInfo,
+                                              const FileInfo &targetFileInfo,
+                                              const TCHAR *pathToTargetFile)
 {
-  FileTransferMainDialog *dialog;
-  {
-    std::lock_guard<std::mutex> lock(m_lock);
-    dialog = m_dialog;
+  std::lock_guard<std::mutex> lock(m_lock);
+  m_pendingQuestion = TargetFileExistsQuestion{sourceFileInfo, targetFileInfo,
+                                               StringStorage(pathToTargetFile)};
+  if (!post(WM_FT_TARGET_FILE_EXISTS)) {
+    m_pendingQuestion.reset();
+    return false;
   }
-  if (dialog == nullptr) {
-    return CopyFileEventListener::TFE_CANCEL;
-  }
-  // As before this class: the dialog is shown from this thread, and is not
-  // kept alive while it is open.
-  int action = dialog->onFtTargetFileExists(sourceFileInfo, targetFileInfo,
-                                            pathToTargetFile);
-  if (action == CopyFileEventListener::TFE_CANCEL) {
-    onFtOpInfo(_T("Operation have been canceled by user"));
-  }
-  return action;
+  return true;
 }

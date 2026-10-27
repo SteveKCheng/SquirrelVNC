@@ -65,32 +65,47 @@ void FileTransferMainDialog::setProgress(double progress)
   m_copyProgressBar.setPos(pc);
 }
 
-int FileTransferMainDialog::onFtTargetFileExists(FileInfo *sourceFileInfo,
-                                                 FileInfo *targetFileInfo,
-                                                 const TCHAR *pathToTargetFile)
+void FileTransferMainDialog::onTargetFileExists()
 {
-  m_fileExistDialog.setFilesInfo(targetFileInfo,
-                                 sourceFileInfo,
-                                 pathToTargetFile);
+  std::optional<FileTransferEvents::TargetFileExistsQuestion> question =
+    m_events.takeTargetFileExistsQuestion();
+  if (!question) {
+    return;
+  }
 
-  int reasonOfDialog = m_fileExistDialog.showModal();
-  switch (reasonOfDialog) {
+  m_fileExistDialog.setFilesInfo(&question->target,
+                                 &question->source,
+                                 question->path.getString());
+
+  int action;
+  switch (m_fileExistDialog.showModal()) {
+  case FileExistDialog::OVERWRITE_RESULT:
+    action = CopyFileEventListener::TFE_OVERWRITE;
+    break;
   case FileExistDialog::SKIP_RESULT:
-    return CopyFileEventListener::TFE_SKIP;
+    action = CopyFileEventListener::TFE_SKIP;
+    break;
   case FileExistDialog::APPEND_RESULT:
-    return CopyFileEventListener::TFE_APPEND;
-  case FileExistDialog::CANCEL_RESULT:
-    // The operation stops by itself; FileTransferEvents logs the cancel.
-    return CopyFileEventListener::TFE_CANCEL;
+    action = CopyFileEventListener::TFE_APPEND;
+    break;
+  default:
+    // The Stop button, or the dialog could not be shown.
+    action = CopyFileEventListener::TFE_CANCEL;
+    insertMessageIntoComboBox(_T("Operation have been canceled by user"));
+    break;
   } // switch
 
-  return CopyFileEventListener::TFE_OVERWRITE;
+  // Always answered, even if the connection has ended meanwhile: the
+  // operation waits for it to finish.
+  m_fileTransfer.post([action](FileTransferCore &core) {
+    core.answerTargetFileExists(action);
+  });
 }
 
 BOOL FileTransferMainDialog::onInitDialog()
 {
   // Before any operation is started below.
-  m_events.attach(*this, m_ctrlThis.getWindow());
+  m_events.attach(m_ctrlThis.getWindow());
 
   m_isClosing = false;
 
@@ -234,6 +249,9 @@ void FileTransferMainDialog::onMessageReceived(UINT uMsg, WPARAM wParam, LPARAM 
     break;
   case FileTransferEvents::WM_FT_CONNECTION_ENDED:
     onConnectionEnded();
+    break;
+  case FileTransferEvents::WM_FT_TARGET_FILE_EXISTS:
+    onTargetFileExists();
     break;
   } // switch
 } // void

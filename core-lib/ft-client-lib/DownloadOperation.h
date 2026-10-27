@@ -83,8 +83,16 @@ private:
   // Starts download of current file (m_toCopy member)
   void startDownload();
 
-  // Starts download of file
+  // Starts download of file. If the target exists, asks what to do
+  // (askTargetFileExists()), and goes on when the answer comes.
   void processFile();
+
+  //
+  // Inherited from CopyOperation: goes on with the current file as the
+  // answer says (sending the download request, or going to the next
+  // file), or finishes the operation on a cancel.
+  //
+  void onTargetFileExistsAnswer(int action) override;
 
   // Start download of folder
   void processFolder();

@@ -276,7 +276,8 @@ void UploadOperation::startUpload()
     processFile();
   } // if not directory
 
-  if (isTerminating()) {
+  // While a question is pending, its answer finishes the operation.
+  if (isTerminating() && !isAskingTargetFileExists()) {
     killOp();
     return ;
   } // terminate operation is needed
@@ -311,8 +312,6 @@ void UploadOperation::processFile()
   // The previous file is still open if its upload failed.
   closeFile();
 
-  UINT64 initialFileOffset = 0;
-
   // Search if file already exists on remote machine
   for (size_t i = 0; i < m_remoteFilesInfo.size(); i++) {
     FileInfo *localFileInfo = m_toCopy->getFileInfo();
@@ -325,34 +324,50 @@ void UploadOperation::processFile()
     if (_tcscmp(localFileName, remoteFileName) == 0) {
 
       //
-      // Copy listener must decide what to do with this situation
+      // Copy listener must decide what to do with this situation; the
+      // upload goes on in onTargetFileExistsAnswer().
       //
 
-      int action = m_copyListener->targetFileExists(localFileInfo,
-                                                    remoteFileInfo,
-                                                    m_pathToTargetFile.getString());
-
-      switch (action) {
-      case CopyFileEventListener::TFE_OVERWRITE:
-        break;
-      case CopyFileEventListener::TFE_APPEND:
-        initialFileOffset = remoteFileInfo->getSize();
-        m_totalBytesCopied += initialFileOffset;
-        break;
-      case CopyFileEventListener::TFE_SKIP:
-        m_totalBytesCopied += localFileInfo->getSize();
-        gotoNext();
-        return ;
-      case CopyFileEventListener::TFE_CANCEL:
-        if (!isTerminating()) {
-          terminate();
-        } // if not terminating
-        return ;
-      default: _ASSERT(FALSE);
-      } // switch (action)
+      if (!askTargetFileExists(*localFileInfo, *remoteFileInfo)) {
+        // Nobody can answer: stop, as on a cancel.
+        terminate();
+      }
+      return ;
     } // if file already exists
   } // for all files in remote files
 
+  uploadFile(0);
+} // void
+
+void UploadOperation::onTargetFileExistsAnswer(int action)
+{
+  if (action == CopyFileEventListener::TFE_CANCEL || isTerminating()) {
+    terminate();
+    killOp();
+    return ;
+  }
+
+  FileInfo *localFileInfo = m_toCopy->getFileInfo();
+
+  switch (action) {
+  case CopyFileEventListener::TFE_OVERWRITE:
+    uploadFile(0);
+    break;
+  case CopyFileEventListener::TFE_APPEND:
+    m_totalBytesCopied += m_existingTargetInfo.getSize();
+    uploadFile(m_existingTargetInfo.getSize());
+    break;
+  case CopyFileEventListener::TFE_SKIP:
+    m_totalBytesCopied += localFileInfo->getSize();
+    gotoNext();
+    break;
+  default:
+    _ASSERT(FALSE);
+  } // switch (action)
+}
+
+void UploadOperation::uploadFile(UINT64 initialFileOffset)
+{
   // Trying to open file for reading
   m_file = std::make_unique<File>(m_pathToSourceFile.getString());
   try {
