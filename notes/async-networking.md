@@ -848,9 +848,13 @@ from vcpkg.
     where it stopped, the question is posted to the dialog, and the
     answer is posted back to the loop (`onTargetFileExistsAnswer()`), a
     callback continuation rather than rewriting the operations as
-    coroutines (Steve). Also fixes the "cancel" answer, which today
+    coroutines (Steve). ~~Also fixes the "cancel" answer, which today
     returns without sending anything, so no reply comes and the
-    operation never finishes.
+    operation never finishes.~~ *Wrong: after the question,
+    `startUpload()` and `startDownload()` check `isTerminating()` and
+    finish the operation (`killOp()`); Steve confirmed that Stop works.
+    The continuation must keep that: a "cancel" answer finishes the
+    operation.*
   - **5d. The local delete on a pool for blocking work**, an
     `asio::thread_pool` of one thread owned by `TvnViewer`, created on
     first use (Steve: its threads start in its constructor) and kept;
