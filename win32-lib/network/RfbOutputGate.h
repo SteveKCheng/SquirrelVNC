@@ -27,21 +27,20 @@
 #include "io-lib/DataOutputStream.h"
 #include "io-lib/BufferedOutputStream.h"
 
-#include "thread/LocalMutex.h"
-
 #include <memory>
 
 /**
- * Gate for writting rfb messages.
+ * Gate for writting rfb messages: buffering, and writing typed data.
  *
- * @features: gate is synchonized (can be locked and unlocked, supports data buffering, and writting
- * typized data).
  * @remark: after every message you want to send to must manually call flush() cause
  * "autoflush on unlock" is removed.
+ *
+ * Threads: not synchronized. All of a connection's messages are written on
+ * its network thread (notes/async-networking.md, Phase 4), which is why
+ * it no longer has a lock.
  * @author enikey.
  */
-class RfbOutputGate final : public DataOutputStream,
-                      public LocalMutex
+class RfbOutputGate final : public DataOutputStream
 {
 public:
   /**

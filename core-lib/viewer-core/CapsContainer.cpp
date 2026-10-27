@@ -23,8 +23,6 @@
 
 #include "CapsContainer.h"
 
-#include "thread/AutoLock.h"
-
 CapsContainer::CapsContainer()
 {
 }
@@ -48,8 +46,6 @@ void CapsContainer::add(UINT32 code, const char *vendor, const char *name,
 void CapsContainer::add(const RfbCapabilityInfo &capinfo,
                         const StringStorage desc)
 {
-  AutoLock al(&m_mapLock);
-
   infoMap[capinfo.code] = capinfo;
   enableMap[capinfo.code] = false;
   descMap[capinfo.code] = desc;
@@ -57,7 +53,6 @@ void CapsContainer::add(const RfbCapabilityInfo &capinfo,
 
 bool CapsContainer::enable(const RfbCapabilityInfo &capinfo)
 {
-  AutoLock al(&m_mapLock);
   if (!isKnown(capinfo.code)) {
     return false;
   }
@@ -75,25 +70,21 @@ bool CapsContainer::enable(const RfbCapabilityInfo &capinfo)
 
 bool CapsContainer::isEnabled(UINT32 code) const
 {
-  AutoLock al(&m_mapLock);
   return (isKnown(code)) ? enableMap.find(code)->second : false;
 }
 
 size_t CapsContainer::numEnabled() const
 {
-  AutoLock al(&m_mapLock);
   return m_plist.size();
 }
 
 UINT32 CapsContainer::getByOrder(size_t idx)
 {
-  AutoLock al(&m_mapLock);
   return (idx < m_plist.size()) ? m_plist[idx] : 0;
 }
 
 void CapsContainer::getEnabledCapabilities(std::vector<UINT32> &codes) const
 {
-  AutoLock al(&m_mapLock);
   codes = m_plist;
 }
 

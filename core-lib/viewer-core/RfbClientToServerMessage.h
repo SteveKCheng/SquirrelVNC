@@ -26,7 +26,6 @@
 
 #include "rfb/MsgDefs.h"
 #include "network/RfbOutputGate.h"
-#include "thread/AutoLock.h"
 
 class RfbClientToServerMessage
 {
@@ -34,6 +33,10 @@ public:
   RfbClientToServerMessage();
   virtual ~RfbClientToServerMessage();
 
+  //
+  // Writes the message to output and flushes it.
+  // Pre-conditions: on the thread that owns output (the network thread).
+  //
   virtual void send(RfbOutputGate &output) = 0;
 };
 

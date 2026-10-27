@@ -978,6 +978,21 @@ from vcpkg.
     an Asio socket. `TvnViewer` no longer starts WinSock: Asio does.
     rfb-replay's `LoopbackServer`, which used raw WinSock, runs on an
     `io_context` of its own.
+  - **7b. Locks of the network side** (2026-10-27), each checked to have
+    every use on the network thread (or before `start()`, on the
+    caller's thread, with the post of `start()` ordering it before):
+    - `RfbOutputGate` is no longer a `LocalMutex`, and its sixteen
+      `AutoLock`s go: the client messages' `send()`, the file-transfer
+      request sender and `ENABLE_CUT_TEXT_UTF8`. Every write is on the
+      network thread: input and settings are posted events, and the
+      file-transfer operations run there since step 5.
+    - `RemoteViewerCore`: `m_connectLock`, `m_pixelFormatLock`,
+      `m_refreshingLock`, `m_freezeLock` and `m_requestUpdateLock`. Their
+      fields are touched by the event handlers and the receive loop only.
+    - `CapsContainer::m_mapLock`: filled before `start()`, read on the
+      network thread; the GUI has the `ConnectionInfo` snapshot.
+    - Kept: `m_startLock`, since `post()` reads `m_wasStarted` on any
+      thread (ordered by `start()`, but on more than one thread).
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the

@@ -24,7 +24,6 @@
 #include <map>
 #include <vector>
 
-#include "thread/LocalMutex.h"
 #include "util/StringStorage.h"
 
 #ifndef _CAPS_CONTAINER_H_
@@ -47,7 +46,12 @@ public:
   bool isEqual(const char *vendor, const char *signature) const;
 };
 
-// This class is thread-safe.
+//
+// Threads: not synchronized. RemoteViewerCore fills its containers before
+// start() (CapabilitiesManager) and reads them on the network thread
+// after; nothing reads them from another thread since the GUI gets a
+// ConnectionInfo snapshot (notes/async-networking.md, Phase 4 step 7).
+//
 class CapsContainer final
 {
 public:
@@ -96,7 +100,6 @@ public:
 private:
   //
   // Check if a capability with the specified code was added earlier.
-  // This function isn't thread-safe.
   //
   bool isKnown(UINT32 code) const;
 
@@ -106,8 +109,6 @@ private:
 
   // List of enabled caps.
   std::vector<UINT32> m_plist;
-
-  mutable LocalMutex m_mapLock;
 };
 
 #endif

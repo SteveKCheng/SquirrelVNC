@@ -93,6 +93,9 @@ Mostly **mutexes on shared data plus flags**. There are about 22
 `LocalMutex` instances; `RemoteViewerCore` alone has seven (`m_fbLock`,
 `m_pixelFormatLock`, `m_refreshingLock`, `m_freezeLock`,
 `m_requestUpdateLock` and others), each guarding one or two fields.
+*Since Phase 4 step 7b of `async-networking.md`, the core keeps only
+`m_fbLock` and `m_startLock`: the others guarded fields now used only on
+the network thread, as did the output gate's lock and `CapsContainer`'s.*
 
 Other threads ask the core for work by setting a flag that it reads
 before its next update request: `refreshFrameBuffer()` sets

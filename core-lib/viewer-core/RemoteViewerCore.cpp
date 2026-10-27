@@ -258,7 +258,6 @@ void RemoteViewerCore::setMaxFrameBufferPixels(UINT64 maxPixels)
 
 bool RemoteViewerCore::wasConnected() const
 {
-  AutoLock al(&m_connectLock);
   return m_wasConnected;
 }
 
@@ -302,13 +301,10 @@ bool RemoteViewerCore::updatePixelFormat()
 {
   PixelFormat pxFormat;
   m_logWriter.debug(_T("Check pixel format change..."));
-  {
-    AutoLock al(&m_pixelFormatLock);
-    if (!m_isNewPixelFormat)
-      return false;
-    m_isNewPixelFormat = false;
-    pxFormat = m_viewerPixelFormat;
-  }
+  if (!m_isNewPixelFormat)
+    return false;
+  m_isNewPixelFormat = false;
+  pxFormat = m_viewerPixelFormat;
 
   if (!pxFormat.isValid()) {
     throw Exception(_T("Invalid pixel format"));
@@ -344,13 +340,10 @@ void RemoteViewerCore::refreshFrameBuffer()
 
 void RemoteViewerCore::sendFbUpdateRequest(bool incremental)
 {
-  {
-    AutoLock al(&m_requestUpdateLock);
-    bool requestUpdate = m_isNeedRequestUpdate;
-    m_isNeedRequestUpdate = false;
-    if (!requestUpdate)
-      return;
-  }
+  bool requestUpdate = m_isNeedRequestUpdate;
+  m_isNeedRequestUpdate = false;
+  if (!requestUpdate)
+    return;
 
   bool isRefresh = false;
   bool isUpdateFbProperties = false;
@@ -358,12 +351,9 @@ void RemoteViewerCore::sendFbUpdateRequest(bool incremental)
     isUpdateFbProperties = true;
   }
 
-  {
-    AutoLock al(&m_refreshingLock);
-    if (m_isRefreshing) {
-      m_isRefreshing= false;
-      isRefresh = true;
-    }
+  if (m_isRefreshing) {
+    m_isRefreshing= false;
+    isRefresh = true;
   }
 
   bool isIncremental = incremental && !isRefresh && !isUpdateFbProperties;
@@ -423,7 +413,6 @@ void RemoteViewerCore::allowUtf8Clipboard()
   }
   if (m_clientMsgCaps.isEnabled(ClientMsgDefs::ENABLE_CUT_TEXT_UTF8)) {
     m_logWriter.debug(_T("Sending EnableCutTextUtf8 message."));
-    AutoLock al(m_output);
     m_output->writeUInt32(ClientMsgDefs::ENABLE_CUT_TEXT_UTF8);
     m_output->flush();
   }
@@ -826,10 +815,7 @@ Task<> RemoteViewerCore::run()
   // their handlers leave sending SetEncodings to sendEncodings() below.
   applyPendingEvents();
 
-  {
-    AutoLock al(&m_connectLock);
-    m_wasConnected = true;
-  }
+  m_wasConnected = true;
 
   // send supporting encoding
   m_logWriter.info(_T("Protocol stage is \"Encoding select\"."));
@@ -1213,15 +1199,9 @@ Task<> RemoteViewerCore::receiveFbUpdate()
     isLastRect = co_await receiveFbUpdateRectangle();
   }
 
-  {
-    AutoLock al(&m_requestUpdateLock);
-    m_isNeedRequestUpdate = true;
-  }
-  {
-    AutoLock al(&m_freezeLock);
-    if (m_isFreeze)
-      co_return;
-  }
+  m_isNeedRequestUpdate = true;
+  if (m_isFreeze)
+    co_return;
   m_logWriter.detail(_T("Sending of frame buffer update request..."));
   sendFbUpdateRequest(!m_forceFullUpdate);
 }
@@ -1761,7 +1741,6 @@ void RemoteViewerCore::handle(const PixelFormatEvent &event)
 {
   const auto &[pixelFormat] = event;
   m_logWriter.detail(_T("Pixel format will changed"));
-  AutoLock al(&m_pixelFormatLock);
   m_isNewPixelFormat = true;
   m_viewerPixelFormat = pixelFormat;
 }
@@ -1769,7 +1748,6 @@ void RemoteViewerCore::handle(const PixelFormatEvent &event)
 void RemoteViewerCore::handle(const RefreshEvent &/* event */)
 {
   m_logWriter.detail(_T("Frame buffer will refreshed"));
-  AutoLock al(&m_refreshingLock);
   m_isRefreshing = true;
 }
 
@@ -1942,12 +1920,9 @@ void RemoteViewerCore::handle(const IgnoreCursorShapeUpdatesEvent &event)
 void RemoteViewerCore::handle(const StopUpdatingEvent &event)
 {
   const auto &[isStopped] = event;
-  {
-    AutoLock al(&m_freezeLock);
-    if (isStopped == m_isFreeze)
-      return;
-    m_isFreeze = isStopped;
-  }
+  if (isStopped == m_isFreeze)
+    return;
+  m_isFreeze = isStopped;
   if (!isStopped) {
     m_logWriter.detail(_T("Sending of frame buffer update request..."));
     sendFbUpdateRequest(!m_forceFullUpdate);

@@ -30,6 +30,12 @@
 
 #include "log-writer/LogWriter.h"
 
+//
+// Writes file-transfer requests to the output gate.
+//
+// Threads: the network thread only, like the gate (no lock: every writer
+// of the gate runs there).
+//
 class FileTransferRequestSender final
 {
 public:

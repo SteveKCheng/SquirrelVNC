@@ -388,6 +388,8 @@ public:
                              const char *nameSignature,
                              const StringStorage description = _T("")) override;
 
+  // Pre-conditions: network thread, or before start() (CapsContainer is
+  // not synchronized).
   void getEnabledClientMsgCapabilities(std::vector<UINT32> *codes) const override;
   void getEnabledServerMsgCapabilities(std::vector<UINT32> *codes) const override;
   void getEnabledEncodingCapabilities(std::vector<UINT32> *codes) const override;
@@ -772,6 +774,7 @@ private:
   //
   // This function return true, if flag m_wasConnected is true.
   // This flag is true after onConnected().
+  // Pre-conditions: network thread, or before start().
   //
   bool wasConnected() const;
 
@@ -911,8 +914,10 @@ private:
   // m_startLock, so the threads read it without a lock.
   UINT64 m_maxFrameBufferPixels;
 
-  // This flag is set after onConnected().
-  mutable LocalMutex m_connectLock;
+  // This flag is set after onConnected(). Network thread only (or, before
+  // start(), the thread that calls it), like the fields below that have no
+  // lock: their locks went when every use moved to the network thread
+  // (notes/async-networking.md, Phase 4 step 7).
   bool m_wasConnected;
 
   // This is general frame buffer of RemoteViewerCore and local mutex to change him.
@@ -934,19 +939,15 @@ private:
   // This buffer is not need to blocking: read information is one-thread.
   FrameBuffer m_rectangleFb;
 
-  LocalMutex m_pixelFormatLock;
   bool m_isNewPixelFormat;
   PixelFormat m_viewerPixelFormat;
   // True once SetPixelFormat has been sent. Protected by m_fbLock.
   bool m_isPixelFormatSent;
 
-  LocalMutex m_refreshingLock;
   bool m_isRefreshing;
 
-  LocalMutex m_freezeLock;
   bool m_isFreeze;
 
-  LocalMutex m_requestUpdateLock;
   bool m_isNeedRequestUpdate;
 
   bool m_sharedFlag;
