@@ -47,6 +47,10 @@ void check(bool ok, const char *what)
 
 int wmain()
 {
+  // Unbuffered, so that a test that hangs is preceded by the last check
+  // that passed, even when the output goes to a file.
+  setvbuf(stdout, nullptr, _IONBF, 0);
+
   wchar_t temp[MAX_PATH];
   if (GetTempPathW(MAX_PATH, temp) == 0) {
     printf("Cannot find the temporary directory\n");
