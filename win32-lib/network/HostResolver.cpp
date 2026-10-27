@@ -32,7 +32,7 @@
 #include <asio/post.hpp>
 #include <asio/prefer.hpp>
 
-#include <mutex>
+#include <atomic>
 #include <new>
 #include <utility>
 
@@ -54,7 +54,9 @@ namespace
   //
   // Threads: start(), cancel() and deliver() run on the handler's executor
   // (the network thread); onComplete(), on a thread of the system's. Only
-  // m_isComplete, guarded by m_lock, and the lookup's own data are shared.
+  // m_isSettled, an atomic, and the lookup's own data are shared. No lock
+  // is held across GetAddrInfoExCancel(): it waits for a completion
+  // routine that is running, which would wait for the lock.
   //
   class ResolveOperation final
   {
@@ -94,15 +96,23 @@ namespace
     }
 
     //
-    // Cancels the lookup, unless it has completed. Called through the
-    // cancellation slot, on the network thread.
+    // Cancels the lookup, unless it has completed or was cancelled before:
+    // calling it again does nothing. Called through the cancellation slot,
+    // on the network thread, any number of times.
+    //
+    // A narrow race remains, which the API does not let us close: the
+    // completion routine may start, and end, between the exchange and
+    // GetAddrInfoExCancel(), so that the handle is no longer valid; the call
+    // then fails with WSA_INVALID_HANDLE, and does nothing. .NET accepts
+    // the same race (NameResolutionPal.Windows.cs, in dotnet/runtime).
     //
     void cancel()
     {
-      // Recursive, in case GetAddrInfoExCancel() calls onComplete() on
-      // this thread before it returns.
-      std::lock_guard<std::recursive_mutex> guard(m_lock);
-      if (!m_isComplete && m_cancelHandle != nullptr) {
+      // Relaxed: the flag only decides which of complete() and cancel()
+      // came first, and m_cancelHandle is written on this thread, before
+      // start() returns.
+      if (!m_isSettled.exchange(true, std::memory_order_relaxed)
+          && m_cancelHandle != nullptr) {
         GetAddrInfoExCancel(&m_cancelHandle);
       }
     }
@@ -130,10 +140,7 @@ namespace
     //
     void complete(DWORD error) noexcept
     {
-      {
-        std::lock_guard<std::recursive_mutex> guard(m_lock);
-        m_isComplete = true;
-      }
+      m_isSettled.store(true, std::memory_order_relaxed);
       std::error_code result;
       std::vector<asio::ip::tcp::endpoint> endpoints;
       try {
@@ -185,8 +192,9 @@ namespace
     ADDRINFOEXW *m_result = nullptr;
     HANDLE m_cancelHandle = nullptr;
 
-    std::recursive_mutex m_lock;
-    bool m_isComplete = false;
+    // Set by complete(), or by the first cancel(): the lookup has a result
+    // coming, or is being cancelled, so cancel() does nothing more.
+    std::atomic<bool> m_isSettled = false;
 
     // Keeps the loop running (NetworkThread::join() waiting) until the
     // handler has been called.

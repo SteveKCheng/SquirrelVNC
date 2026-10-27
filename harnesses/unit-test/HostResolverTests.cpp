@@ -84,8 +84,8 @@ void runHostResolverTests()
   check(unknown.error && unknown.endpoints.empty(),
         "asyncResolve reports an error for a name that does not exist");
 
-  // Cancelled at once: whether the lookup had completed or not, the handler
-  // is called exactly once, and the loop does not hang.
+  // Cancelled at once, twice: whether the lookup had completed or not, the
+  // handler is called exactly once, and the loop does not hang.
   std::atomic<int> calls = 0;
   std::promise<std::error_code> cancelled;
   asio::cancellation_signal signal;
@@ -98,6 +98,7 @@ void runHostResolverTests()
             cancelled.set_value(error);
           }
         }));
+    signal.emit(asio::cancellation_type::all);
     signal.emit(asio::cancellation_type::all);
   });
   std::error_code cancelError = cancelled.get_future().get();

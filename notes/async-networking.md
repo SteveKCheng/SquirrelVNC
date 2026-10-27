@@ -228,6 +228,15 @@ implementations:
     still does after `GetAddrInfoExCancel` (with `WSA_E_CANCELLED`). So
     the operation's state is on the heap and owned by the completion,
     not by the object that started it.
+  - **No lock across `GetAddrInfoExCancel`** (found 2026-10-27, in
+    step 7h): it waits for a completion routine that is running. The
+    first version held a mutex across it, which the completion routine
+    also took, and deadlocked when the two met (about one run in 30 of
+    the cancellation test). The API cannot clear the cancel handle at
+    the moment Windows stops accepting it, so a narrow race is accepted
+    instead: a cancel just after the completion has run is given a
+    stale handle, and fails with `WSA_INVALID_HANDLE`. .NET accepts the
+    same race (`NameResolutionPal.Windows.cs` in dotnet/runtime).
   - The call also takes a timeout, documented as applying only to
     asynchronous calls; to be confirmed, but it would give a resolve
     timeout for free.
@@ -1054,6 +1063,11 @@ from vcpkg.
       shared with the network thread, instead of relying on the
       adapter's control block owning the core (see `start()`); Steve
       would prefer it, but not now.
+  - **7h. `HostResolver`'s lock** (2026-10-27): replaced by an atomic
+    flag, `m_isSettled`, set by the completion and exchanged by
+    `cancel()`, which calls `GetAddrInfoExCancel` only if it was unset;
+    so `cancel()` may be called any number of times. Fixes the deadlock
+    described under "Host name resolution".
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the
