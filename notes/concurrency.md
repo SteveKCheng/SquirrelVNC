@@ -234,7 +234,7 @@ that takes the same lock, then checking each hit by hand, confirmed:
 | Lock | Nesting | Thread |
 |---|---|---|
 | `DesktopWindow::m_bufferLock` | `onPaint` → `doDraw` → `drawImage`: three acquisitions on every paint | GUI |
-| `FileAccount::m_logMut` | `flush` → `format`; `init` → `setNewFile` → `openFile` | any thread that logs |
+| ~~`FileAccount::m_logMut`~~ *(a `std::mutex` since 2026-10-27)* | ~~`flush` → `format`; `init` → `setNewFile` → `openFile`~~ | any thread that logs |
 | ~~`ViewerCollector::m_lockObj`~~ *(removed 2026-10-26)* | ~~`destroyAllInstances` → `deleteDeadInstances`~~ | GUI |
 
 Plausible but unconfirmed: `WindowsApplication::processDialogMessage`

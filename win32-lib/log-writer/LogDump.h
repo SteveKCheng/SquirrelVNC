@@ -50,19 +50,21 @@ public:
   LogDump(bool logHeadEnabled, bool logDumpEnabled);
   virtual ~LogDump();
 
-  // Writes a log message.
-  virtual void flush(unsigned int processId,
-                     unsigned int threadId,
-                     const DateTime &dt,
-                     int level,
-                     const TCHAR *message) = 0;
-
   // Stores all printed lines as a log header and stops it accumulation.
   void storeHeader();
 
   size_t getLogDumpSize();
 
 protected:
+  // Writes a log message.
+  // Pre-conditions: the derived class's log mutex is held, as for
+  // writeLogHeader() and writeLogDump(), which call it.
+  virtual void flush(unsigned int processId,
+                     unsigned int threadId,
+                     const DateTime &dt,
+                     int level,
+                     const TCHAR *message) = 0;
+
   // This function checks that writing to header is not stopped and
   // then store the log line information.
   // This function must be calling under the log mutex from derived classes.

@@ -24,7 +24,6 @@
 #include "FileAccount.h"
 #include "util/Unicode.h"
 #include "file-lib/File.h"
-#include "thread/AutoLock.h"
 #include "file-lib/EOFException.h"
 
 FileAccount::FileAccount(const TCHAR *logDir,
@@ -53,9 +52,8 @@ FileAccount::~FileAccount()
 
 void FileAccount::init(const TCHAR *logDir, const TCHAR *fileName, unsigned char logLevel)
 {
+  std::lock_guard<std::mutex> lock(m_logMut);
   m_fileName.setString(fileName);
-
-  AutoLock al(&m_logMut);
   setNewFile(logLevel, logDir);
   // The log dump now must be disabled and cleared even if logLevel is zero.
   terminateLogDumping();
@@ -64,6 +62,7 @@ void FileAccount::init(const TCHAR *logDir, const TCHAR *fileName, unsigned char
 void FileAccount::changeLogProps(const TCHAR *newLogDir,
                                  unsigned char newLevel)
 {
+  std::lock_guard<std::mutex> lock(m_logMut);
   try {
     setNewFile(newLevel, newLogDir);
   } catch (...) { // Ignoring all exceptions
@@ -72,6 +71,7 @@ void FileAccount::changeLogProps(const TCHAR *newLogDir,
 
 void FileAccount::getFileName(StringStorage *fileName)
 {
+  std::lock_guard<std::mutex> lock(m_logMut);
   *fileName = m_fileName;
 }
 
@@ -81,8 +81,16 @@ void FileAccount::print(unsigned int processId,
                         int level,
                         const TCHAR *message)
 {
-  AutoLock al(&m_logMut);
+  std::lock_guard<std::mutex> lock(m_logMut);
+  printLocked(processId, threadId, dt, level, message);
+}
 
+void FileAccount::printLocked(unsigned int processId,
+                              unsigned int threadId,
+                              const DateTime &dt,
+                              int level,
+                              const TCHAR *message)
+{
   updateLogHeaderLines(processId, threadId, dt, level, message);
   updateLogDumpLines(processId, threadId, dt, level, message);
   flush(processId, threadId, dt, level, message);
@@ -90,6 +98,7 @@ void FileAccount::print(unsigned int processId,
 
 bool FileAccount::acceptsLevel(int logLevel)
 {
+  std::lock_guard<std::mutex> lock(m_logMut);
   return logDumpEnabled() || logHeadEnabled() || printsLine(logLevel);
 }
 
@@ -104,19 +113,17 @@ void FileAccount::flush(unsigned int processId,
                         int level,
                         const TCHAR *message)
 {
-  AutoLock al(&m_logMut);
-
   if (printsLine(level)) {
     format(processId, threadId, dt, level, message);
   }
 }
 
-void FileAccount::print(int level, const TCHAR *message)
+void FileAccount::printLocked(int level, const TCHAR *message)
 {
   unsigned int processId = GetCurrentProcessId();
   unsigned int threadId = GetCurrentThreadId();
   DateTime dt = DateTime::now();
-  print(processId, threadId, dt, level, message);
+  printLocked(processId, threadId, dt, level, message);
 }
 
 void FileAccount::format(unsigned int processId,
@@ -130,11 +137,7 @@ void FileAccount::format(unsigned int processId,
   StringStorage timeString(_T("[Temporary unavaliable]"));
   SYSTEMTIME st;
   dt.toUtcSystemTime(&st);
-  unsigned char logBarrier;
-  {
-    AutoLock al(&m_logMut);
-    logBarrier = m_level;
-  }
+  unsigned char logBarrier = m_level;
   if (logBarrier < 9) {
     timeString.format(_T("%.4d-%.2d-%.2d %.2d:%.2d:%.2d"),
                       st.wYear, st.wMonth, st.wDay,
@@ -174,7 +177,6 @@ void FileAccount::format(unsigned int processId,
 
 void FileAccount::setNewFile(unsigned char newLevel, const TCHAR *newDir)
 {
-  AutoLock al(&m_logMut);
   bool levelChanged = newLevel != m_level;
   bool levelChangedFromZero = levelChanged && m_level == 0;
   bool logDirChanged = !m_logDir.isEqualTo(newDir);
@@ -186,13 +188,13 @@ void FileAccount::setNewFile(unsigned char newLevel, const TCHAR *newDir)
     StringStorage message;
     message.format(_T("Log verbosity level has been changed from %d to %d"),
                    (int)m_level, (int) newLevel);
-    print(1, message.getString());
+    printLocked(1, message.getString());
   }
   if (logDirChanged && !m_asFirstOpen) {
     StringStorage message;
     message.format(_T("Log directory has been changed from \"%s\" to \"%s\""),
                    m_logDir.getString(), newDir);
-    print(1, message.getString());
+    printLocked(1, message.getString());
   }
 
   m_level = newLevel;
@@ -219,7 +221,7 @@ void FileAccount::setNewFile(unsigned char newLevel, const TCHAR *newDir)
       StringStorage message;
       message.format(_T("Log verbosity level has been changed from 0 to %d"),
                      (int)m_level);
-      print(1, message.getString());
+      printLocked(1, message.getString());
     }
     return;
   }
@@ -250,7 +252,6 @@ void FileAccount::openFile()
   if (Unicode::isEnabled() && asFirstOpen) {
     try {
       addUnicodeSignature();
-      AutoLock al(&m_logMut);
       if (getLogDumpSize() != 0) {
         // The log dump already contains the header and then is not needed to call
         // writeLogHeader().

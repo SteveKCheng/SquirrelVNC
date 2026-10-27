@@ -26,12 +26,18 @@
 
 #include "util/CommonHeader.h"
 #include "util/DateTime.h"
-#include "thread/LocalMutex.h"
 #include "file-lib/WinFile.h"
 #include "LogDump.h"
 
 #include <memory>
+#include <mutex>
 
+//
+// Threads: the public functions may be called from any thread; each takes
+// m_logMut, which is not recursive. The protected and private functions
+// expect it held (but the first constructor calls setNewFile() without it:
+// no other thread can see the object yet).
+//
 class FileAccount final : public LogDump
 {
 public:
@@ -91,9 +97,14 @@ public:
              int level,
              const TCHAR *message);
 
+  // Whether a message of this level would be kept: written to the file,
+  // or stored in the log dump or header.
   bool acceptsLevel(int logLevel);
 
 protected:
+  // Writes the message to the file if its level is printed.
+  // Pre-conditions: m_logMut is held (LogDump calls it from
+  // writeLogHeader() and writeLogDump(), from openFile()).
   void flush(unsigned int processId,
              unsigned int threadId,
              const DateTime &dt,
@@ -122,6 +133,13 @@ private:
   // Creates backup files
   void createBackup(unsigned int backupLimit);
 
+  // print() with m_logMut held.
+  void printLocked(unsigned int processId,
+                   unsigned int threadId,
+                   const DateTime &dt,
+                   int level,
+                   const TCHAR *message);
+
   // Formates the message and stores it to the file.
   void format(unsigned int processId,
               unsigned int threadId,
@@ -130,7 +148,7 @@ private:
               const TCHAR *message);
 
   // Prints self message the same log file (if it's possible)
-  void print(int level, const TCHAR *message);
+  void printLocked(int level, const TCHAR *message);
 
   bool printsLine(int level);
 
@@ -142,7 +160,8 @@ private:
   bool m_asFirstOpen;
   std::unique_ptr<WinFile> m_file;
 
-  LocalMutex m_logMut;
+  // Guards the fields above and LogDump's.
+  std::mutex m_logMut;
 };
 
 #endif // __FILEACCOUNT_H__

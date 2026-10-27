@@ -1013,6 +1013,15 @@ from vcpkg.
     with `std::call_once` instead of a mutex; `ResourceLoader` is no
     longer a `Singleton<T>`: `getInstance()` returns a function-local
     static, made on first use for `GetModuleHandle(nullptr)`.
+    `ViewerConfig` likewise, its `getInstance()` defined in `tvnviewer`
+    (`main.cpp`), which knows the registry path (Steve: the registry is
+    to go, so no more churn than that); `Singleton.h` is deleted.
+  - **7f. `FileAccount`'s lock is not recursive** (2026-10-27): a
+    `std::mutex`, taken by the public functions only; the rest expect it
+    held (`printLocked()`, and `LogDump::flush()`, now protected).
+    `acceptsLevel()`, which every log call makes on every thread, and
+    `getFileName()` now take it too: they read `m_file` and `m_level`,
+    which `changeLogProps()` changes on the GUI thread.
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the
