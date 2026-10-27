@@ -982,6 +982,12 @@ bool ViewerWindow::onDestroy()
   if (m_viewerCore != nullptr) {
     m_viewerCore->stop();
   }
+  // A local delete would also keep it alive: it is asked to stop.
+  if (m_fileTransfer != nullptr) {
+    m_fileTransfer->post([](FileTransferCore &core) {
+      core.terminateCurrentOperation();
+    });
+  }
   m_coreEvents.cancelPasswordRequest();
   return true;
 }

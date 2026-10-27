@@ -120,6 +120,9 @@
     <ClCompile Include="viewer-core\QueuedOutputStream.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
+    <ClCompile Include="viewer-core\BlockingWorkPool.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
     <ClCompile Include="viewer-core\NetworkThread.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
@@ -392,6 +395,9 @@
     <ClInclude Include="viewer-core\QueuedOutputStream.h">
       <Filter>viewer-core</Filter>
     </ClInclude>
+    <ClInclude Include="viewer-core\BlockingWorkPool.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
     <ClInclude Include="viewer-core\NetworkThread.h">
       <Filter>viewer-core</Filter>
     </ClInclude>
@@ -487,6 +493,9 @@
     </ClInclude>
     <ClInclude Include="ft-common\OperationNotSupportedException.h">
       <Filter>ft-common</Filter>
+    </ClInclude>
+    <ClInclude Include="ft-client-lib\BlockingWorkRunner.h">
+      <Filter>ft-client-lib</Filter>
     </ClInclude>
     <ClInclude Include="ft-client-lib\CopyFileEventListener.h">
       <Filter>ft-client-lib</Filter>

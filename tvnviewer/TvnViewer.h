@@ -34,6 +34,7 @@
 #include "win-system/WindowsApplication.h"
 
 #include "log-writer/LogWriter.h"
+#include "viewer-core/BlockingWorkPool.h"
 #include "viewer-core/NetworkThread.h"
 #include "thread/AutoLock.h"
 
@@ -143,6 +144,10 @@ protected:
   // reference to WinSock until then, so the WindowsSocket::cleanup() in
   // ~TvnViewer() comes first without harm.
   NetworkThread m_networkThread;
+  // The thread for the connections' blocking work (local deletes in file
+  // transfer), started on first use; declared before m_instances for the
+  // same reason: the work keeps its instance alive until it ends.
+  BlockingWorkPool m_blockingWorkPool;
   ViewerCollector m_instances;
 
   // class name of viewer-window

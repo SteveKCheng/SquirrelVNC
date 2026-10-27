@@ -33,9 +33,8 @@
 
 //
 // The part of the file-transfer dialog that the file transfer calls: its
-// FileTransferInterface. The operations run on the network thread (and a
-// local delete on a thread of its own), so the events do not touch the
-// dialog: each keeps what it is given and posts a message to the dialog's
+// FileTransferInterface. The operations run on the network thread, so the
+// events do not touch the dialog: each keeps what it is given and posts a message to the dialog's
 // window, whose handler (FileTransferMainDialog) takes it from here on the
 // GUI thread. This is the pattern of ViewerCoreEvents.
 //
@@ -132,7 +131,7 @@ private:
   //
   // The events of FileTransferInterface.
   //
-  // From the operations, on any thread: setProgress(), onFtOpError() and
+  // From the operations, on the network thread: setProgress(), onFtOpError() and
   // onFtOpInfo() keep what they are given, and post a message only if none
   // is waiting already, so that a flood of progress becomes one message;
   // onFtOpStarted(), onFtOpFinished() and onFtConnectionEnded() post their

@@ -33,6 +33,7 @@
 
 #include "ServerMessageListener.h"
 #include "CapabilitiesManager.h"
+#include "BlockingWorkPool.h"
 
 #include <functional>
 
@@ -42,8 +43,11 @@ class RemoteViewerCore;
 // The file transfer of a connection: its messages, and the operations
 // (FileTransferCore), which run on the network thread. The user interface
 // starts them with post(), and they report to its FileTransferInterface.
+// Their blocking work runs on a BlockingWorkPool (BlockingWorkRunner,
+// inherited privately: only the operations use it).
 //
-class FileTransferCapability final : public ServerMessageListener
+class FileTransferCapability final : public ServerMessageListener,
+                                     private BlockingWorkRunner
 {
 public:
   FileTransferCapability(Logger *logger = nullptr);
@@ -75,6 +79,14 @@ public:
   void addCapabilities(RemoteViewerCore &core);
 
   //
+  // The pool for the operations' blocking work (local deletes).
+  //
+  // Pre-conditions: called once, before core starts; pool outlives every
+  // owner of a file transfer (it is joined after them).
+  //
+  void setBlockingWorkPool(BlockingWorkPool &pool);
+
+  //
   // Runs command with the file transfer's operations, on the network
   // thread (RemoteViewerCore::postToLoop()), with a claim on the owner that
   // keeps this object alive until then; does nothing once the owner is
@@ -90,6 +102,16 @@ public:
   //
   void onConnectionEnded();
 
+private:
+  //
+  // BlockingWorkRunner: runBlocking() posts work to the pool with a claim
+  // on the owner (RemoteViewerCore::claimOwner()), held until it has run;
+  // an exception from work is logged. postToNetwork() is
+  // RemoteViewerCore::postToLoop().
+  //
+  bool runBlocking(std::function<void()> work) override;
+  void postToNetwork(std::function<void()> work) override;
+
 protected:
   LogWriter m_logWriter;
 
@@ -101,6 +123,8 @@ protected:
 
   // Set by addCapabilities().
   RemoteViewerCore *m_viewerCore;
+  // Set by setBlockingWorkPool().
+  BlockingWorkPool *m_blockingWorkPool;
 };
 
 #endif

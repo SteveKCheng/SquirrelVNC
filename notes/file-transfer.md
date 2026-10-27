@@ -31,7 +31,14 @@ What upload should do is less obvious than for delete. Options:
   which also breaks cycles.
 - Send the link as a link: the protocol has no way to.
 
-## Operation threads are not waited for
+## ~~Operation threads are not waited for~~
+
+*Fixed by Phase 4 step 5d of `async-networking.md` (2026-10-27): the
+delete runs on the shared `BlockingWorkPool`, holding a claim on its
+viewer instance until it ends, so the operation and what it reports to
+are not freed under it; closing the viewer window asks it to stop. The
+text below describes the code before.*
+
 
 `LocalFilesDeleteOperation`, the one operation that derives from
 `Thread`, does its work on a thread of its own, but nothing waits for

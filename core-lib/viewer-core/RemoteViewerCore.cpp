@@ -288,6 +288,11 @@ void RemoteViewerCore::postToLoop(std::function<void()> work)
   });
 }
 
+std::shared_ptr<void> RemoteViewerCore::claimOwner()
+{
+  return m_adapterRef.lock();
+}
+
 void RemoteViewerCore::setPixelFormat(const PixelFormat &pixelFormat)
 {
   post(PixelFormatEvent{pixelFormat});

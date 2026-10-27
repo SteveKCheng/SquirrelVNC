@@ -34,6 +34,8 @@
 
 #include "RemoteViewerCore.h"
 
+#include <asio/post.hpp>
+
 #include <utility>
 
 FileTransferCapability::FileTransferCapability(Logger *logger)
@@ -44,8 +46,10 @@ FileTransferCapability::FileTransferCapability(Logger *logger)
   m_ftCore(&m_logWriter,
            &m_ftRequestSender,
            &m_ftReplyBuffer,
-           &m_ftMessageProcessor),
-  m_viewerCore(nullptr)
+           &m_ftMessageProcessor,
+           *this),
+  m_viewerCore(nullptr),
+  m_blockingWorkPool(nullptr)
 {
 }
 
@@ -82,6 +86,33 @@ void FileTransferCapability::post(std::function<void(FileTransferCore &)> comman
 void FileTransferCapability::onConnectionEnded()
 {
   m_ftCore.onConnectionEnded();
+}
+
+void FileTransferCapability::setBlockingWorkPool(BlockingWorkPool &pool)
+{
+  m_blockingWorkPool = &pool;
+}
+
+bool FileTransferCapability::runBlocking(std::function<void()> work)
+{
+  std::shared_ptr<void> owner = m_viewerCore->claimOwner();
+  if (!owner || m_blockingWorkPool == nullptr) {
+    return false;
+  }
+  asio::post(m_blockingWorkPool->getExecutor(),
+             [this, owner = std::move(owner), work = std::move(work)] {
+    try {
+      work();
+    } catch (const Exception &ex) {
+      m_logWriter.error(_T("Error in blocking file-transfer work: %s"), ex.getMessage());
+    }
+  });
+  return true;
+}
+
+void FileTransferCapability::postToNetwork(std::function<void()> work)
+{
+  m_viewerCore->postToLoop(std::move(work));
 }
 
 void FileTransferCapability::addCapabilities(RemoteViewerCore &core)

@@ -28,6 +28,7 @@
 
 ViewerInstance::ViewerInstance(WindowsApplication *application,
                                asio::any_io_executor executor,
+                               BlockingWorkPool &blockingWorkPool,
                                const ConnectionData &condata,
                                const ConnectionConfig &conConf)
 : m_conConf(conConf),
@@ -39,10 +40,12 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
   m_vncAuthHandler(&m_condata, m_viewerWnd.getCoreEvents()),
   m_viewerCore(std::move(executor), ViewerConfig::getInstance()->getLogger())
 {
+  m_fileTransfer.setBlockingWorkPool(blockingWorkPool);
 }
 
 ViewerInstance::ViewerInstance(WindowsApplication *application,
                                asio::any_io_executor executor,
+                               BlockingWorkPool &blockingWorkPool,
                                const ConnectionData &condata,
                                const ConnectionConfig &conConf,
                                std::unique_ptr<SocketIPv4> socket)
@@ -56,6 +59,7 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
   m_vncAuthHandler(&m_condata, m_viewerWnd.getCoreEvents()),
   m_viewerCore(std::move(executor), ViewerConfig::getInstance()->getLogger())
 {
+  m_fileTransfer.setBlockingWorkPool(blockingWorkPool);
 }
 
 

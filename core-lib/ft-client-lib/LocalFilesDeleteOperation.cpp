@@ -22,13 +22,15 @@
 //
 
 #include "LocalFilesDeleteOperation.h"
-#include "file-lib/File.h"
 
 LocalFilesDeleteOperation::LocalFilesDeleteOperation(LogWriter *logWriter,
+                                                     BlockingWorkRunner &runner,
                                                      const FileInfo *filesToDelete,
                                                      size_t filesCount,
                                                      const TCHAR *pathToTargetRoot)
-: FileTransferOperation(logWriter)
+: FileTransferOperation(logWriter),
+  m_runner(runner),
+  m_isStopRequested(false)
 {
   m_filesToDelete.assign(filesToDelete, filesToDelete + filesCount);
   m_pathToTargetRoot.setString(pathToTargetRoot);
@@ -43,21 +45,35 @@ void LocalFilesDeleteOperation::start()
   // Notify listeners that operation have started
   notifyStart();
 
-  // Start new thread
-  Thread::resume();
+  // The runner keeps this operation alive until the deletion, and the
+  // reports it posts, have run.
+  if (!m_runner.runBlocking([this] { deleteFiles(); })) {
+    notifyError(_T("Error: cannot delete local files now"));
+    notifyFinish();
+  }
 }
 
 void LocalFilesDeleteOperation::terminate()
 {
   FileTransferOperation::terminate();
-  Thread::terminate();
+  m_isStopRequested = true;
+}
+
+void LocalFilesDeleteOperation::report(const StringStorage &message, bool isError)
+{
+  m_runner.postToNetwork([this, message, isError] {
+    if (isError) {
+      notifyError(message.getString());
+    } else {
+      notifyInformation(message.getString());
+    }
+  });
 }
 
 //
 // REMARK: This method is executed in separate thread
 //
-
-void LocalFilesDeleteOperation::execute()
+void LocalFilesDeleteOperation::deleteFiles()
 {
   for (UINT32 i = 0; i < m_filesToDelete.size(); i++) {
     // Create path to file from root folder and filename
@@ -74,23 +90,22 @@ void LocalFilesDeleteOperation::execute()
     //
 
     StringStorage message;
-
     message.format(_T("Deleting local '%s' %s"), pathToTargetFile.getString(),
                    file.isDirectory() ? _T("folder") : _T("file"));
 
-    notifyInformation(message.getString());
+    report(message, false);
 
     // Delete file
     deleteFile(&file);
   } // for all files in file list
 
-  // Notify listeners that operation have ended
-  notifyFinish();
+  // Notify listeners that operation have ended, after the reports above
+  m_runner.postToNetwork([this] { notifyFinish(); });
 }
 
 bool LocalFilesDeleteOperation::deleteFile(File *file)
 {
-  if (Thread::isTerminating()) {
+  if (m_isStopRequested) {
     return false;
   }
 
@@ -103,17 +118,13 @@ bool LocalFilesDeleteOperation::deleteFile(File *file)
   // part of what is deleted.
   if (file->isDirectory() && !file->isLink()) {
     std::vector<StringStorage> files;
-
     if (file->list(&files)) {
       for (const StringStorage &fileName : files) {
-
-        if (Thread::isTerminating()) {
+        if (m_isStopRequested) {
           return false;
         }
-
         // Create path to subfile
         StringStorage pathToTargetSubFile(pathToTargetFile.getString());
-
         pathToTargetSubFile.appendString(_T("\\"));
         pathToTargetSubFile.appendString(fileName.getString());
 
@@ -127,7 +138,7 @@ bool LocalFilesDeleteOperation::deleteFile(File *file)
       message.format(_T("Error: failed to get file list in local folder '%s'"),
                      pathToTargetFile.getString());
 
-      notifyError(message.getString());
+      report(message, true);
     }
   } // if file to delete is directory
 
@@ -140,7 +151,7 @@ bool LocalFilesDeleteOperation::deleteFile(File *file)
                    pathToTargetFile.getString(),
                    file->isDirectory() ? _T("folder") : _T("file"));
 
-    notifyError(message.getString());
+    report(message, true);
   } // if failed to remove
 
   return returnVal;

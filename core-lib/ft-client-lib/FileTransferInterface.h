@@ -30,8 +30,8 @@
 
 //
 // What the file transfer reports to its user interface. FileTransferCore
-// calls it on the network thread, and a local delete on its own thread;
-// each function says which. None may block.
+// calls it on the network thread, from the operations (a local delete
+// reports there too, though it deletes on another thread). None may block.
 //
 class FileTransferInterface
 {
@@ -59,18 +59,18 @@ public:
 
   //
   // This function inform user about error.
-  // From an operation, on any thread; it must not block.
+  // From an operation, on the network thread.
   //
   virtual void onFtOpError(const TCHAR *message) = 0;
 
   //
   // This function inform user additional information.
-  // From an operation, on any thread; it must not block.
+  // From an operation, on the network thread.
   //
   virtual void onFtOpInfo(const TCHAR *message) = 0;
 
   //
-  // From an operation, on any thread, when it starts and when it finishes
+  // From an operation, on the network thread, when it starts and when it finishes
   // (state is FileTransferCore's, result is 1 for a successful file list,
   // otherwise 0). They must not block.
   //

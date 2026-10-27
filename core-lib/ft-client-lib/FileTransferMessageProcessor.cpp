@@ -36,11 +36,10 @@ FileTransferMessageProcessor::~FileTransferMessageProcessor()
 Task<> FileTransferMessageProcessor::processRfbMessage(AwaitableReader &reader,
                                                        UINT32 rfbMessage)
 {
-  // The only read of the stream: once the stream becomes asynchronous, this
-  // is the one call that waits for data, and no lock is held across it.
+  // The only read of the stream, and so the only suspension: the
+  // notifications below do not suspend, so no listener can be added or
+  // removed while they run.
   co_await m_replyBuffer.readReply(reader, rfbMessage);
-
-  AutoLock al(&m_listeners);
 
   for (size_t i = 0; i < m_listeners.size(); i++) {
     FileTransferEventHandler *listener = m_listeners.at(i);

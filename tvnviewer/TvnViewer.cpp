@@ -132,6 +132,7 @@ void TvnViewer::runInstance(const ConnectionData &conData, const ConnectionConfi
   std::shared_ptr<ViewerInstance> viewerInst =
     m_instances.addInstance(std::make_unique<ViewerInstance>(this,
                                                              m_networkThread.getExecutor(),
+                                                             m_blockingWorkPool,
                                                              conData, config));
   viewerInst->start();
 }
@@ -285,6 +286,7 @@ void TvnViewer::newListeningConnection()
       std::shared_ptr<ViewerInstance> viewerInst =
         m_instances.addInstance(std::make_unique<ViewerInstance>(this,
                                                                  m_networkThread.getExecutor(),
+                                                                 m_blockingWorkPool,
                                                                  connectionData,
                                                                  connectionConfig,
                                                                  std::move(socket)));

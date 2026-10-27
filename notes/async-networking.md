@@ -902,6 +902,29 @@ from vcpkg.
     the delete holds a claim on the instance and stops on an atomic flag,
     so nothing is joined but the pool at exit. Then the file-transfer
     locks go.
+    **Done** (2026-10-27):
+    - `BlockingWorkPool` (`viewer-core`), owned by `TvnViewer` next to
+      `NetworkThread` and declared before the instances: an
+      `asio::thread_pool` of one thread in a `std::optional`, made by the
+      first `getExecutor()`, under a mutex, since the first call comes
+      from the network thread.
+    - The operations stay free of Asio: `BlockingWorkRunner`
+      (`ft-client-lib`) has `runBlocking()` and `postToNetwork()`;
+      `FileTransferCapability` implements it privately, holding a claim
+      on the instance (`RemoteViewerCore::claimOwner()`, public) while
+      the work runs, and posting back with `postToLoop()`.
+    - `LocalFilesDeleteOperation` is no longer a `Thread`: it deletes on
+      the pool, posts each message and then its end to the network
+      thread, and stops on an atomic flag set by `terminate()`. Its
+      reports run in order, and its end comes last, so it is replaced
+      only after everything it posted has run.
+    - `ViewerWindow::onDestroy()` posts `terminateCurrentOperation()`, so
+      closing a viewer window stops a long delete, which would otherwise
+      hold the instance, and the application's exit, until it ended.
+    - `ListenerContainer` (used only by file transfer) has no lock any
+      more, nor do the operations' and the message processor's
+      notifications. The request sender still locks the output gate,
+      for step 7.
   - Left on the network thread: reading and writing the local file chunk
     by chunk, and the upload's walk to total its size.
 

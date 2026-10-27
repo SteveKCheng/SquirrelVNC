@@ -25,41 +25,75 @@
 #define _LOCAL_FILES_DELETE_OPERATION_H_
 
 #include "FileTransferOperation.h"
-#include "thread/Thread.h"
+#include "BlockingWorkRunner.h"
 
-class LocalFilesDeleteOperation final : public FileTransferOperation,
-                                  private Thread
+#include "file-lib/File.h"
+
+#include <atomic>
+
+//
+// Deletes local files. Like every operation it is driven on the network
+// thread, but the deletion, which may take long, runs on the thread for
+// blocking work (BlockingWorkRunner), and reports its messages and its end
+// back on the network thread.
+//
+class LocalFilesDeleteOperation final : public FileTransferOperation
 {
 public:
   // Pre-conditions: filesToDelete points to filesCount entries, which are
-  // copied.
+  // copied; runner outlives this operation.
   LocalFilesDeleteOperation(LogWriter *logWriter,
+                            BlockingWorkRunner &runner,
                             const FileInfo *filesToDelete,
                             size_t filesCount,
                             const TCHAR *pathToTargetRoot);
   ~LocalFilesDeleteOperation() override;
 
+  //
+  // Reports the start, and runs the deletion (deleteFiles()) on the thread
+  // for blocking work; its end is reported on the network thread. If it
+  // cannot run, reports an error and the end at once.
+  //
+  // Pre-conditions: network thread; called once.
+  //
   void start() override;
+
+  //
+  // Asks the deletion to stop, before the next file; it still reports its
+  // end. Network thread.
+  //
   void terminate() override;
 
 private:
+  //
+  // The deletion, on the thread for blocking work: deletes each file, then
+  // posts the end of the operation to the network thread.
+  //
+  void deleteFiles();
 
-  void execute() override;
+  //
+  // Posts message to the network thread, to report it there, as an error
+  // or as information. Any thread.
+  //
+  void report(const StringStorage &message, bool isError);
 
   //
   // Deletes file, and first the files in it if it is a directory; a
-  // directory that cannot be listed is reported with notifyError(). A
-  // symbolic link or junction is deleted itself, without what it points
-  // to.
+  // directory that cannot be listed is reported as an error. A symbolic
+  // link or junction is deleted itself, without what it points to.
   //
   // Post-conditions: returns true if file was removed; false, after
-  // notifyError(), if it could not be, or if the operation is terminating.
+  // reporting an error, if it could not be, or if the operation is
+  // terminating. On the thread for blocking work.
   //
   bool deleteFile(File *file);
 
 protected:
+  BlockingWorkRunner &m_runner;
   StringStorage m_pathToTargetRoot;
   std::vector<FileInfo> m_filesToDelete;
+  // Set by terminate(), read by the deletion on the other thread.
+  std::atomic<bool> m_isStopRequested;
 };
 
 #endif

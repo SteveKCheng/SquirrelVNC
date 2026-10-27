@@ -58,7 +58,6 @@ bool FileTransferOperation::isTerminating()
 
 void FileTransferOperation::notifyStart()
 {
-  AutoLock al(&m_listeners);
 
   std::vector<OperationEventListener *>::iterator it;
   for (it = m_listeners.begin(); it != m_listeners.end(); it++) {
@@ -69,7 +68,6 @@ void FileTransferOperation::notifyStart()
 
 void FileTransferOperation::notifyFinish()
 {
-  AutoLock al(&m_listeners);
 
   std::vector<OperationEventListener *>::iterator it;
   for (it = m_listeners.begin(); it != m_listeners.end(); it++) {
@@ -82,7 +80,6 @@ void FileTransferOperation::notifyError(const TCHAR *message)
 {
   m_logWriter->message(_T("%s\n"), message);
 
-  AutoLock al(&m_listeners);
 
   std::vector<OperationEventListener *>::iterator it;
   for (it = m_listeners.begin(); it != m_listeners.end(); it++) {
@@ -95,7 +92,6 @@ void FileTransferOperation::notifyInformation(const TCHAR *message)
 {
   m_logWriter->message(_T("%s\n"), message);
 
-  AutoLock al(&m_listeners);
 
   std::vector<OperationEventListener *>::iterator it;
   for (it = m_listeners.begin(); it != m_listeners.end(); it++) {

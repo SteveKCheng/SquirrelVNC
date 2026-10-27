@@ -36,10 +36,12 @@
 FileTransferCore::FileTransferCore(LogWriter *logWriter,
                                    FileTransferRequestSender *sender,
                                    FileTransferReplyBuffer *replyBuffer,
-                                   ListenerContainer<FileTransferEventHandler *> *ftListeners)
+                                   ListenerContainer<FileTransferEventHandler *> *ftListeners,
+                                   BlockingWorkRunner &blockingWorkRunner)
 : m_logWriter(logWriter),
   m_state(NOTHING_STATE),
   m_sender(sender), m_replyBuffer(replyBuffer),
+  m_blockingWorkRunner(blockingWorkRunner),
   m_fileTransferListeners(ftListeners),
   m_ftInterface(nullptr)
 {
@@ -111,27 +113,10 @@ void FileTransferCore::ftOpFinished(FileTransferOperation *sender)
   } // if last executed operation was file list opearation
 
   //
-  // Remark: we must post this notification message to this dialog to avoid deadlock.
-  // This deadlock reason described above:
-  //
-  // Some ft operations like upload, remote file delete, remote file rename operations
-  // after operation finished must refresh remote file list, but we can do that only
-  // with using remote RemoteFileListOperation.
-  // Before RemoteFileListOperation can start execution, old operation must be removed
-  // from ft message processor listeners list, but it's locked by ft message processor
-  // and call of remove method also tries to lock operation.
-  //
-  // And as result: deadlock.
-  //
-  // In short:
-  // ft message processor lock operation
-  // locked operation call this dialog as ft events listener with op finished notification
-  // this dialog calls ft message processor to remove operation from listeners list
-  // when ft message processor tries to remove operation it locks operation first.
-  //
-  // And as result: deadlock.
-  //
-  // FIXME: Create new scheme with such kind of file transfer operations.
+  // The operation is not removed from the message processor's listeners
+  // here: this may be called while the processor iterates over them,
+  // notifying the operation of a reply. The dialog, once it has handled
+  // the end, posts onOperationFinished(), which removes it.
   //
 
   m_ftInterface->onFtOpFinished(m_state, 0);
@@ -217,6 +202,7 @@ void FileTransferCore::localFilesDeleteOperation(const FileInfo *filesToDelete,
 {
   m_state = LOCAL_REMOVE_STATE;
   executeOperation(std::make_unique<LocalFilesDeleteOperation>(m_logWriter,
+                                                               m_blockingWorkRunner,
                                                                filesToDelete, filesCount,
                                                                pathToTargetRoot));
 }

@@ -35,6 +35,7 @@
 #include "CopyFileEventListener.h"
 
 #include "FileTransferInterface.h"
+#include "BlockingWorkRunner.h"
 
 #include <memory>
 
@@ -46,9 +47,8 @@ class FileTransferInterface;
 //
 // Threads: every function is called on the network thread, where the
 // replies are dispatched; the dialog posts its commands there
-// (FileTransferCapability::post()). The exception, until it moves to a
-// pool (notes/async-networking.md, Phase 4 step 5d): a local delete runs on
-// a thread of its own, from which it reports its messages and its end.
+// (FileTransferCapability::post()). A local delete runs its deletion on the
+// thread for blocking work, but reports back on the network thread.
 //
 class FileTransferCore final : public OperationEventListener,
                          public CopyFileEventListener
@@ -77,10 +77,14 @@ public:
   // ftListeners - needs for executing file transfer operations
   //
 
+  // blockingWorkRunner - runs a local delete's deletion; it must outlive
+  // this object
+  //
   FileTransferCore(LogWriter *logWriter,
                    FileTransferRequestSender *sender,
                    FileTransferReplyBuffer *replyBuffer,
-                   ListenerContainer<FileTransferEventHandler *> *ftListeners);
+                   ListenerContainer<FileTransferEventHandler *> *ftListeners,
+                   BlockingWorkRunner &blockingWorkRunner);
   FileTransferCore(const FileTransferCore &) = delete;
   FileTransferCore &operator=(const FileTransferCore &) = delete;
   FileTransferCore(FileTransferCore &&) = delete;
@@ -210,6 +214,7 @@ protected:
 
   FileTransferRequestSender *m_sender;
   FileTransferReplyBuffer *m_replyBuffer;
+  BlockingWorkRunner &m_blockingWorkRunner;
 
   //
   // file transfer interface

@@ -49,9 +49,8 @@ public:
   //
   // Processes one file-transfer reply, on the core thread: first reads it
   // in full with the reply buffer, then notifies the listeners, which do
-  // not read the stream. Reading is done without the listener list locked.
-  // A coroutine (util/Task.h): it awaits the reply buffer's reading; the
-  // notifications, under the lock, do not suspend.
+  // not read the stream. A coroutine (util/Task.h): it awaits the reply
+  // buffer's reading; the notifications do not suspend.
   //
   // Pre-conditions: the message type, rfbMessage, has been read from input.
   // Post-conditions: the reply has been read from input, and each listener

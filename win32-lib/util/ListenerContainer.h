@@ -26,32 +26,21 @@
 
 #include <vector>
 
-#include "thread/LocalMutex.h"
-#include "thread/AutoLock.h"
-
-template<class T> class SafeVector final : public std::vector<T>,
-                                     public LocalMutex {
-public:
-  ~SafeVector() override { };
-};
-
 //
 // Template class that contains listeners array and methods
 // for adding, removing listeners.
 //
-
+// Not thread-safe: the list is used on one thread (the file transfer's, the
+// network thread). A listener must not be added or removed while the list
+// is being iterated, as when its listeners are notified.
+//
 template<class T> class ListenerContainer {
 public:
-
   //
   // Adds listener to class listeners list, unless it is already there
   // (compared with ==), so each listener appears at most once.
-  // Holds the list's lock, so it may be called from any thread.
   //
-
   void addListener(T listener) {
-    AutoLock l(&m_listeners);
-
     typename std::vector<T>::iterator it;
     for (it = m_listeners.begin(); it != m_listeners.end(); it++) {
       T current = *it;
@@ -63,19 +52,14 @@ public:
   } // void
 
   void removeAllListeners() {
-    AutoLock l(&m_listeners);
-
     m_listeners.clear();
   }
 
   //
   // Removes listener from class listeners list; does nothing if it is not
-  // there.  Holds the list's lock, so it may be called from any thread.
+  // there.
   //
-
   void removeListener(T listener) {
-    AutoLock l(&m_listeners);
-
     typename std::vector<T>::iterator it;
     for (it = m_listeners.begin(); it != m_listeners.end(); it++) {
       T current = *it;
@@ -87,7 +71,7 @@ public:
   } // void
 
 protected:
-  SafeVector<T> m_listeners;
+  std::vector<T> m_listeners;
 };
 
 #endif

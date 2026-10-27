@@ -423,6 +423,14 @@ public:
   //
   void postToLoop(std::function<void()> work);
 
+  //
+  // A claim on the adapter's owner, as postToLoop() takes for its work:
+  // for work that runs elsewhere and needs this object, and what is
+  // registered with it, alive until it ends. Empty once no reference is
+  // left (see postToLoop()). Any thread.
+  //
+  std::shared_ptr<void> claimOwner();
+
 private:
   //
   // Whether start() has been called. Stays true after stop(), or after the

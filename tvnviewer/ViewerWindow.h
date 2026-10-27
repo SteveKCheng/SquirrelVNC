@@ -161,6 +161,9 @@ protected:
   bool onNotify(WORD idCtrl, LPNMHDR pnmh) override;
   bool onSysCommand(WPARAM wParam, LPARAM lParam) override;
   bool onClose();
+  // WM_DESTROY: stops the connection and the file transfer's current
+  // operation, without waiting; they keep the instance alive until they
+  // have ended.
   bool onDestroy();
   bool onFocus(WPARAM wParam);
   bool onKillFocus(WPARAM wParam);

@@ -130,6 +130,7 @@
     <ClCompile Include="viewer-core\Decoder.cpp" />
     <ClCompile Include="viewer-core\DecoderOfRectangle.cpp" />
     <ClCompile Include="viewer-core\DecoderStore.cpp" />
+    <ClCompile Include="viewer-core\BlockingWorkPool.cpp" />
     <ClCompile Include="viewer-core\NetworkThread.cpp" />
     <ClCompile Include="viewer-core\QueuedOutputStream.cpp" />
     <ClCompile Include="viewer-core\DesktopSizeDecoder.cpp" />
@@ -221,6 +222,7 @@
     <ClInclude Include="viewer-core\Decoder.h" />
     <ClInclude Include="viewer-core\DecoderOfRectangle.h" />
     <ClInclude Include="viewer-core\DecoderStore.h" />
+    <ClInclude Include="viewer-core\BlockingWorkPool.h" />
     <ClInclude Include="viewer-core\NetworkThread.h" />
     <ClInclude Include="viewer-core\ClientEvents.h" />
     <ClInclude Include="viewer-core\QueuedOutputStream.h" />
@@ -254,6 +256,7 @@
     <ClInclude Include="ft-common\FolderListener.h" />
     <ClInclude Include="ft-common\FTMessage.h" />
     <ClInclude Include="ft-common\OperationNotSupportedException.h" />
+    <ClInclude Include="ft-client-lib\BlockingWorkRunner.h" />
     <ClInclude Include="ft-client-lib\CopyFileEventListener.h" />
     <ClInclude Include="ft-client-lib\CopyOperation.h" />
     <ClInclude Include="ft-client-lib\DownloadOperation.h" />
