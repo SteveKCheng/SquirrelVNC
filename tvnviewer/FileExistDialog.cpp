@@ -91,6 +91,12 @@ BOOL FileExistDialog::onInitDialog()
 
   m_fileNameLabel.setText(m_pathToFileCaption.getString());
 
+  // Closing the dialog would not say whether to skip the file or to stop
+  // the transfer, so, as in a message box with only Yes and No, the close
+  // button is disabled; Escape (IDCANCEL) does nothing either.
+  EnableMenuItem(GetSystemMenu(m_ctrlThis.getWindow(), FALSE), SC_CLOSE,
+                 MF_BYCOMMAND | MF_GRAYED);
+
   return TRUE;
 }
 

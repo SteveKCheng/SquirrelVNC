@@ -58,6 +58,10 @@ protected:
   // Inherited from BaseDialog
   //
 
+  //
+  // Post-conditions: the controls show the files set by setFilesInfo(),
+  // and the close button of the title bar is disabled.
+  //
   BOOL onInitDialog() override;
   BOOL onNotify(WORD controlID, LPARAM data) override;
   BOOL onCommand(WORD controlID, UINT notificationID) override;
