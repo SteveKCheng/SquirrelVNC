@@ -47,8 +47,6 @@
 class ConnectionListener final
 {
 public:
-  static const UINT16 DEFAULT_PORT = 5500;
-
   //
   // Starts listening on port.
   //

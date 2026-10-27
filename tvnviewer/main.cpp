@@ -25,7 +25,6 @@
 #include "log-writer/LogWriter.h"
 #include "TvnViewer.h"
 #include "ConnectionData.h"
-#include "ConnectionListener.h"
 #include "ViewerCmdLine.h"
 #include "util/ResourceLoader.h"
 
@@ -79,10 +78,12 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE,
                         WindowNames::TVN_WINDOW_CLASS_NAME);
     if (isListening) {
       // From the message loop, once the main window, to which the listener
-      // posts, exists.
+      // posts, exists. On the configured port, as the login dialog's Listen
+      // button does.
       // FIXME: set listening connection options.
-      tvnViewer.postToMessageLoop([&tvnViewer] {
-        tvnViewer.startListening(ConnectionListener::DEFAULT_PORT);
+      int listenPort = config.getListenPort();
+      tvnViewer.postToMessageLoop([&tvnViewer, listenPort] {
+        tvnViewer.startListening(listenPort);
       });
     } else if (!condata.isEmpty()) {
       tvnViewer.newConnection(condata, conConf);

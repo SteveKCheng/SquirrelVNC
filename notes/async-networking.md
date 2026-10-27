@@ -934,7 +934,9 @@ from vcpkg.
   thread, so that a port in use is reported at once, as before; only
   accepting and closing run on the network thread. `-listen` on the
   command line using the configured port, not always 5500, is a separate
-  commit.
+  commit. *Done (2026-10-27): `-listen` uses `ViewerConfig`'s listen
+  port, as the login dialog's Listen button does; the default is still
+  5500, and `ConnectionListener::DEFAULT_PORT` is gone.*
   **Done** (2026-10-27):
   - `TcpAcceptor` (`viewer-core`): an `asio::ip::tcp::acceptor` whose
     accept loop runs on the network thread and gives each connection to
