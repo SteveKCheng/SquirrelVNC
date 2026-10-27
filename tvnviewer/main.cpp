@@ -26,7 +26,6 @@
 #include "TvnViewer.h"
 #include "ConnectionData.h"
 #include "ViewerCmdLine.h"
-#include "util/ResourceLoader.h"
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE,
                        LPTSTR /* lpCmdLine */, int /* nCmdShow */)
@@ -41,8 +40,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE,
   ConnectionData condata;
   bool isListening = false;
   ViewerCmdLine cmd(&condata, &conConf, &config, &isListening);
-  // resource-loader initialization
-  ResourceLoader resourceLoader(hInstance);
   try {
     config.initLog(LogNames::LOG_DIR_NAME, LogNames::VIEWER_LOG_FILE_STUB_NAME);
   }  catch (...) {

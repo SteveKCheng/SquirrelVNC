@@ -1006,6 +1006,13 @@ from vcpkg.
     writers (the gate) and its reader (`writeLoop()`) are all on the
     network thread. The core's comment that any thread may write is
     corrected.
+  - **7e. From the table of remaining locks** (2026-10-27, Steve's
+    choices): rfb-replay's `MemoryOutputStream` and `ReplayEventsAdapter`
+    use `std::mutex` (the adapter's end-of-session `WindowsEvent` becomes
+    a `std::condition_variable`); `BlockingWorkPool` starts its thread
+    with `std::call_once` instead of a mutex; `ResourceLoader` is no
+    longer a `Singleton<T>`: `getInstance()` returns a function-local
+    static, made on first use for `GetModuleHandle(nullptr)`.
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the

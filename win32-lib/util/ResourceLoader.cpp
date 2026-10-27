@@ -31,8 +31,11 @@ ResourceLoader::ResourceLoader(HINSTANCE appInst)
 {
 }
 
-ResourceLoader::~ResourceLoader()
+ResourceLoader *ResourceLoader::getInstance()
 {
+  // C++11 makes the initialization thread-safe.
+  static ResourceLoader instance(GetModuleHandle(nullptr));
+  return &instance;
 }
 
 HICON ResourceLoader::loadIcon(const TCHAR *iconName)

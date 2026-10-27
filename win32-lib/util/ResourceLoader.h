@@ -26,25 +26,31 @@
 
 #include "winhdr.h"
 
-#include "Singleton.h"
+#include "StringStorage.h"
 
 /**
  * Loader of resources from resource files linked with application.
  *
- * Singleton without support of "lazy" initialization.
+ * One instance, of the executable's resources, made on first use.
+ *
+ * Threads: getInstance() may be called from any thread; the loading
+ * functions too, as they only call the system's.
  */
-class ResourceLoader final : public Singleton<ResourceLoader>
+class ResourceLoader final
 {
 public:
+  ResourceLoader(const ResourceLoader &) = delete;
+  ResourceLoader &operator=(const ResourceLoader &) = delete;
+  ResourceLoader(ResourceLoader &&) = delete;
+  ResourceLoader &operator=(ResourceLoader &&) = delete;
+
   /**
-   * Initializes resource loader singleton.
-   * @param appInst windwos application instance.
+   * The instance for the executable's module (GetModuleHandle(nullptr)),
+   * made on the first call, and destroyed at exit.
+   *
+   * Post-conditions: never returns nullptr.
    */
-  ResourceLoader(HINSTANCE appInst);
-  /**
-   * Frees resource loader singleton.
-   */
-  ~ResourceLoader() override;
+  static ResourceLoader *getInstance();
 
   /**
    * Loads icon from resources.
@@ -81,7 +87,12 @@ public:
    */
   HCURSOR loadCursor(WORD id);
 
-protected:
+private:
+  /**
+   * @param appInst windwos application instance.
+   */
+  ResourceLoader(HINSTANCE appInst);
+
   /**
    * Application instance.
    */
