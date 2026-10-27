@@ -94,6 +94,7 @@ ViewerWindow::~ViewerWindow()
 void ViewerWindow::setFileTransfer(FileTransferCapability *ft)
 {
   m_fileTransfer = ft;
+  m_fileTransfer->setInterface(&m_ftEvents.getInterface());
   m_coreEvents.setFileTransfer(ft);
 }
 
@@ -806,15 +807,13 @@ void ViewerWindow::showFileTransferDialog()
     // FIXME: FT check it
     if (m_ftDialog) {
       if (!m_ftDialog->isCreated()) {
-        _ASSERT(m_fileTransfer != 0);
-        m_fileTransfer->setInterface(nullptr);
         m_ftDialog.reset();
       }
     }
     if (!m_ftDialog) {
       _ASSERT(m_fileTransfer != 0);
-      m_ftDialog = std::make_unique<FileTransferMainDialog>(m_fileTransfer->getCore());
-      m_fileTransfer->setInterface(m_ftDialog.get());
+      m_ftDialog = std::make_unique<FileTransferMainDialog>(m_fileTransfer->getCore(),
+                                                            m_ftEvents);
     }
     m_ftDialog->show();
     HWND dialogWnd = m_ftDialog->getControl()->getWindow();

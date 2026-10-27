@@ -815,6 +815,50 @@ from vcpkg.
   the network thread. It becomes "decode into the DIB", after the fixes
   in `cpu-usage.md`, "What to do". Until then step 7 keeps
   `WindowsEvent`, which the notifier uses.
+- **Step 5, file transfer on the loop** (agreed with Steve, 2026-10-26).
+  Today the dialog calls `FileTransferCore` on the GUI thread (starting
+  operations, so their first request is sent from there), the reply
+  handlers call the dialog on the network thread (`setProgress()` and the
+  log by cross-thread `SendMessage`; "target file exists" shows its modal
+  dialog *on the network thread*, stalling every connection), the local
+  delete runs on a `Thread` nobody waits for, and `m_isTerminating` and
+  `m_state` are shared without synchronization. A connection that drops
+  leaves the dialog busy for ever. The design: all file-transfer state
+  belongs to the network thread; the dialog posts commands to it and gets
+  posted events back.
+  - **5a. Events posted to the dialog.** `FileTransferEvents`, the
+    pattern of `ViewerCoreEvents`: a member of `ViewerWindow`, given to
+    the file transfer once as its `FileTransferInterface` (no more
+    swapping it on the GUI thread while the network thread calls it). It
+    keeps progress (the latest only) and log messages under its lock and
+    posts `WM_FT_*` to the dialog, which attaches at `WM_INITDIALOG` and
+    detaches at `WM_DESTROY`. `PostMessage` to the dialog rather than
+    `postToMessageLoop()` (Steve): a posted message is also dispatched
+    inside modal loops (the "file exists" dialog, message boxes), so
+    progress keeps showing, whereas work at the top of the loop would
+    wait for them to close. Interim: the calls the core makes on the GUI
+    thread are passed straight on, and "target file exists" still runs
+    on the network thread. **Done** (2026-10-27).
+  - **5b. Commands posted to the loop**, through a public
+    `RemoteViewerCore::postToLoop()` holding a claim on the instance, so
+    `FileTransferCore` is touched on one thread only; the dialog keeps its
+    own "busy" state and supported operations. When the connection ends,
+    the current operation is aborted and the dialog told.
+  - **5c. "Target file exists" as a request**: the operation records
+    where it stopped, the question is posted to the dialog, and the
+    answer is posted back to the loop (`onTargetFileExistsAnswer()`), a
+    callback continuation rather than rewriting the operations as
+    coroutines (Steve). Also fixes the "cancel" answer, which today
+    returns without sending anything, so no reply comes and the
+    operation never finishes.
+  - **5d. The local delete on a pool for blocking work**, an
+    `asio::thread_pool` of one thread owned by `TvnViewer`, created on
+    first use (Steve: its threads start in its constructor) and kept;
+    the delete holds a claim on the instance and stops on an atomic flag,
+    so nothing is joined but the pool at exit. Then the file-transfer
+    locks go.
+  - Left on the network thread: reading and writing the local file chunk
+    by chunk, and the upload's walk to total its size.
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the

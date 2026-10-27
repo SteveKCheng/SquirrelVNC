@@ -23,11 +23,6 @@
 
 #include "FileTransferInterface.h"
 
-FileTransferInterface::FileTransferInterface(FileTransferCore *core)
-: m_ftCore(core)
-{
-}
-
 FileTransferInterface::~FileTransferInterface()
 {
 }

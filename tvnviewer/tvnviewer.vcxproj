@@ -109,6 +109,7 @@
     <ClCompile Include="FileExistDialog.cpp" />
     <ClCompile Include="FileInfoListView.cpp" />
     <ClCompile Include="FileRenameDialog.cpp" />
+    <ClCompile Include="FileTransferEvents.cpp" />
     <ClCompile Include="FileTransferMainDialog.cpp" />
     <ClCompile Include="FsWarningDialog.cpp" />
     <ClCompile Include="HelpDialog.cpp" />
@@ -139,6 +140,7 @@
     <ClInclude Include="FileExistDialog.h" />
     <ClInclude Include="FileInfoListView.h" />
     <ClInclude Include="FileRenameDialog.h" />
+    <ClInclude Include="FileTransferEvents.h" />
     <ClInclude Include="FileTransferMainDialog.h" />
     <ClInclude Include="FsWarningDialog.h" />
     <ClInclude Include="HelpDialog.h" />

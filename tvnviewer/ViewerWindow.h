@@ -26,6 +26,7 @@
 
 #include "ConnectionData.h"
 #include "DesktopWindow.h"
+#include "FileTransferEvents.h"
 #include "FileTransferMainDialog.h"
 #include "NamingDefs.h"
 #include "OptionsDialog.h"
@@ -53,6 +54,12 @@ public:
                Logger *logger = nullptr);
   ~ViewerWindow() override;
 
+  //
+  // Pre-conditions: GUI thread, before the connection starts; called once;
+  // ft outlives this window.
+  // Post-conditions: ft reports to this window's FileTransferEvents, and
+  // is set up when the connection is (ViewerCoreEvents::onConnected()).
+  //
   void setFileTransfer(FileTransferCapability *ft);
   void setRemoteViewerCore(RemoteViewerCore *pCore);
 
@@ -191,6 +198,9 @@ protected:
   WindowsApplication *m_application;
   RemoteViewerCore *m_viewerCore;
   FileTransferCapability *m_fileTransfer;
+  // The file transfer's interface, for the life of the window; the dialog
+  // attaches to it while it exists.
+  FileTransferEvents m_ftEvents;
   std::unique_ptr<FileTransferMainDialog> m_ftDialog;
   DesktopWindow m_dsktWnd;
   // Called by the connection; posts to this window (getCoreEvents()).
@@ -241,6 +251,13 @@ private:
   void doFullScr();
   void doUnFullScr();
   void doSize();
+  //
+  // Shows the file-transfer dialog if the toolbar button is down, creating
+  // it anew if its window was closed. The dialog uses m_ftEvents, which
+  // outlives it.
+  //
+  // Pre-conditions: setFileTransfer() has been called.
+  //
   void showFileTransferDialog();
   void showWindow();
   void enableUserElements();

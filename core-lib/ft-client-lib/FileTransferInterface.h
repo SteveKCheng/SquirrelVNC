@@ -28,31 +28,55 @@
 
 class FileTransferCore;
 
+//
+// What the file transfer reports to its user interface. FileTransferCore
+// calls it from the operations, on the network thread (and a local delete's
+// own thread), and from the calls the dialog makes into the core, on the GUI
+// thread; each function says which.
+//
 class FileTransferInterface
 {
 public:
-  FileTransferInterface(FileTransferCore *core);
   virtual ~FileTransferInterface();
 
+  //
+  // From an operation, on the network thread: what to do with a target
+  // file that exists already. Returns one of CopyFileEventListener's TFE_*
+  // values.
+  //
   virtual int onFtTargetFileExists(FileInfo *sourceFileInfo,
                                    FileInfo *targetFileInfo,
                                    const TCHAR *pathToTargetFile) = 0;
+  //
+  // From an operation, on the network thread.
   // Progress is in interval [0.0, 1.0].
+  //
   virtual void setProgress(double progress) = 0;
 
   //
   // This function inform user about error.
-  // This function must be is not blocking, otherwise it may happen deadlock.
+  // From an operation, on any thread; it must not block.
   //
   virtual void onFtOpError(const TCHAR *message) = 0;
 
   //
   // This function inform user additional information.
-  // This function must be is not blocking, otherwise it may happen deadlock.
+  // From an operation, on any thread; it must not block.
   //
   virtual void onFtOpInfo(const TCHAR *message) = 0;
+
+  //
+  // From an operation, on any thread, when it starts and when it finishes
+  // (state is FileTransferCore's, result is 1 for a successful file list,
+  // otherwise 0). They must not block.
+  //
   virtual void onFtOpStarted() = 0;
   virtual void onFtOpFinished(int state, int result) = 0;
+
+  //
+  // The rest are called on the GUI thread, from FileTransferCore functions
+  // that the dialog calls.
+  //
 
   //
   // filetransfer's operation is finished. Need update of control
@@ -77,8 +101,6 @@ public:
 
   virtual void raise(const Exception &ex) = 0;
 
-protected:
-  FileTransferCore *m_ftCore;
 };
 
 #endif

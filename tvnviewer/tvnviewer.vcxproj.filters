@@ -36,6 +36,9 @@
     <ClCompile Include="FileRenameDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FileTransferEvents.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="FileTransferMainDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -120,6 +123,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FileRenameDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileTransferEvents.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FileTransferMainDialog.h">

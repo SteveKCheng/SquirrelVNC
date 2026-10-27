@@ -33,8 +33,10 @@
 #include "res/resource.h"
 #include <stdio.h>
 
-FileTransferMainDialog::FileTransferMainDialog(FileTransferCore *core)
-: FileTransferInterface(core),
+FileTransferMainDialog::FileTransferMainDialog(FileTransferCore *core,
+                                               FileTransferEvents &events)
+: m_ftCore(core),
+  m_events(events),
   m_fakeMoveUpFolder(0, 0, FileInfo::DIRECTORY, _T(".."))
 {
   setResourceId(ftclient_mainDialog);
@@ -79,6 +81,9 @@ int FileTransferMainDialog::onFtTargetFileExists(FileInfo *sourceFileInfo,
 
 BOOL FileTransferMainDialog::onInitDialog()
 {
+  // Before any operation is started below.
+  m_events.attach(*this, m_ctrlThis.getWindow());
+
   m_isClosing = false;
 
   initControls();
@@ -196,13 +201,27 @@ BOOL FileTransferMainDialog::onCommand(WORD controlID, UINT /* notificationID */
 
 BOOL FileTransferMainDialog::onDestroy()
 {
+  m_events.detach();
   return TRUE;
 }
 
 void FileTransferMainDialog::onMessageReceived(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   switch (uMsg) {
-  case WM_OPERATION_FINISHED:
+  case FileTransferEvents::WM_FT_STARTED:
+    enableControls(false);
+    break;
+  case FileTransferEvents::WM_FT_PROGRESS:
+    if (std::optional<double> progress = m_events.takeProgress()) {
+      setProgress(*progress);
+    }
+    break;
+  case FileTransferEvents::WM_FT_MESSAGES:
+    for (const StringStorage &message : m_events.takeMessages()) {
+      insertMessageIntoComboBox(message.getString());
+    }
+    break;
+  case FileTransferEvents::WM_FT_FINISHED:
     m_ftCore->onOperationFinished();
 
     if (!m_isClosing) {
@@ -904,26 +923,6 @@ void FileTransferMainDialog::setNothingState()
   if (!isRoot) {
     m_remoteFileListView.addItem(0, &m_fakeMoveUpFolder);
   }
-}
-
-void FileTransferMainDialog::onFtOpError(const TCHAR *message)
-{
-  insertMessageIntoComboBox(message);
-}
-
-void FileTransferMainDialog::onFtOpInfo(const TCHAR *message)
-{
-  insertMessageIntoComboBox(message);
-}
-
-void FileTransferMainDialog::onFtOpStarted()
-{
-  enableControls(false);
-}
-
-void FileTransferMainDialog::onFtOpFinished(int state, int result)
-{
-  PostMessage(m_ctrlThis.getWindow(), WM_OPERATION_FINISHED, state, result);
 }
 
 void FileTransferMainDialog::onRefreshLocalFileList()

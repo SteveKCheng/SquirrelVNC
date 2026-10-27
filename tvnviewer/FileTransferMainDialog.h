@@ -36,16 +36,25 @@
 
 #include "FileInfoListView.h"
 #include "FileExistDialog.h"
+#include "FileTransferEvents.h"
 #include "thread/Thread.h"
-#include "ft-client-lib/FileTransferInterface.h"
+#include "ft-client-lib/FileTransferCore.h"
 
 #include <vector>
 
-class FileTransferMainDialog final : public BaseDialog,
-                               public FileTransferInterface
+//
+// The file-transfer dialog, modeless. The operations it starts report to
+// it through events (FileTransferEvents), which post messages to its
+// window; it handles them on the GUI thread.
+//
+class FileTransferMainDialog final : public BaseDialog
 {
 public:
-  FileTransferMainDialog(FileTransferCore *core);
+  //
+  // Pre-conditions: core and events outlive this dialog; events is the
+  // interface core reports to (FileTransferCapability::setInterface()).
+  //
+  FileTransferMainDialog(FileTransferCore *core, FileTransferEvents &events);
   ~FileTransferMainDialog() override;
 
   //
@@ -55,36 +64,38 @@ public:
   bool tryClose();
 
   //
-  // Inherited from FtInterface
+  // For FileTransferEvents, which passes on the events of
+  // FileTransferInterface of the same names that are not posted.
+  //
+  // onFtTargetFileExists() is called on the network thread, and shows a
+  // modal dialog there: an interim, until the question is posted
+  // (notes/async-networking.md, Phase 4 step 5c). The others are called on
+  // the GUI thread.
   //
   int onFtTargetFileExists(FileInfo *sourceFileInfo,
                            FileInfo *targetFileInfo,
-                           const TCHAR *pathToTargetFile) override;
-  void setProgress(double progress) override;
-
-  void onFtOpError(const TCHAR *message) override;
-  void onFtOpInfo(const TCHAR *message) override;
-  void onFtOpStarted() override;
-  void onFtOpFinished(int state, int result) override;
+                           const TCHAR *pathToTargetFile);
 
   //
   // filetransfer's operation is finished. Need update of control
   //
-  void setNothingState() override;
+  void setNothingState();
 
   //
   // Called if local file list is updated
   //
-  void onRefreshLocalFileList() override;
+  void onRefreshLocalFileList();
 
   // Called if remote file list is updated
-  void onRefreshRemoteFileList() override;
+  void onRefreshRemoteFileList();
 
   //
   // Shows error message and throws exception
   //
-
-  void raise(const Exception &ex) override;
+  // Pre-conditions: called in a handler that caught ex.
+  // Post-conditions: throws: ex itself is rethrown.
+  //
+  void raise(const Exception &ex);
 
 protected:
 
@@ -92,11 +103,20 @@ protected:
   // Inherited from BaseDialog
   //
 
+  //
+  // onInitDialog() attaches the dialog to its events before it starts the
+  // first file list; onDestroy() detaches it, so nothing more is posted to
+  // the window.
+  //
   BOOL onInitDialog() override;
   BOOL onNotify(WORD controlID, LPARAM data) override;
   BOOL onCommand(WORD controlID, UINT notificationID) override;
   BOOL onDestroy() override;
 
+  //
+  // Handles the messages FileTransferEvents posts, taking what it keeps
+  // for them.
+  //
   void onMessageReceived(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 
   //
@@ -147,6 +167,11 @@ protected:
   void insertMessageIntoComboBox(const TCHAR *message);
 
 private:
+
+  //
+  // Sets the progress bar; progress is in [0.0, 1.0].
+  //
+  void setProgress(double progress);
 
   //
   // Post-conditions: returns copies of the file info of the items
@@ -210,6 +235,10 @@ private:
   void getPathToSelectedRemoteFile(StringStorage *out);
 
 protected:
+  FileTransferCore *m_ftCore;
+  // Attached while the dialog's window exists.
+  FileTransferEvents &m_events;
+
   //
   // True if window state is closing.
   //
@@ -277,10 +306,6 @@ protected:
   //
 
   FileInfo m_fakeMoveUpFolder;
-
-private:
-
-  static const UINT WM_OPERATION_FINISHED = WM_USER + 2;
 };
 
 #endif
