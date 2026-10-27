@@ -54,9 +54,6 @@
     <ClCompile Include="network\RfbOutputGate.cpp">
       <Filter>network</Filter>
     </ClCompile>
-    <ClCompile Include="network\TcpServer.cpp">
-      <Filter>network</Filter>
-    </ClCompile>
     <ClCompile Include="network\socket\SocketAddressIPv4.cpp">
       <Filter>network\socket</Filter>
     </ClCompile>
@@ -321,9 +318,6 @@
       <Filter>network</Filter>
     </ClInclude>
     <ClInclude Include="network\RfbOutputGate.h">
-      <Filter>network</Filter>
-    </ClInclude>
-    <ClInclude Include="network\TcpServer.h">
       <Filter>network</Filter>
     </ClInclude>
     <ClInclude Include="network\socket\sockdefs.h">

@@ -25,11 +25,13 @@
 #define __VIEWER_INSTANCE_H__
 
 #include "ViewerWindow.h"
-#include "network/socket/SocketIPv4.h"
 
 #include "ViewerVncAuthHandler.h"
 
+#include <asio/ip/tcp.hpp>
+
 #include <memory>
+#include <optional>
 
 //
 // A viewer window and its connection. Owned by std::shared_ptr
@@ -54,13 +56,15 @@ public:
                  const ConnectionData &condata,
                  const ConnectionConfig &conConf);
 
-  // creates the viewer instance if we have the socket
+  // As above, for a connection accepted in listening mode
+  // (ConnectionListener), which start() gives to the core.
+  // Pre-conditions: socket belongs to executor.
   ViewerInstance(WindowsApplication *application,
                  asio::any_io_executor executor,
                  BlockingWorkPool &blockingWorkPool,
                  const ConnectionData &condata,
                  const ConnectionConfig &conConf,
-                 std::unique_ptr<SocketIPv4> socket);
+                 asio::ip::tcp::socket socket);
 
   ViewerInstance(const ViewerInstance &) = delete;
   ViewerInstance &operator=(const ViewerInstance &) = delete;
@@ -104,9 +108,9 @@ public:
 protected:
   ConnectionData m_condata;
   ConnectionConfig m_conConf;
-  // The connection accepted when listening, or empty. Declared before the
-  // core, which uses it, so that it outlives the core.
-  std::unique_ptr<SocketIPv4> m_socket;
+  // The connection accepted when listening, until start() gives it to the
+  // core; empty otherwise.
+  std::optional<asio::ip::tcp::socket> m_socket;
 
   ViewerWindow m_viewerWnd;
   RemoteViewerCore m_viewerCore;

@@ -34,6 +34,7 @@
 #include "util/TextEncoding.h"
 #include "network/HostResolver.h"
 #include "network/socket/SocketException.h"
+#include "network/socket/SocketIPv4.h"
 
 #include "AuthHandler.h"
 #include "RichCursorDecoder.h"
@@ -107,7 +108,6 @@ static IOException makeReadException(const std::error_code &error)
 RemoteViewerCore::RemoteViewerCore(asio::any_io_executor executor, Logger *logger)
 : m_logWriter(logger),
   m_port(0),
-  m_acceptedSocket(INVALID_SOCKET),
   m_executor(std::move(executor)),
   m_isStopping(false),
   m_isFinished(false),
@@ -165,10 +165,8 @@ RemoteViewerCore::~RemoteViewerCore()
     m_fbUpdateNotifier.wait();
   } catch (...) {
   }
-  // Taken over, but never driven: start() failed.
-  if (m_acceptedSocket != INVALID_SOCKET) {
-    closesocket(m_acceptedSocket);
-  }
+  // A socket given to a start() that failed is closed with
+  // m_acceptedSocket.
 }
 
 void RemoteViewerCore::start(std::shared_ptr<CoreEventsAdapter> adapter,
@@ -224,11 +222,12 @@ void RemoteViewerCore::start(const TCHAR *host,
   m_port = port;
   start(std::move(adapter), sharedFlag);
 }
-void RemoteViewerCore::start(SocketIPv4 *socket,
+void RemoteViewerCore::start(asio::ip::tcp::socket socket,
                              std::shared_ptr<CoreEventsAdapter> adapter,
                              bool sharedFlag)
 {
-  m_acceptedSocket = socket->release();
+  assert(socket.is_open());
+  m_acceptedSocket.emplace(std::move(socket));
   start(std::move(adapter), sharedFlag);
 }
 
@@ -979,16 +978,11 @@ asio::awaitable<void> RemoteViewerCore::connect()
     throw SocketException(error.value());
   };
 
-  m_socket.emplace(m_executor);
-  if (m_acceptedSocket != INVALID_SOCKET) {
-    SOCKET socket = std::exchange(m_acceptedSocket, INVALID_SOCKET);
-    std::error_code error;
-    m_socket->assign(asio::ip::tcp::v4(), socket, error);
-    if (error) {
-      closesocket(socket);
-      throwConnectError(error);
-    }
+  if (m_acceptedSocket) {
+    m_socket.emplace(std::move(*m_acceptedSocket));
+    m_acceptedSocket.reset();
   } else {
+    m_socket.emplace(m_executor);
     auto [resolveError, endpoints] =
       co_await asyncResolve(m_executor, m_host, m_port, asio::as_tuple(asio::use_awaitable));
     if (resolveError) {

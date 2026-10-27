@@ -71,6 +71,7 @@ int wmain()
     runBufferedInputStreamTests();
     runNetworkThreadTests();
     runHostResolverTests();
+    runTcpAcceptorTests();
     runClientEventsTests();
   } catch (const Exception &e) {
     printf("FAIL unexpected exception: %ls\n", e.getMessage());

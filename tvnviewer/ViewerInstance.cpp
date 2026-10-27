@@ -48,10 +48,10 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
                                BlockingWorkPool &blockingWorkPool,
                                const ConnectionData &condata,
                                const ConnectionConfig &conConf,
-                               std::unique_ptr<SocketIPv4> socket)
+                               asio::ip::tcp::socket socket)
 : m_conConf(conConf),
   m_condata(condata),
-  m_socket(std::move(socket)),
+  m_socket(std::in_place, std::move(socket)),
   m_viewerWnd(application,
               &m_condata,
               &m_conConf,
@@ -65,7 +65,6 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
 
 ViewerInstance::~ViewerInstance()
 {
-  // An accepted socket belongs to the core since start().
   m_viewerWnd.destroy();
 }
 
@@ -95,7 +94,9 @@ void ViewerInstance::start()
   std::shared_ptr<ViewerInstance> self = shared_from_this();
   std::shared_ptr<CoreEventsAdapter> adapter = m_viewerWnd.getCoreEvents().getAdapter(self);
   if (m_socket) {
-    m_viewerCore.start(m_socket.get(),
+    asio::ip::tcp::socket socket = std::move(*m_socket);
+    m_socket.reset();
+    m_viewerCore.start(std::move(socket),
                        std::move(adapter), m_conConf.getSharedFlag());
   } else {
     StringStorage strHost;

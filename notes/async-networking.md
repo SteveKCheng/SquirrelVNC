@@ -643,8 +643,9 @@ The risky part, split up:
      from Phase 1 step 6 posts typed events to the loop, which encodes
      them into the connection's one output buffer, alongside the core's
      own messages; a single writer drains it.
-   - Listening mode keeps `TcpServer` for now:
-     `asio::ip::tcp::socket::assign()` takes over its native `SOCKET`.
+   - ~~Listening mode keeps `TcpServer` for now:
+     `asio::ip::tcp::socket::assign()` takes over its native `SOCKET`.~~
+     *Until step 6, which replaced `TcpServer` with an Asio acceptor.*
    - `RemoteViewerCore` stops being a `Thread`. `stop()` posts a
      cancellation to the loop~~, and `waitTermination()` waits for the
      connection's coroutine to finish~~. *Superseded:* the viewer
@@ -710,6 +711,7 @@ from vcpkg.
   `rfb-replay --tcp` runs every case through a real socket
   (`testing.md`). Not yet tried in the GUI: listening mode, which takes
   over the accepted socket (`SocketIPv4::release()`); deferred by Steve.
+  *Step 6 replaced that path.*
 - **2c. Ownership.** The viewer instance is shared by the GUI side and
   the driver (`std::shared_ptr`; see "Ownership by `std::shared_ptr`"
   below), so closing a window no longer waits for its connection.
@@ -927,6 +929,40 @@ from vcpkg.
       for step 7.
   - Left on the network thread: reading and writing the local file chunk
     by chunk, and the upload's walk to total its size.
+- **Step 6, listening mode on an Asio acceptor** (agreed with Steve,
+  2026-10-27): the socket is opened, bound and set to listen on the GUI
+  thread, so that a port in use is reported at once, as before; only
+  accepting and closing run on the network thread. `-listen` on the
+  command line using the configured port, not always 5500, is a separate
+  commit.
+  **Done** (2026-10-27):
+  - `TcpAcceptor` (`viewer-core`): an `asio::ip::tcp::acceptor` whose
+    accept loop runs on the network thread and gives each connection to
+    a handler its creator supplies. `stop()` posts the closing and does
+    not wait; once the closing has run, the handler is not called again,
+    even for a connection accepted just before it. Neither `SO_REUSEADDR`
+    (which Asio's acceptor constructor would set, letting another socket
+    bind the same port on Windows) nor `SO_EXCLUSIVEADDRUSE` (with which
+    binding the port again would fail while earlier sessions are open).
+    A client that gives up before the accept is skipped; another error is
+    logged and the accept retried after a second, where `TcpServer`'s
+    thread silently ended, leaving the tray icon up with nothing
+    listening. Unit tests on the loopback address.
+  - `ConnectionListener` owns one; its handler queues the socket in an
+    inbox shared with it (so the GUI may destroy the listener at any
+    time) and posts `WM_USER_NEW_LISTENING`, as before. Connections are
+    taken in the order accepted; `TcpServer`'s list gave the newest
+    first.
+  - `RemoteViewerCore::start()` and `ViewerInstance` take the
+    `asio::ip::tcp::socket` itself; the raw `SOCKET`, `assign()` and
+    `SocketIPv4` are gone from them. `TcpServer` is deleted.
+  - `-listen` starts listening from the message loop
+    (`postToMessageLoop()`), once the main window the listener posts to
+    exists. It was started before `run()` created the window, and the
+    listener's thread read the handle unsynchronized: a connection
+    accepted in between was posted with a null handle, to the listener
+    thread's own queue, where nothing read it, and waited in the list
+    for the next connection's message.
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the

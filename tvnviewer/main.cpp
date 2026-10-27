@@ -78,8 +78,12 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE,
                         ApplicationNames::WINDOW_CLASS_NAME,
                         WindowNames::TVN_WINDOW_CLASS_NAME);
     if (isListening) {
+      // From the message loop, once the main window, to which the listener
+      // posts, exists.
       // FIXME: set listening connection options.
-      tvnViewer.startListening(ConnectionListener::DEFAULT_PORT);
+      tvnViewer.postToMessageLoop([&tvnViewer] {
+        tvnViewer.startListening(ConnectionListener::DEFAULT_PORT);
+      });
     } else if (!condata.isEmpty()) {
       tvnViewer.newConnection(condata, conConf);
     } else {

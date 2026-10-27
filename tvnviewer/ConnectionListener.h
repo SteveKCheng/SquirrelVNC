@@ -24,33 +24,76 @@
 #ifndef __CONNECTION_LISTENER_H__
 #define __CONNECTION_LISTENER_H__
 
-#include "ViewerInstance.h"
-#include "network/TcpServer.h"
-#include "thread/LocalMutex.h"
+#include "viewer-core/TcpAcceptor.h"
+#include "win-system/WindowsApplication.h"
 
-class ConnectionListener final : protected TcpServer
+#include <asio/any_io_executor.hpp>
+#include <asio/ip/tcp.hpp>
+
+#include <deque>
+#include <memory>
+#include <mutex>
+#include <optional>
+
+//
+// Listening mode: accepts connections from servers on a port, on every
+// IPv4 address, on the network thread (TcpAcceptor), and hands them to the
+// GUI thread. Each connection is queued here, in the order accepted, and
+// TvnViewer::WM_USER_NEW_LISTENING is posted to the application, whose
+// handler takes them (getNewConnection()).
+//
+// Threads: GUI thread; only the queueing runs on the network thread.
+//
+class ConnectionListener final
 {
 public:
-  static const TCHAR DEFAULT_HOST[];
   static const UINT16 DEFAULT_PORT = 5500;
 
-  // HWND mainWindow is handle of main window of program.
-  // this window received and processing messages "WM_USER_NEW_LISTENING"
-  ConnectionListener(WindowsApplication *application, UINT16 port = DEFAULT_PORT);
+  //
+  // Starts listening on port.
+  //
+  // Pre-conditions: application's main window exists (WindowsApplication::
+  // run() creates it), and application stays valid until the network
+  // thread has run this object's stopping (TcpAcceptor::stop()): it owns
+  // the NetworkThread of executor, which is joined after this object is
+  // destroyed (TvnViewer).
+  // Throws SocketException if the port cannot be bound.
+  //
+  ConnectionListener(WindowsApplication *application,
+                     asio::any_io_executor executor,
+                     UINT16 port);
 
-  ~ConnectionListener() override;
+  //
+  // Stops listening, without waiting (TcpAcceptor::stop()). The
+  // connections not taken are closed once the network thread has let go
+  // of the queue.
+  //
+  ~ConnectionListener() = default;
 
-  // this method return pointer to new listening connection, if him is exist, and 0 if isn't
-  // Post-conditions: the connection returned is given to the caller.
-  std::unique_ptr<SocketIPv4> getNewConnection();
+  ConnectionListener(const ConnectionListener &) = delete;
+  ConnectionListener &operator=(const ConnectionListener &) = delete;
+
+  //
+  // Takes the oldest connection accepted and not yet taken, or returns
+  // nothing if there is none.
+  // Post-conditions: the connection returned is the caller's; its socket
+  // belongs to the network thread's executor.
+  //
+  std::optional<asio::ip::tcp::socket> getNewConnection();
 
   UINT16 getBindPort() const;
-protected:
-  void onAcceptConnection(std::unique_ptr<SocketIPv4> socket) override;
 
-  WindowsApplication *m_application;
-  std::list<std::unique_ptr<SocketIPv4> > m_connections;
-  LocalMutex m_connectionsLock;
+private:
+  // Shared with the acceptor's handler, which may queue into it until the
+  // stopping has run.
+  struct Inbox
+  {
+    std::mutex lock;
+    std::deque<asio::ip::tcp::socket> connections;
+  };
+
+  std::shared_ptr<Inbox> m_inbox;
+  TcpAcceptor m_acceptor;
 };
 
 #endif

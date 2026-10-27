@@ -101,6 +101,7 @@
     <ClCompile Include="HostResolverTests.cpp" />
     <ClCompile Include="IniTests.cpp" />
     <ClCompile Include="NetworkThreadTests.cpp" />
+    <ClCompile Include="TcpAcceptorTests.cpp" />
     <ClCompile Include="ScopeExitTests.cpp" />
     <ClCompile Include="SocketTests.cpp" />
     <ClCompile Include="TaskTests.cpp" />

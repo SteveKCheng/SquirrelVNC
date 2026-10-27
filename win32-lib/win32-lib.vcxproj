@@ -108,7 +108,6 @@
     <ClCompile Include="network\HostResolver.cpp" />
     <ClCompile Include="network\RfbInputGate.cpp" />
     <ClCompile Include="network\RfbOutputGate.cpp" />
-    <ClCompile Include="network\TcpServer.cpp" />
     <ClCompile Include="network\socket\SocketAddressIPv4.cpp" />
     <ClCompile Include="network\socket\SocketException.cpp" />
     <ClCompile Include="network\socket\SocketIPv4.cpp" />
@@ -199,7 +198,6 @@
     <ClInclude Include="network\HostResolver.h" />
     <ClInclude Include="network\RfbInputGate.h" />
     <ClInclude Include="network\RfbOutputGate.h" />
-    <ClInclude Include="network\TcpServer.h" />
     <ClInclude Include="network\socket\sockdefs.h" />
     <ClInclude Include="network\socket\SocketAddressIPv4.h" />
     <ClInclude Include="network\socket\SocketException.h" />

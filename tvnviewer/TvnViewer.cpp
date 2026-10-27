@@ -27,6 +27,7 @@
 #include "res/resource.h"
 
 #include <memory>
+#include <optional>
 
 TvnViewer::TvnViewer(HINSTANCE appInstance, const TCHAR *windowClassName,
                      const TCHAR *viewerWindowClassName)
@@ -73,7 +74,9 @@ void TvnViewer::startListeningServer(const int listeningPort)
     if (m_conListener) {
       throw Exception(_T("Listening Server already started"));
     }
-    m_conListener = std::make_unique<ConnectionListener>(this, static_cast<UINT16>(listeningPort));
+    m_conListener = std::make_unique<ConnectionListener>(this,
+                                                         m_networkThread.getExecutor(),
+                                                         static_cast<UINT16>(listeningPort));
   } catch (const Exception &ex) {
     m_isListening = false;
     m_logWriter.error(_T("Error in start listening: %s"), ex.getMessage());
@@ -281,7 +284,7 @@ void TvnViewer::newListeningConnection()
   connectionConfig.loadFromStorage(ccsm);
 
   if (m_conListener) {
-    std::unique_ptr<SocketIPv4> socket = m_conListener->getNewConnection();
+    std::optional<asio::ip::tcp::socket> socket = m_conListener->getNewConnection();
     while (socket) {
       std::shared_ptr<ViewerInstance> viewerInst =
         m_instances.addInstance(std::make_unique<ViewerInstance>(this,
@@ -289,7 +292,7 @@ void TvnViewer::newListeningConnection()
                                                                  m_blockingWorkPool,
                                                                  connectionData,
                                                                  connectionConfig,
-                                                                 std::move(socket)));
+                                                                 std::move(*socket)));
       viewerInst->start();
 
       socket = m_conListener->getNewConnection();

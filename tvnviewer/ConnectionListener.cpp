@@ -24,45 +24,39 @@
 #include "ConnectionListener.h"
 #include "TvnViewer.h"
 
-#include "thread/AutoLock.h"
+#include "client-config-lib/ViewerConfig.h"
 
-const TCHAR ConnectionListener::DEFAULT_HOST[] = _T("0.0.0.0");
+#include <utility>
 
 ConnectionListener::ConnectionListener(WindowsApplication *application,
+                                       asio::any_io_executor executor,
                                        UINT16 port)
-: TcpServer(DEFAULT_HOST, port),
-  m_application(application)
+: m_inbox(std::make_shared<Inbox>()),
+  m_acceptor(executor,
+             asio::ip::tcp::endpoint(asio::ip::address_v4::any(), port),
+             [application, inbox = m_inbox](asio::ip::tcp::socket socket) {
+               {
+                 std::lock_guard<std::mutex> lock(inbox->lock);
+                 inbox->connections.push_back(std::move(socket));
+               }
+               application->postMessage(TvnViewer::WM_USER_NEW_LISTENING);
+             },
+             ViewerConfig::getInstance()->getLogger())
 {
-  // Only now that the members exist, which onAcceptConnection() uses.
-  start();
-}
-
-ConnectionListener::~ConnectionListener() 
-{
-  // Before the members that onAcceptConnection() uses are destroyed.
-  // The connections not taken are closed with m_connections.
-  stop();
 }
 
 UINT16 ConnectionListener::getBindPort() const
 {
-  return TcpServer::getBindPort();
+  return m_acceptor.getPort();
 }
 
-void ConnectionListener::onAcceptConnection(std::unique_ptr<SocketIPv4> socket)
+std::optional<asio::ip::tcp::socket> ConnectionListener::getNewConnection()
 {
-  AutoLock al(&m_connectionsLock);
-  m_connections.push_front(std::move(socket));
-  m_application->postMessage(TvnViewer::WM_USER_NEW_LISTENING);
-}
-
-std::unique_ptr<SocketIPv4> ConnectionListener::getNewConnection()
-{
-  AutoLock al(&m_connectionsLock);
-  std::unique_ptr<SocketIPv4> socket;
-  if (!m_connections.empty()) {
-    socket = std::move(m_connections.front());
-    m_connections.pop_front();
+  std::lock_guard<std::mutex> lock(m_inbox->lock);
+  std::optional<asio::ip::tcp::socket> socket;
+  if (!m_inbox->connections.empty()) {
+    socket.emplace(std::move(m_inbox->connections.front()));
+    m_inbox->connections.pop_front();
   }
   return socket;
 }

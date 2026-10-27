@@ -24,12 +24,14 @@ Four layers are IPv4-only, so changing the lookup alone would not help:
    `ai_family = AF_INET`.
 3. **Sockets** (`SocketIPv4`): always `AF_INET`. `connect()` and `bind()`
    take a `SocketAddressIPv4`, which wraps a `sockaddr_in`.
-4. **Listening mode** (`TcpServer`, used by `ConnectionListener` on port
+4. **Listening mode** (~~`TcpServer`~~ *`TcpAcceptor`, since Phase 4
+   step 6 of `async-networking.md`*, used by `ConnectionListener` on port
    5500): binds `0.0.0.0` only.
 
-`SocketIPv4` is also the type passed around in `TcpConnection`,
+~~`SocketIPv4` is also the type passed around in `TcpConnection`,
 `RemoteViewerCore`, `ViewerInstance` and `ConnectionListener`, so those
-signatures change too.
+signatures change too.~~ *Since Phase 4 of `async-networking.md`, they
+pass `asio::ip::tcp::socket`, which carries its protocol.*
 
 ### Plan
 

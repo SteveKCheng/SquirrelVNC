@@ -27,7 +27,6 @@
 #include "log-writer/LogWriter.h"
 #include "network/RfbInputGate.h"
 #include "network/RfbOutputGate.h"
-#include "network/socket/SocketIPv4.h"
 #include "rfb/FrameBuffer.h"
 #include "region/Dimension.h"
 #include "region/Point.h"
@@ -196,11 +195,14 @@ public:
 
   //
   // This version expects a connected TCP socket. For example, it can be used
-  // for reverse connections (when servers connect to viewers). It takes the
-  // socket over (SocketIPv4::release()): socket is left without one, and
-  // the core closes it.
+  // for reverse connections (when servers connect to viewers): the socket
+  // accepted by a TcpAcceptor. The core closes it.
   //
-  void start(SocketIPv4 *socket,
+  // Pre-conditions: socket is open, and belongs to the executor given to
+  // the constructor (it was made, or accepted, on the network thread), with
+  // no operation pending.
+  //
+  void start(asio::ip::tcp::socket socket,
              std::shared_ptr<CoreEventsAdapter> adapter,
              bool sharedFlag = true);
 
@@ -548,7 +550,7 @@ private:
 
   //
   // Resolves m_host (asyncResolve()) and connects m_socket to the first
-  // address that accepts; or takes over m_acceptedSocket. Then sets the
+  // address that accepts; or uses m_acceptedSocket. Then sets the
   // socket's options (configureSocket()). Throws SocketException on failure.
   //
   asio::awaitable<void> connect();
@@ -831,11 +833,12 @@ private:
   static constexpr DWORD KEEPALIVE_INTERVAL_SECONDS = 5;
   static constexpr DWORD KEEPALIVE_PROBE_COUNT = 10;
 
-  // What start() was given: a host and port to connect to; a socket taken
-  // over (INVALID_SOCKET if none); or gates (m_input not null).
+  // What start() was given: a host and port to connect to; a connected
+  // socket (empty if none, and once connect() has moved it to m_socket);
+  // or gates (m_input not null).
   StringStorage m_host;
   UINT16 m_port;
-  SOCKET m_acceptedSocket;
+  std::optional<asio::ip::tcp::socket> m_acceptedSocket;
 
   // The network thread's executor, for the connection: given to the
   // constructor.

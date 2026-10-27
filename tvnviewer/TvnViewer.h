@@ -77,10 +77,15 @@ public:
   // newConnection(...) and startListening(...) always do copy of params (StringStorage,
   // ConnectionData and ConnectionConfig). After call this function can free memory
   // with hostName, connectionData, connectionConfig
+  //
+  // Starts a viewer instance for each connection accepted by the listener
+  // and not yet taken: the handler of WM_USER_NEW_LISTENING. GUI thread.
+  //
   void newListeningConnection();
   void newConnection(const StringStorage &hostName, const ConnectionConfig &connectionConfig);
   void newConnection(const ConnectionData &conData, const ConnectionConfig &connectionConfig);
-  // Pre: listeningPort is from 0 to 65535.
+  // Pre: listeningPort is from 0 to 65535; the main window exists (run()
+  // has created it), as the listener posts to it.
   void startListening(int listeningPort);
   void stopListening();
 
@@ -119,7 +124,7 @@ public:
 protected:
   // Starts accepting connections from servers on listeningPort.  On
   // failure, shows an error message and clears m_isListening.
-  // Pre: listeningPort is from 0 to 65535.
+  // Pre: listeningPort is from 0 to 65535; the main window exists.
   void startListeningServer(const int listeningPort);
   void stopListeningServer();
   void restartListeningServer();
@@ -166,6 +171,8 @@ private:
 
   std::unique_ptr<LoginDialog> m_loginDialog;
   std::unique_ptr<ControlTrayIcon> m_trayIcon;
+  // Declared after m_networkThread, so that it is stopped before the
+  // thread is joined; the thread's join waits for it otherwise.
   std::unique_ptr<ConnectionListener> m_conListener;
 
   WNDCLASS m_viewerWndClass;

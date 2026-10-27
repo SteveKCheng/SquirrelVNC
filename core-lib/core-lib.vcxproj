@@ -132,6 +132,7 @@
     <ClCompile Include="viewer-core\DecoderStore.cpp" />
     <ClCompile Include="viewer-core\BlockingWorkPool.cpp" />
     <ClCompile Include="viewer-core\NetworkThread.cpp" />
+    <ClCompile Include="viewer-core\TcpAcceptor.cpp" />
     <ClCompile Include="viewer-core\QueuedOutputStream.cpp" />
     <ClCompile Include="viewer-core\DesktopSizeDecoder.cpp" />
     <ClCompile Include="viewer-core\FbUpdateNotifier.cpp" />
@@ -224,6 +225,7 @@
     <ClInclude Include="viewer-core\DecoderStore.h" />
     <ClInclude Include="viewer-core\BlockingWorkPool.h" />
     <ClInclude Include="viewer-core\NetworkThread.h" />
+    <ClInclude Include="viewer-core\TcpAcceptor.h" />
     <ClInclude Include="viewer-core\ClientEvents.h" />
     <ClInclude Include="viewer-core\QueuedOutputStream.h" />
     <ClInclude Include="viewer-core\DesktopSizeDecoder.h" />

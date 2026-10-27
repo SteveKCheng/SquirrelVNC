@@ -21,7 +21,7 @@ Windows message queue is used in some places.
 | **GUI** (main) | Runs the one message loop for all windows (every viewer window, the login dialog, the tray icon). Paints; handles keyboard and mouse. **Also writes key, pointer and clipboard messages directly to the socket.** | `TvnViewer::processMessages` |
 | **Core**, one per connection | Connects, handshakes and authenticates, then a blocking loop: read a message, decode rectangles, send the next update request. | `RemoteViewerCore` (a `Thread`) |
 | **Notifier**, one per connection | Takes the accumulated changed region and calls the GUI's adapter callbacks, which copy pixels into the window's DIB. | `FbUpdateNotifier` |
-| Listener (listening mode only) | Waits for incoming connections. | `TcpServer` → `ConnectionListener` |
+| Listener (listening mode only) | Waits for incoming connections. *Since Phase 4 step 6 of `async-networking.md`, no thread of its own: a `TcpAcceptor` accepts on the network thread.* | `TcpServer` → `ConnectionListener` |
 | File-transfer delete | Deletes local files. *Since Phase 4 step 5d of `async-networking.md`, on the shared `BlockingWorkPool` thread instead, started on first use.* | `LocalFilesDeleteOperation` |
 
 Those are the only `Thread` subclasses. Every window lives on the GUI
