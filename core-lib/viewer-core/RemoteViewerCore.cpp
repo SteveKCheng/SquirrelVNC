@@ -171,7 +171,8 @@ RemoteViewerCore::~RemoteViewerCore()
 }
 
 void RemoteViewerCore::start(std::shared_ptr<CoreEventsAdapter> adapter,
-                             bool sharedFlag)
+                             bool sharedFlag,
+                             UINT64 maxFrameBufferPixels)
 {
   m_logWriter.detail(_T("Starting remote viewer core..."));
 
@@ -179,17 +180,13 @@ void RemoteViewerCore::start(std::shared_ptr<CoreEventsAdapter> adapter,
     throw Exception(_T("Remote viewer core is not started: adapter is 0"));
   }
 
-  // Set flag "wasStarted".
-  // This flag protects of second call start().
-  {
-    AutoLock al(&m_startLock);
-    if (m_wasStarted) {
-      throw Exception(_T("Remote viewer core is already started"));
-    }
-    m_wasStarted = true;
+  if (m_wasStarted) {
+    throw Exception(_T("Remote viewer core is already started"));
   }
+  m_wasStarted = true;
 
   m_sharedFlag = sharedFlag;
+  m_maxFrameBufferPixels = maxFrameBufferPixels;
   m_adapter = adapter.get();
   m_adapterRef = adapter;
 
@@ -217,43 +214,36 @@ void RemoteViewerCore::start(std::shared_ptr<CoreEventsAdapter> adapter,
 void RemoteViewerCore::start(const TCHAR *host,
                              UINT16 port,
                              std::shared_ptr<CoreEventsAdapter> adapter,
-                             bool sharedFlag)
+                             bool sharedFlag,
+                             UINT64 maxFrameBufferPixels)
 {
   m_host = host;
   m_port = port;
-  start(std::move(adapter), sharedFlag);
+  start(std::move(adapter), sharedFlag, maxFrameBufferPixels);
 }
 void RemoteViewerCore::start(asio::ip::tcp::socket socket,
                              std::shared_ptr<CoreEventsAdapter> adapter,
-                             bool sharedFlag)
+                             bool sharedFlag,
+                             UINT64 maxFrameBufferPixels)
 {
   assert(socket.is_open());
   m_acceptedSocket.emplace(std::move(socket));
-  start(std::move(adapter), sharedFlag);
+  start(std::move(adapter), sharedFlag, maxFrameBufferPixels);
 }
 
 void RemoteViewerCore::start(RfbInputGate *input, RfbOutputGate *output,
                              std::shared_ptr<CoreEventsAdapter> adapter,
-                             bool sharedFlag)
+                             bool sharedFlag,
+                             UINT64 maxFrameBufferPixels)
 {
   m_input = input;
   m_output = output;
-  start(std::move(adapter), sharedFlag);
+  start(std::move(adapter), sharedFlag, maxFrameBufferPixels);
 }
 
 bool RemoteViewerCore::wasStarted() const
 {
-  AutoLock al(&m_startLock);
   return m_wasStarted;
-}
-
-void RemoteViewerCore::setMaxFrameBufferPixels(UINT64 maxPixels)
-{
-  AutoLock al(&m_startLock);
-  if (m_wasStarted) {
-    throw Exception(_T("Frame buffer limit cannot change after start"));
-  }
-  m_maxFrameBufferPixels = maxPixels;
 }
 
 bool RemoteViewerCore::wasConnected() const

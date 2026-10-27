@@ -40,6 +40,7 @@
 #include "FbUpdateNotifier.h"
 #include "QueuedOutputStream.h"
 #include "ServerMessageListener.h"
+#include "ViewerBufferSize.h"
 
 #include <asio/any_io_executor.hpp>
 #include <asio/awaitable.hpp>
@@ -71,11 +72,17 @@
 // and provides the caller with an easy way to maintain an RFB connection and
 // get access to the screen data.
 //
-// Each function of this class may be called from any thread and from any
-// number of threads simultaneously on the same object, unless documented
-// otherwise. Also, each function can be called on any stage of the protocol,
-// and even from callback functions of the adapter (see more about callbacks
-// and the adapter below), unless documented otherwise.
+// Threads: the public functions are for one thread, the consumer's (the
+// GUI thread in the viewer; the main thread in rfb-replay, whose tests take
+// the GUI's role), and not for the adapter's callbacks, which come on the
+// network thread. Before start(), the settings change this object
+// directly; from start() on, they are posted to the network thread, which
+// owns the connection's state. The exceptions are the capability
+// functions, postToLoop() and claimOwner(), which have their own thread
+// rules (see there).
+//
+// Each function can be called on any stage of the protocol, unless
+// documented otherwise.
 //
 // Finally, each function of this class may throw exceptions, unless it's
 // explicitly stated that it will never do so.
@@ -127,6 +134,11 @@ public:
   // calling thread. Only one of these functions should be called, and it
   // should be called just once.
   //
+  // maxFrameBufferPixels is the largest frame buffer the server may ask
+  // for, in pixels (width * height), in ServerInit or in DesktopSize
+  // updates; a larger one ends the session with an Exception, reported
+  // through CoreEventsAdapter::onError().
+  //
   // On various events, corresponding callback functions will be called via
   // the CoreEventsAdapter interface (the adapter). To receive these
   // notifications, the application should inherit CoreEventsAdapter and
@@ -163,8 +175,8 @@ public:
   // needs to change the frame buffer.
   //
   // Write operations (sending data to the server) are performed on the
-  // network thread only, so the RfbOutputGate has no lock: other threads
-  // post events (sendKeyboardEvent() and the like), which the network
+  // network thread only, so the RfbOutputGate has no lock: the consumer
+  // posts events (sendKeyboardEvent() and the like), which the network
   // thread encodes. For a socket, flushing only queues the message
   // (QueuedOutputStream), and the writer sends it.
   //
@@ -178,7 +190,8 @@ public:
   //
   void start(RfbInputGate *input, RfbOutputGate *output,
              std::shared_ptr<CoreEventsAdapter> adapter,
-             bool sharedFlag = true);
+             bool sharedFlag = true,
+             UINT64 maxFrameBufferPixels = ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS);
 
   //
   // This version initiates new TCP connection to the specified host and port,
@@ -187,7 +200,8 @@ public:
   //
   void start(const TCHAR *host, UINT16 port,
              std::shared_ptr<CoreEventsAdapter> adapter,
-             bool sharedFlag = true);
+             bool sharedFlag = true,
+             UINT64 maxFrameBufferPixels = ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS);
 
   //
   // This version expects a connected TCP socket. For example, it can be used
@@ -200,20 +214,8 @@ public:
   //
   void start(asio::ip::tcp::socket socket,
              std::shared_ptr<CoreEventsAdapter> adapter,
-             bool sharedFlag = true);
-
-  //
-  // Set the largest frame buffer the server may ask for, in pixels
-  // (width * height). The limit applies to the size in ServerInit and to
-  // DesktopSize updates. The default is
-  // ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS.
-  //
-  // Pre-conditions: start() has not been called.
-  // Post-conditions: a larger frame buffer ends the session with an
-  // Exception, reported through CoreEventsAdapter::onError().
-  // Throws Exception, and changes nothing, if the object was started.
-  //
-  void setMaxFrameBufferPixels(UINT64 maxPixels);
+             bool sharedFlag = true,
+             UINT64 maxFrameBufferPixels = ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS);
 
   //
   // Stop operation: cancels the connection, on the network thread, whatever
@@ -238,17 +240,14 @@ public:
   //
   // Timing: the format is applied by updatePixelFormat() in the next
   // sendFbUpdateRequest(), which sends SetPixelFormat ahead of that request.
-  // - Called before start(), as rfb-replay does and as ViewerWindow does
-  //   through setRemoteViewerCore(), or from CoreEventsAdapter::onConnected()
-  //   on the protocol thread, it is applied with the first update request:
-  //   all of these happen before that request. (ViewerWindow calls it again
-  //   when the GUI thread handles the connection, which races as below; the
+  // - Called before start(), as ViewerWindow does through
+  //   setRemoteViewerCore(), it is applied with the first update request.
+  //   (ViewerWindow calls it again when it handles the connection; the
   //   format is the same, so nothing more is sent.)
-  // - Called later from the GUI thread, when the user changes the colour
-  //   setting, it is posted to the network thread (post()), and applied
-  //   with the first update request sent after it is handled there; which
-  //   request that is depends on when the server's messages arrive, but it
-  //   no longer races with the protocol.
+  // - Called later, when the user changes the colour setting, it is posted
+  //   to the network thread (post()), and applied with the first update
+  //   request sent after it is handled there; which request that is
+  //   depends on when the server's messages arrive.
   //
   void setPixelFormat(const PixelFormat &viewerPixelFormat);
 
@@ -396,9 +395,9 @@ public:
   //
   // Copy the frame buffer, as the decoders have left it, into dst.
   //
-  // May be called from any thread, at any time. A test program calls it
-  // once the session has ended, because CoreEventsAdapter's update events
-  // come from another thread and may not report the last updates.
+  // May be called at any time. A test program calls it once the session
+  // has ended, because CoreEventsAdapter's update events come from another
+  // thread and may not report the last updates.
   //
   // Pre-conditions: dst is not 0.
   // Post-conditions: dst has the dimension and pixel format of the frame
@@ -433,8 +432,10 @@ public:
 
 private:
   //
-  // Whether start() has been called. Stays true after stop(), or after the
+  // Whether start() has been called: whether the connection's state now
+  // belongs to the network thread. Stays true after stop(), or after the
   // connection has ended, as it only records that start() was called.
+  // Consumer thread only, like the public functions that call it.
   //
   bool wasStarted() const;
 
@@ -477,8 +478,7 @@ private:
   // once, on the calling thread, as nothing runs yet. An exception from a
   // handler on the network thread is logged, and the event dropped.
   //
-  // Pre-conditions: before start(), called on the thread that calls
-  // start(); after it, any thread.
+  // Pre-conditions: the consumer thread (see the class).
   // Throws what the handler throws, before start().
   //
   void post(ClientEvent event);
@@ -620,7 +620,8 @@ private:
   //
   // This one includes common code reused by public start(...) functions.
   //
-  void start(std::shared_ptr<CoreEventsAdapter> adapter, bool sharedFlag);
+  void start(std::shared_ptr<CoreEventsAdapter> adapter, bool sharedFlag,
+             UINT64 maxFrameBufferPixels);
 
   //
   // RFB protocol implementation.
@@ -899,18 +900,16 @@ private:
   std::map<UINT32, std::unique_ptr<Decoder> > m_decoderHandlers;
   std::map<UINT32, int> m_decoderPriority;
 
-  // This flag is set after call start().
-  mutable LocalMutex m_startLock;
-
   // The events queued by dispatch() for applyPendingEvents(). Used before
   // start() on the thread that calls it, then only on the network thread.
   std::vector<ClientEvent> m_pendingEvents;
   // The input waiting for writeLoop(). Used only on the network thread.
   Internal::InputEventQueue m_inputEvents;
+  // Set by start(). Consumer thread only (see wasStarted()).
   bool m_wasStarted;
 
-  // The frame buffer limit, in pixels. Written only before start(), under
-  // m_startLock, so the threads read it without a lock.
+  // The frame buffer limit, in pixels. Set by start(), before the network
+  // thread reads it.
   UINT64 m_maxFrameBufferPixels;
 
   // This flag is set after onConnected(). Network thread only (or, before

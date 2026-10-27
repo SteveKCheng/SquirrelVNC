@@ -511,12 +511,12 @@ int _tmain(int argc, TCHAR *argv[])
   });
   std::vector<char> ppm;
   try {
-    core->setMaxFrameBufferPixels(options.maxPixels);
     authHandler.addAuthCapability(*core);
     if (server) {
-      core->start(_T("127.0.0.1"), server->getPort(), adapterRef, true);
+      core->start(_T("127.0.0.1"), server->getPort(), adapterRef, true,
+                  options.maxPixels);
     } else {
-      core->start(&inputGate, &outputGate, adapterRef, true);
+      core->start(&inputGate, &outputGate, adapterRef, true, options.maxPixels);
     }
     adapterRef.reset();
 
