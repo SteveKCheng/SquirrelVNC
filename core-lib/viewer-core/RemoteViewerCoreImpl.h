@@ -366,26 +366,6 @@ private:
   //
 
   //
-  // Read a message type code (UINT8) from the data connection.
-  // If the code is 0xFC then it's a beginning of TightVNC-specific extended
-  // code so we read next 3 bytes and compose UINT32 message type.
-  //
-  Task<UINT32> receiveServerMessageType();
-
-  //
-  // Read pixel format from the data connection and return it.
-  //
-  // Pre-conditions: the next bytes of the input are a PIXEL_FORMAT.
-  // Post-conditions: the PIXEL_FORMAT has been consumed, and the result is
-  // valid (PixelFormat::isValid()). A true-colour format is returned as
-  // read. A format without true colour is replaced by the standard format
-  // with the same bits per pixel, because its colour fields mean nothing.
-  // Throws Exception if the bits per pixel are not 8, 16 or 32, or if a
-  // true-colour format is not valid.
-  //
-  Task<PixelFormat> readPixelFormat();
-
-  //
   // This method processes FramebufferUpdate server message (code 0):
   //   * receive the number of rectangles in this update,
   //   * then call receiveFrameBufferUpdRectangle() for each rectangle,
@@ -447,8 +427,8 @@ private:
   // Post-conditions: the message has been read whole, and its text sent
   // to the adapter, decoded by TextEncoding::fromRfbText(): Latin-1 as
   // the specification says, or UTF-8 if it is valid UTF-8. The text ends
-  // at the first zero byte; text longer than MAX_CUT_TEXT_LENGTH is
-  // skipped with a warning. Exceptions from the adapter are logged, not
+  // at the first zero byte; text longer than 64 MiB is skipped with a
+  // warning (Internal::readServerCutText()). Exceptions from the adapter are logged, not
   // passed on. Throws whatever reading the input throws.
   //
   Task<> receiveServerCutText();
@@ -459,21 +439,12 @@ private:
   //
   // Pre-conditions: the message type has been read.
   // Post-conditions: the message has been read whole. Empty text is
-  // ignored; text longer than MAX_CUT_TEXT_LENGTH is skipped with a
-  // warning. Invalid UTF-8 becomes U+FFFD, and the text ends at the first
+  // ignored; text longer than 64 MiB is skipped with a warning
+  // (Internal::readServerCutTextUtf8()). Invalid UTF-8 becomes U+FFFD, and the text ends at the first
   // zero byte. Exceptions from the adapter are logged, not passed on.
   // Throws whatever reading the input throws.
   //
   Task<> receiveServerCutTextUtf8();
-
-  // Read and discard length bytes from the input.
-  Task<> skipBytes(size_t length);
-
-  //
-  // Receive SetColourMapEntries server message (code 1) and forget it:
-  // for now, color maps are not supported.
-  //
-  Task<> receiveSetColorMapEntries();
 
   bool isRfbProtocolString(const char protocol[12]) const;
   Task<> handshake();
@@ -542,7 +513,7 @@ private:
   //
   // The first SetPixelFormat of the connection is sent even if the format
   // equals that of the frame buffer, because that may be a stand-in for a
-  // server format without true colour (see readPixelFormat()).
+  // server format without true colour (see Internal::readPixelFormat()).
   // Throws Exception if m_viewerPixelFormat is not valid
   // (PixelFormat::isValid()); nothing is sent then.
   //

@@ -28,7 +28,6 @@
 #include "rfb/TunnelDefs.h"
 #include "rfb/MsgDefs.h"
 #include "rfb/EncodingDefs.h"
-#include "rfb/StandardPixelFormatFactory.h"
 #include "rfb/VendorDefs.h"
 #include "util/ScopeExit.h"
 #include "util/TextEncoding.h"
@@ -38,6 +37,7 @@
 
 #include "AuthHandler.h"
 #include "RichCursorDecoder.h"
+#include "RfbParser.h"
 #include "RfbFramebufferUpdateRequestClientMessage.h"
 #include "RfbCutTextEventClientMessage.h"
 #include "RfbKeyEventClientMessage.h"
@@ -79,11 +79,10 @@
 #include <stdexcept>
 #include <variant>
 
-// Limits on lengths sent by the server, so that a malicious or broken server
-// cannot make the viewer allocate an arbitrary amount of memory.
-static const UINT32 MAX_CUT_TEXT_LENGTH = 64 * 1024 * 1024;
-static const UINT32 MAX_DESKTOP_NAME_LENGTH = 64 * 1024;
-// As DataInputStream::readUTF8() allowed, which used to read the reason.
+// A limit on the length of the reason sent by the server, so that a
+// malicious or broken server cannot make the viewer allocate an arbitrary
+// amount of memory (the others are in RfbParser.cpp). As
+// DataInputStream::readUTF8() allowed, which used to read the reason.
 static const UINT32 MAX_REASON_LENGTH = 1024 * 1024;
 
 // The most readLoop() asks the socket for at once.
@@ -433,48 +432,6 @@ void RemoteViewerCoreImpl::stopUpdating(bool isStopped)
   post(StopUpdatingEvent{isStopped});
 }
 
-Task<PixelFormat> RemoteViewerCoreImpl::readPixelFormat()
-{
-  PixelFormat pixelFormat;
-  pixelFormat.bitsPerPixel = co_await m_reader.readUInt8();
-  pixelFormat.colorDepth = co_await m_reader.readUInt8();
-  pixelFormat.bigEndian = !!co_await m_reader.readUInt8();
-  bool isTrueColour = co_await m_reader.readUInt8() != 0;
-  pixelFormat.redMax = co_await m_reader.readUInt16();
-  pixelFormat.greenMax = co_await m_reader.readUInt16();
-  pixelFormat.blueMax = co_await m_reader.readUInt16();
-  pixelFormat.redShift = co_await m_reader.readUInt8();
-  pixelFormat.greenShift = co_await m_reader.readUInt8();
-  pixelFormat.blueShift = co_await m_reader.readUInt8();
-  co_await m_reader.readUInt8(); // padding bytes (3)
-  co_await m_reader.readUInt8();
-  co_await m_reader.readUInt8();
-
-  const unsigned short bitsPerPixel = pixelFormat.bitsPerPixel;
-  if (bitsPerPixel != 8 && bitsPerPixel != 16 && bitsPerPixel != 32) {
-    throw Exception(_T("Only 8, 16 or 32 bits per pixel supported!"));
-  }
-  if (!isTrueColour) {
-    // Colour maps are not supported, and the colour fields of a format
-    // without true colour mean nothing. The viewer sets a true-colour format
-    // of its own before it requests any update, so until then a standard
-    // format with the same bits per pixel stands in.
-    m_logWriter.info(_T("The server's pixel format uses a colour map; ")
-                     _T("a true-colour format will be requested."));
-    co_return StandardPixelFormatFactory::createPixelFormat(bitsPerPixel);
-  }
-  if (!pixelFormat.isValid()) {
-    m_logWriter.error(_T("Invalid pixel format: bits-per-pixel: %d, depth: %d, ")
-                      _T("red-max: %d, green-max: %d, blue-max: %d, ")
-                      _T("red-shift: %d, green-shift: %d, blue-shift: %d"),
-                      pixelFormat.bitsPerPixel, pixelFormat.colorDepth,
-                      pixelFormat.redMax, pixelFormat.greenMax, pixelFormat.blueMax,
-                      pixelFormat.redShift, pixelFormat.greenShift, pixelFormat.blueShift);
-    throw Exception(_T("The server's pixel format is invalid"));
-  }
-  co_return pixelFormat;
-}
-
 Task<> RemoteViewerCoreImpl::authenticate()
 {
   m_logWriter.detail(_T("Negotiating security type..."));
@@ -719,17 +676,8 @@ Task<int> RemoteViewerCoreImpl::initAuthentication()
 void RemoteViewerCoreImpl::setFbProperties(const Dimension &fbDimension,
                                        const PixelFormat &fbPixelFormat)
 {
-  const int width = fbDimension.width;
-  const int height = fbDimension.height;
-  const int bitsPerPixel = fbPixelFormat.bitsPerPixel;
-  if (width < 0 || height < 0 || !fbPixelFormat.isValid()) {
-    throw Exception(_T("Invalid framebuffer properties"));
-  }
-
-  if (static_cast<UINT64>(width) * height > m_maxFrameBufferPixels ||
-      !ViewerBufferSize::fitsFrameBuffer(width, height, bitsPerPixel / 8)) {
-    throw Exception(_T("Framebuffer is too large"));
-  }
+  Internal::checkFrameBufferProperties(fbDimension, fbPixelFormat,
+                                       m_maxFrameBufferPixels);
 
   const PixelFormat &pxFormat = fbPixelFormat;
   StringStorage pxString;
@@ -822,7 +770,7 @@ Task<> RemoteViewerCoreImpl::run()
   while (!m_isStopping) {
     applyPendingEvents();
     m_isAtMessageBoundary = true;
-    UINT32 msgType = co_await receiveServerMessageType();
+    UINT32 msgType = co_await Internal::readServerMessageType(m_reader);
     m_isAtMessageBoundary = false;
 
     switch (msgType) {
@@ -833,7 +781,7 @@ Task<> RemoteViewerCoreImpl::run()
 
     case ServerMsgDefs::SET_COLOR_MAP_ENTRIES:
       m_logWriter.detail(_T("Received message: SET_COLOR_MAP_ENTRIES"));
-      co_await receiveSetColorMapEntries();
+      co_await Internal::readSetColorMapEntries(m_reader);
       break;
 
     case ServerMsgDefs::BELL:
@@ -1155,32 +1103,11 @@ void RemoteViewerCoreImpl::finish(std::exception_ptr failure)
   m_isFinished = true;
 }
 
-Task<UINT32> RemoteViewerCoreImpl::receiveServerMessageType()
-{
-  // Viewer in common case read first byte (UINT8) as message id,
-  // but if first byte is equal to 0xFC then it's TightVNC extension message and
-  // must read next 3 bytes and create UINT32 message id for processing.
-
-  static const UINT16 SERVER_MSG_SPECIAL_TIGHT_CODE = 0xFC;
-
-  UINT32 msgType = co_await m_reader.readUInt8();
-  if (msgType == SERVER_MSG_SPECIAL_TIGHT_CODE) {
-    for (int i = 0; i < 3; i++) {
-      msgType <<= 8;
-      msgType += co_await m_reader.readUInt8();
-    }
-  }
-  co_return msgType;
-}
-
 Task<> RemoteViewerCoreImpl::receiveFbUpdate()
 {
   // message type is already known: 0
 
-  // read padding: one byte
-  co_await m_reader.readUInt8();
-
-  UINT16 numberOfRectangles = co_await m_reader.readUInt16();
+  UINT16 numberOfRectangles = co_await Internal::readFbUpdateHeader(m_reader);
   m_logWriter.debug(_T("number of rectangles: %d"), numberOfRectangles);
 
   bool isLastRect = false;
@@ -1198,13 +1125,9 @@ Task<> RemoteViewerCoreImpl::receiveFbUpdate()
 
 Task<bool> RemoteViewerCoreImpl::receiveFbUpdateRectangle()
 {
-  Rect rect;
-  rect.left = co_await m_reader.readUInt16();
-  rect.top = co_await m_reader.readUInt16();
-  rect.setWidth(co_await m_reader.readUInt16());
-  rect.setHeight(co_await m_reader.readUInt16());
-
-  int encodingType = co_await m_reader.readInt32();
+  Internal::RectangleHeader header = co_await Internal::readRectangleHeader(m_reader);
+  const Rect &rect = header.rect;
+  int encodingType = header.encodingType;
 
   m_logWriter.debug(_T("Rectangle: (%d, %d), (%d, %d). Type is %d"), 
                     rect.left, rect.top, rect.right, rect.bottom, encodingType);
@@ -1212,9 +1135,7 @@ Task<bool> RemoteViewerCoreImpl::receiveFbUpdateRectangle()
   if (encodingType == PseudoEncDefs::LAST_RECT)
     co_return true;
   if (!Decoder::isPseudo(encodingType)) {
-    if (!m_frameBuffer.getDimension().getRect().intersection(rect).isEqualTo(rect)) {
-      throw Exception(_T("Error in protocol: incorrect size of rectangle"));
-    }
+    Internal::checkRectangleInside(m_frameBuffer.getDimension(), rect);
 
     Decoder *decoder = m_decoderStore.getDecoder(encodingType);
     if (decoder != nullptr) {
@@ -1257,33 +1178,13 @@ Task<> RemoteViewerCoreImpl::processPseudoEncoding(const Rect &rect,
     {
       m_logWriter.detail(_T("New rich cursor"));
 
-      // The width and height were read as 16-bit values.
-      UINT16 width = static_cast<UINT16>(rect.getWidth());
-      UINT16 height = static_cast<UINT16>(rect.getHeight());
-      UINT8 bytesPerPixel = m_frameBuffer.getBytesPerPixel();
-
-      if (width > ViewerBufferSize::MAX_CURSOR_SIZE ||
-          height > ViewerBufferSize::MAX_CURSOR_SIZE) {
-        throw Exception(_T("Rich cursor is too large"));
-      }
-
-      std::vector<UINT8> cursor;
-      std::vector<UINT8> bitmask;
-
-      size_t cursorLen = width * height * bytesPerPixel;
-      if (cursorLen != 0) {
-        cursor.resize(cursorLen);
-        co_await m_reader.readFully(&cursor.front(), cursorLen);
-
-        size_t bitmaskLen = ((width + 7) / 8) * height;
-        bitmask.resize(bitmaskLen);
-        co_await m_reader.readFully(&bitmask.front(), bitmaskLen);
-      }
-      Point hotSpot(rect.left, rect.top);
+      Internal::RichCursor cursor =
+        co_await Internal::readRichCursor(m_reader, rect,
+                                          m_frameBuffer.getBytesPerPixel());
 
       m_logWriter.debug(_T("Setting new rich cursor..."));
-      m_fbUpdateNotifier.setNewCursor(hotSpot, width, height,
-                                      cursor, bitmask);
+      m_fbUpdateNotifier.setNewCursor(cursor.hotSpot, cursor.width, cursor.height,
+                                      cursor.pixels, cursor.bitmask);
     }
     break;
 
@@ -1300,23 +1201,6 @@ Task<> RemoteViewerCoreImpl::processPseudoEncoding(const Rect &rect,
     errorString.format(_T("Pseudo encoding %d is not supported"), encodingType);
     m_logWriter.error(_T("%s"), errorString.getString());
     throw Exception(errorString.getString());
-  }
-}
-
-Task<> RemoteViewerCoreImpl::receiveSetColorMapEntries()
-{
-  // message type is already known: 1
-
-  // read padding: 1 byte
-  co_await m_reader.readUInt8();
-
-  // Colour maps are not supported, so the message is read and ignored.
-  co_await m_reader.readUInt16(); // first-colour
-  UINT16 numberOfColours = co_await m_reader.readUInt16();
-  for (size_t i = 0; i < numberOfColours; i++) {
-    co_await m_reader.readUInt16(); // red
-    co_await m_reader.readUInt16(); // green
-    co_await m_reader.readUInt16(); // blue
   }
 }
 
@@ -1349,25 +1233,15 @@ Task<> RemoteViewerCoreImpl::receiveServerCutText()
 {
   // message type is already known: 3
 
-  // read padding: three byte
-  co_await m_reader.readUInt16();
-  co_await m_reader.readUInt8();
-
-  UINT32 length = co_await m_reader.readUInt32();
-  if (length > MAX_CUT_TEXT_LENGTH) {
-    m_logWriter.warning(_T("Cut text is too long (%u bytes), ignoring it"), length);
-    co_await skipBytes(length);
+  std::optional<StringStorage> cutText =
+    co_await Internal::readServerCutText(m_reader, m_logWriter);
+  if (!cutText)
     co_return;
-  }
-  std::vector<std::byte> buffer(length);
-  co_await m_reader.readFully(buffer.data(), length);
-  // Latin-1 by the specification, but some servers send UTF-8.
-  StringStorage cutText = TextEncoding::fromRfbText(buffer);
 
   // Only the length: the clipboard may hold passwords.
-  m_logWriter.debug(_T("Cut text: %zu characters"), cutText.getLength());
+  m_logWriter.debug(_T("Cut text: %zu characters"), cutText->getLength());
   try {
-    m_adapter->onCutText(cutText);
+    m_adapter->onCutText(*cutText);
   } catch (const Exception &ex) {
     m_logWriter.error(_T("Error in CoreEventsAdapter::onCutText(): %s"), ex.getMessage());
   } catch (...) {
@@ -1377,39 +1251,21 @@ Task<> RemoteViewerCoreImpl::receiveServerCutText()
 
 Task<> RemoteViewerCoreImpl::receiveServerCutTextUtf8()
 {
-  UINT32 length = co_await m_reader.readUInt32();
-  if (length == 0)
+  std::optional<StringStorage> cutText =
+    co_await Internal::readServerCutTextUtf8(m_reader, m_logWriter);
+  if (!cutText)
     co_return;
-  if (length > MAX_CUT_TEXT_LENGTH) {
-    m_logWriter.warning(_T("Cut text is too long (%u bytes), ignoring it"), length);
-    co_await skipBytes(length);
-    co_return;
-  }
-
-  std::vector<std::byte> buffer(length);
-  co_await m_reader.readFully(buffer.data(), length);
-  StringStorage cutText = TextEncoding::fromUtf8(buffer);
 
   // Only the length: the clipboard may hold passwords.
-  m_logWriter.debug(_T("Cut text: %zu characters"), cutText.getLength());
+  m_logWriter.debug(_T("Cut text: %zu characters"), cutText->getLength());
   try {
-    m_adapter->onCutText(cutText);
+    m_adapter->onCutText(*cutText);
   }
   catch (const Exception &ex) {
     m_logWriter.error(_T("Error in CoreEventsAdapter::onCutText(): %s"), ex.getMessage());
   }
   catch (...) {
     m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onCutText()"));
-  }
-}
-
-Task<> RemoteViewerCoreImpl::skipBytes(size_t length)
-{
-  char buffer[4096];
-  while (length > 0) {
-    size_t chunk = length < sizeof(buffer) ? length : sizeof(buffer);
-    co_await m_reader.readFully(buffer, chunk);
-    length -= chunk;
   }
 }
 
@@ -1485,12 +1341,7 @@ Task<> RemoteViewerCoreImpl::handshake()
  * Client send:
  * 2           - U8          - shared flag
  *
- * Server send:
- * 2           - U16         - framebuffer-width
- * 2           - U16         - framebuffer-height
- * 16          - PixelFormat - server-pixel-format
- * 4           - U32         - name-length
- * name-length - U8 array    - name-string
+ * Server send: ServerInit (Internal::readServerInit()).
  */
 Task<> RemoteViewerCoreImpl::clientAndServerInit()
 {
@@ -1503,23 +1354,14 @@ Task<> RemoteViewerCoreImpl::clientAndServerInit()
   m_output->flush();
   m_logWriter.debug(_T("Shared flag is set"));
 
-  UINT16 width = co_await m_reader.readUInt16();
-  UINT16 height = co_await m_reader.readUInt16();
-  Dimension screenDimension(width, height);
-  PixelFormat serverPixelFormat = co_await readPixelFormat();
-  
+  Internal::ServerInit serverInit =
+    co_await Internal::readServerInit(m_reader, m_logWriter);
   {
     AutoLock al(&m_fbLock);
-    setFbProperties(screenDimension, serverPixelFormat);
+    setFbProperties(serverInit.dimension, serverInit.pixelFormat);
   }
 
-  UINT32 sizeInBytes = co_await m_reader.readUInt32();
-  if (sizeInBytes > MAX_DESKTOP_NAME_LENGTH) {
-    throw Exception(_T("Desktop name is too long"));
-  }
-  std::vector<std::byte> buffer(sizeInBytes);
-  co_await m_reader.readFully(buffer.data(), sizeInBytes);
-  m_remoteDesktopName = TextEncoding::fromRfbText(buffer);
+  m_remoteDesktopName = serverInit.desktopName;
   m_logWriter.info(_T("Server remote name: %s"), m_remoteDesktopName.getString());
 
   if (m_isTight) {
