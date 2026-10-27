@@ -26,13 +26,14 @@
 
 #include "config-lib/SettingsManager.h"
 
-#include "thread/LocalMutex.h"
-
 #include "rfb/EncodingDefs.h"
 
 //
 // Contains options of connection configuration.
-// All methods of class are thead-safe.
+//
+// Threads: not synchronized; the GUI thread only. Its lock went in Phase 4
+// step 7 of notes/async-networking.md, once nothing on the network thread
+// read a connection's options (the core gets them as posted events).
 //
 
 class ConnectionConfig final
@@ -45,9 +46,9 @@ public:
 
 public:
   ConnectionConfig();
-  ConnectionConfig(const ConnectionConfig &conConfig);
+  ConnectionConfig(const ConnectionConfig &conConfig) = default;
   ~ConnectionConfig();
-  ConnectionConfig& operator=(const ConnectionConfig& other);
+  ConnectionConfig& operator=(const ConnectionConfig& other) = default;
 
   // Allow/disallow usage of encoding "copy rect"
   void allowCopyRect(bool allow);
@@ -260,9 +261,6 @@ protected:
   bool m_ignoreShapeUpdates;
 
   int m_localCursor;
-
-  // Critical section
-  mutable LocalMutex m_cs;
 };
 
 #endif

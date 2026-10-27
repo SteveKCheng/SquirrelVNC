@@ -23,8 +23,6 @@
 
 #include "ConnectionConfig.h"
 
-#include "thread/AutoLock.h"
-
 #include <crtdbg.h>
 
 #define TEST_FAIL(C,R) if (!C) { R = false; }
@@ -45,108 +43,33 @@ ConnectionConfig::~ConnectionConfig()
 {
 }
 
-ConnectionConfig::ConnectionConfig(const ConnectionConfig &connectionConfig)
-{
-  *this = connectionConfig;
-}
-
-ConnectionConfig& ConnectionConfig::operator=(const ConnectionConfig& other)
-{
-  bool allowedCopyRect;
-  unsigned char preferredEncoding;
-  bool use8BitColor;
-  int customCompressionLevel;
-  int jpegCompressionLevel;
-  bool viewOnly;
-  bool isClipboardEnabled;
-  bool useFullscreen;
-  bool deiconifyOnRemoteBell;
-  int scaleNumerator;
-  int scaleDenominator;
-  bool swapMouse;
-  bool requestSharedSession;
-  bool fitWindow;
-  bool requestShapeUpdates;
-  bool ignoreShapeUpdates;
-  int localCursor;
-
-  {
-    AutoLock lockOther(&other.m_cs);
-    allowedCopyRect = other.m_allowedCopyRect;
-    preferredEncoding = other.m_preferredEncoding;
-    use8BitColor = other.m_use8BitColor;
-    customCompressionLevel = other.m_customCompressionLevel;
-    jpegCompressionLevel = other.m_jpegCompressionLevel;
-    viewOnly = other.m_viewOnly;
-    isClipboardEnabled = other.m_isClipboardEnabled;
-    useFullscreen = other.m_useFullscreen;
-    deiconifyOnRemoteBell = other.m_deiconifyOnRemoteBell;
-    scaleNumerator = other.m_scaleNumerator;
-    scaleDenominator = other.m_scaleDenominator;
-    swapMouse = other.m_swapMouse;
-    requestSharedSession = other.m_requestSharedSession;
-    fitWindow = other.m_fitWindow;
-    requestShapeUpdates = other.m_requestShapeUpdates;
-    ignoreShapeUpdates = other.m_ignoreShapeUpdates;
-    localCursor = other.m_localCursor;
-  }
-
-  {
-    AutoLock lockThis(&m_cs);
-    m_allowedCopyRect = allowedCopyRect;
-    m_preferredEncoding = preferredEncoding;
-    m_use8BitColor = use8BitColor;
-    m_customCompressionLevel = customCompressionLevel;
-    m_jpegCompressionLevel = jpegCompressionLevel;
-    m_viewOnly = viewOnly;
-    m_isClipboardEnabled = isClipboardEnabled;
-    m_useFullscreen = useFullscreen;
-    m_deiconifyOnRemoteBell = deiconifyOnRemoteBell;
-    m_scaleNumerator = scaleNumerator;
-    m_scaleDenominator = scaleDenominator;
-    m_swapMouse = swapMouse;
-    m_requestSharedSession = requestSharedSession;
-    m_fitWindow = fitWindow;
-    m_requestShapeUpdates = requestShapeUpdates;
-    m_ignoreShapeUpdates = ignoreShapeUpdates;
-    m_localCursor = localCursor;
-  }
-  return *this;
-}
-
 void ConnectionConfig::allowCopyRect(bool allow)
 {
-  AutoLock l(&m_cs);
   m_allowedCopyRect = allow;
 }
 
 bool ConnectionConfig::isCopyRectAllowed()
 {
-  AutoLock l(&m_cs);
   return m_allowedCopyRect;
 }
 
 void ConnectionConfig::setPreferredEncoding(int encoding)
 {
-  AutoLock l(&m_cs);
   m_preferredEncoding = static_cast<unsigned char>(encoding);
 }
 
 int ConnectionConfig::getPreferredEncoding()
 {
-  AutoLock l(&m_cs);
   return m_preferredEncoding;
 }
 
 void ConnectionConfig::use8BitColor(bool use)
 {
-  AutoLock l(&m_cs);
   m_use8BitColor = use;
 }
 
 bool ConnectionConfig::isUsing8BitColor()
 {
-  AutoLock l(&m_cs);
   return m_use8BitColor;
 }
 
@@ -165,31 +88,23 @@ void ConnectionConfig::setCustomCompressionLevel(int level)
 {
   level = clampLevel(level);
 
-  {
-    AutoLock l(&m_cs);
-    m_customCompressionLevel = level;
-  }
+  m_customCompressionLevel = level;
 }
 
 void ConnectionConfig::setJpegCompressionLevel(int level)
 {
   level = clampLevel(level);
 
-  {
-    AutoLock l(&m_cs);
-    m_jpegCompressionLevel = level;
-  }
+  m_jpegCompressionLevel = level;
 }
 
 int ConnectionConfig::getCustomCompressionLevel()
 {
-  AutoLock l(&m_cs);
   return m_customCompressionLevel;
 }
 
 int ConnectionConfig::getJpegCompressionLevel()
 {
-  AutoLock l(&m_cs);
   return m_jpegCompressionLevel;
 }
 
@@ -215,61 +130,51 @@ void ConnectionConfig::disableJpegCompression()
 
 void ConnectionConfig::setViewOnly(bool viewOnly)
 {
-  AutoLock l(&m_cs);
   m_viewOnly = viewOnly;
 }
 
 bool ConnectionConfig::isViewOnly()
 {
-  AutoLock l(&m_cs);
   return m_viewOnly;
 }
 
 void ConnectionConfig::enableClipboard(bool enabled)
 {
-  AutoLock l(&m_cs);
   m_isClipboardEnabled = enabled;
 }
 
 bool ConnectionConfig::isClipboardEnabled()
 {
-  AutoLock l(&m_cs);
   return m_isClipboardEnabled;
 }
 
 void ConnectionConfig::enableFullscreen(bool useFullscreen)
 {
-  AutoLock l(&m_cs);
   m_useFullscreen = useFullscreen;
 }
 
 bool ConnectionConfig::isFullscreenEnabled()
 {
-  AutoLock l(&m_cs);
   return m_useFullscreen;
 }
 
 void ConnectionConfig::deiconifyOnRemoteBell(bool deiconifyFlag)
 {
-  AutoLock l(&m_cs);
   m_deiconifyOnRemoteBell = deiconifyFlag;
 }
 
 bool ConnectionConfig::isDeiconifyOnRemoteBellEnabled()
 {
-  AutoLock l(&m_cs);
   return m_deiconifyOnRemoteBell;
 }
 
 int ConnectionConfig::getScaleNumerator()
 {
-  AutoLock l(&m_cs);
   return m_scaleNumerator;
 }
 
 int ConnectionConfig::getScaleDenominator()
 {
-  AutoLock l(&m_cs);
   return m_scaleDenominator;
 }
 
@@ -305,70 +210,57 @@ void ConnectionConfig::setScale(int n, int d)
 {
   normalizeScale(&n, &d);
 
-  {
-    AutoLock l(&m_cs);
-    m_scaleNumerator = n;
-    m_scaleDenominator = d;
-  }
+  m_scaleNumerator = n;
+  m_scaleDenominator = d;
 }
 
 void ConnectionConfig::swapMouse(bool enabled)
 {
-  AutoLock l(&m_cs);
   m_swapMouse = enabled;
 }
 
 bool ConnectionConfig::isMouseSwapEnabled()
 {
-  AutoLock l(&m_cs);
   return m_swapMouse;
 }
 
 void ConnectionConfig::setSharedFlag(bool shared)
 {
-  AutoLock l(&m_cs);
   m_requestSharedSession = shared;
 }
 
 bool ConnectionConfig::getSharedFlag()
 {
-  AutoLock l(&m_cs);
   return m_requestSharedSession;
 }
 
 void ConnectionConfig::fitWindow(bool enabled)
 {
-  AutoLock l(&m_cs);
   m_fitWindow = enabled;
 }
 
 bool ConnectionConfig::isFitWindowEnabled()
 {
-  AutoLock l(&m_cs);
   return m_fitWindow;
 }
 
 void ConnectionConfig::requestShapeUpdates(bool requestFlag)
 {
-  AutoLock l(&m_cs);
   m_requestShapeUpdates = requestFlag;
 }
 
 void ConnectionConfig::ignoreShapeUpdates(bool ignoreFlag)
 {
-  AutoLock l(&m_cs);
   m_ignoreShapeUpdates = ignoreFlag;
 }
 
 bool ConnectionConfig::isRequestingShapeUpdates()
 {
-  AutoLock l(&m_cs);
   return m_requestShapeUpdates;
 }
 
 bool ConnectionConfig::isIgnoringShapeUpdates()
 {
-  AutoLock l(&m_cs);
   return m_ignoreShapeUpdates;
 }
 
@@ -392,22 +284,16 @@ void ConnectionConfig::setLocalCursorShape(int cursorShape)
     _ASSERT(FALSE);
   }
 
-  {
-    AutoLock l(&m_cs);
-    m_localCursor = cursorShape;
-  }
+  m_localCursor = cursorShape;
 }
 
 int ConnectionConfig::getLocalCursorShape()
 {
-  AutoLock l(&m_cs);
   return m_localCursor;
 }
 
 bool ConnectionConfig::saveToStorage(SettingsManager &sm) const
 {
-  AutoLock l(&m_cs);
-
   bool saveAllOk = true;
 
   // option "use_encoding_1" have need for compatible with old-vnc files
@@ -438,8 +324,6 @@ bool ConnectionConfig::saveToStorage(SettingsManager &sm) const
 
 bool ConnectionConfig::loadFromStorage(SettingsManager &sm)
 {
-  AutoLock l(&m_cs);
-
   bool loadAllOk = true;
 
 

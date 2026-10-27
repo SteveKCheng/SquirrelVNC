@@ -28,8 +28,6 @@
 #include "util/Singleton.h"
 #include "config-lib/ConnectionHistory.h"
 #include "log-writer/FileLogger.h"
-#include "thread/LocalMutex.h"
-#include "thread/AutoLock.h"
 
 #include "ConnectionConfig.h"
 
@@ -37,6 +35,10 @@
 
 //
 // Contains base set of viewer configuration options.
+//
+// Threads: not synchronized; the GUI thread only (the logger it returns
+// synchronizes itself). Its lock went in Phase 4 step 7 of
+// notes/async-networking.md: nothing on the network thread reads it.
 //
 
 class ViewerConfig final : public Singleton<ViewerConfig>
@@ -122,9 +124,6 @@ protected:
   // Connection history
   RegistryKey m_conHistoryKey; // Used by m_conHistory
   ConnectionHistory m_conHistory;
-private:
-  // Critical section for synchronization
-  mutable LocalMutex m_cs;
 };
 
 #endif

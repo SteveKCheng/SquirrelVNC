@@ -24,9 +24,7 @@
 #include "WindowsApplication.h"
 
 #include "util/CommonHeader.h"
-#include "thread/AutoLock.h"
 
-LocalMutex WindowsApplication::m_MDLMutex;
 
 std::list<HWND> WindowsApplication::m_modelessDialogList;
 
@@ -141,15 +139,11 @@ void WindowsApplication::waitForPostedWork()
 
 void WindowsApplication::addModelessDialog(HWND dialogWindow)
 {
-  AutoLock l(&m_MDLMutex);
-
   m_modelessDialogList.push_back(dialogWindow);
 }
 
 void WindowsApplication::removeModelessDialog(HWND dialogWindow)
 {
-  AutoLock l(&m_MDLMutex);
-
   m_modelessDialogList.remove(dialogWindow);
 }
 
@@ -157,11 +151,7 @@ bool WindowsApplication::processDialogMessage(MSG *msg)
 {
   // A copy: IsDialogMessage() dispatches the message to the dialog, which
   // may be destroyed by it, and remove itself from the list.
-  std::list<HWND> dialogs;
-  {
-    AutoLock l(&m_MDLMutex);
-    dialogs = m_modelessDialogList;
-  }
+  std::list<HWND> dialogs = m_modelessDialogList;
   for (HWND dialog : dialogs) {
     if (IsDialogMessage(dialog, msg)) {
       return true;

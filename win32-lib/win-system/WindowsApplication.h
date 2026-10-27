@@ -24,8 +24,7 @@
 #ifndef __WINDOWSAPPLICATION_H__
 #define __WINDOWSAPPLICATION_H__
 
-#include "util/winhdr.h"
-#include "thread/LocalMutex.h"
+#include "util/CommonHeader.h"
 
 #include <condition_variable>
 #include <deque>
@@ -146,7 +145,7 @@ protected:
    */
   static bool processDialogMessage(MSG *msg);
 private:
-  static LocalMutex m_MDLMutex; // Modeless dialog list mutex.
+  // GUI thread only: dialogs are made, destroyed and dispatched there.
   static std::list<HWND> m_modelessDialogList;
 
   // The work of postToMessageLoop(), not yet run; m_postedWorkQueued is

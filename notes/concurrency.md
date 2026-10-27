@@ -242,7 +242,8 @@ holds `m_MDLMutex` while `IsDialogMessage` dispatches to dialogs. A
 modal dialog opened from there (Options) runs its own loop, which can
 dispatch the posted `WM_USER_CONFIGURATION` / `WM_USER_ABOUT`, and those
 call `addModelessDialog` on the same thread. That lock only ever sees
-the GUI thread, so it is not needed at all.
+the GUI thread, so it is not needed at all. *Removed in Phase 4 step 7c
+of `async-networking.md`.*
 
 Two hits were false: `receiveFbUpdate` and `sendFbUpdateRequest`
 release their locks before making the calls.

@@ -993,6 +993,15 @@ from vcpkg.
       network thread; the GUI has the `ConnectionInfo` snapshot.
     - Kept: `m_startLock`, since `post()` reads `m_wasStarted` on any
       thread (ordered by `start()`, but on more than one thread).
+  - **7c. Locks of `win32-lib` used on the GUI thread only** (2026-10-27):
+    `WindowsApplication::m_MDLMutex` (the modeless-dialog list),
+    `ScaledIcons`' cache lock (shared only while the password dialog ran
+    on the core thread), `DisplayRequest::m_lock`, and the `m_cs` of
+    `ViewerConfig` and `ConnectionConfig`: nothing on the network or
+    notifier thread reads the configuration (the core gets settings as
+    posted events; the logger synchronizes itself). `ConnectionConfig`'s
+    copy constructor and assignment, written only to take both locks,
+    are defaulted.
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the

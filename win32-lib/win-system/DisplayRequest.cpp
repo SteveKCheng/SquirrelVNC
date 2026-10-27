@@ -22,7 +22,6 @@
 
 #include "DisplayRequest.h"
 #include "SystemException.h"
-#include "thread/AutoLock.h"
 #include "util/ScopeExit.h"
 
 DisplayRequest::DisplayRequest()
@@ -37,7 +36,6 @@ DisplayRequest::~DisplayRequest()
 
 void DisplayRequest::activate(const TCHAR *reason)
 {
-  AutoLock al(&m_lock);
   if (m_request != INVALID_HANDLE_VALUE) {
     return;
   }
@@ -65,7 +63,6 @@ void DisplayRequest::activate(const TCHAR *reason)
 
 void DisplayRequest::deactivate()
 {
-  AutoLock al(&m_lock);
   if (m_request == INVALID_HANDLE_VALUE) {
     return;
   }
@@ -76,6 +73,5 @@ void DisplayRequest::deactivate()
 
 bool DisplayRequest::isActive()
 {
-  AutoLock al(&m_lock);
   return m_request != INVALID_HANDLE_VALUE;
 }

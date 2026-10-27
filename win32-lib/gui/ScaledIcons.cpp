@@ -21,9 +21,6 @@
 //
 
 #include "ScaledIcons.h"
-#include "thread/AutoLock.h"
-#include "thread/LocalMutex.h"
-
 #include <commctrl.h>
 #include <map>
 
@@ -47,14 +44,8 @@ struct IconKey
   }
 };
 
-// Function-local statics, so they are constructed on first use rather
+// A function-local static, so it is constructed on first use rather
 // than in an unspecified order with other globals.
-LocalMutex &cacheLock()
-{
-  static LocalMutex lock;
-  return lock;
-}
-
 std::map<IconKey, HICON> &cache()
 {
   static std::map<IconKey, HICON> icons;
@@ -75,7 +66,6 @@ HICON ScaledIcons::getSmall(WORD id)
 
 HICON ScaledIcons::get(WORD id, int width, int height)
 {
-  AutoLock al(&cacheLock());
   IconKey key = { id, width, height };
   std::map<IconKey, HICON>::iterator it = cache().find(key);
   if (it != cache().end()) {

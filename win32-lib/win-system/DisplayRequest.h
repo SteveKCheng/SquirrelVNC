@@ -24,7 +24,6 @@
 #define _DISPLAY_REQUEST_H_
 
 #include "util/CommonHeader.h"
-#include "thread/LocalMutex.h"
 
 /**
  * Asks Windows to keep the display on while active. This also stops the
@@ -34,6 +33,9 @@
  * Implemented with a power request, so it does not depend on the calling
  * thread, and "powercfg /requests" lists it with its reason string.
  * The request is cleared when the object is destroyed or the process exits.
+ *
+ * Threads: not synchronized; one thread at a time (ViewerWindow uses it on
+ * the GUI thread).
  */
 class DisplayRequest final
 {
@@ -61,7 +63,6 @@ public:
   bool isActive();
 
 private:
-  LocalMutex m_lock;
   // Power request handle, or INVALID_HANDLE_VALUE when not active.
   HANDLE m_request;
 };

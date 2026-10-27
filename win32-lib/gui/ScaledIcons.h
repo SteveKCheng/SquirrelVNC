@@ -38,6 +38,9 @@
  *
  * Every id is the integer ID of an icon resource in the executable; the
  * result is null if there is no such icon.
+ *
+ * Threads: the GUI thread only, where every window and dialog is made
+ * (the cache has no lock since the password dialog moved there).
  */
 class ScaledIcons final
 {

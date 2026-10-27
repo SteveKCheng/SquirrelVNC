@@ -90,8 +90,6 @@ bool ViewerConfig::saveToStorage(SettingsManager &storage) const
 
 void ViewerConfig::setListenPort(int listenPort)
 {
-  AutoLock l(&m_cs);
-
   if (listenPort < 0) {
     listenPort = 0;
   } else if (listenPort > 65535) {
@@ -103,14 +101,11 @@ void ViewerConfig::setListenPort(int listenPort)
 
 int ViewerConfig::getListenPort() const
 {
-  AutoLock l(&m_cs);
   return m_listenPort;
 }
 
 void ViewerConfig::setLogLevel(int logLevel)
 {
-  AutoLock l(&m_cs);
-
   if (logLevel < 0) {
     logLevel = 0;
   } else if (logLevel > 10){
@@ -125,19 +120,16 @@ void ViewerConfig::setLogLevel(int logLevel)
 
 int ViewerConfig::getLogLevel() const
 {
-  AutoLock l(&m_cs);
   return m_logLevel;
 }
 
 void ViewerConfig::getLogDir(StringStorage *logDir) const
 {
-  AutoLock l(&m_cs);
   *logDir = m_pathToLogFile;
 }
 
 void ViewerConfig::setLogDir(StringStorage &logDir) 
 {
-  AutoLock l(&m_cs);
   m_pathToLogFile = logDir;
   if (m_logger) {
     m_logger->changeLogProps(m_pathToLogFile.getString(), static_cast<unsigned char>(m_logLevel));
@@ -146,8 +138,6 @@ void ViewerConfig::setLogDir(StringStorage &logDir)
 
 void ViewerConfig::setHistoryLimit(int historyLimit)
 {
-  AutoLock l(&m_cs);
-
   if (historyLimit < 0) {
     historyLimit = 0;
   } else if (historyLimit > 1024) {
@@ -161,43 +151,36 @@ void ViewerConfig::setHistoryLimit(int historyLimit)
 
 int ViewerConfig::getHistoryLimit() const
 {
-  AutoLock l(&m_cs);
   return m_historyLimit;
 }
 
 void ViewerConfig::showToolbar(bool show)
 {
-  AutoLock l(&m_cs);
   m_showToolbar = show;
 }
 
 bool ViewerConfig::isToolbarShown() const
 {
-  AutoLock l(&m_cs);
   return m_showToolbar;
 }
 
 void ViewerConfig::promptOnFullscreen(bool prompt)
 {
-  AutoLock l(&m_cs);
   m_promptOnFullscreen = prompt;
 }
 
 bool ViewerConfig::isPromptOnFullscreenEnabled() const
 {
-  AutoLock l(&m_cs);
   return m_promptOnFullscreen;
 }
 
 const TCHAR *ViewerConfig::getPathToLogFile() const
 {
-  AutoLock l(&m_cs);
   return m_pathToLogFile.getString();
 }
 
 ConnectionHistory *ViewerConfig::getConnectionHistory()
 {
-  AutoLock l(&m_cs);
   return &m_conHistory;
 }
 
@@ -222,7 +205,6 @@ Logger *ViewerConfig::initLog(const TCHAR logDir[], const TCHAR logName[], bool 
   }
 
   // Path to log file
-  AutoLock l(&m_cs);
   m_pathToLogFile = logFileFolderPath;
 
   // The new logger is made before the old one is freed: if that throws,
