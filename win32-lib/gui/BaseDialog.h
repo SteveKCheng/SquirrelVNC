@@ -41,7 +41,16 @@ public:
   BaseDialog(BaseDialog &&) = delete;
   BaseDialog &operator=(BaseDialog &&) = delete;
 
-  virtual ~BaseDialog() = default;
+  //
+  // If the dialog's window still exists, detaches it from this object, then
+  // destroys it if it is modeless. The messages of its destruction find no
+  // object, so no handler of this object runs, not even onDestroy(): by
+  // now this is only a BaseDialog. A subclass whose onDestroy() must run
+  // destroys its window in its own destructor (kill()).
+  //
+  // Pre-conditions: on the thread of the dialog's window, if any.
+  //
+  virtual ~BaseDialog();
 public:
 
   // Method creates non modal window but not shows it
@@ -113,7 +122,9 @@ protected:
   virtual void onMessageReceived(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
   //
-  // Window message proccessing method
+  // Window message proccessing method. On WM_NCDESTROY, the last message,
+  // the window is detached from this object (GWLP_USERDATA and m_ctrlThis
+  // cleared), so that neither refers to the other once the window is gone.
   //
 
   static INT_PTR CALLBACK dialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

@@ -66,6 +66,13 @@ public:
   FileTransferMainDialog(FileTransferCapability &fileTransfer,
                          FileTransferEvents &events,
                          const OperationSupport &supportedOps);
+
+  //
+  // Destroys the dialog's window if it still exists, so that onDestroy()
+  // detaches the events: the window must not outlive this object.
+  //
+  // Pre-conditions: GUI thread.
+  //
   ~FileTransferMainDialog() override;
 
   //
@@ -84,7 +91,8 @@ protected:
   //
   // onInitDialog() attaches the dialog to its events before it starts the
   // first file list; onDestroy() detaches it, so nothing more is posted to
-  // the window.
+  // the window, and removes it from the application's modeless dialogs
+  // (added by ViewerWindow::showFileTransferDialog()).
   //
   BOOL onInitDialog() override;
   BOOL onNotify(WORD controlID, LPARAM data) override;

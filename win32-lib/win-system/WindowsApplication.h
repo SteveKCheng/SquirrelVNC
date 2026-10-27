@@ -111,6 +111,14 @@ public:
    */
   static void addModelessDialog(HWND dialogWindow);
 
+  /**
+   * Removes a modeless dialog added by addModelessDialog(), when its window
+   * is destroyed, so that its handle, which may be reused, is not kept.
+   * Does nothing if dialogWindow is not in the list.
+   * @param dialogWindow HWND of modeless dialog.
+   */
+  static void removeModelessDialog(HWND dialogWindow);
+
 protected:
   // Creates a window to receive messages.
   virtual void createWindow(const TCHAR *className);

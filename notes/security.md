@@ -89,6 +89,19 @@ every function that changes the string must keep it, including when it
 throws. Similar unstated assumptions are likely elsewhere: when code relies
 on one, write it down and check the functions that change the state.
 
+### Window objects freed before their windows
+
+A window procedure finds its C++ object through `GWLP_USERDATA`. If the
+object is freed while the window still exists, the next message (a
+repaint, the mouse moving over it) calls into freed memory. The
+file-transfer dialog had no owner window, so it stayed open when its
+viewer window closed, and `BaseDialog` did not destroy its window with
+the object: a server that disconnected while the dialog was open caused
+a use-after-free once the connection's instance was deleted. Fixed by
+detaching at `WM_NCDESTROY` and destroying the window in the destructor
+(`window-lifetimes.md`). Look for window and dialog objects held by
+something other than their window, and for windows without an owner.
+
 ### Starting programs and loading by name
 
 `CreateProcess(NULL, "explorer ...")` searched the viewer's own directory

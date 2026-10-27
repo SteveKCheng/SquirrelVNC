@@ -27,4 +27,5 @@
   - [Classes and functions for strings and transcoding](string-encoding.md)
   - [Testing and fuzzing the code](testing.md)
   - [Icon artwork for the toolbar](toolbar-icons.md)
+  - [How window and dialog objects end with their windows](window-lifetimes.md)
 

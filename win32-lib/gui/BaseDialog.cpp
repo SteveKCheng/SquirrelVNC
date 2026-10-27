@@ -40,6 +40,19 @@ BaseDialog::BaseDialog(WORD resourceId)
 {
 }
 
+BaseDialog::~BaseDialog()
+{
+  HWND window = m_ctrlThis.getWindow();
+  if (window != nullptr) {
+    SetWindowLongPtr(window, GWLP_USERDATA, 0);
+    m_ctrlThis.setWindow(nullptr);
+    // A modal dialog's window belongs to the loop of DialogBoxParam().
+    if (!m_isModal) {
+      DestroyWindow(window);
+    }
+  }
+}
+
 void BaseDialog::setResourceId(WORD id)
 {
   m_resourceId = id;
@@ -175,6 +188,10 @@ INT_PTR CALLBACK BaseDialog::dialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     break;
   case WM_DRAWITEM:
     bResult = _this->onDrawItem(LOWORD(wParam), (LPDRAWITEMSTRUCT)lParam);
+    break;
+  case WM_NCDESTROY:
+    SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
+    _this->m_ctrlThis.setWindow(nullptr);
     break;
   }
 

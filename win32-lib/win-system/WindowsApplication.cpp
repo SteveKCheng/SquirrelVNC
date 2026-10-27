@@ -146,12 +146,24 @@ void WindowsApplication::addModelessDialog(HWND dialogWindow)
   m_modelessDialogList.push_back(dialogWindow);
 }
 
-bool WindowsApplication::processDialogMessage(MSG *msg)
+void WindowsApplication::removeModelessDialog(HWND dialogWindow)
 {
   AutoLock l(&m_MDLMutex);
-  for (std::list<HWND>::iterator iter = m_modelessDialogList.begin();
-       iter != m_modelessDialogList.end(); iter++) {
-    if (IsDialogMessage(*iter, msg)) {
+
+  m_modelessDialogList.remove(dialogWindow);
+}
+
+bool WindowsApplication::processDialogMessage(MSG *msg)
+{
+  // A copy: IsDialogMessage() dispatches the message to the dialog, which
+  // may be destroyed by it, and remove itself from the list.
+  std::list<HWND> dialogs;
+  {
+    AutoLock l(&m_MDLMutex);
+    dialogs = m_modelessDialogList;
+  }
+  for (HWND dialog : dialogs) {
+    if (IsDialogMessage(dialog, msg)) {
       return true;
     }
   }

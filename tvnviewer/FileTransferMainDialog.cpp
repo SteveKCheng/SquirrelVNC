@@ -30,6 +30,7 @@
 
 #include "file-lib/File.h"
 #include "ft-common/FolderListener.h"
+#include "win-system/WindowsApplication.h"
 
 #include "res/resource.h"
 #include <stdio.h>
@@ -55,6 +56,10 @@ FileTransferMainDialog::FileTransferMainDialog(FileTransferCapability &fileTrans
 
 FileTransferMainDialog::~FileTransferMainDialog()
 {
+  // While this object is whole, so that onDestroy() runs.
+  if (m_ctrlThis.getWindow() != nullptr) {
+    kill(IDCANCEL);
+  }
 }
 
 void FileTransferMainDialog::setProgress(double progress)
@@ -225,6 +230,7 @@ BOOL FileTransferMainDialog::onCommand(WORD controlID, UINT /* notificationID */
 BOOL FileTransferMainDialog::onDestroy()
 {
   m_events.detach();
+  WindowsApplication::removeModelessDialog(m_ctrlThis.getWindow());
   return TRUE;
 }
 
