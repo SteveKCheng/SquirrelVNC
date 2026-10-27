@@ -27,16 +27,22 @@
 #include "util/CommonHeader.h"
 #include "util/inttypes.h"
 
+#include <functional>
 #include <memory>
-#include <vector>
 
 class AuthHandler;
 class ServerMessageListener;
 class Decoder;
 
 //
-// This interface defined function, than need for work with capabilities.
-// Any capabilities must be added before call RemoteViewerCore::start().
+// What the core offers the modules that extend it (authentication
+// handlers, the file transfer): registering their capabilities, and
+// running work on the network thread with the core kept alive. Given out
+// by RemoteViewerCore::getCapabilitiesManager().
+//
+// Threads: the add...() functions are for the core's consumer thread,
+// before RemoteViewerCore::start(); postToLoop() and claimOwner() are for
+// any thread, at any time.
 //
 class CapabilitiesManager
 {
@@ -85,19 +91,26 @@ public:
                                      const StringStorage description = _T("")) = 0;
 
   //
-  // This function return vector of enabled capabilities "client-to-server message".
+  // Posts work for the core, or for what is registered with it (such as
+  // the file transfer), to the network thread, with a reference to the
+  // adapter given to RemoteViewerCore::start(), which keeps the adapter's
+  // owner, and so the core, alive until the work has run (see start()).
+  // Does nothing once no reference is left: the owner is being deleted,
+  // and the connection has ended; or start() has not been called yet.
+  // Work posted after the connection has ended still runs, while the owner
+  // is alive.
   //
-  virtual void getEnabledClientMsgCapabilities(std::vector<UINT32> *codes) const = 0;
+  // Pre-conditions: work does not throw.
+  //
+  virtual void postToLoop(std::function<void()> work) = 0;
 
   //
-  // This function return vector of enabled capabilities "server-to-client message".
+  // A claim on the adapter's owner, as postToLoop() takes for its work:
+  // for work that runs elsewhere and needs the core, and what is
+  // registered with it, alive until it ends. Empty once no reference is
+  // left, or before start() (see postToLoop()).
   //
-  virtual void getEnabledServerMsgCapabilities(std::vector<UINT32> *codes) const = 0;
-
-  //
-  // This function return vector of enabled capabilities "encoding".
-  //
-  virtual void getEnabledEncodingCapabilities(std::vector<UINT32> *codes) const = 0;
+  virtual std::shared_ptr<void> claimOwner() = 0;
 };
 
 #endif

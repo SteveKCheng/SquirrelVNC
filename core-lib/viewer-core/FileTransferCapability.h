@@ -37,8 +37,6 @@
 
 #include <functional>
 
-class RemoteViewerCore;
-
 //
 // The file transfer of a connection: its messages, and the operations
 // (FileTransferCore), which run on the network thread. The user interface
@@ -76,7 +74,7 @@ public:
   // Pre-conditions: called once, before core starts; core is a sibling
   // member of the same owner, made and destroyed with this object.
   //
-  void addCapabilities(RemoteViewerCore &core);
+  void addCapabilities(CapabilitiesManager &core);
 
   //
   // The pool for the operations' blocking work (local deletes).
@@ -88,9 +86,9 @@ public:
 
   //
   // Runs command with the file transfer's operations, on the network
-  // thread (RemoteViewerCore::postToLoop()), with a claim on the owner that
-  // keeps this object alive until then; does nothing once the owner is
-  // being deleted. An exception from command is logged. Any thread.
+  // thread (CapabilitiesManager::postToLoop()), with a claim on the owner
+  // that keeps this object alive until then; does nothing once the owner
+  // is being deleted. An exception from command is logged. Any thread.
   //
   // Pre-conditions: addCapabilities() has been called.
   //
@@ -105,9 +103,9 @@ public:
 private:
   //
   // BlockingWorkRunner: runBlocking() posts work to the pool with a claim
-  // on the owner (RemoteViewerCore::claimOwner()), held until it has run;
-  // an exception from work is logged. postToNetwork() is
-  // RemoteViewerCore::postToLoop().
+  // on the owner (CapabilitiesManager::claimOwner()), held until it has
+  // run; an exception from work is logged. postToNetwork() is
+  // CapabilitiesManager::postToLoop().
   //
   bool runBlocking(std::function<void()> work) override;
   void postToNetwork(std::function<void()> work) override;
@@ -121,8 +119,8 @@ protected:
 
   FileTransferCore m_ftCore;
 
-  // Set by addCapabilities().
-  RemoteViewerCore *m_viewerCore;
+  // The core's, set by addCapabilities().
+  CapabilitiesManager *m_core;
   // Set by setBlockingWorkPool().
   BlockingWorkPool *m_blockingWorkPool;
 };

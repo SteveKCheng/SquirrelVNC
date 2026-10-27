@@ -1022,6 +1022,29 @@ from vcpkg.
     `acceptsLevel()`, which every log call makes on every thread, and
     `getFileName()` now take it too: they read `m_file` and `m_level`,
     which `changeLogProps()` changes on the GUI thread.
+  - **7g. `RemoteViewerCore`'s interface narrowed** (2026-10-27, agreed
+    with Steve):
+    - Its public functions are for one thread, the consumer's (the GUI;
+      rfb-replay's main thread, `copyFrameBuffer()` included). Before
+      `start()` the settings change the core directly; from `start()` on
+      they are posted. So `m_wasStarted` is a plain `bool`, and
+      `m_startLock` goes: it never made `post()` or `stop()` atomic (each
+      tested the flag and acted after releasing the lock); what makes
+      them correct is that `start()` runs on the same thread.
+    - `setMaxFrameBufferPixels()` becomes an argument of `start()`.
+    - `CapabilitiesManager` is the extension point for the modules
+      (authentication handlers, the file transfer): the `add…()`
+      functions, and `postToLoop()` and `claimOwner()`, the only
+      functions with other thread rules. The `getEnabled…()` functions,
+      used only inside the core, are private there (the encodings one,
+      unused, is gone). The core inherits it privately and gives it out
+      explicitly, `getCapabilitiesManager()`, as `ViewerCoreEvents` gives
+      out its adapter (Steve: the extension point shows in the code, and
+      the call can take arguments or pre-conditions later), so the
+      modules no longer include `RemoteViewerCore.h`.
+    - Considered and left for later: a `std::shared_ptr` to the state
+      shared with the network thread, instead of relying on the
+      adapter's control block owning the core (see `start()`).
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the

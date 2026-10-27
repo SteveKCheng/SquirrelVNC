@@ -32,8 +32,6 @@
 #include "ft-common/FTMessage.h"
 #include "rfb/VendorDefs.h"
 
-#include "RemoteViewerCore.h"
-
 #include <asio/post.hpp>
 
 #include <utility>
@@ -48,7 +46,7 @@ FileTransferCapability::FileTransferCapability(Logger *logger)
            &m_ftReplyBuffer,
            &m_ftMessageProcessor,
            *this),
-  m_viewerCore(nullptr),
+  m_core(nullptr),
   m_blockingWorkPool(nullptr)
 {
 }
@@ -74,7 +72,7 @@ Task<> FileTransferCapability::onServerMessage(UINT32 code, AwaitableReader &rea
 
 void FileTransferCapability::post(std::function<void(FileTransferCore &)> command)
 {
-  m_viewerCore->postToLoop([this, command = std::move(command)] {
+  m_core->postToLoop([this, command = std::move(command)] {
     try {
       command(m_ftCore);
     } catch (const Exception &ex) {
@@ -95,7 +93,7 @@ void FileTransferCapability::setBlockingWorkPool(BlockingWorkPool &pool)
 
 bool FileTransferCapability::runBlocking(std::function<void()> work)
 {
-  std::shared_ptr<void> owner = m_viewerCore->claimOwner();
+  std::shared_ptr<void> owner = m_core->claimOwner();
   if (!owner || m_blockingWorkPool == nullptr) {
     return false;
   }
@@ -112,12 +110,12 @@ bool FileTransferCapability::runBlocking(std::function<void()> work)
 
 void FileTransferCapability::postToNetwork(std::function<void()> work)
 {
-  m_viewerCore->postToLoop(std::move(work));
+  m_core->postToLoop(std::move(work));
 }
 
-void FileTransferCapability::addCapabilities(RemoteViewerCore &core)
+void FileTransferCapability::addCapabilities(CapabilitiesManager &core)
 {
-  m_viewerCore = &core;
+  m_core = &core;
   CapabilitiesManager *capabilities = &core;
 
   // Client-to-Server messages:

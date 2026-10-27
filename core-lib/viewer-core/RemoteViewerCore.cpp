@@ -282,6 +282,11 @@ std::shared_ptr<void> RemoteViewerCore::claimOwner()
   return m_adapterRef.lock();
 }
 
+CapabilitiesManager &RemoteViewerCore::getCapabilitiesManager()
+{
+  return *this;
+}
+
 void RemoteViewerCore::setPixelFormat(const PixelFormat &pixelFormat)
 {
   post(PixelFormatEvent{pixelFormat});
@@ -1644,10 +1649,6 @@ void RemoteViewerCore::getEnabledServerMsgCapabilities(std::vector<UINT32> *code
   m_serverMsgCaps.getEnabledCapabilities(*codes);
 }
 
-void RemoteViewerCore::getEnabledEncodingCapabilities(std::vector<UINT32> *codes) const
-{
-  m_encodingCaps.getEnabledCapabilities(*codes);
-}
 
 void RemoteViewerCore::registerAuthHandler(UINT32 code, AuthHandler *handler)
 {

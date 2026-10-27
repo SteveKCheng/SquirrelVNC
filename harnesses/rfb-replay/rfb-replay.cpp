@@ -511,7 +511,7 @@ int _tmain(int argc, TCHAR *argv[])
   });
   std::vector<char> ppm;
   try {
-    authHandler.addAuthCapability(*core);
+    authHandler.addAuthCapability(core->getCapabilitiesManager());
     if (server) {
       core->start(_T("127.0.0.1"), server->getPort(), adapterRef, true,
                   options.maxPixels);

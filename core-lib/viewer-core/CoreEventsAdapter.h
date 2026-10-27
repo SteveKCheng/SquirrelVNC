@@ -49,9 +49,7 @@ struct ConnectionInfo
   // of the version message).
   StringStorage protocolString;
   // The codes of the client-to-server and server-to-client messages that
-  // both sides support (TightVNC's capabilities), as
-  // CapabilitiesManager::getEnabledClientMsgCapabilities() and
-  // getEnabledServerMsgCapabilities() give them.
+  // both sides support (TightVNC's capabilities).
   std::vector<UINT32> clientMsgCodes;
   std::vector<UINT32> serverMsgCodes;
 };

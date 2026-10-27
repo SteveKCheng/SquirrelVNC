@@ -77,9 +77,9 @@
 // the GUI's role), and not for the adapter's callbacks, which come on the
 // network thread. Before start(), the settings change this object
 // directly; from start() on, they are posted to the network thread, which
-// owns the connection's state. The exceptions are the capability
-// functions, postToLoop() and claimOwner(), which have their own thread
-// rules (see there).
+// owns the connection's state. The exception is the CapabilitiesManager
+// that getCapabilitiesManager() gives out to the modules extending the
+// core, which has its own thread rules.
 //
 // Each function can be called on any stage of the protocol, unless
 // documented otherwise.
@@ -87,7 +87,7 @@
 // Finally, each function of this class may throw exceptions, unless it's
 // explicitly stated that it will never do so.
 //
-class RemoteViewerCore final : public CapabilitiesManager
+class RemoteViewerCore final : private CapabilitiesManager
 {
 public:
   //
@@ -358,10 +358,37 @@ public:
   void ignoreCursorShapeUpdates(bool ignored);
 
   //
-  // Work with capabilities is documented in interface CapabilitiesManager.
-  // Next methods is implements of CapabilitiesManager.
+  // The extension point for the modules that extend the core
+  // (authentication handlers, the file transfer): they register their
+  // capabilities on it before start(), and post work to the network thread
+  // through it. See CapabilitiesManager for its thread rules.
   //
+  // Post-conditions: the reference is valid as long as this object.
+  //
+  CapabilitiesManager &getCapabilitiesManager();
 
+  //
+  // Copy the frame buffer, as the decoders have left it, into dst.
+  //
+  // May be called at any time. A test program calls it once the session
+  // has ended, because CoreEventsAdapter's update events come from another
+  // thread and may not report the last updates.
+  //
+  // Pre-conditions: dst is not 0.
+  // Post-conditions: dst has the dimension and pixel format of the frame
+  // buffer and a copy of its pixels, taken under m_fbLock. The copy never
+  // contains a cursor, since the notifier draws the cursor and removes it
+  // again under the same lock. Before ServerInit the copy is empty.
+  // Throws Exception if dst cannot be set up, or std::bad_alloc.
+  //
+  void copyFrameBuffer(FrameBuffer &dst);
+
+private:
+  //
+  // CapabilitiesManager, given out by getCapabilitiesManager(); see there
+  // for each. postToLoop() takes the reference from m_adapterRef; every
+  // post for this object goes through it.
+  //
   void addAuthCapability(AuthHandler *authHandler,
                          UINT32 code,
                          const char *vendorSignature,
@@ -386,51 +413,18 @@ public:
                              const char *nameSignature,
                              const StringStorage description = _T("")) override;
 
-  // Pre-conditions: network thread, or before start() (CapsContainer is
-  // not synchronized).
-  void getEnabledClientMsgCapabilities(std::vector<UINT32> *codes) const override;
-  void getEnabledServerMsgCapabilities(std::vector<UINT32> *codes) const override;
-  void getEnabledEncodingCapabilities(std::vector<UINT32> *codes) const override;
+  void postToLoop(std::function<void()> work) override;
+
+  std::shared_ptr<void> claimOwner() override;
 
   //
-  // Copy the frame buffer, as the decoders have left it, into dst.
+  // The codes of the client-to-server and server-to-client messages that
+  // both sides support, for ConnectionInfo.
   //
-  // May be called at any time. A test program calls it once the session
-  // has ended, because CoreEventsAdapter's update events come from another
-  // thread and may not report the last updates.
+  // Pre-conditions: network thread (CapsContainer is not synchronized).
   //
-  // Pre-conditions: dst is not 0.
-  // Post-conditions: dst has the dimension and pixel format of the frame
-  // buffer and a copy of its pixels, taken under m_fbLock. The copy never
-  // contains a cursor, since the notifier draws the cursor and removes it
-  // again under the same lock. Before ServerInit the copy is empty.
-  // Throws Exception if dst cannot be set up, or std::bad_alloc.
-  //
-  void copyFrameBuffer(FrameBuffer &dst);
-
-  //
-  // Posts work for this object, or for what is registered with it (such as
-  // the file transfer), to the network thread, with a reference to the
-  // adapter (m_adapterRef), which keeps the adapter's owner, and so this
-  // object, alive until the work has run (see start()). Every post for
-  // this object goes through here. Does nothing once no reference is left:
-  // the owner is being deleted, and the connection has ended. Work posted
-  // after the connection has ended still runs, while the owner is alive.
-  // Any thread.
-  //
-  // Pre-conditions: work does not throw.
-  //
-  void postToLoop(std::function<void()> work);
-
-  //
-  // A claim on the adapter's owner, as postToLoop() takes for its work:
-  // for work that runs elsewhere and needs this object, and what is
-  // registered with it, alive until it ends. Empty once no reference is
-  // left (see postToLoop()). Any thread.
-  //
-  std::shared_ptr<void> claimOwner();
-
-private:
+  void getEnabledClientMsgCapabilities(std::vector<UINT32> *codes) const;
+  void getEnabledServerMsgCapabilities(std::vector<UINT32> *codes) const;
   //
   // Whether start() has been called: whether the connection's state now
   // belongs to the network thread. Stays true after stop(), or after the
