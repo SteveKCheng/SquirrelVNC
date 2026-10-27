@@ -165,6 +165,9 @@
     <ClCompile Include="viewer-core\RemoteViewerCore.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
+    <ClCompile Include="viewer-core\RemoteViewerCoreImpl.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
     <ClCompile Include="viewer-core\RfbClientToServerMessage.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
@@ -441,6 +444,9 @@
       <Filter>viewer-core</Filter>
     </ClInclude>
     <ClInclude Include="viewer-core\RemoteViewerCore.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="viewer-core\RemoteViewerCoreImpl.h">
       <Filter>viewer-core</Filter>
     </ClInclude>
     <ClInclude Include="viewer-core\RfbClientToServerMessage.h">

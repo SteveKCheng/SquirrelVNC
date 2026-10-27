@@ -1042,9 +1042,18 @@ from vcpkg.
       out its adapter (Steve: the extension point shows in the code, and
       the call can take arguments or pre-conditions later), so the
       modules no longer include `RemoteViewerCore.h`.
+    - Pimpl: `RemoteViewerCore` (`RemoteViewerCore.h`) is the consumer's
+      interface, forwarding to `RemoteViewerCoreImpl`
+      (`RemoteViewerCoreImpl.h/.cpp`, the former `RemoteViewerCore.h/.cpp`
+      moved, for viewer-core only), held by `std::unique_ptr`. Its header
+      keeps only Asio's executor and TCP socket; the protocol, decoders,
+      coroutines and the rest of Asio stay in the implementation. File
+      and line references to `RemoteViewerCore.cpp` in older notes now
+      point into `RemoteViewerCoreImpl.cpp`.
     - Considered and left for later: a `std::shared_ptr` to the state
       shared with the network thread, instead of relying on the
-      adapter's control block owning the core (see `start()`).
+      adapter's control block owning the core (see `start()`); Steve
+      would prefer it, but not now.
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the

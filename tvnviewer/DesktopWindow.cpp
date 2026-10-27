@@ -23,6 +23,9 @@
 
 #include "DesktopWindow.h"
 
+#include "thread/AutoLock.h"
+#include "util/Exception.h"
+
 DesktopWindow::DesktopWindow(LogWriter *logWriter, ConnectionConfig *conConf)
 : m_logWriter(logWriter),
   m_isConnected(false),

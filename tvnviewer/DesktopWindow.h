@@ -28,8 +28,12 @@
 
 #include "win-system/WinClipboard.h"
 #include "gui/DibFrameBuffer.h"
+#include "log-writer/LogWriter.h"
+#include "region/Point.h"
 #include "region/Rect.h"
 #include "region/Dimension.h"
+#include "rfb/FrameBuffer.h"
+#include "thread/LocalMutex.h"
 #include "ScaleManager.h"
 #include "client-config-lib/ConnectionConfig.h"
 #include "gui/PaintWindow.h"

@@ -145,6 +145,7 @@
     <ClCompile Include="viewer-core\PseudoDecoder.cpp" />
     <ClCompile Include="viewer-core\RawDecoder.cpp" />
     <ClCompile Include="viewer-core\RemoteViewerCore.cpp" />
+    <ClCompile Include="viewer-core\RemoteViewerCoreImpl.cpp" />
     <ClCompile Include="viewer-core\RfbClientToServerMessage.cpp" />
     <ClCompile Include="viewer-core\RfbCutTextEventClientMessage.cpp" />
     <ClCompile Include="viewer-core\RfbFramebufferUpdateRequestClientMessage.cpp" />
@@ -239,6 +240,7 @@
     <ClInclude Include="viewer-core\PseudoDecoder.h" />
     <ClInclude Include="viewer-core\RawDecoder.h" />
     <ClInclude Include="viewer-core\RemoteViewerCore.h" />
+    <ClInclude Include="viewer-core\RemoteViewerCoreImpl.h" />
     <ClInclude Include="viewer-core\RfbClientToServerMessage.h" />
     <ClInclude Include="viewer-core\RfbCutTextEventClientMessage.h" />
     <ClInclude Include="viewer-core\RfbFramebufferUpdateRequestClientMessage.h" />
