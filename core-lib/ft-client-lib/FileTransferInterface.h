@@ -24,15 +24,15 @@
 #ifndef _FILE_TRANSFER_INTERFACE_H_
 #define _FILE_TRANSFER_INTERFACE_H_
 
-#include "FileTransferCore.h"
+#include "ft-common/FileInfo.h"
 
-class FileTransferCore;
+#include <vector>
 
 //
 // What the file transfer reports to its user interface. FileTransferCore
-// calls it from the operations, on the network thread (and a local delete's
-// own thread), and from the calls the dialog makes into the core, on the GUI
-// thread; each function says which.
+// calls it on the network thread, and a local delete on its own thread;
+// each function says which. None may block, except onFtTargetFileExists()
+// for now.
 //
 class FileTransferInterface
 {
@@ -74,33 +74,17 @@ public:
   virtual void onFtOpFinished(int state, int result) = 0;
 
   //
-  // The rest are called on the GUI thread, from FileTransferCore functions
-  // that the dialog calls.
+  // On the network thread: the remote folder listed by a file-list
+  // operation, just before its successful end (onFtOpFinished() with
+  // FILE_LIST_STATE and a result of 1).
   //
+  virtual void onFtFileList(std::vector<FileInfo> files) = 0;
 
   //
-  // filetransfer's operation is finished. Need update of control
+  // On the network thread: the connection has ended. No reply will come;
+  // an operation on the server does not report its end.
   //
-  virtual void setNothingState() = 0;
-
-  //
-  // Called if local file list is updated
-  //
-  virtual void onRefreshLocalFileList() = 0;
-
-  // Called if remote file list is updated
-  virtual void onRefreshRemoteFileList() = 0;
-
-  //
-  // Shows error message and throws exception
-  //
-  // Pre-conditions: called in a handler that caught ex.
-  // Post-conditions: throws: ex itself is rethrown, not a copy of its
-  // Exception part.
-  //
-
-  virtual void raise(const Exception &ex) = 0;
-
+  virtual void onFtConnectionEnded() = 0;
 };
 
 #endif

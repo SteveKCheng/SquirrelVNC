@@ -79,15 +79,10 @@ void ViewerCoreEvents::onEstablished()
 
 void ViewerCoreEvents::onConnected(RfbOutputGate *output, const ConnectionInfo &info)
 {
-  // Set output for client-to-server messages in file transfer.
+  // Set output for client-to-server messages in file transfer, before the
+  // GUI thread can start an operation.
   m_fileTransfer->setOutput(output);
 
-  // Update list of supported operation for file transfer.
-  m_fileTransfer->getCore()->updateSupportedOperations(info.clientMsgCodes,
-                                                       info.serverMsgCodes);
-
-  // The file-transfer state above is complete before the GUI thread sees
-  // the message, which applySettings() needs to enable the button.
   std::lock_guard<std::mutex> lock(m_lock);
   m_pendingConnectionInfo = info;
   post(WM_USER_CONNECTED);
@@ -96,6 +91,7 @@ void ViewerCoreEvents::onConnected(RfbOutputGate *output, const ConnectionInfo &
 void ViewerCoreEvents::onDisconnect(const StringStorage &message)
 {
   m_logWriter.info(_T("onDisconnect: %s"), message.getString());
+  m_fileTransfer->onConnectionEnded();
   std::lock_guard<std::mutex> lock(m_lock);
   m_disconnectMessage = message;
   post(WM_USER_DISCONNECT);
@@ -105,6 +101,7 @@ void ViewerCoreEvents::onAuthError(const AuthException &exception)
 {
   m_logWriter.info(_T("onAuthError (%d): %s"),
                    exception.getAuthCode(), exception.getMessage());
+  m_fileTransfer->onConnectionEnded();
   std::lock_guard<std::mutex> lock(m_lock);
   m_error = exception;
   post(WM_USER_AUTH_ERROR, exception.getAuthCode());
@@ -112,6 +109,7 @@ void ViewerCoreEvents::onAuthError(const AuthException &exception)
 
 void ViewerCoreEvents::onError(const Exception &exception)
 {
+  m_fileTransfer->onConnectionEnded();
   std::lock_guard<std::mutex> lock(m_lock);
   m_error = exception;
   post(WM_USER_ERROR);

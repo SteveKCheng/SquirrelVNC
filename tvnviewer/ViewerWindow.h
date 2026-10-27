@@ -252,6 +252,12 @@ private:
   void doUnFullScr();
   void doSize();
   //
+  // The file-transfer operations the server supports, from the
+  // connection's capabilities: none before handleConnected().
+  //
+  OperationSupport getFileTransferSupport() const;
+
+  //
   // Shows the file-transfer dialog if the toolbar button is down, creating
   // it anew if its window was closed. The dialog uses m_ftEvents, which
   // outlives it.

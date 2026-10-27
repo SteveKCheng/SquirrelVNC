@@ -50,6 +50,7 @@ void FileTransferEvents::attach(FileTransferMainDialog &dialog, HWND window)
   m_window = window;
   m_pendingProgress.reset();
   m_pendingMessages.clear();
+  m_pendingFileList.reset();
 }
 
 void FileTransferEvents::detach() noexcept
@@ -69,6 +70,12 @@ std::vector<StringStorage> FileTransferEvents::takeMessages()
 {
   std::lock_guard<std::mutex> lock(m_lock);
   return std::exchange(m_pendingMessages, {});
+}
+
+std::optional<std::vector<FileInfo>> FileTransferEvents::takeFileList()
+{
+  std::lock_guard<std::mutex> lock(m_lock);
+  return std::exchange(m_pendingFileList, std::nullopt);
 }
 
 bool FileTransferEvents::post(UINT message, WPARAM wParam, LPARAM lParam) noexcept
@@ -114,6 +121,18 @@ void FileTransferEvents::onFtOpFinished(int state, int result)
   post(WM_FT_FINISHED, static_cast<WPARAM>(state), static_cast<LPARAM>(result));
 }
 
+void FileTransferEvents::onFtFileList(std::vector<FileInfo> files)
+{
+  std::lock_guard<std::mutex> lock(m_lock);
+  m_pendingFileList = std::move(files);
+}
+
+void FileTransferEvents::onFtConnectionEnded()
+{
+  std::lock_guard<std::mutex> lock(m_lock);
+  post(WM_FT_CONNECTION_ENDED);
+}
+
 int FileTransferEvents::onFtTargetFileExists(FileInfo *sourceFileInfo,
                                              FileInfo *targetFileInfo,
                                              const TCHAR *pathToTargetFile)
@@ -128,36 +147,10 @@ int FileTransferEvents::onFtTargetFileExists(FileInfo *sourceFileInfo,
   }
   // As before this class: the dialog is shown from this thread, and is not
   // kept alive while it is open.
-  return dialog->onFtTargetFileExists(sourceFileInfo, targetFileInfo,
-                                      pathToTargetFile);
-}
-
-void FileTransferEvents::setNothingState()
-{
-  if (m_dialog != nullptr) {
-    m_dialog->setNothingState();
+  int action = dialog->onFtTargetFileExists(sourceFileInfo, targetFileInfo,
+                                            pathToTargetFile);
+  if (action == CopyFileEventListener::TFE_CANCEL) {
+    onFtOpInfo(_T("Operation have been canceled by user"));
   }
-}
-
-void FileTransferEvents::onRefreshLocalFileList()
-{
-  if (m_dialog != nullptr) {
-    m_dialog->onRefreshLocalFileList();
-  }
-}
-
-void FileTransferEvents::onRefreshRemoteFileList()
-{
-  if (m_dialog != nullptr) {
-    m_dialog->onRefreshRemoteFileList();
-  }
-}
-
-void FileTransferEvents::raise(const Exception &ex)
-{
-  if (m_dialog != nullptr) {
-    m_dialog->raise(ex);
-  }
-  // The exception being handled, which is ex.
-  throw;
+  return action;
 }

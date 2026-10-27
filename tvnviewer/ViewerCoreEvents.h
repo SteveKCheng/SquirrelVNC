@@ -173,9 +173,10 @@ private:
   // The events of CoreEventsAdapter. Each keeps what it is given, if
   // anything, and posts the message of the same name; onEstablished() does
   // nothing, and the frame buffer events go to the desktop window.
-  // onConnected() also gives the file transfer its output, and the
-  // operations the server supports, before posting, so that they are ready
-  // when the window enables file transfer.
+  // onConnected() also gives the file transfer its output before posting,
+  // so that it is ready when the window enables file transfer. The events
+  // that end the connection (onDisconnect(), onAuthError(), onError()) also
+  // tell the file transfer (FileTransferCapability::onConnectionEnded()).
   //
   void onBell() override;
   void onEstablished() override;

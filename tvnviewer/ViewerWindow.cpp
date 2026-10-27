@@ -175,7 +175,7 @@ bool ViewerWindow::viewerCoreSettings()
     return false;
   }
 
-  bool bFileTransfer = m_fileTransfer && m_fileTransfer->isEnabled();
+  bool bFileTransfer = m_fileTransfer && getFileTransferSupport().isFileListSupported();
 
   m_toolbar.enableButton(IDS_TB_TRANSFER, bFileTransfer && !m_conConf->isViewOnly());
   UINT enableMenu = static_cast<UINT>(!(bFileTransfer && !m_conConf->isViewOnly()));
@@ -800,6 +800,12 @@ bool ViewerWindow::onCommand(WPARAM wParam, LPARAM /* lParam */)
   return false;
 }
 
+OperationSupport ViewerWindow::getFileTransferSupport() const
+{
+  return OperationSupport(m_connectionInfo.clientMsgCodes,
+                          m_connectionInfo.serverMsgCodes);
+}
+
 void ViewerWindow::showFileTransferDialog()
 {
   LRESULT iState = m_toolbar.getState(IDS_TB_TRANSFER);
@@ -812,8 +818,8 @@ void ViewerWindow::showFileTransferDialog()
     }
     if (!m_ftDialog) {
       _ASSERT(m_fileTransfer != 0);
-      m_ftDialog = std::make_unique<FileTransferMainDialog>(m_fileTransfer->getCore(),
-                                                            m_ftEvents);
+      m_ftDialog = std::make_unique<FileTransferMainDialog>(*m_fileTransfer, m_ftEvents,
+                                                            getFileTransferSupport());
     }
     m_ftDialog->show();
     HWND dialogWnd = m_ftDialog->getControl()->getWindow();

@@ -31,8 +31,7 @@
 #include "UploadOperation.h"
 #include "DownloadOperation.h"
 
-#include "file-lib/File.h"
-#include "ft-common/FolderListener.h"
+#include <vector>
 
 FileTransferCore::FileTransferCore(LogWriter *logWriter,
                                    FileTransferRequestSender *sender,
@@ -82,34 +81,6 @@ void FileTransferCore::setInterface(FileTransferInterface *ftInterface)
   m_ftInterface = ftInterface;
 }
 
-const OperationSupport &FileTransferCore::getSupportedOps()
-{ 
-  return m_supportedOps;
-}
-
-std::vector<FileInfo> *FileTransferCore::getListLocalFolder(const TCHAR *pathToFile)
-{
-  FolderListener fl(pathToFile);
-  if (!fl.list()) {
-    throw "FileTransferCore: listLocalFolder";
-  }
-  m_localFilesInfo.resize(fl.getFilesCount());
-  for (UINT32 i = 0; i < fl.getFilesCount(); i++)
-    m_localFilesInfo[i] = fl.getFilesInfo()[i];
-  return &m_localFilesInfo;
-}
-
-std::vector<FileInfo> *FileTransferCore::getListRemoteFolder()
-{
-  return &m_remoteFilesInfo;
-}
-
-void FileTransferCore::updateSupportedOperations(const std::vector<UINT32> &clientCaps,
-                                                 const std::vector<UINT32> &serverCaps)
-{
-  m_supportedOps = OperationSupport(clientCaps, serverCaps);
-}
-
 void FileTransferCore::ftOpStarted(FileTransferOperation * /* sender */)
 {
   m_ftInterface->onFtOpStarted();
@@ -126,16 +97,11 @@ void FileTransferCore::ftOpFinished(FileTransferOperation *sender)
     RemoteFileListOperation *fileListOp = dynamic_cast<RemoteFileListOperation *>(sender);
 
     if (fileListOp->isOk()) {
-
-      //
-      // Copy files info to class members
-      //
-
-      UINT32 numberFiles = m_replyBuffer->getFilesInfoCount();
-      m_remoteFilesInfo.resize(numberFiles);
-      for (UINT32 i = 0; i < numberFiles; i++) {
-        m_remoteFilesInfo[i] = m_replyBuffer->getFilesInfo()[i];
-      } // for all files in reply
+      // A copy for the dialog: the reply buffer's list lasts until the
+      // next reply.
+      const FileInfo *files = m_replyBuffer->getFilesInfo();
+      m_ftInterface->onFtFileList(std::vector<FileInfo>(files,
+                                                        files + m_replyBuffer->getFilesInfoCount()));
     } // if no error during file list operation
 
     // Notify dialog than operation is finished
@@ -204,8 +170,10 @@ void FileTransferCore::executeOperation(std::unique_ptr<FileTransferOperation> n
 
   try {
     m_currentOperation->start();
-  } catch (IOException &ioEx) {
-    m_ftInterface->raise(ioEx);
+  } catch (const IOException &ioEx) {
+    // The operation can do nothing more: no reply will come.
+    m_ftInterface->onFtOpError(ioEx.getMessage());
+    m_ftInterface->onFtOpFinished(m_state, 0);
   } // try / catch
 }
 
@@ -291,45 +259,26 @@ void FileTransferCore::remoteFileListOperation(const TCHAR *pathToFile)
 
 void FileTransferCore::terminateCurrentOperation()
 {
-  m_currentOperation->terminate();
-}
-
-void FileTransferCore::onUpdateState(int state, int result)
-{
-  switch (state) {
-  case FILE_LIST_STATE:
-    m_state = NOTHING_STATE;
-
-    if (result == 0) {
-      break;
-    }
-
-    m_ftInterface->setNothingState();
-
-    break;
-  case REMOVE_STATE:
-  case MKDIR_STATE:
-  case RENAME_STATE:
-  case UPLOAD_STATE:
-    m_ftInterface->onRefreshRemoteFileList();
-    break;
-
-  case LOCAL_REMOVE_STATE:
-  case DOWNLOAD_STATE:
-    m_ftInterface->onRefreshLocalFileList();
-    m_state = NOTHING_STATE;
-    break;
-  } // switch
-
-}
-
-bool FileTransferCore::isNothingState()
-{
-  return m_state == NOTHING_STATE;
+  if (m_currentOperation) {
+    m_currentOperation->terminate();
+  }
 }
 
 void FileTransferCore::onOperationFinished()
 {
   // Operation is finished, remove it from file transfer message handlers
-  m_fileTransferListeners->removeListener(m_currentOperation.get());
+  if (m_currentOperation) {
+    m_fileTransferListeners->removeListener(m_currentOperation.get());
+  }
+  m_state = NOTHING_STATE;
+}
+
+void FileTransferCore::onConnectionEnded()
+{
+  // A local delete needs no connection, and finishes by itself.
+  if (m_currentOperation && m_state != NOTHING_STATE &&
+      m_state != LOCAL_REMOVE_STATE) {
+    m_currentOperation->terminate();
+  }
+  m_ftInterface->onFtConnectionEnded();
 }

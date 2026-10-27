@@ -33,7 +33,6 @@
 #include "FileTransferOperation.h"
 #include "OperationEventListener.h"
 #include "CopyFileEventListener.h"
-#include "OperationSupport.h"
 
 #include "FileTransferInterface.h"
 
@@ -41,10 +40,34 @@
 
 class FileTransferInterface;
 
+//
+// Runs the file-transfer operations, one at a time, and reports them to its
+// FileTransferInterface.
+//
+// Threads: every function is called on the network thread, where the
+// replies are dispatched; the dialog posts its commands there
+// (FileTransferCapability::post()). The exception, until it moves to a
+// pool (notes/async-networking.md, Phase 4 step 5d): a local delete runs on
+// a thread of its own, from which it reports its messages and its end.
+//
 class FileTransferCore final : public OperationEventListener,
                          public CopyFileEventListener
 {
 public:
+  //
+  // The kind of operation last started, as given to
+  // FileTransferInterface::onFtOpFinished().
+  // FIXME: Maybe make m_state enumeration?
+  //
+  static const int NOTHING_STATE      = 0x0;
+  static const int FILE_LIST_STATE    = 0x1;
+  static const int REMOVE_STATE       = 0x2;
+  static const int MKDIR_STATE        = 0x3;
+  static const int RENAME_STATE       = 0x4;
+  static const int LOCAL_REMOVE_STATE = 0x5;
+  static const int UPLOAD_STATE       = 0x6;
+  static const int DOWNLOAD_STATE     = 0x7;
+
   //
   // Creates new instance of class.
   //
@@ -65,13 +88,19 @@ public:
 
   ~FileTransferCore();
 
+  //
+  // Pre-conditions: called before any operation is started.
+  //
   void setInterface(FileTransferInterface *ftInterface);
 
-  const OperationSupport &getSupportedOps();
-
-  std::vector<FileInfo> *getListLocalFolder(const TCHAR *pathToFile);
-  std::vector<FileInfo> *getListRemoteFolder();
-
+  //
+  // Start an operation, freeing the previous one. The operation reports
+  // its start and its end to the interface; if it cannot start, because
+  // the connection is closed, it reports the error and its end at once.
+  //
+  // Pre-conditions: the previous operation, if any, has finished. The
+  // arguments are copied.
+  //
   void downloadOperation(const FileInfo *filesToDownload,
                          size_t filesCount,
                          const TCHAR *pathToTargetRoot,
@@ -92,16 +121,28 @@ public:
                                  const TCHAR *pathToTargetRoot);
   void remoteFileListOperation(const TCHAR *pathToFile);
 
+  //
+  // Asks the current operation, if any, to stop; it finishes as it would
+  // otherwise, reporting its end.
+  //
   void terminateCurrentOperation();
 
-  bool isNothingState();
-
+  //
+  // For the dialog, once it has handled the end of the operation (posted
+  // in reply to FileTransferInterface::onFtOpFinished()): the operation
+  // gets no more replies.
+  //
+  // Post-conditions: no operation is running (NOTHING_STATE).
+  //
   void onOperationFinished();
-  void onUpdateState(int state, int result);
 
-  // FIXME: Debug.
-  void updateSupportedOperations(const std::vector<UINT32> &clientCaps,
-                                 const std::vector<UINT32> &serverCaps);
+  //
+  // The connection has ended: the current operation, unless it is a local
+  // delete, is asked to stop, and the interface is told
+  // (onFtConnectionEnded()). No reply will come any more, so the operation
+  // does not report its end.
+  //
+  void onConnectionEnded();
 
 protected:
   //
@@ -162,24 +203,6 @@ protected:
   FileTransferReplyBuffer *m_replyBuffer;
 
   //
-  // Class that knows about supported operations.
-  //
-
-  OperationSupport m_supportedOps;
-
-  //
-  // File list request variables
-  //
-
-  std::vector <FileInfo> m_remoteFilesInfo;
-
-  //
-  // Local file list variables
-  //
-
-  std::vector <FileInfo> m_localFilesInfo;
-
-  //
   // file transfer interface
   //
   FileTransferInterface *m_ftInterface;
@@ -187,27 +210,14 @@ protected:
   //
   // Frees previous file transfer operation if it was, sets
   // common file transfer operation parameters to new operation, made
-  // new operation current and executes it.
+  // new operation current and executes it. If it cannot start (an
+  // IOException: the connection is closed), the error and the end of the
+  // operation are reported to the interface.
   //
   // Pre-conditions: newOperation is not empty.
   //
 
   void executeOperation(std::unique_ptr<FileTransferOperation> newOperation);
-  //
-  // Avaliable m_state values
-  // FIXME: Maybe make m_state enumeration?
-  //
-
-  static const int NOTHING_STATE      = 0x0;
-  static const int FILE_LIST_STATE    = 0x1;
-  static const int REMOVE_STATE       = 0x2;
-  static const int MKDIR_STATE        = 0x3;
-  static const int RENAME_STATE       = 0x4;
-
-  static const int LOCAL_REMOVE_STATE = 0x5;
-
-  static const int UPLOAD_STATE       = 0x6;
-  static const int DOWNLOAD_STATE     = 0x7;
 
 };
 

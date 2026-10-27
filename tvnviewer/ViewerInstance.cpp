@@ -84,7 +84,7 @@ void ViewerInstance::start()
 
   m_vncAuthHandler.addAuthCapability(m_viewerCore);
 
-  m_fileTransfer.addCapabilities(&m_viewerCore);
+  m_fileTransfer.addCapabilities(m_viewerCore);
 
   // The core sees only the adapter, but through this object's control
   // block, which keeps the core and what is registered with it alive.

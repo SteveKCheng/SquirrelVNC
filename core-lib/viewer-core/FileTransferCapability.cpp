@@ -32,6 +32,10 @@
 #include "ft-common/FTMessage.h"
 #include "rfb/VendorDefs.h"
 
+#include "RemoteViewerCore.h"
+
+#include <utility>
+
 FileTransferCapability::FileTransferCapability(Logger *logger)
 : m_logWriter(logger),
   m_ftRequestSender(&m_logWriter),
@@ -40,7 +44,8 @@ FileTransferCapability::FileTransferCapability(Logger *logger)
   m_ftCore(&m_logWriter,
            &m_ftRequestSender,
            &m_ftReplyBuffer,
-           &m_ftMessageProcessor)
+           &m_ftMessageProcessor),
+  m_viewerCore(nullptr)
 {
 }
 
@@ -48,19 +53,9 @@ FileTransferCapability::~FileTransferCapability()
 {
 }
 
-bool FileTransferCapability::isEnabled()
-{
-  return m_ftCore.getSupportedOps().isFileListSupported();
-}
-
 void FileTransferCapability::setOutput(RfbOutputGate *output)
 {
   m_ftRequestSender.setOutput(output);
-}
-
-FileTransferCore *FileTransferCapability::getCore()
-{
-  return &m_ftCore;
 }
 
 void FileTransferCapability::setInterface(FileTransferInterface *ftInterface)
@@ -73,8 +68,27 @@ Task<> FileTransferCapability::onServerMessage(UINT32 code, AwaitableReader &rea
   co_await m_ftMessageProcessor.processRfbMessage(reader, code);
 }
 
-void FileTransferCapability::addCapabilities(CapabilitiesManager *capabilities)
+void FileTransferCapability::post(std::function<void(FileTransferCore &)> command)
 {
+  m_viewerCore->postToLoop([this, command = std::move(command)] {
+    try {
+      command(m_ftCore);
+    } catch (const Exception &ex) {
+      m_logWriter.error(_T("Error in a file-transfer command: %s"), ex.getMessage());
+    }
+  });
+}
+
+void FileTransferCapability::onConnectionEnded()
+{
+  m_ftCore.onConnectionEnded();
+}
+
+void FileTransferCapability::addCapabilities(RemoteViewerCore &core)
+{
+  m_viewerCore = &core;
+  CapabilitiesManager *capabilities = &core;
+
   // Client-to-Server messages:
   capabilities->addClientMsgCapability(FTMessage::COMPRESSION_SUPPORT_REQUEST,
                                   VendorDefs::TIGHTVNC,

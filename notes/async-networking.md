@@ -843,7 +843,28 @@ from vcpkg.
     `RemoteViewerCore::postToLoop()` holding a claim on the instance, so
     `FileTransferCore` is touched on one thread only; the dialog keeps its
     own "busy" state and supported operations. When the connection ends,
-    the current operation is aborted and the dialog told.
+    the current operation is aborted and the dialog told. **Done**
+    (2026-10-27):
+    - `FileTransferCapability::post(command)` runs a command with the
+      `FileTransferCore` on the network thread. The dialog sets itself
+      busy and disables its controls when it posts, since the start is
+      no longer synchronous, and a second operation started meanwhile
+      would replace the first while its reply is in flight.
+    - What the core did for the GUI thread moved to the dialog: the
+      supported operations (from the `ConnectionInfo`, by `ViewerWindow`),
+      "busy", listing local folders, and what to refresh after each
+      operation (`onUpdateState()`). The remote file list comes with the
+      end of the file-list operation (`onFtFileList()`).
+    - An operation that cannot start, because the connection is closed,
+      reports the error and its end, instead of a message box
+      (`raise()`, which would now be on the network thread).
+    - When the connection ends (the adapter's `onDisconnect()`,
+      `onAuthError()`, `onError()`), an operation on the server is told
+      to stop, and the dialog gets `WM_FT_CONNECTION_ENDED`: no more
+      replies will come, so it stops being busy and disables its
+      controls. A local delete goes on.
+    - `RemoteViewerCore::postToLoop()` is public; work posted after the
+      connection has ended still runs while the owner is alive.
   - **5c. "Target file exists" as a request**: the operation records
     where it stopped, the question is posted to the dialog, and the
     answer is posted back to the loop (`onTargetFileExistsAnswer()`), a

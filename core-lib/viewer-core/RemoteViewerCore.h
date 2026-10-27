@@ -409,6 +409,20 @@ public:
   //
   void copyFrameBuffer(FrameBuffer &dst);
 
+  //
+  // Posts work for this object, or for what is registered with it (such as
+  // the file transfer), to the network thread, with a reference to the
+  // adapter (m_adapterRef), which keeps the adapter's owner, and so this
+  // object, alive until the work has run (see start()). Every post for
+  // this object goes through here. Does nothing once no reference is left:
+  // the owner is being deleted, and the connection has ended. Work posted
+  // after the connection has ended still runs, while the owner is alive.
+  // Any thread.
+  //
+  // Pre-conditions: work does not throw.
+  //
+  void postToLoop(std::function<void()> work);
+
 private:
   //
   // Whether start() has been called. Stays true after stop(), or after the
@@ -576,15 +590,6 @@ private:
   // drive(), on the network thread.
   //
   void finish(std::exception_ptr failure);
-
-  //
-  // Posts work for this object to the network thread, with a reference to
-  // the adapter (m_adapterRef), which keeps this object alive until the
-  // work has run (see start()). Every post for this object goes through
-  // here. Does nothing once no reference is left: the owner is being
-  // deleted, and the connection has ended. Any thread.
-  //
-  void postToLoop(std::function<void()> work);
 
   //
   // The protocol, from the handshake to the end of the session, as a

@@ -29,14 +29,22 @@
 #include "FileRenameDialog.h"
 
 #include "file-lib/File.h"
+#include "ft-common/FolderListener.h"
 
 #include "res/resource.h"
 #include <stdio.h>
 
-FileTransferMainDialog::FileTransferMainDialog(FileTransferCore *core,
-                                               FileTransferEvents &events)
-: m_ftCore(core),
+#include <optional>
+#include <utility>
+
+FileTransferMainDialog::FileTransferMainDialog(FileTransferCapability &fileTransfer,
+                                               FileTransferEvents &events,
+                                               const OperationSupport &supportedOps)
+: m_fileTransfer(fileTransfer),
   m_events(events),
+  m_supportedOps(supportedOps),
+  m_isBusy(false),
+  m_isConnectionEnded(false),
   m_fakeMoveUpFolder(0, 0, FileInfo::DIRECTORY, _T(".."))
 {
   setResourceId(ftclient_mainDialog);
@@ -72,7 +80,7 @@ int FileTransferMainDialog::onFtTargetFileExists(FileInfo *sourceFileInfo,
   case FileExistDialog::APPEND_RESULT:
     return CopyFileEventListener::TFE_APPEND;
   case FileExistDialog::CANCEL_RESULT:
-    onCancelOperationButtonClick();
+    // The operation stops by itself; FileTransferEvents logs the cancel.
     return CopyFileEventListener::TFE_CANCEL;
   } // switch
 
@@ -222,26 +230,74 @@ void FileTransferMainDialog::onMessageReceived(UINT uMsg, WPARAM wParam, LPARAM 
     }
     break;
   case FileTransferEvents::WM_FT_FINISHED:
-    m_ftCore->onOperationFinished();
-
-    if (!m_isClosing) {
-      int state = static_cast<int>(wParam);
-      int result = static_cast<int>(lParam);
-      m_ftCore->onUpdateState(state, result);
-
-      setProgress(0.0);
-      enableControls(true);
-      break;
-    } else { // If window is closing we can it only if operation finished
-      kill(0);
-      return;
-    } 
+    onOperationFinished(static_cast<int>(wParam), static_cast<int>(lParam));
+    break;
+  case FileTransferEvents::WM_FT_CONNECTION_ENDED:
+    onConnectionEnded();
+    break;
   } // switch
 } // void
 
+void FileTransferMainDialog::startOperation(std::function<void(FileTransferCore &)> command)
+{
+  m_isBusy = true;
+  enableControls(false);
+  m_fileTransfer.post(std::move(command));
+}
+
+void FileTransferMainDialog::onOperationFinished(int state, int result)
+{
+  m_fileTransfer.post([](FileTransferCore &core) {
+    core.onOperationFinished();
+  });
+  m_isBusy = false;
+
+  // If window is closing we can it only if operation finished
+  if (m_isClosing) {
+    kill(0);
+    return;
+  }
+
+  setProgress(0.0);
+  enableControls(true);
+
+  switch (state) {
+  case FileTransferCore::FILE_LIST_STATE:
+    if (result != 0) {
+      if (std::optional<std::vector<FileInfo>> files = m_events.takeFileList()) {
+        showRemoteFileList(std::move(*files));
+      }
+    }
+    break;
+  case FileTransferCore::REMOVE_STATE:
+  case FileTransferCore::MKDIR_STATE:
+  case FileTransferCore::RENAME_STATE:
+  case FileTransferCore::UPLOAD_STATE:
+    refreshRemoteFileList();
+    break;
+  case FileTransferCore::LOCAL_REMOVE_STATE:
+  case FileTransferCore::DOWNLOAD_STATE:
+    refreshLocalFileList();
+    break;
+  } // switch
+}
+
+void FileTransferMainDialog::onConnectionEnded()
+{
+  m_isConnectionEnded = true;
+  m_isBusy = false;
+  insertMessageIntoComboBox(_T("The connection has ended"));
+  setProgress(0.0);
+  enableControls(false);
+  m_cancelButton.setEnabled(false);
+  if (m_isClosing) {
+    kill(0);
+  }
+}
+
 bool FileTransferMainDialog::tryClose()
 {
-  if (m_ftCore->isNothingState()) {
+  if (!m_isBusy) {
     // No operation is executing - close dialog
     kill(IDCANCEL);
     return true;
@@ -253,7 +309,9 @@ bool FileTransferMainDialog::tryClose()
     // Set flag
     m_isClosing = true;
     // Terminate current operation
-    m_ftCore->terminateCurrentOperation();
+    m_fileTransfer.post([](FileTransferCore &core) {
+      core.terminateCurrentOperation();
+    });
     return true;
   } // if result is not "yes"
   return false;
@@ -266,13 +324,15 @@ void FileTransferMainDialog::onCancelButtonClick()
 
 void FileTransferMainDialog::onCancelOperationButtonClick()
 {
-  if (!m_ftCore->isNothingState()) {
+  if (m_isBusy) {
   // Logging
     StringStorage message(_T("Operation have been canceled by user"));
     insertMessageIntoComboBox(message.getString());
 
     // Terminate current operation
-    m_ftCore->terminateCurrentOperation();
+    m_fileTransfer.post([](FileTransferCore &core) {
+      core.terminateCurrentOperation();
+    });
     // Disable "Cancel" button while waiting for a moment
     // when operation will finishe execution.
     m_cancelButton.setEnabled(false);
@@ -302,9 +362,11 @@ void FileTransferMainDialog::onRenameRemoteButtonClick()
     StringStorage newName;
     renameDialog.getFileName(&newName);
 
-    m_ftCore->remoteFileRenameOperation(FileInfo(0, 0, FileInfo::DIRECTORY, oldName.getString()),
-                                        FileInfo(0, 0, FileInfo::DIRECTORY, newName.getString()),
-                                        remoteFolder.getString());
+    startOperation([oldName, newName, remoteFolder](FileTransferCore &core) {
+      core.remoteFileRenameOperation(FileInfo(0, 0, FileInfo::DIRECTORY, oldName.getString()),
+                                     FileInfo(0, 0, FileInfo::DIRECTORY, newName.getString()),
+                                     remoteFolder.getString());
+    });
   }
 }
 
@@ -319,10 +381,12 @@ void FileTransferMainDialog::onMkDirRemoteButtonClick()
     folderDialog.getFileName(&fileName);
 
 
-    m_ftCore->remoteFolderCreateOperation(FileInfo(0, 0,
-                                                   FileInfo::DIRECTORY,
-                                                   fileName.getString()),
-                                          remoteFolder.getString());
+    startOperation([fileName, remoteFolder](FileTransferCore &core) {
+      core.remoteFolderCreateOperation(FileInfo(0, 0,
+                                                FileInfo::DIRECTORY,
+                                                fileName.getString()),
+                                       remoteFolder.getString());
+    });
   }
 }
 
@@ -358,8 +422,10 @@ void FileTransferMainDialog::onRemoveRemoteButtonClick()
   StringStorage remoteFolder;
   m_remoteCurFolderTextBox.getText(&remoteFolder);
 
-  m_ftCore->remoteFilesDeleteOperation(filesInfo.data(), filesInfo.size(),
-                                       remoteFolder.getString());
+  startOperation([filesInfo = std::move(filesInfo), remoteFolder](FileTransferCore &core) {
+    core.remoteFilesDeleteOperation(filesInfo.data(), filesInfo.size(),
+                                    remoteFolder.getString());
+  });
 }
 
 void FileTransferMainDialog::onRefreshRemoteButtonClick()
@@ -496,8 +562,10 @@ void FileTransferMainDialog::onRemoveLocalButtonClick()
   StringStorage localFolder;
   getPathToCurrentLocalFolder(&localFolder);
 
-  m_ftCore->localFilesDeleteOperation(filesInfo.data(), filesInfo.size(),
-                                      localFolder.getString());
+  startOperation([filesInfo = std::move(filesInfo), localFolder](FileTransferCore &core) {
+    core.localFilesDeleteOperation(filesInfo.data(), filesInfo.size(),
+                                   localFolder.getString());
+  });
 
 }
 
@@ -535,9 +603,12 @@ void FileTransferMainDialog::onUploadButtonClick()
 
   m_fileExistDialog.resetDialogResultValue();
 
-  m_ftCore->uploadOperation(filesInfo.data(), filesInfo.size(),
-                            localFolder.getString(),
-                            remoteFolder.getString());
+  startOperation([filesInfo = std::move(filesInfo), localFolder,
+                  remoteFolder](FileTransferCore &core) {
+    core.uploadOperation(filesInfo.data(), filesInfo.size(),
+                         localFolder.getString(),
+                         remoteFolder.getString());
+  });
 }
 
 void FileTransferMainDialog::onDownloadButtonClick()
@@ -568,9 +639,12 @@ void FileTransferMainDialog::onDownloadButtonClick()
 
   m_fileExistDialog.resetDialogResultValue();
 
-  m_ftCore->downloadOperation(filesInfo.data(), filesInfo.size(),
-                              localFolder.getString(),
-                              remoteFolder.getString());
+  startOperation([filesInfo = std::move(filesInfo), localFolder,
+                  remoteFolder](FileTransferCore &core) {
+    core.downloadOperation(filesInfo.data(), filesInfo.size(),
+                           localFolder.getString(),
+                           remoteFolder.getString());
+  });
 
 }
 
@@ -672,18 +746,18 @@ void FileTransferMainDialog::onLocalListViewKeyDown(UINT key)
 
 void FileTransferMainDialog::checkRemoteListViewSelection()
 {
-  if (m_ftCore->isNothingState()) {
+  if (!m_isBusy && !m_isConnectionEnded) {
 
     bool enabled = m_remoteFileListView.getSelectedItemsCount() > 0;
 
-    m_renameRemoteButton.setEnabled(enabled && m_ftCore->getSupportedOps().isRenameSupported());
-    m_removeRemoteButton.setEnabled(enabled && m_ftCore->getSupportedOps().isRemoveSupported());
+    m_renameRemoteButton.setEnabled(enabled && m_supportedOps.isRenameSupported());
+    m_removeRemoteButton.setEnabled(enabled && m_supportedOps.isRemoveSupported());
   }
 }
 
 void FileTransferMainDialog::checkLocalListViewSelection()
 {
-  if (m_ftCore->isNothingState()) {
+  if (!m_isBusy && !m_isConnectionEnded) {
     bool enabled = m_localFileListView.getSelectedItemsCount() > 0;
 
     m_renameLocalButton.setEnabled(enabled);
@@ -699,14 +773,16 @@ void FileTransferMainDialog::insertMessageIntoComboBox(const TCHAR *message)
 
 void FileTransferMainDialog::enableControls(bool enabled)
 {
-  m_mkDirRemoteButton.setEnabled(enabled && m_ftCore->getSupportedOps().isMkDirSupported());
+  enabled = enabled && !m_isConnectionEnded;
+
+  m_mkDirRemoteButton.setEnabled(enabled && m_supportedOps.isMkDirSupported());
 
   if (m_remoteFileListView.getSelectedItemsCount() > 0 && enabled) {
-    m_renameRemoteButton.setEnabled(true && m_ftCore->getSupportedOps().isRenameSupported());
-    m_removeRemoteButton.setEnabled(true && m_ftCore->getSupportedOps().isRemoveSupported());
+    m_renameRemoteButton.setEnabled(true && m_supportedOps.isRenameSupported());
+    m_removeRemoteButton.setEnabled(true && m_supportedOps.isRemoveSupported());
   } else {
-    m_renameRemoteButton.setEnabled(enabled && m_ftCore->getSupportedOps().isRenameSupported());
-    m_removeRemoteButton.setEnabled(enabled && m_ftCore->getSupportedOps().isRemoveSupported());
+    m_renameRemoteButton.setEnabled(enabled && m_supportedOps.isRenameSupported());
+    m_removeRemoteButton.setEnabled(enabled && m_supportedOps.isRemoveSupported());
   }
 
   m_refreshRemoteButton.setEnabled(enabled);
@@ -733,8 +809,8 @@ void FileTransferMainDialog::enableControls(bool enabled)
 
   m_refreshLocalButton.setEnabled(enabled);
 
-  m_uploadButton.setEnabled(enabled && m_ftCore->getSupportedOps().isUploadSupported());
-  m_downloadButton.setEnabled(enabled && m_ftCore->getSupportedOps().isDownloadSupported());
+  m_uploadButton.setEnabled(enabled && m_supportedOps.isUploadSupported());
+  m_downloadButton.setEnabled(enabled && m_supportedOps.isDownloadSupported());
 
   m_localFileListView.setEnabled(enabled);
   m_remoteFileListView.setEnabled(enabled);
@@ -775,14 +851,6 @@ void FileTransferMainDialog::initControls()
   m_fileExistDialog.setParent(&m_ctrlThis);
 }
 
-void FileTransferMainDialog::raise(const Exception &ex)
-{
-  MessageBox(m_ctrlThis.getWindow(), ex.getMessage(),
-             _T("Exception"), MB_OK | MB_ICONERROR);
-  // The exception being handled, which is ex.
-  throw;
-}
-
 void FileTransferMainDialog::refreshLocalFileList()
 {
   StringStorage pathToFile;
@@ -793,15 +861,20 @@ void FileTransferMainDialog::refreshLocalFileList()
 void FileTransferMainDialog::tryListLocalFolder(const TCHAR *pathToFile)
 {
   try {
-    std::vector <FileInfo> *localFileList = m_ftCore->getListLocalFolder(pathToFile);
+    FolderListener folder(pathToFile);
+    if (!folder.list()) {
+      throw Exception(_T("Cannot list the folder"));
+    }
 
-
-    // Add to list view
+    // Add to list view, which must not point into the old list any more
+    // when it goes.
     m_localFileListView.clear();
-    if (!localFileList->empty()) {
-      FileInfo *fileInfo = &localFileList->front();
+    m_localFilesInfo.assign(folder.getFilesInfo(),
+                            folder.getFilesInfo() + folder.getFilesCount());
+    if (!m_localFilesInfo.empty()) {
+      FileInfo *fileInfo = &m_localFilesInfo.front();
       m_localFileListView.addRange(&fileInfo,
-                                   localFileList->size());
+                                   m_localFilesInfo.size());
     }
 
     bool isRoot = (_tcscmp(pathToFile, _T("")) == 0);
@@ -835,8 +908,14 @@ void FileTransferMainDialog::refreshRemoteFileList()
 
 void FileTransferMainDialog::tryListRemoteFolder(const TCHAR *pathToFile)
 {
+  if (m_isBusy || m_isConnectionEnded) {
+    return;
+  }
   m_lastSentFileListPath.setString(pathToFile);
-  m_ftCore->remoteFileListOperation(pathToFile);
+  StringStorage path(pathToFile);
+  startOperation([path](FileTransferCore &core) {
+    core.remoteFileListOperation(path.getString());
+  });
 }
 
 void FileTransferMainDialog::getPathToCurrentLocalFolder(StringStorage *out)
@@ -905,16 +984,17 @@ void FileTransferMainDialog::getPathToSelectedRemoteFile(StringStorage *out)
   pathToFile->appendString(filename);
 }
 
-void FileTransferMainDialog::setNothingState()
+void FileTransferMainDialog::showRemoteFileList(std::vector<FileInfo> files)
 {
   m_lastReceivedFileListPath = m_lastSentFileListPath;
   m_remoteCurFolderTextBox.setText(m_lastReceivedFileListPath.getString());
 
+  // The list view must not point into the old list any more when it goes.
   m_remoteFileListView.clear();
-  std::vector<FileInfo> *fileRemoteList = m_ftCore->getListRemoteFolder();
-  if (!fileRemoteList->empty()) {
-    FileInfo *filesInfo = &fileRemoteList->front();
-    m_remoteFileListView.addRange(&filesInfo, fileRemoteList->size());
+  m_remoteFilesInfo = std::move(files);
+  if (!m_remoteFilesInfo.empty()) {
+    FileInfo *filesInfo = &m_remoteFilesInfo.front();
+    m_remoteFileListView.addRange(&filesInfo, m_remoteFilesInfo.size());
   }
 
   bool isRoot = m_lastSentFileListPath.isEqualTo(_T("/"));
@@ -925,11 +1005,3 @@ void FileTransferMainDialog::setNothingState()
   }
 }
 
-void FileTransferMainDialog::onRefreshLocalFileList()
-{
-  refreshLocalFileList();
-}
-void FileTransferMainDialog::onRefreshRemoteFileList()
-{
-  refreshRemoteFileList();
-}

@@ -34,16 +34,20 @@
 #include "ServerMessageListener.h"
 #include "CapabilitiesManager.h"
 
+#include <functional>
+
+class RemoteViewerCore;
+
+//
+// The file transfer of a connection: its messages, and the operations
+// (FileTransferCore), which run on the network thread. The user interface
+// starts them with post(), and they report to its FileTransferInterface.
+//
 class FileTransferCapability final : public ServerMessageListener
 {
 public:
   FileTransferCapability(Logger *logger = nullptr);
   ~FileTransferCapability() override;
-
-  //
-  // This method return true, if server support File Transfer.
-  //
-  bool isEnabled();
 
   //
   // This method must called from event onConnected() in CoreEventsAdapter.
@@ -55,14 +59,36 @@ public:
   //
   Task<> onServerMessage(UINT32 code, AwaitableReader &reader) override;
 
-  FileTransferCore *getCore();
+  //
+  // Pre-conditions: called before core starts (addCapabilities());
+  // ftInterface outlives the connection.
+  //
   void setInterface(FileTransferInterface *ftInterface);
 
   //
-  // This method must be called before call RemoteViewerCore::start(),
-  // otherwise FT will no worked.
+  // Registers the file-transfer messages with core, and keeps it, to post
+  // the operations to its network thread.
   //
-  void addCapabilities(CapabilitiesManager *capabilitiesManager);
+  // Pre-conditions: called once, before core starts; core is a sibling
+  // member of the same owner, made and destroyed with this object.
+  //
+  void addCapabilities(RemoteViewerCore &core);
+
+  //
+  // Runs command with the file transfer's operations, on the network
+  // thread (RemoteViewerCore::postToLoop()), with a claim on the owner that
+  // keeps this object alive until then; does nothing once the owner is
+  // being deleted. An exception from command is logged. Any thread.
+  //
+  // Pre-conditions: addCapabilities() has been called.
+  //
+  void post(std::function<void(FileTransferCore &)> command);
+
+  //
+  // The connection has ended: FileTransferCore::onConnectionEnded().
+  // Called on the network thread, by the adapter.
+  //
+  void onConnectionEnded();
 
 protected:
   LogWriter m_logWriter;
@@ -72,6 +98,9 @@ protected:
   FileTransferMessageProcessor m_ftMessageProcessor;
 
   FileTransferCore m_ftCore;
+
+  // Set by addCapabilities().
+  RemoteViewerCore *m_viewerCore;
 };
 
 #endif
