@@ -59,8 +59,8 @@ public:
   // Waits until no work is left, then until the thread, if started, has
   // ended.
   //
-  // Pre-conditions: not called on the pool's thread; the work posted
-  // ends by itself.
+  // Pre-conditions: not called on the pool's thread, nor while a
+  // getExecutor() call runs; the work posted ends by itself.
   //
   ~BlockingWorkPool();
 
@@ -73,8 +73,9 @@ public:
   asio::any_io_executor getExecutor();
 
 private:
-  std::mutex m_lock;
-  // Made by the first getExecutor(); guarded by m_lock.
+  // Made by the first getExecutor() to succeed, under m_started; not
+  // changed after that, so read without a lock.
+  std::once_flag m_started;
   std::optional<asio::thread_pool> m_pool;
 };
 

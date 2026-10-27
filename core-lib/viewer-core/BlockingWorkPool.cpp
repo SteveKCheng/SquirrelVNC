@@ -35,9 +35,7 @@ BlockingWorkPool::~BlockingWorkPool()
 
 asio::any_io_executor BlockingWorkPool::getExecutor()
 {
-  std::lock_guard<std::mutex> lock(m_lock);
-  if (!m_pool) {
-    m_pool.emplace(1);
-  }
+  // If emplace() throws, the flag stays unset, and the next call tries again.
+  std::call_once(m_started, [this] { m_pool.emplace(1); });
   return m_pool->get_executor();
 }
