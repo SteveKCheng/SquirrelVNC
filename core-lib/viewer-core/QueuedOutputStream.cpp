@@ -38,14 +38,12 @@ QueuedOutputStream::~QueuedOutputStream()
 
 void QueuedOutputStream::open(std::function<void()> wake)
 {
-  std::lock_guard<std::mutex> lock(m_lock);
   assert(!m_wake && !m_isClosed);
   m_wake = std::move(wake);
 }
 
 size_t QueuedOutputStream::write(const void *buffer, size_t len)
 {
-  std::lock_guard<std::mutex> lock(m_lock);
   if (m_isClosed) {
     throw IOException(_T("The connection is closed"));
   }
@@ -59,13 +57,11 @@ size_t QueuedOutputStream::write(const void *buffer, size_t len)
 
 std::vector<char> QueuedOutputStream::take()
 {
-  std::lock_guard<std::mutex> lock(m_lock);
   return std::exchange(m_queued, {});
 }
 
 void QueuedOutputStream::close()
 {
-  std::lock_guard<std::mutex> lock(m_lock);
   m_isClosed = true;
   m_wake = nullptr;
   m_queued.clear();

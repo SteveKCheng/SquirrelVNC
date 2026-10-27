@@ -26,22 +26,21 @@
 #include "io-lib/OutputStream.h"
 
 #include <functional>
-#include <mutex>
 #include <vector>
 
 //
 // The stream under a connection's RfbOutputGate: write() only queues the
-// bytes, and wakes the connection's writer on the network thread, which
-// takes them with take() and sends them (notes/async-networking.md, Phase
-// 4 step 2b). So a thread that sends a message, such as the GUI thread
-// sending a key, never waits for the network; and the messages keep the
-// order in which they were flushed, whichever thread flushed them.
+// bytes, and wakes the connection's writer, which takes them with take()
+// and sends them (notes/async-networking.md, Phase 4 step 2b). The
+// messages keep the order in which they were flushed.
 //
 // Writing can stay synchronous because each message is small and complete
 // in memory before it is flushed here. Messages queued together are sent
 // together, in one system call.
 //
-// Threads: every function may be called from any thread.
+// Threads: not synchronized; the network thread only. (It had a lock while
+// other threads wrote messages; since Phase 4 steps 2e and 5 they post
+// events and file-transfer commands instead, and step 7 removed it.)
 //
 class QueuedOutputStream final : public OutputStream
 {
@@ -53,9 +52,8 @@ public:
   QueuedOutputStream &operator=(const QueuedOutputStream &) = delete;
 
   //
-  // Starts waking the writer: wake is called after each write(), with the
-  // queue's lock held, so that it is ordered with close(). It must only
-  // post work to the network thread, and not throw.
+  // Starts waking the writer: wake is called after each write(). It must
+  // only post work to the network thread, and not throw.
   //
   // Pre-conditions: not open, and not closed.
   //
@@ -77,13 +75,11 @@ public:
   //
   // Ends the queue: no more wakes, and write() throws from now on.
   //
-  // Post-conditions: closed. When this returns, no call to the wake
-  // function is in progress or to come.
+  // Post-conditions: closed; the wake function is not called again.
   //
   void close();
 
 private:
-  std::mutex m_lock;
   std::vector<char> m_queued;
   std::function<void()> m_wake;
   bool m_isClosed;

@@ -1002,6 +1002,10 @@ from vcpkg.
     posted events; the logger synchronizes itself). `ConnectionConfig`'s
     copy constructor and assignment, written only to take both locks,
     are defaulted.
+  - **7d. `QueuedOutputStream`'s lock** (2026-10-27), missed in 7b: its
+    writers (the gate) and its reader (`writeLoop()`) are all on the
+    network thread. The core's comment that any thread may write is
+    corrected.
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the

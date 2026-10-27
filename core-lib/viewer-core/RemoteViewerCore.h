@@ -162,12 +162,11 @@ public:
   // callbacks -- obviously, the input thread will be blocked as soon as it
   // needs to change the frame buffer.
   //
-  // Write operations (sending data to the server) may be performed from any
-  // thread, both within the object and from outside of the object, assuming
-  // that proper locking and flushing are used in the corresponding
-  // RfbOutputGate object. For a socket, flushing only queues the message
-  // (QueuedOutputStream), and the network thread sends it, so no thread
-  // waits for the network to send.
+  // Write operations (sending data to the server) are performed on the
+  // network thread only, so the RfbOutputGate has no lock: other threads
+  // post events (sendKeyboardEvent() and the like), which the network
+  // thread encodes. For a socket, flushing only queues the message
+  // (QueuedOutputStream), and the writer sends it.
   //
 
   //
