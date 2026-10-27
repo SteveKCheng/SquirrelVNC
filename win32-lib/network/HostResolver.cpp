@@ -78,9 +78,11 @@ namespace
     //
     void start(const StringStorage &host)
     {
+      // Wire up cancellation for Asio
       m_slot = asio::get_associated_cancellation_slot(m_handler);
       if (m_slot.is_connected()) {
-        m_slot.emplace<Canceller>(this);
+        auto cancelFunc = [this](asio::cancellation_type) { this->cancel(); };
+        m_slot.emplace<decltype(cancelFunc)>(std::move(cancelFunc));
       }
 
       ADDRINFOEXW hints = {};
@@ -118,16 +120,6 @@ namespace
     }
 
   private:
-    struct Canceller
-    {
-      ResolveOperation *operation;
-
-      void operator()(asio::cancellation_type)
-      {
-        operation->cancel();
-      }
-    };
-
     static void CALLBACK onComplete(DWORD error, DWORD /* bytes */,
                                     LPWSAOVERLAPPED overlapped)
     {
