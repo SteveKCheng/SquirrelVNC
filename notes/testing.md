@@ -320,7 +320,9 @@ directly (see "Corpus and regressions").
   fuzzer then calls `showCursor()` and `hideCursor()` after each update.
 - **SetColorMapEntries, Bell and ServerCutText** are read and ignored,
   with the core's limit on cut text, so that streams containing them
-  are still valid inputs.
+  are still valid inputs. The desktop name and the cut text are decoded
+  as the core decodes them (since step 7i of `async-networking.md`),
+  so `TextEncoding` is fuzzed too.
 - **Any other message type** ends the run. (The core logs it and reads
   on, which gets out of step with the stream; for the fuzzer, stopping
   is the useful choice.)
@@ -336,28 +338,47 @@ the destructor does not wait for a thread that never ran.
 
 ### Duplication, and how to keep it honest
 
-This reading loop copies what `RemoteViewerCore` does in
+**Since step 7i of `async-networking.md` (2026-10-27):** the parsing
+itself is shared: the core and the fuzzer call the same functions,
+`Internal::readServerInit()`, `readPixelFormat()`,
+`readRectangleHeader()`, `readRichCursor()` and the like, and the same
+checks (`checkFrameBufferProperties()`, with the fuzzer's own limit,
+and `checkRectangleInside()`), in `viewer-core/RfbParser.h`. What
+remains copied is what is done with the parsed messages: the message
+loop, the dispatch of rectangles to the decoders, the frame buffers and
+the cursor, all of which the frame buffer rework will change. The
+copy is to be revisited after that.
+
+`rfb-fuzz` stays deliberately limited to what follows the security
+handshake, even once the core could be driven whole: inputs made at
+random fail in more ways when everything is mixed in, which makes
+findings harder to triage. The handshake and authentication are for a
+separate fuzzer of whole sessions.
+
+The struck-out text below describes the state before step 7i.
+
+~~This reading loop copies what `RemoteViewerCore` does in
 `clientAndServerInit()`, `readPixelFormat()`, `receiveFbUpdate()`,
 `receiveFbUpdateRectangle()` and `processPseudoEncoding()`, rather than
 moving that code out of the core into a shared class. The copy is
 about a hundred lines, and the mainline code does not change for the
 fuzzer. The decoders and `CursorPainter`, which are what is being
-fuzzed, are the real ones.
+fuzzed, are the real ones.~~
 
-The cost is that the checks made before a decoder runs (the rectangle
+~~The cost is that the checks made before a decoder runs (the rectangle
 bounds, the cursor size, the frame buffer limit, the pixel format) are
-tested in the copy, not in the core. To keep the two in step:
+tested in the copy, not in the core.~~ To keep the two in step:
 
-- Each copied check has a comment naming the function it mirrors.
+- Each copied function has a comment naming the one it mirrors.
 - Every input that finds a bug also becomes a replay case: the
   generator adds a handshake in front of it, so `rfb-replay` runs it
   through the real core. A decoder bug then shows in the mainline path
   as well, and a difference between the copy and the core shows as a
   failing case.
 
-After the asynchronous rewrite, the server-message loop is a
+~~After the asynchronous rewrite, the server-message loop is a
 single-threaded coroutine that the fuzzer can call directly; the copy
-goes away then, and other message types come along with it.
+goes away then, and other message types come along with it.~~
 
 ### Corpus and regressions
 

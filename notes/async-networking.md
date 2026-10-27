@@ -1068,6 +1068,21 @@ from vcpkg.
     `cancel()`, which calls `GetAddrInfoExCancel` only if it was unset;
     so `cancel()` may be called any number of times. Fixes the deadlock
     described under "Host name resolution".
+  - **7i. Parsing shared with `rfb-fuzz`** (2026-10-27): the parsing of
+    the server messages after the security handshake moves out of the
+    core into free functions, `Internal::readPixelFormat()`,
+    `readServerInit()`, `readRectangleHeader()`, `readRichCursor()`,
+    `readServerCutText()` and the like, with the checks on what they
+    parse (`checkFrameBufferProperties()`, `checkRectangleInside()`), in
+    `viewer-core/RfbParser.h`, which does not include Asio. Each takes
+    the `AwaitableReader`, and a `LogWriter` where it logs. The core and
+    `rfb-fuzz` both call them; what is done with the result (the frame
+    buffers, the decoders, the cursor) stays duplicated until the frame
+    buffer is reworked. The handshake and authentication stay in the
+    core, out of `rfb-fuzz` on purpose (`testing.md`, "Duplication").
+    Two changes of behaviour: the core reads the desktop name before it
+    checks the frame buffer's size, and the fuzzer now decodes the
+    desktop name and the cut text instead of skipping them.
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the

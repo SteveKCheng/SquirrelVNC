@@ -25,7 +25,6 @@
 #include "io-lib/ByteArrayInputStream.h"
 #include "rfb/EncodingDefs.h"
 #include "rfb/MsgDefs.h"
-#include "rfb/StandardPixelFormatFactory.h"
 #include "thread/AutoLock.h"
 #include "viewer-core/CopyRectDecoder.h"
 #include "viewer-core/DesktopSizeDecoder.h"
@@ -33,10 +32,10 @@
 #include "viewer-core/LastRectDecoder.h"
 #include "viewer-core/PointerPosDecoder.h"
 #include "viewer-core/RawDecoder.h"
+#include "viewer-core/RfbParser.h"
 #include "viewer-core/RichCursorDecoder.h"
 #include "viewer-core/RreDecoder.h"
 #include "viewer-core/TightDecoder.h"
-#include "viewer-core/ViewerBufferSize.h"
 #include "viewer-core/ZrleDecoder.h"
 
 #include <stdio.h>
@@ -46,9 +45,6 @@
 
 // Shared with rfb-replay.
 #include "../rfb-replay/SplitInputStream.h"
-
-// As in RemoteViewerCore.cpp.
-static const UINT32 MAX_DESKTOP_NAME_LENGTH = 64 * 1024;
 
 FuzzSession::FuzzSession(FuzzNotifier *notifier)
 : m_notifier(notifier),
@@ -100,7 +96,7 @@ FuzzSession::Outcome FuzzSession::runOnce(InputStream &stream)
   AwaitableReader reader;
 
   // New decoders for each input, so that their state (the zlib streams of
-  // Tight and ZRLE) starts fresh. Mirrors RemoteViewerCore::init().
+  // Tight and ZRLE) starts fresh. Mirrors RemoteViewerCoreImpl::init().
   DecoderStore decoderStore(&m_logWriter);
   decoderStore.addDecoder(std::make_unique<RawDecoder>(&m_logWriter), 0);
   decoderStore.addDecoder(std::make_unique<CopyRectDecoder>(&m_logWriter), 10);
@@ -155,71 +151,23 @@ Task<> FuzzSession::readSession()
   }
 }
 
-// Mirrors RemoteViewerCore::clientAndServerInit().
+// Mirrors RemoteViewerCoreImpl::clientAndServerInit(), after the shared
+// flag.
 Task<> FuzzSession::readServerInit()
 {
-  UINT16 width = co_await m_reader->readUInt16();
-  UINT16 height = co_await m_reader->readUInt16();
-  Dimension screenDimension(width, height);
-  PixelFormat serverPixelFormat = co_await readPixelFormat();
-  {
-    AutoLock al(&m_fbLock);
-    setFrameBuffer(screenDimension, serverPixelFormat);
-  }
-
-  UINT32 sizeInBytes = co_await m_reader->readUInt32();
-  if (sizeInBytes > MAX_DESKTOP_NAME_LENGTH) {
-    throw Exception(_T("Desktop name is too long"));
-  }
-  co_await skipBytes(sizeInBytes);
+  Internal::ServerInit serverInit =
+    co_await Internal::readServerInit(*m_reader, m_logWriter);
+  AutoLock al(&m_fbLock);
+  setFrameBuffer(serverInit.dimension, serverInit.pixelFormat);
 }
 
-// Mirrors RemoteViewerCore::readPixelFormat().
-Task<PixelFormat> FuzzSession::readPixelFormat()
-{
-  PixelFormat pixelFormat;
-  pixelFormat.bitsPerPixel = co_await m_reader->readUInt8();
-  pixelFormat.colorDepth = co_await m_reader->readUInt8();
-  pixelFormat.bigEndian = !!co_await m_reader->readUInt8();
-  bool isTrueColour = co_await m_reader->readUInt8() != 0;
-  pixelFormat.redMax = co_await m_reader->readUInt16();
-  pixelFormat.greenMax = co_await m_reader->readUInt16();
-  pixelFormat.blueMax = co_await m_reader->readUInt16();
-  pixelFormat.redShift = co_await m_reader->readUInt8();
-  pixelFormat.greenShift = co_await m_reader->readUInt8();
-  pixelFormat.blueShift = co_await m_reader->readUInt8();
-  co_await m_reader->readUInt8(); // padding bytes (3)
-  co_await m_reader->readUInt8();
-  co_await m_reader->readUInt8();
-
-  const unsigned short bitsPerPixel = pixelFormat.bitsPerPixel;
-  if (bitsPerPixel != 8 && bitsPerPixel != 16 && bitsPerPixel != 32) {
-    throw Exception(_T("Only 8, 16 or 32 bits per pixel supported!"));
-  }
-  if (!isTrueColour) {
-    co_return StandardPixelFormatFactory::createPixelFormat(bitsPerPixel);
-  }
-  if (!pixelFormat.isValid()) {
-    throw Exception(_T("The server's pixel format is invalid"));
-  }
-  co_return pixelFormat;
-}
-
-// Mirrors RemoteViewerCore::setFbProperties(), with the fuzzer's limit.
+// Mirrors RemoteViewerCoreImpl::setFbProperties(), with the fuzzer's limit.
 // Pre-conditions: m_fbLock is held.
 void FuzzSession::setFrameBuffer(const Dimension &dimension,
                                  const PixelFormat &pixelFormat)
 {
-  const int width = dimension.width;
-  const int height = dimension.height;
-  if (width < 0 || height < 0 || !pixelFormat.isValid()) {
-    throw Exception(_T("Invalid framebuffer properties"));
-  }
-  if (static_cast<UINT64>(width) * height > MAX_FRAME_BUFFER_PIXELS ||
-      !ViewerBufferSize::fitsFrameBuffer(width, height,
-                                         pixelFormat.bitsPerPixel / 8)) {
-    throw Exception(_T("Framebuffer is too large"));
-  }
+  Internal::checkFrameBufferProperties(dimension, pixelFormat,
+                                       MAX_FRAME_BUFFER_PIXELS);
   if (!m_frameBuffer->setProperties(dimension, pixelFormat) ||
       !m_rectangleFb->setProperties(dimension, pixelFormat)) {
     throw Exception(_T("Failed to set property frame buffer"));
@@ -228,56 +176,39 @@ void FuzzSession::setFrameBuffer(const Dimension &dimension,
   m_frameBuffer->setColor(0, 0, 0);
 }
 
-// Mirrors RemoteViewerCore::receiveServerMessageType() and the message
-// loop in RemoteViewerCore::execute(). Returns false for a message type
-// the viewer does not handle itself, which ends the input.
+// Mirrors the message loop in RemoteViewerCoreImpl::run(). Returns false
+// for a message type the viewer does not handle itself, which ends the
+// input.
 Task<bool> FuzzSession::readMessage()
 {
-  static const UINT16 SERVER_MSG_SPECIAL_TIGHT_CODE = 0xFC;
-  UINT32 msgType = co_await m_reader->readUInt8();
-  if (msgType == SERVER_MSG_SPECIAL_TIGHT_CODE) {
-    for (int i = 0; i < 3; i++) {
-      msgType <<= 8;
-      msgType += co_await m_reader->readUInt8();
-    }
-  }
+  UINT32 msgType = co_await Internal::readServerMessageType(*m_reader);
 
   switch (msgType) {
   case ServerMsgDefs::FB_UPDATE:
     co_await readFbUpdate();
     co_return true;
   case ServerMsgDefs::SET_COLOR_MAP_ENTRIES:
-    {
-      // Mirrors RemoteViewerCore::receiveSetColorMapEntries().
-      co_await m_reader->readUInt8();
-      co_await m_reader->readUInt16();
-      UINT16 numberOfColours = co_await m_reader->readUInt16();
-      co_await skipBytes(static_cast<size_t>(numberOfColours) * 6);
-    }
+    co_await Internal::readSetColorMapEntries(*m_reader);
     co_return true;
   case ServerMsgDefs::BELL:
     co_return true;
+  // The text is decoded, as the core decodes it, and dropped.
   case ServerMsgDefs::SERVER_CUT_TEXT:
-    // Mirrors the reading in RemoteViewerCore::receiveServerCutText().
-    co_await m_reader->readUInt16();
-    co_await m_reader->readUInt8();
-    co_await skipBytes(co_await m_reader->readUInt32());
+    co_await Internal::readServerCutText(*m_reader, m_logWriter);
     co_return true;
   case ServerMsgDefs::SERVER_CUT_TEXT_UTF8:
-    // Mirrors the reading in RemoteViewerCore::receiveServerCutTextUtf8().
-    co_await skipBytes(co_await m_reader->readUInt32());
+    co_await Internal::readServerCutTextUtf8(*m_reader, m_logWriter);
     co_return true;
   default:
     co_return false;
   }
 }
 
-// Mirrors RemoteViewerCore::receiveFbUpdate(), then does what
+// Mirrors RemoteViewerCoreImpl::receiveFbUpdate(), then does what
 // FbUpdateNotifier::execute() does with the cursor after an update.
 Task<> FuzzSession::readFbUpdate()
 {
-  co_await m_reader->readUInt8();
-  UINT16 numberOfRectangles = co_await m_reader->readUInt16();
+  UINT16 numberOfRectangles = co_await Internal::readFbUpdateHeader(*m_reader);
   bool isLastRect = false;
   for (int rectangle = 0; rectangle < numberOfRectangles && !isLastRect; rectangle++) {
     isLastRect = co_await readFbUpdateRectangle();
@@ -288,23 +219,17 @@ Task<> FuzzSession::readFbUpdate()
   m_cursorPainter->hideCursor();
 }
 
-// Mirrors RemoteViewerCore::receiveFbUpdateRectangle().
+// Mirrors RemoteViewerCoreImpl::receiveFbUpdateRectangle().
 Task<bool> FuzzSession::readFbUpdateRectangle()
 {
-  Rect rect;
-  rect.left = co_await m_reader->readUInt16();
-  rect.top = co_await m_reader->readUInt16();
-  rect.setWidth(co_await m_reader->readUInt16());
-  rect.setHeight(co_await m_reader->readUInt16());
-
-  int encodingType = co_await m_reader->readInt32();
+  Internal::RectangleHeader header = co_await Internal::readRectangleHeader(*m_reader);
+  const Rect &rect = header.rect;
+  int encodingType = header.encodingType;
 
   if (encodingType == PseudoEncDefs::LAST_RECT)
     co_return true;
   if (!Decoder::isPseudo(encodingType)) {
-    if (!m_frameBuffer->getDimension().getRect().intersection(rect).isEqualTo(rect)) {
-      throw Exception(_T("Error in protocol: incorrect size of rectangle"));
-    }
+    Internal::checkRectangleInside(m_frameBuffer->getDimension(), rect);
 
     Decoder *decoder = m_decoderStore->getDecoder(encodingType);
     if (decoder == nullptr) {
@@ -322,7 +247,7 @@ Task<bool> FuzzSession::readFbUpdateRectangle()
   co_return false;
 }
 
-// Mirrors RemoteViewerCore::processPseudoEncoding(), with the calls the
+// Mirrors RemoteViewerCoreImpl::processPseudoEncoding(), with the calls the
 // core makes on FbUpdateNotifier made on the CursorPainter directly, as
 // the notifier does.
 Task<> FuzzSession::readPseudoEncoding(const Rect &rect, int encodingType)
@@ -339,32 +264,14 @@ Task<> FuzzSession::readPseudoEncoding(const Rect &rect, int encodingType)
 
   case PseudoEncDefs::RICH_CURSOR:
     {
-      UINT16 width = static_cast<UINT16>(rect.getWidth());
-      UINT16 height = static_cast<UINT16>(rect.getHeight());
-      UINT8 bytesPerPixel = m_frameBuffer->getBytesPerPixel();
-
-      if (width > ViewerBufferSize::MAX_CURSOR_SIZE ||
-          height > ViewerBufferSize::MAX_CURSOR_SIZE) {
-        throw Exception(_T("Rich cursor is too large"));
-      }
-
-      std::vector<UINT8> cursor;
-      std::vector<UINT8> bitmask;
-
-      size_t cursorLen = width * height * bytesPerPixel;
-      if (cursorLen != 0) {
-        cursor.resize(cursorLen);
-        co_await m_reader->readFully(&cursor.front(), cursorLen);
-
-        size_t bitmaskLen = ((width + 7) / 8) * height;
-        bitmask.resize(bitmaskLen);
-        co_await m_reader->readFully(&bitmask.front(), bitmaskLen);
-      }
-      Point hotSpot(rect.left, rect.top);
+      Internal::RichCursor cursor =
+        co_await Internal::readRichCursor(*m_reader, rect,
+                                          m_frameBuffer->getBytesPerPixel());
 
       // FbUpdateNotifier::setNewCursor()
       AutoLock al(&m_fbLock);
-      m_cursorPainter->setNewCursor(hotSpot, width, height, cursor, bitmask);
+      m_cursorPainter->setNewCursor(cursor.hotSpot, cursor.width, cursor.height,
+                                    cursor.pixels, cursor.bitmask);
     }
     break;
 
@@ -378,16 +285,5 @@ Task<> FuzzSession::readPseudoEncoding(const Rect &rect, int encodingType)
 
   default:
     throw Exception(_T("Pseudo encoding is not supported"));
-  }
-}
-
-// Mirrors RemoteViewerCore::skipBytes().
-Task<> FuzzSession::skipBytes(size_t length)
-{
-  char buffer[4096];
-  while (length > 0) {
-    size_t chunk = length < sizeof(buffer) ? length : sizeof(buffer);
-    co_await m_reader->readFully(buffer, chunk);
-    length -= chunk;
   }
 }

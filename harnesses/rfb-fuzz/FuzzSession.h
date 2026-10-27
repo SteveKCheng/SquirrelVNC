@@ -44,20 +44,27 @@
 //
 // FramebufferUpdate is decoded in full by the real decoders and the real
 // CursorPainter, on the calling thread. Other messages the viewer handles
-// are read and ignored; any other message type ends the input.
+// are read, with their text decoded, and ignored; any other message type
+// ends the input.
 //
-// The reading loop is a copy of RemoteViewerCore's, which runs on threads
-// of its own; each check copied from it names the function it mirrors, and
-// the two must be kept in step. After the asynchronous rewrite the core's
-// loop can be called directly and this copy goes away.
+// Messages are parsed by the functions the core uses (RfbParser.h). What
+// is done with them is a copy of RemoteViewerCoreImpl's: the message
+// loop, the dispatch of rectangles to the decoders, and the frame buffers
+// and cursor; each function names the one it mirrors, and the two must be
+// kept in step. This copy is to be revisited after the rework of the
+// frame buffer (notes/cpu-usage.md, "What to do").
+//
+// The handshake and authentication are deliberately left out: inputs made
+// at random fail in more ways when everything is mixed in, which makes
+// findings harder to triage. They are for a fuzzer of whole sessions.
 //
 class FuzzSession final
 {
 public:
   //
   // The largest frame buffer accepted, in pixels, so that runs stay fast.
-  // The viewer's own limit is far larger (RemoteViewerCore::
-  // setMaxFrameBufferPixels()).
+  // The viewer's own limit is far larger (the maxFrameBufferPixels
+  // argument of RemoteViewerCore::start()).
   //
   static const UINT64 MAX_FRAME_BUFFER_PIXELS = 256 * 256;
 
@@ -112,15 +119,14 @@ private:
 
   Task<> readSession();
   Task<> readServerInit();
-  Task<PixelFormat> readPixelFormat();
   void setFrameBuffer(const Dimension &dimension, const PixelFormat &pixelFormat);
   Task<bool> readMessage();
   Task<> readFbUpdate();
   Task<bool> readFbUpdateRectangle();
   Task<> readPseudoEncoding(const Rect &rect, int encodingType);
-  Task<> skipBytes(size_t length);
 
   FuzzNotifier *m_notifier;
+  // Without a logger: it logs nothing.
   LogWriter m_logWriter;
   // Valid only during run(); they point to objects local to it.
   // What the coroutines read: the input, fed by runBlocking().
