@@ -21,21 +21,26 @@
 //
 
 //
-// Tests of SocketIPv4's socket options.
+// Tests of the socket options set on connections (network/TcpKeepAlive.h).
 //
 
 #include "UnitTest.h"
 
-#include "network/socket/SocketIPv4.h"
+#include "network/TcpKeepAlive.h"
+#include "network/socket/SocketException.h"
+
+#include <asio/io_context.hpp>
+#include <asio/ip/tcp.hpp>
 
 void runSocketTests()
 {
   bool ok = true;
   try {
-    SocketIPv4 socket;
-    socket.enableKeepAlive(30, 5, 10);
+    asio::io_context context;
+    asio::ip::tcp::socket socket(context, asio::ip::tcp::v4());
+    enableTcpKeepAlive(socket.native_handle(), 30, 5, 10);
   } catch (const SocketException &) {
     ok = false;
   }
-  check(ok, "SocketIPv4::enableKeepAlive sets its options on a TCP socket");
+  check(ok, "enableTcpKeepAlive sets its options on a TCP socket");
 }

@@ -56,8 +56,7 @@ public:
 
   /**
    * Flushes inner buffer to real output stream.
-   * @throws whatever the real output stream's write() throws: IOException
-   *   for a SocketStream.
+   * @throws whatever the real output stream's write() throws.
    */
   void flush() override;
 

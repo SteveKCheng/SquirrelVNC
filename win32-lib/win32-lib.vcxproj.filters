@@ -48,25 +48,16 @@
     <ClCompile Include="network\HostResolver.cpp">
       <Filter>network</Filter>
     </ClCompile>
+    <ClCompile Include="network\TcpKeepAlive.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
     <ClCompile Include="network\RfbInputGate.cpp">
       <Filter>network</Filter>
     </ClCompile>
     <ClCompile Include="network\RfbOutputGate.cpp">
       <Filter>network</Filter>
     </ClCompile>
-    <ClCompile Include="network\socket\SocketAddressIPv4.cpp">
-      <Filter>network\socket</Filter>
-    </ClCompile>
     <ClCompile Include="network\socket\SocketException.cpp">
-      <Filter>network\socket</Filter>
-    </ClCompile>
-    <ClCompile Include="network\socket\SocketIPv4.cpp">
-      <Filter>network\socket</Filter>
-    </ClCompile>
-    <ClCompile Include="network\socket\SocketStream.cpp">
-      <Filter>network\socket</Filter>
-    </ClCompile>
-    <ClCompile Include="network\socket\WindowsSocket.cpp">
       <Filter>network\socket</Filter>
     </ClCompile>
     <ClCompile Include="util\CommandLineArgs.cpp">
@@ -195,9 +186,6 @@
     <ClCompile Include="win-system\WinProcessCommandLine.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="win-system\WsaStartup.cpp">
-      <Filter>win-system</Filter>
-    </ClCompile>
     <ClCompile Include="gui\BaseDialog.cpp">
       <Filter>gui</Filter>
     </ClCompile>
@@ -314,28 +302,16 @@
     <ClInclude Include="network\HostResolver.h">
       <Filter>network</Filter>
     </ClInclude>
+    <ClInclude Include="network\TcpKeepAlive.h">
+      <Filter>network</Filter>
+    </ClInclude>
     <ClInclude Include="network\RfbInputGate.h">
       <Filter>network</Filter>
     </ClInclude>
     <ClInclude Include="network\RfbOutputGate.h">
       <Filter>network</Filter>
     </ClInclude>
-    <ClInclude Include="network\socket\sockdefs.h">
-      <Filter>network\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="network\socket\SocketAddressIPv4.h">
-      <Filter>network\socket</Filter>
-    </ClInclude>
     <ClInclude Include="network\socket\SocketException.h">
-      <Filter>network\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="network\socket\SocketIPv4.h">
-      <Filter>network\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="network\socket\SocketStream.h">
-      <Filter>network\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="network\socket\WindowsSocket.h">
       <Filter>network\socket</Filter>
     </ClInclude>
     <ClInclude Include="util\CharDefs.h">
@@ -489,9 +465,6 @@
       <Filter>win-system</Filter>
     </ClInclude>
     <ClInclude Include="win-system\WinProcessCommandLine.h">
-      <Filter>win-system</Filter>
-    </ClInclude>
-    <ClInclude Include="win-system\WsaStartup.h">
       <Filter>win-system</Filter>
     </ClInclude>
     <ClInclude Include="gui\BaseDialog.h">

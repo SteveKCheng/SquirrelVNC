@@ -106,13 +106,10 @@
     <ClCompile Include="thread\LocalMutex.cpp" />
     <ClCompile Include="thread\Thread.cpp" />
     <ClCompile Include="network\HostResolver.cpp" />
+    <ClCompile Include="network\TcpKeepAlive.cpp" />
     <ClCompile Include="network\RfbInputGate.cpp" />
     <ClCompile Include="network\RfbOutputGate.cpp" />
-    <ClCompile Include="network\socket\SocketAddressIPv4.cpp" />
     <ClCompile Include="network\socket\SocketException.cpp" />
-    <ClCompile Include="network\socket\SocketIPv4.cpp" />
-    <ClCompile Include="network\socket\SocketStream.cpp" />
-    <ClCompile Include="network\socket\WindowsSocket.cpp" />
     <ClCompile Include="util\CommandLineArgs.cpp" />
     <ClCompile Include="util\CommandLineFormatException.cpp" />
     <ClCompile Include="util\CommandLineFormatHelp.cpp" />
@@ -155,7 +152,6 @@
     <ClCompile Include="win-system\WindowsEvent.cpp" />
     <ClCompile Include="win-system\WinHooks.cpp" />
     <ClCompile Include="win-system\WinProcessCommandLine.cpp" />
-    <ClCompile Include="win-system\WsaStartup.cpp" />
     <ClCompile Include="gui\BaseDialog.cpp" />
     <ClCompile Include="gui\BaseWindow.cpp" />
     <ClCompile Include="gui\CheckBox.cpp" />
@@ -196,14 +192,10 @@
     <ClInclude Include="thread\Lockable.h" />
     <ClInclude Include="thread\Thread.h" />
     <ClInclude Include="network\HostResolver.h" />
+    <ClInclude Include="network\TcpKeepAlive.h" />
     <ClInclude Include="network\RfbInputGate.h" />
     <ClInclude Include="network\RfbOutputGate.h" />
-    <ClInclude Include="network\socket\sockdefs.h" />
-    <ClInclude Include="network\socket\SocketAddressIPv4.h" />
     <ClInclude Include="network\socket\SocketException.h" />
-    <ClInclude Include="network\socket\SocketIPv4.h" />
-    <ClInclude Include="network\socket\SocketStream.h" />
-    <ClInclude Include="network\socket\WindowsSocket.h" />
     <ClInclude Include="util\CharDefs.h" />
     <ClInclude Include="util\CommandLineArgs.h" />
     <ClInclude Include="util\CommandLineFormatException.h" />
@@ -255,7 +247,6 @@
     <ClInclude Include="win-system\WindowsEvent.h" />
     <ClInclude Include="win-system\WinHooks.h" />
     <ClInclude Include="win-system\WinProcessCommandLine.h" />
-    <ClInclude Include="win-system\WsaStartup.h" />
     <ClInclude Include="gui\BaseDialog.h" />
     <ClInclude Include="gui\BaseWindow.h" />
     <ClInclude Include="gui\CheckBox.h" />

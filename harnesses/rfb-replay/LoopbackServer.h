@@ -24,9 +24,10 @@
 #define _LOOPBACK_SERVER_H_
 
 #include "util/winhdr.h"
-#include "win-system/WsaStartup.h"
+#include <asio/awaitable.hpp>
+#include <asio/io_context.hpp>
+#include <asio/ip/tcp.hpp>
 
-#include <atomic>
 #include <thread>
 #include <vector>
 
@@ -35,7 +36,8 @@
 // can drive RemoteViewerCore through a real socket, as the viewer does:
 // resolving, connecting, and reading and writing on the network thread.
 //
-// On a thread of its own, it accepts one client, sends it the bytes given,
+// On a thread of its own, running an io_context of its own, it accepts one
+// client, sends it the bytes given,
 // shuts down its sending side (so the client reads the end of the stream),
 // and collects what the client sends until the client closes the
 // connection.
@@ -57,8 +59,8 @@ public:
   LoopbackServer &operator=(const LoopbackServer &) = delete;
 
   //
-  // Closes the sockets, which ends the thread if it still waits, and waits
-  // for it.
+  // Stops the io_context, which ends the thread if it still waits, and
+  // waits for it; the sockets are closed with the io_context.
   //
   ~LoopbackServer();
 
@@ -74,13 +76,13 @@ public:
   std::vector<char> finish();
 
 private:
-  void serve();
+  // Serves one client, as described above, on m_thread.
+  asio::awaitable<void> serve();
 
-  WsaStartup m_wsaStartup;
   std::vector<char> m_serverBytes;
   std::vector<char> m_received;
-  SOCKET m_listener;
-  std::atomic<SOCKET> m_client;
+  asio::io_context m_context;
+  asio::ip::tcp::acceptor m_acceptor;
   UINT16 m_port;
   std::thread m_thread;
 };

@@ -33,8 +33,8 @@
 #include "util/ScopeExit.h"
 #include "util/TextEncoding.h"
 #include "network/HostResolver.h"
+#include "network/TcpKeepAlive.h"
 #include "network/socket/SocketException.h"
-#include "network/socket/SocketIPv4.h"
 
 #include "AuthHandler.h"
 #include "RichCursorDecoder.h"
@@ -91,7 +91,8 @@ static const size_t READ_CHUNK_SIZE = 64 * 1024;
 
 //
 // The IOException for an error reading the socket: with the messages the
-// blocking sockets gave (SocketIPv4::recv()), which the adapter shows; and
+// blocking sockets gave (the former SocketIPv4::recv()), which the adapter
+// shows; and
 // for a cancellation, by stop().
 //
 static IOException makeReadException(const std::error_code &error)
@@ -1008,10 +1009,10 @@ void RemoteViewerCore::configureSocket()
     throw SocketException(error.value());
   }
   try {
-    SocketIPv4::enableKeepAlive(m_socket->native_handle(),
-                                KEEPALIVE_IDLE_SECONDS,
-                                KEEPALIVE_INTERVAL_SECONDS,
-                                KEEPALIVE_PROBE_COUNT);
+    enableTcpKeepAlive(m_socket->native_handle(),
+                       KEEPALIVE_IDLE_SECONDS,
+                       KEEPALIVE_INTERVAL_SECONDS,
+                       KEEPALIVE_PROBE_COUNT);
   } catch (const SocketException &e) {
     m_logWriter.error(_T("Cannot turn on TCP keepalive: %s"), e.getMessage());
   }

@@ -55,8 +55,7 @@ public:
    * Writes exacly specified count of bytes to stream.
    * @param buffer source buffer.
    * @param len count of bytes to write.
-   * @throws whatever the underlying stream's write() throws: IOException
-   *   for a SocketStream.
+   * @throws whatever the underlying stream's write() throws.
    */
   void writeFully(const void *buffer, size_t len);
 

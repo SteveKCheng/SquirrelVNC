@@ -26,7 +26,7 @@
 
 #include "util/Exception.h"
 
-#include "sockdefs.h"
+#include "util/CommonHeader.h"
 
 class SocketException final : public Exception
 {

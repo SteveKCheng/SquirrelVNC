@@ -58,7 +58,7 @@ public:
    * @param buffer [out] target buffer to receive data.
    * @param len count of bytes to read.
    * @throws whatever the underlying stream's read() throws: IOException
-   *   for a SocketStream or a ByteArrayInputStream.
+   *   for a ByteArrayInputStream.
    */
   void readFully(void *buffer, size_t len);
 

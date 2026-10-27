@@ -20,10 +20,14 @@ Four layers are IPv4-only, so changing the lookup alone would not help:
    `host::port`), and host names must consist of letters, digits, `.`,
    `-` and `_`. An IPv6 literal is rejected before any network code runs,
    with or without brackets.
-2. **Lookup** (`SocketAddressIPv4::resolve()`): `GetAddrInfo()` with
-   `ai_family = AF_INET`.
-3. **Sockets** (`SocketIPv4`): always `AF_INET`. `connect()` and `bind()`
-   take a `SocketAddressIPv4`, which wraps a `sockaddr_in`.
+2. **Lookup** (~~`SocketAddressIPv4::resolve()`: `GetAddrInfo()`~~
+   *`asyncResolve()`, `GetAddrInfoExW()`, since Phase 4 step 2a of
+   `async-networking.md`*) with `ai_family = AF_INET`.
+3. **Sockets** (~~`SocketIPv4`~~ *Asio's, since Phase 4; `SocketIPv4` was
+   deleted in step 7*): ~~always `AF_INET`. `connect()` and `bind()`
+   take a `SocketAddressIPv4`, which wraps a `sockaddr_in`.~~ *an
+   accepted socket is IPv4 because the acceptor binds `0.0.0.0`; a
+   connected one because the lookup returns IPv4 addresses only.*
 4. **Listening mode** (~~`TcpServer`~~ *`TcpAcceptor`, since Phase 4
    step 6 of `async-networking.md`*, used by `ConnectionListener` on port
    5500): binds `0.0.0.0` only.
@@ -40,6 +44,7 @@ pass `asio::ip::tcp::socket`, which carries its protocol.*
   records falls back to IPv4.
 - **Sockets**: create each with the address's own family; hold addresses
   as `sockaddr_storage`. Renaming `SocketIPv4` can be a separate step.
+  *Asio's sockets already take the family from the endpoint.*
 - **Listening**: one IPv6 socket on `::` with `IPV6_V6ONLY` off, which
   accepts IPv4 and IPv6 callers.
 - **Parsing**: accept bracketed literals: `[fd00::5]`, `[fd00::5]:1`,

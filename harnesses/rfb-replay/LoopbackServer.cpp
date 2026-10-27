@@ -24,43 +24,39 @@
 
 #include "network/socket/SocketException.h"
 
-#include <algorithm>
-#include <climits>
+#include <asio/as_tuple.hpp>
+#include <asio/co_spawn.hpp>
+#include <asio/detached.hpp>
+#include <asio/use_awaitable.hpp>
+#include <asio/write.hpp>
 
 LoopbackServer::LoopbackServer(std::vector<char> serverBytes)
-: m_wsaStartup(1, 2),
-  m_serverBytes(std::move(serverBytes)),
-  m_listener(INVALID_SOCKET),
-  m_client(INVALID_SOCKET),
+: m_serverBytes(std::move(serverBytes)),
+  m_acceptor(m_context),
   m_port(0)
 {
-  m_listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  if (m_listener == INVALID_SOCKET) {
-    throw SocketException();
+  asio::ip::tcp::endpoint endpoint(asio::ip::address_v4::loopback(), 0);
+  std::error_code error;
+  m_acceptor.open(endpoint.protocol(), error);
+  if (!error) {
+    m_acceptor.bind(endpoint, error);
   }
-  sockaddr_in address = {};
-  address.sin_family = AF_INET;
-  address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-  address.sin_port = 0;
-  int length = sizeof(address);
-  if (bind(m_listener, reinterpret_cast<sockaddr *>(&address), sizeof(address)) == SOCKET_ERROR ||
-      listen(m_listener, 1) == SOCKET_ERROR ||
-      getsockname(m_listener, reinterpret_cast<sockaddr *>(&address), &length) == SOCKET_ERROR) {
-    SocketException error;
-    closesocket(m_listener);
-    throw error;
+  if (!error) {
+    m_acceptor.listen(1, error);
   }
-  m_port = ntohs(address.sin_port);
-  m_thread = std::thread([this] { serve(); });
+  if (!error) {
+    m_port = m_acceptor.local_endpoint(error).port();
+  }
+  if (error) {
+    throw SocketException(error.value());
+  }
+  asio::co_spawn(m_context, serve(), asio::detached);
+  m_thread = std::thread([this] { m_context.run(); });
 }
 
 LoopbackServer::~LoopbackServer()
 {
-  closesocket(m_listener);
-  SOCKET client = m_client.exchange(INVALID_SOCKET);
-  if (client != INVALID_SOCKET) {
-    closesocket(client);
-  }
+  m_context.stop();
   if (m_thread.joinable()) {
     m_thread.join();
   }
@@ -77,33 +73,25 @@ std::vector<char> LoopbackServer::finish()
   return std::move(m_received);
 }
 
-void LoopbackServer::serve()
+asio::awaitable<void> LoopbackServer::serve()
 {
-  SOCKET client = accept(m_listener, nullptr, nullptr);
-  if (client == INVALID_SOCKET) {
-    return;
+  auto [acceptError, client] =
+    co_await m_acceptor.async_accept(asio::as_tuple(asio::use_awaitable));
+  if (acceptError) {
+    co_return;
   }
-  m_client = client;
-  size_t sent = 0;
-  while (sent < m_serverBytes.size()) {
-    size_t chunk = std::min<size_t>(m_serverBytes.size() - sent, INT_MAX);
-    int count = send(client, m_serverBytes.data() + sent, static_cast<int>(chunk), 0);
-    if (count == SOCKET_ERROR) {
-      break;
-    }
-    sent += static_cast<size_t>(count);
-  }
-  shutdown(client, SD_SEND);
+  std::error_code ignored;
+  m_acceptor.close(ignored);
+  co_await asio::async_write(client, asio::buffer(m_serverBytes),
+                             asio::as_tuple(asio::use_awaitable));
+  client.shutdown(asio::ip::tcp::socket::shutdown_send, ignored);
   char buffer[4096];
   for (;;) {
-    int count = recv(client, buffer, sizeof(buffer), 0);
-    if (count <= 0) {
+    auto [readError, count] =
+      co_await client.async_read_some(asio::buffer(buffer), asio::as_tuple(asio::use_awaitable));
+    m_received.insert(m_received.end(), buffer, buffer + count);
+    if (readError) {
       break;
     }
-    m_received.insert(m_received.end(), buffer, buffer + count);
-  }
-  client = m_client.exchange(INVALID_SOCKET);
-  if (client != INVALID_SOCKET) {
-    closesocket(client);
   }
 }

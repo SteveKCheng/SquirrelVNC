@@ -1,5 +1,4 @@
-// Copyright (C) 2009,2010,2011,2012 GlavSoft LLC.
-// All rights reserved.
+// Copyright (C) 2026 Steve Cheng.
 //
 //-------------------------------------------------------------------------
 // This file is part of SquirrelVNC, a modified version of the TightVNC
@@ -21,34 +20,21 @@
 //-------------------------------------------------------------------------
 //
 
-#include "WindowsSocket.h"
+#include "TcpKeepAlive.h"
 
-bool WindowsSocket::m_isStarted = false;
+#include "socket/SocketException.h"
 
-void WindowsSocket::startup(BYTE loVer, BYTE hiVer)
+void enableTcpKeepAlive(SOCKET socket, DWORD idleSeconds,
+                        DWORD intervalSeconds, DWORD probeCount)
 {
-  if (m_isStarted) {
-    throw Exception(_T("WindowsSocket already initialized."));
-  }
-
-  WSAData wsaData;
-
-  if (WSAStartup(MAKEWORD(loVer, hiVer), &wsaData) != 0) {
-    throw Exception(_T("Failed to initialize WindowsSocket."));
-  }
-
-  m_isStarted = true;
-}
-
-void WindowsSocket::cleanup()
-{
-  if (!m_isStarted) {
-    throw Exception(_T("WindowsSocket don't initialized."));
-  }
-
-  m_isStarted = false;
-
-  if (WSACleanup() == SOCKET_ERROR) {
-    throw Exception(_T("Failed to deinitialize WindowsSocket."));
-  }
+  auto set = [socket](int level, int name, const void *value, int length) {
+    if (setsockopt(socket, level, name, static_cast<const char *>(value), length) == SOCKET_ERROR) {
+      throw SocketException();
+    }
+  };
+  BOOL enabled = TRUE;
+  set(SOL_SOCKET, SO_KEEPALIVE, &enabled, sizeof(enabled));
+  set(IPPROTO_TCP, TCP_KEEPIDLE, &idleSeconds, sizeof(idleSeconds));
+  set(IPPROTO_TCP, TCP_KEEPINTVL, &intervalSeconds, sizeof(intervalSeconds));
+  set(IPPROTO_TCP, TCP_KEEPCNT, &probeCount, sizeof(probeCount));
 }

@@ -965,6 +965,19 @@ from vcpkg.
     accepted in between was posted with a null handle, to the listener
     thread's own queue, where nothing read it, and waited in the list
     for the next connection's message.
+- **Step 7, deletion** (agreed with Steve, 2026-10-27): the `network`
+  folder stays, holding what is still used (`HostResolver`, the gates,
+  `SocketException`). First the dead socket code; then the locks whose
+  data is no longer shared between threads; then a table of the locks
+  left, to be taken one by one. `Thread` and `WindowsEvent` stay while
+  `FbUpdateNotifier` does.
+  - **7a. Dead socket code** (2026-10-27): `SocketIPv4`,
+    `SocketAddressIPv4`, `SocketStream`, `WindowsSocket`, `sockdefs.h`
+    and `WsaStartup` deleted. The keepalive setting is now the free
+    function `enableTcpKeepAlive()` (`network/TcpKeepAlive.h`), tested on
+    an Asio socket. `TvnViewer` no longer starts WinSock: Asio does.
+    rfb-replay's `LoopbackServer`, which used raw WinSock, runs on an
+    `io_context` of its own.
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the

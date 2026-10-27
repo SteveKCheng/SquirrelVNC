@@ -145,9 +145,8 @@ protected:
 
   // The network thread of every connection, whose executor each viewer
   // instance is given. Declared before m_instances, so that it is destroyed, joining the
-  // thread, after them: their connections end on it. Asio holds its own
-  // reference to WinSock until then, so the WindowsSocket::cleanup() in
-  // ~TvnViewer() comes first without harm.
+  // thread, after them: their connections end on it. Asio initializes and
+  // shuts down WinSock itself.
   NetworkThread m_networkThread;
   // The thread for the connections' blocking work (local deletes in file
   // transfer), started on first use; declared before m_instances for the

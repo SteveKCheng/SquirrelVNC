@@ -47,7 +47,8 @@ From the includes between libraries and the Win32 calls in each:
 The core reaches the Windows-only layer in exactly three places:
 
 - `viewer-core/FbUpdateNotifier.h` uses `win-system/WindowsEvent`;
-- `network/socket/*` uses `win-system/WsaStartup`;
+- ~~`network/socket/*` uses `win-system/WsaStartup`;~~ *(gone in Phase 4
+  step 7 of `async-networking.md`: Asio initializes WinSock)*
 - `file-lib/WinFile.cpp` uses `SystemException` and `Environment`.
 
 The Win32 calls in the foundations all have standard C++ or POSIX

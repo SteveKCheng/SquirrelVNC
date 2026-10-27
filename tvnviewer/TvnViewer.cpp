@@ -22,7 +22,6 @@
 //
 
 #include "TvnViewer.h"
-#include "network/socket/WindowsSocket.h"
 #include "util/ResourceLoader.h"
 #include "res/resource.h"
 
@@ -38,8 +37,6 @@ TvnViewer::TvnViewer(HINSTANCE appInstance, const TCHAR *windowClassName,
   m_logWriter(ViewerConfig::getInstance()->getLogger()),
   m_isListening(false)
 {
-  m_logWriter.info(_T("Init WinSock 2.1"));
-  WindowsSocket::startup(2, 1);
   registerViewerWindowClass();
 
   m_configurationDialog.setListenerOfUpdate(this);
@@ -57,15 +54,12 @@ TvnViewer::~TvnViewer()
   m_logWriter.info(_T("Viewer collector: destroy all instances"));
   m_instances.destroyAllInstances();
 
-  // Before the window class is unregistered and WinSock shut down.
+  // Before the window class is unregistered.
   m_loginDialog.reset();
   m_trayIcon.reset();
   stopListeningServer();
 
   unregisterViewerWindowClass();
-
-  m_logWriter.info(_T("Shutdown WinSock"));
-  WindowsSocket::cleanup();
 }
 
 void TvnViewer::startListeningServer(const int listeningPort)

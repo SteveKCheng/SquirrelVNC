@@ -183,11 +183,8 @@ public:
 
   //
   // This version initiates new TCP connection to the specified host and port,
-  // and then uses the established connection for data exchange.
-  //
-  // NOTE: RemoteViewerCore will not initialize Windows sockets for you.
-  //       If you use this component under Windows, you should call
-  //       WindowsSocket::startup() prior to calling function.
+  // and then uses the established connection for data exchange. (Asio
+  // initializes Windows sockets itself.)
   //
   void start(const TCHAR *host, UINT16 port,
              std::shared_ptr<CoreEventsAdapter> adapter,
