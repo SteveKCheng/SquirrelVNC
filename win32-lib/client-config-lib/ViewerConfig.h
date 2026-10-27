@@ -25,7 +25,6 @@
 #define _VIEWER_CONFIG_H_
 
 #include "util/StringStorage.h"
-#include "util/Singleton.h"
 #include "config-lib/ConnectionHistory.h"
 #include "log-writer/FileLogger.h"
 
@@ -41,11 +40,26 @@
 // notes/async-networking.md: nothing on the network thread reads it.
 //
 
-class ViewerConfig final : public Singleton<ViewerConfig>
+class ViewerConfig final
 {
 public:
-  ViewerConfig(const TCHAR registryPath[]);
-  ~ViewerConfig() override;
+  ViewerConfig(const ViewerConfig &) = delete;
+  ViewerConfig &operator=(const ViewerConfig &) = delete;
+  ViewerConfig(ViewerConfig &&) = delete;
+  ViewerConfig &operator=(ViewerConfig &&) = delete;
+
+  ~ViewerConfig();
+
+  //
+  // The viewer's configuration, made on the first call, for the viewer's
+  // registry path, and destroyed at exit.
+  //
+  // Defined in tvnviewer (main.cpp), which knows the registry path; the
+  // registry is to go, so this is not made more general.
+  //
+  // Post-conditions: never returns nullptr.
+  //
+  static ViewerConfig *getInstance();
 
   // Deserializes client configuration from settings storage.
   // Returns true if was no errors during deserialization,
@@ -104,7 +118,10 @@ public:
   // Returns connection history
   ConnectionHistory *getConnectionHistory();
 
-protected:
+private:
+  // registryPath: the key under HKEY_CURRENT_USER for the history.
+  ViewerConfig(const TCHAR registryPath[]);
+
   // TCP port for accepting incoming connection
   // when client runs in daemon mode
   int m_listenPort;

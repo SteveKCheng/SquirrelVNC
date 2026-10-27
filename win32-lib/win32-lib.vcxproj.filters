@@ -356,9 +356,6 @@
     <ClInclude Include="util\ResourceLoader.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="util\Singleton.h">
-      <Filter>util</Filter>
-    </ClInclude>
     <ClInclude Include="util\StringParser.h">
       <Filter>util</Filter>
     </ClInclude>

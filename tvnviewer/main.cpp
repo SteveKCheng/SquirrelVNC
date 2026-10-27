@@ -27,13 +27,20 @@
 #include "ConnectionData.h"
 #include "ViewerCmdLine.h"
 
+ViewerConfig *ViewerConfig::getInstance()
+{
+  // C++11 makes the initialization thread-safe.
+  static ViewerConfig instance(RegistryPaths::VIEWER_PATH);
+  return &instance;
+}
+
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE,
                        LPTSTR /* lpCmdLine */, int /* nCmdShow */)
 {
   ViewerSettingsManager::initInstance(RegistryPaths::VIEWER_PATH);
   SettingsManager &sm = ViewerSettingsManager::getInstance();
 
-  ViewerConfig config(RegistryPaths::VIEWER_PATH);
+  ViewerConfig &config = *ViewerConfig::getInstance();
   config.loadFromStorage(sm);
 
   ConnectionConfig conConf;

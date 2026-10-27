@@ -210,7 +210,6 @@
     <ClInclude Include="util\Keymap.h" />
     <ClInclude Include="util\ListenerContainer.h" />
     <ClInclude Include="util\ResourceLoader.h" />
-    <ClInclude Include="util\Singleton.h" />
     <ClInclude Include="util\StringParser.h" />
     <ClInclude Include="util\StringStorage.h" />
     <ClInclude Include="util\StringTable.h" />
