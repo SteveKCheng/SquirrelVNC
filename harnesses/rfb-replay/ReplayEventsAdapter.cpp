@@ -22,8 +22,9 @@
 
 #include "ReplayEventsAdapter.h"
 
-#include "thread/AutoLock.h"
 #include "util/TextEncoding.h"
+
+#include <chrono>
 
 ReplayEventsAdapter::ReplayEventsAdapter()
 : m_hasEnded(false)
@@ -59,27 +60,21 @@ void ReplayEventsAdapter::onConnected(RfbOutputGate * /*output*/,
 void ReplayEventsAdapter::onDisconnect(const StringStorage &message)
 {
   addEvent("disconnect", message);
-  AutoLock al(&m_lock);
-  m_hasEnded = true;
-  m_endEvent.notify();
+  markEnded();
 }
 
 void ReplayEventsAdapter::onAuthError(const AuthException &exception)
 {
   StringStorage message(exception.getMessage());
   addEvent("auth-error", message);
-  AutoLock al(&m_lock);
-  m_hasEnded = true;
-  m_endEvent.notify();
+  markEnded();
 }
 
 void ReplayEventsAdapter::onError(const Exception &exception)
 {
   StringStorage message(exception.getMessage());
   addEvent("error", message);
-  AutoLock al(&m_lock);
-  m_hasEnded = true;
-  m_endEvent.notify();
+  markEnded();
 }
 
 void ReplayEventsAdapter::onFrameBufferUpdate(const FrameBuffer & /* fb */,
@@ -93,20 +88,14 @@ void ReplayEventsAdapter::onFrameBufferPropChange(const FrameBuffer & /* fb */)
 
 bool ReplayEventsAdapter::waitForEnd(DWORD milliseconds)
 {
-  {
-    AutoLock al(&m_lock);
-    if (m_hasEnded) {
-      return true;
-    }
-  }
-  m_endEvent.waitForEvent(milliseconds);
-  AutoLock al(&m_lock);
-  return m_hasEnded;
+  std::unique_lock<std::mutex> lock(m_lock);
+  return m_ended.wait_for(lock, std::chrono::milliseconds(milliseconds),
+                          [this] { return m_hasEnded; });
 }
 
 std::string ReplayEventsAdapter::getEventLog()
 {
-  AutoLock al(&m_lock);
+  std::lock_guard<std::mutex> lock(m_lock);
   std::string log;
   for (const std::string &event : m_events) {
     log += event;
@@ -117,8 +106,17 @@ std::string ReplayEventsAdapter::getEventLog()
 
 void ReplayEventsAdapter::addEvent(const char *name)
 {
-  AutoLock al(&m_lock);
+  std::lock_guard<std::mutex> lock(m_lock);
   m_events.push_back(name);
+}
+
+void ReplayEventsAdapter::markEnded()
+{
+  {
+    std::lock_guard<std::mutex> lock(m_lock);
+    m_hasEnded = true;
+  }
+  m_ended.notify_all();
 }
 
 void ReplayEventsAdapter::addEvent(const char *name, const StringStorage &text)
@@ -143,6 +141,6 @@ void ReplayEventsAdapter::addEvent(const char *name, const StringStorage &text)
     }
   }
   line += '"';
-  AutoLock al(&m_lock);
+  std::lock_guard<std::mutex> lock(m_lock);
   m_events.push_back(line);
 }

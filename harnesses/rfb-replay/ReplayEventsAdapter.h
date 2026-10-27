@@ -23,10 +23,10 @@
 #ifndef _REPLAY_EVENTS_ADAPTER_H_
 #define _REPLAY_EVENTS_ADAPTER_H_
 
-#include "thread/LocalMutex.h"
 #include "viewer-core/CoreEventsAdapter.h"
-#include "win-system/WindowsEvent.h"
 
+#include <condition_variable>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -43,6 +43,9 @@
 // space and the text in double quotes, with backslash, double quote and
 // newline written as \\, \" and \n. Text is UTF-8. tests/gen/rfbgen.py
 // writes the expected lines the same way.
+//
+// Threads: the callbacks come on the network thread; waitForEnd() and
+// getEventLog() may be called on any other thread at the same time.
 //
 class ReplayEventsAdapter final : public CoreEventsAdapter
 {
@@ -93,10 +96,17 @@ private:
   //
   void addEvent(const char *name, const StringStorage &text);
 
-  LocalMutex m_lock;
+  //
+  // Post-conditions: the session has ended; waitForEnd() returns true.
+  //
+  void markEnded();
+
+  std::mutex m_lock;
+  // Guarded by m_lock.
   std::vector<std::string> m_events;
+  // Guarded by m_lock; m_ended is notified when it becomes true.
   bool m_hasEnded;
-  WindowsEvent m_endEvent;
+  std::condition_variable m_ended;
 };
 
 #endif // _REPLAY_EVENTS_ADAPTER_H_

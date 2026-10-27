@@ -24,12 +24,14 @@
 #define _MEMORY_OUTPUT_STREAM_H_
 
 #include "io-lib/OutputStream.h"
-#include "thread/LocalMutex.h"
-
+#include <mutex>
 #include <vector>
 
 //
 // An OutputStream that collects everything written to it in memory.
+//
+//
+// Threads: write() and getData() may be called on any threads at once.
 //
 class MemoryOutputStream final : public OutputStream
 {
@@ -49,7 +51,8 @@ public:
   std::vector<char> getData();
 
 private:
-  LocalMutex m_lock;
+  std::mutex m_lock;
+  // Guarded by m_lock.
   std::vector<char> m_data;
 };
 

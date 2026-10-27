@@ -22,8 +22,6 @@
 
 #include "MemoryOutputStream.h"
 
-#include "thread/AutoLock.h"
-
 MemoryOutputStream::MemoryOutputStream()
 {
 }
@@ -34,7 +32,7 @@ MemoryOutputStream::~MemoryOutputStream()
 
 size_t MemoryOutputStream::write(const void *buffer, size_t len)
 {
-  AutoLock al(&m_lock);
+  std::lock_guard<std::mutex> lock(m_lock);
   const char *bytes = static_cast<const char *>(buffer);
   m_data.insert(m_data.end(), bytes, bytes + len);
   return len;
@@ -42,6 +40,6 @@ size_t MemoryOutputStream::write(const void *buffer, size_t len)
 
 std::vector<char> MemoryOutputStream::getData()
 {
-  AutoLock al(&m_lock);
+  std::lock_guard<std::mutex> lock(m_lock);
   return m_data;
 }
