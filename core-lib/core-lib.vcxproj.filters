@@ -33,12 +33,6 @@
     <ClCompile Include="io-lib\AwaitableReader.cpp">
       <Filter>io-lib</Filter>
     </ClCompile>
-    <ClCompile Include="io-lib\BufferedInputStream.cpp">
-      <Filter>io-lib</Filter>
-    </ClCompile>
-    <ClCompile Include="io-lib\BufferedOutputStream.cpp">
-      <Filter>io-lib</Filter>
-    </ClCompile>
     <ClCompile Include="io-lib\ByteArrayInputStream.cpp">
       <Filter>io-lib</Filter>
     </ClCompile>
@@ -301,12 +295,6 @@
     </ClInclude>
     <ClInclude Include="region\x11region.h">
       <Filter>region</Filter>
-    </ClInclude>
-    <ClInclude Include="io-lib\BufferedInputStream.h">
-      <Filter>io-lib</Filter>
-    </ClInclude>
-    <ClInclude Include="io-lib\BufferedOutputStream.h">
-      <Filter>io-lib</Filter>
     </ClInclude>
     <ClInclude Include="io-lib\ByteArrayInputStream.h">
       <Filter>io-lib</Filter>

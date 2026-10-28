@@ -72,7 +72,6 @@ int wmain()
     runExceptionTests();
     runTaskTests();
     runSocketTests();
-    runBufferedInputStreamTests();
     runNetworkThreadTests();
     runHostResolverTests();
     runTcpAcceptorTests();

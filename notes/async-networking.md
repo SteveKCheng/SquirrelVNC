@@ -635,7 +635,8 @@ explained in `async-networking-resumption.md`.
   deadlock until the server sent something of its own accord. It now
   returns what it holds. The replay tests could not catch it: their
   input never blocks. A unit test now counts the reads of a
-  `BufferedInputStream`'s source.
+  `BufferedInputStream`'s source. *(Since step 7k, `BufferedInputStream`
+  and that test are gone: nothing uses the class any more.)*
 
 ### Phase 4: the event loop
 
@@ -1106,6 +1107,12 @@ from vcpkg.
       on the network thread. TightVNC's file transfer is built on the
       wrong foundations (manual chunking on a single-channel transport)
       to be worth optimizing; SFTP is the better tool.
+  - **7k. `BufferedInputStream` and `BufferedOutputStream` go**
+    (2026-10-28): neither has users any more (the first only its unit
+    test). The core buffers its connection itself, as it must, in
+    `AwaitableReader` and `QueuedOutputStream`. Removing `io-lib`'s
+    other streams in favour of the standard library would be too much
+    churn for the benefit (Steve).
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the

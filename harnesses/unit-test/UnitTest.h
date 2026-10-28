@@ -50,7 +50,6 @@ void runScopeExitTests();
 void runExceptionTests();
 void runTaskTests();
 void runSocketTests();
-void runBufferedInputStreamTests();
 void runNetworkThreadTests();
 void runHostResolverTests();
 void runTcpAcceptorTests();
