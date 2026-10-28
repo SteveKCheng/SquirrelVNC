@@ -174,7 +174,7 @@
     <ClCompile Include="viewer-core\RfbCutTextEventClientMessage.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
-    <ClCompile Include="viewer-core\RfbParser.cpp">
+    <ClCompile Include="viewer-core\RfbParsing.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
     <ClCompile Include="viewer-core\RfbFramebufferUpdateRequestClientMessage.cpp">
@@ -458,7 +458,7 @@
     <ClInclude Include="viewer-core\RfbCutTextEventClientMessage.h">
       <Filter>viewer-core</Filter>
     </ClInclude>
-    <ClInclude Include="viewer-core\RfbParser.h">
+    <ClInclude Include="viewer-core\RfbParsing.h">
       <Filter>viewer-core</Filter>
     </ClInclude>
     <ClInclude Include="viewer-core\RfbFramebufferUpdateRequestClientMessage.h">

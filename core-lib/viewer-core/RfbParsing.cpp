@@ -20,7 +20,7 @@
 //-------------------------------------------------------------------------
 //
 
-#include "RfbParser.h"
+#include "RfbParsing.h"
 
 #include "rfb/StandardPixelFormatFactory.h"
 #include "util/Exception.h"
@@ -35,7 +35,7 @@
 static const UINT32 MAX_CUT_TEXT_LENGTH = 64 * 1024 * 1024;
 static const UINT32 MAX_DESKTOP_NAME_LENGTH = 64 * 1024;
 
-namespace Internal
+namespace RfbParsing
 {
 
 Task<> skipBytes(AwaitableReader &reader, size_t length)
@@ -248,4 +248,4 @@ Task<std::optional<StringStorage>> readServerCutTextUtf8(AwaitableReader &reader
   co_return TextEncoding::fromUtf8(buffer);
 }
 
-} // namespace Internal
+} // namespace RfbParsing

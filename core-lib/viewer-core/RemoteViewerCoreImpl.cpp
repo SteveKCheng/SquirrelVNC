@@ -37,7 +37,7 @@
 
 #include "AuthHandler.h"
 #include "RichCursorDecoder.h"
-#include "RfbParser.h"
+#include "RfbParsing.h"
 #include "RfbFramebufferUpdateRequestClientMessage.h"
 #include "RfbCutTextEventClientMessage.h"
 #include "RfbKeyEventClientMessage.h"
@@ -81,7 +81,7 @@
 
 // A limit on the length of the reason sent by the server, so that a
 // malicious or broken server cannot make the viewer allocate an arbitrary
-// amount of memory (the others are in RfbParser.cpp). As
+// amount of memory (the others are in RfbParsing.cpp). As
 // DataInputStream::readUTF8() allowed, which used to read the reason.
 static const UINT32 MAX_REASON_LENGTH = 1024 * 1024;
 
@@ -676,7 +676,7 @@ Task<int> RemoteViewerCoreImpl::initAuthentication()
 void RemoteViewerCoreImpl::setFbProperties(const Dimension &fbDimension,
                                        const PixelFormat &fbPixelFormat)
 {
-  Internal::checkFrameBufferProperties(fbDimension, fbPixelFormat,
+  RfbParsing::checkFrameBufferProperties(fbDimension, fbPixelFormat,
                                        m_maxFrameBufferPixels);
 
   const PixelFormat &pxFormat = fbPixelFormat;
@@ -770,7 +770,7 @@ Task<> RemoteViewerCoreImpl::run()
   while (!m_isStopping) {
     applyPendingEvents();
     m_isAtMessageBoundary = true;
-    UINT32 msgType = co_await Internal::readServerMessageType(m_reader);
+    UINT32 msgType = co_await RfbParsing::readServerMessageType(m_reader);
     m_isAtMessageBoundary = false;
 
     switch (msgType) {
@@ -781,7 +781,7 @@ Task<> RemoteViewerCoreImpl::run()
 
     case ServerMsgDefs::SET_COLOR_MAP_ENTRIES:
       m_logWriter.detail(_T("Received message: SET_COLOR_MAP_ENTRIES"));
-      co_await Internal::readSetColorMapEntries(m_reader);
+      co_await RfbParsing::readSetColorMapEntries(m_reader);
       break;
 
     case ServerMsgDefs::BELL:
@@ -1107,7 +1107,7 @@ Task<> RemoteViewerCoreImpl::receiveFbUpdate()
 {
   // message type is already known: 0
 
-  UINT16 numberOfRectangles = co_await Internal::readFbUpdateHeader(m_reader);
+  UINT16 numberOfRectangles = co_await RfbParsing::readFbUpdateHeader(m_reader);
   m_logWriter.debug(_T("number of rectangles: %d"), numberOfRectangles);
 
   bool isLastRect = false;
@@ -1125,7 +1125,7 @@ Task<> RemoteViewerCoreImpl::receiveFbUpdate()
 
 Task<bool> RemoteViewerCoreImpl::receiveFbUpdateRectangle()
 {
-  Internal::RectangleHeader header = co_await Internal::readRectangleHeader(m_reader);
+  RfbParsing::RectangleHeader header = co_await RfbParsing::readRectangleHeader(m_reader);
   const Rect &rect = header.rect;
   int encodingType = header.encodingType;
 
@@ -1135,7 +1135,7 @@ Task<bool> RemoteViewerCoreImpl::receiveFbUpdateRectangle()
   if (encodingType == PseudoEncDefs::LAST_RECT)
     co_return true;
   if (!Decoder::isPseudo(encodingType)) {
-    Internal::checkRectangleInside(m_frameBuffer.getDimension(), rect);
+    RfbParsing::checkRectangleInside(m_frameBuffer.getDimension(), rect);
 
     Decoder *decoder = m_decoderStore.getDecoder(encodingType);
     if (decoder != nullptr) {
@@ -1178,8 +1178,8 @@ Task<> RemoteViewerCoreImpl::processPseudoEncoding(const Rect &rect,
     {
       m_logWriter.detail(_T("New rich cursor"));
 
-      Internal::RichCursor cursor =
-        co_await Internal::readRichCursor(m_reader, rect,
+      RfbParsing::RichCursor cursor =
+        co_await RfbParsing::readRichCursor(m_reader, rect,
                                           m_frameBuffer.getBytesPerPixel());
 
       m_logWriter.debug(_T("Setting new rich cursor..."));
@@ -1234,7 +1234,7 @@ Task<> RemoteViewerCoreImpl::receiveServerCutText()
   // message type is already known: 3
 
   std::optional<StringStorage> cutText =
-    co_await Internal::readServerCutText(m_reader, m_logWriter);
+    co_await RfbParsing::readServerCutText(m_reader, m_logWriter);
   if (!cutText)
     co_return;
 
@@ -1252,7 +1252,7 @@ Task<> RemoteViewerCoreImpl::receiveServerCutText()
 Task<> RemoteViewerCoreImpl::receiveServerCutTextUtf8()
 {
   std::optional<StringStorage> cutText =
-    co_await Internal::readServerCutTextUtf8(m_reader, m_logWriter);
+    co_await RfbParsing::readServerCutTextUtf8(m_reader, m_logWriter);
   if (!cutText)
     co_return;
 
@@ -1341,7 +1341,7 @@ Task<> RemoteViewerCoreImpl::handshake()
  * Client send:
  * 2           - U8          - shared flag
  *
- * Server send: ServerInit (Internal::readServerInit()).
+ * Server send: ServerInit (RfbParsing::readServerInit()).
  */
 Task<> RemoteViewerCoreImpl::clientAndServerInit()
 {
@@ -1354,8 +1354,8 @@ Task<> RemoteViewerCoreImpl::clientAndServerInit()
   m_output->flush();
   m_logWriter.debug(_T("Shared flag is set"));
 
-  Internal::ServerInit serverInit =
-    co_await Internal::readServerInit(m_reader, m_logWriter);
+  RfbParsing::ServerInit serverInit =
+    co_await RfbParsing::readServerInit(m_reader, m_logWriter);
   {
     AutoLock al(&m_fbLock);
     setFbProperties(serverInit.dimension, serverInit.pixelFormat);

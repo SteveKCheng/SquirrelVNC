@@ -47,7 +47,7 @@
 // are read, with their text decoded, and ignored; any other message type
 // ends the input.
 //
-// Messages are parsed by the functions the core uses (RfbParser.h). What
+// Messages are parsed by the functions the core uses (RfbParsing.h). What
 // is done with them is a copy of RemoteViewerCoreImpl's: the message
 // loop, the dispatch of rectangles to the decoders, and the frame buffers
 // and cursor; each function names the one it mirrors, and the two must be

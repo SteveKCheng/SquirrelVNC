@@ -340,10 +340,10 @@ the destructor does not wait for a thread that never ran.
 
 **Since step 7i of `async-networking.md` (2026-10-27):** the parsing
 itself is shared: the core and the fuzzer call the same functions,
-`Internal::readServerInit()`, `readPixelFormat()`,
+`RfbParsing::readServerInit()`, `readPixelFormat()`,
 `readRectangleHeader()`, `readRichCursor()` and the like, and the same
 checks (`checkFrameBufferProperties()`, with the fuzzer's own limit,
-and `checkRectangleInside()`), in `viewer-core/RfbParser.h`. What
+and `checkRectangleInside()`), in `viewer-core/RfbParsing.h`. What
 remains copied is what is done with the parsed messages: the message
 loop, the dispatch of rectangles to the decoders, the frame buffers and
 the cursor, all of which the frame buffer rework will change. The

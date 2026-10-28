@@ -32,7 +32,7 @@
 #include "viewer-core/LastRectDecoder.h"
 #include "viewer-core/PointerPosDecoder.h"
 #include "viewer-core/RawDecoder.h"
-#include "viewer-core/RfbParser.h"
+#include "viewer-core/RfbParsing.h"
 #include "viewer-core/RichCursorDecoder.h"
 #include "viewer-core/RreDecoder.h"
 #include "viewer-core/TightDecoder.h"
@@ -155,8 +155,8 @@ Task<> FuzzSession::readSession()
 // flag.
 Task<> FuzzSession::readServerInit()
 {
-  Internal::ServerInit serverInit =
-    co_await Internal::readServerInit(*m_reader, m_logWriter);
+  RfbParsing::ServerInit serverInit =
+    co_await RfbParsing::readServerInit(*m_reader, m_logWriter);
   AutoLock al(&m_fbLock);
   setFrameBuffer(serverInit.dimension, serverInit.pixelFormat);
 }
@@ -166,7 +166,7 @@ Task<> FuzzSession::readServerInit()
 void FuzzSession::setFrameBuffer(const Dimension &dimension,
                                  const PixelFormat &pixelFormat)
 {
-  Internal::checkFrameBufferProperties(dimension, pixelFormat,
+  RfbParsing::checkFrameBufferProperties(dimension, pixelFormat,
                                        MAX_FRAME_BUFFER_PIXELS);
   if (!m_frameBuffer->setProperties(dimension, pixelFormat) ||
       !m_rectangleFb->setProperties(dimension, pixelFormat)) {
@@ -181,23 +181,23 @@ void FuzzSession::setFrameBuffer(const Dimension &dimension,
 // input.
 Task<bool> FuzzSession::readMessage()
 {
-  UINT32 msgType = co_await Internal::readServerMessageType(*m_reader);
+  UINT32 msgType = co_await RfbParsing::readServerMessageType(*m_reader);
 
   switch (msgType) {
   case ServerMsgDefs::FB_UPDATE:
     co_await readFbUpdate();
     co_return true;
   case ServerMsgDefs::SET_COLOR_MAP_ENTRIES:
-    co_await Internal::readSetColorMapEntries(*m_reader);
+    co_await RfbParsing::readSetColorMapEntries(*m_reader);
     co_return true;
   case ServerMsgDefs::BELL:
     co_return true;
   // The text is decoded, as the core decodes it, and dropped.
   case ServerMsgDefs::SERVER_CUT_TEXT:
-    co_await Internal::readServerCutText(*m_reader, m_logWriter);
+    co_await RfbParsing::readServerCutText(*m_reader, m_logWriter);
     co_return true;
   case ServerMsgDefs::SERVER_CUT_TEXT_UTF8:
-    co_await Internal::readServerCutTextUtf8(*m_reader, m_logWriter);
+    co_await RfbParsing::readServerCutTextUtf8(*m_reader, m_logWriter);
     co_return true;
   default:
     co_return false;
@@ -208,7 +208,7 @@ Task<bool> FuzzSession::readMessage()
 // FbUpdateNotifier::execute() does with the cursor after an update.
 Task<> FuzzSession::readFbUpdate()
 {
-  UINT16 numberOfRectangles = co_await Internal::readFbUpdateHeader(*m_reader);
+  UINT16 numberOfRectangles = co_await RfbParsing::readFbUpdateHeader(*m_reader);
   bool isLastRect = false;
   for (int rectangle = 0; rectangle < numberOfRectangles && !isLastRect; rectangle++) {
     isLastRect = co_await readFbUpdateRectangle();
@@ -222,14 +222,14 @@ Task<> FuzzSession::readFbUpdate()
 // Mirrors RemoteViewerCoreImpl::receiveFbUpdateRectangle().
 Task<bool> FuzzSession::readFbUpdateRectangle()
 {
-  Internal::RectangleHeader header = co_await Internal::readRectangleHeader(*m_reader);
+  RfbParsing::RectangleHeader header = co_await RfbParsing::readRectangleHeader(*m_reader);
   const Rect &rect = header.rect;
   int encodingType = header.encodingType;
 
   if (encodingType == PseudoEncDefs::LAST_RECT)
     co_return true;
   if (!Decoder::isPseudo(encodingType)) {
-    Internal::checkRectangleInside(m_frameBuffer->getDimension(), rect);
+    RfbParsing::checkRectangleInside(m_frameBuffer->getDimension(), rect);
 
     Decoder *decoder = m_decoderStore->getDecoder(encodingType);
     if (decoder == nullptr) {
@@ -264,8 +264,8 @@ Task<> FuzzSession::readPseudoEncoding(const Rect &rect, int encodingType)
 
   case PseudoEncDefs::RICH_CURSOR:
     {
-      Internal::RichCursor cursor =
-        co_await Internal::readRichCursor(*m_reader, rect,
+      RfbParsing::RichCursor cursor =
+        co_await RfbParsing::readRichCursor(*m_reader, rect,
                                           m_frameBuffer->getBytesPerPixel());
 
       // FbUpdateNotifier::setNewCursor()

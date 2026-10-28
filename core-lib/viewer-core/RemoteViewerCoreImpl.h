@@ -428,7 +428,7 @@ private:
   // to the adapter, decoded by TextEncoding::fromRfbText(): Latin-1 as
   // the specification says, or UTF-8 if it is valid UTF-8. The text ends
   // at the first zero byte; text longer than 64 MiB is skipped with a
-  // warning (Internal::readServerCutText()). Exceptions from the adapter are logged, not
+  // warning (RfbParsing::readServerCutText()). Exceptions from the adapter are logged, not
   // passed on. Throws whatever reading the input throws.
   //
   Task<> receiveServerCutText();
@@ -440,7 +440,7 @@ private:
   // Pre-conditions: the message type has been read.
   // Post-conditions: the message has been read whole. Empty text is
   // ignored; text longer than 64 MiB is skipped with a warning
-  // (Internal::readServerCutTextUtf8()). Invalid UTF-8 becomes U+FFFD, and the text ends at the first
+  // (RfbParsing::readServerCutTextUtf8()). Invalid UTF-8 becomes U+FFFD, and the text ends at the first
   // zero byte. Exceptions from the adapter are logged, not passed on.
   // Throws whatever reading the input throws.
   //
@@ -513,7 +513,7 @@ private:
   //
   // The first SetPixelFormat of the connection is sent even if the format
   // equals that of the frame buffer, because that may be a stand-in for a
-  // server format without true colour (see Internal::readPixelFormat()).
+  // server format without true colour (see RfbParsing::readPixelFormat()).
   // Throws Exception if m_viewerPixelFormat is not valid
   // (PixelFormat::isValid()); nothing is sent then.
   //

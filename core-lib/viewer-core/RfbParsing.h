@@ -20,8 +20,8 @@
 //-------------------------------------------------------------------------
 //
 
-#ifndef _RFB_PARSER_H_
-#define _RFB_PARSER_H_
+#ifndef _RFB_PARSING_H_
+#define _RFB_PARSING_H_
 
 #include "io-lib/AwaitableReader.h"
 #include "log-writer/LogWriter.h"
@@ -37,23 +37,21 @@
 #include <vector>
 
 //
-// Internal: by convention, for RemoteViewerCore and the rfb-fuzz harness
-// only (see ClientEvents.h).
-//
 // Parsing of the server messages that the viewer reads after the security
-// handshake, shared by the core and rfb-fuzz so that the fuzzer tests the
-// code the viewer runs. Only parsing and the checks on what is parsed are
-// here; what is done with the result (the frame buffers, the decoders, the
-// adapter) is left to the caller. This header must not include Asio, so
-// that rfb-fuzz does not depend on it.
+// handshake, shared by RemoteViewerCore and rfb-fuzz so that the fuzzer
+// tests the code the viewer runs. Only parsing and the checks on what is
+// parsed are here; what is done with the result (the frame buffers, the
+// decoders, the adapter) is left to the caller. This header must not
+// include Asio, so that rfb-fuzz does not depend on it.
 //
-// Each function is a coroutine (util/Task.h) reading from reader, which
+// Each function that reads (all but the check...() functions) is a
+// coroutine (util/Task.h) reading from reader, which
 // must outlive the returned task; it may be resumed on any thread, but on
 // one thread at a time, as reader requires. Unless said otherwise, each
 // throws whatever reading the input throws (IOException), and the input
 // is left part-way through the message when it throws.
 //
-namespace Internal
+namespace RfbParsing
 {
   //
   // Reads and discards length bytes.
@@ -219,4 +217,4 @@ namespace Internal
                                                            LogWriter &logWriter);
 }
 
-#endif // _RFB_PARSER_H_
+#endif // _RFB_PARSING_H_
