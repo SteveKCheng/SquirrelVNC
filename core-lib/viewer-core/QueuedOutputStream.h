@@ -29,10 +29,13 @@
 #include <vector>
 
 //
-// The stream under a connection's RfbOutputGate: write() only queues the
-// bytes, and wakes the connection's writer, which takes them with take()
-// and sends them (notes/async-networking.md, Phase 4 step 2b). The
-// messages keep the order in which they were flushed.
+// The stream under a connection's DataOutputStream: write() only queues
+// the bytes, and flush() wakes the connection's writer, which takes them
+// with take() and sends them (notes/async-networking.md, Phase 4 step 2b).
+// The messages keep the order in which they were written. The queue is the
+// only buffer: each writer ends its message with a flush(), so the writer
+// is woken once per message, and never takes half of one, since it runs on
+// the same thread.
 //
 // Writing can stay synchronous because each message is small and complete
 // in memory before it is flushed here. Messages queued together are sent
@@ -52,8 +55,9 @@ public:
   QueuedOutputStream &operator=(const QueuedOutputStream &) = delete;
 
   //
-  // Starts waking the writer: wake is called after each write(). It must
-  // only post work to the network thread, and not throw.
+  // Starts waking the writer: wake is called by each flush() that finds
+  // bytes queued. It must only post work to the network thread, and not
+  // throw.
   //
   // Pre-conditions: not open, and not closed.
   //
@@ -62,10 +66,17 @@ public:
   //
   // Queues len bytes.
   //
-  // Post-conditions: returns len; the writer has been woken, if open.
+  // Post-conditions: returns len; the bytes are queued, and the writer not
+  // woken.
   // Throws IOException once closed: the connection has ended.
   //
   size_t write(const void *buffer, size_t len) override;
+
+  //
+  // Post-conditions: the writer has been woken, if open and anything is
+  // queued.
+  //
+  void flush() override;
 
   //
   // Takes all the bytes queued, oldest first; empty if none.

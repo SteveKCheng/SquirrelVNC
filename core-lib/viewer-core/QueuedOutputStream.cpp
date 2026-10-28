@@ -49,10 +49,14 @@ size_t QueuedOutputStream::write(const void *buffer, size_t len)
   }
   const char *bytes = static_cast<const char *>(buffer);
   m_queued.insert(m_queued.end(), bytes, bytes + len);
-  if (m_wake) {
+  return len;
+}
+
+void QueuedOutputStream::flush()
+{
+  if (m_wake && !m_queued.empty()) {
     m_wake();
   }
-  return len;
 }
 
 std::vector<char> QueuedOutputStream::take()

@@ -27,7 +27,6 @@
 #include "io-lib/DataInputStream.h"
 #include "io-lib/DataOutputStream.h"
 #include "io-lib/IOException.h"
-#include "network/RfbOutputGate.h"
 #include "rfb/FrameBuffer.h"
 #include "region/Rect.h"
 #include "util/Exception.h"
@@ -100,11 +99,11 @@ public:
   // Protocol has entered the normal interactive phase (in other words,
   // protocol initialization has been completed).
   //
-  // output is the connection's output gate, for capabilities that send
+  // output is the connection's output, for capabilities that send
   // their own messages, such as file transfer; it stays valid while the
   // core runs. info is what the initialization established.
   //
-  virtual void onConnected(RfbOutputGate *output, const ConnectionInfo &info) = 0;
+  virtual void onConnected(DataOutputStream *output, const ConnectionInfo &info) = 0;
 
   //
   // RemoteViewerCore has been disconnected by calling stop()

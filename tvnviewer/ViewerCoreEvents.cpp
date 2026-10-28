@@ -77,7 +77,7 @@ void ViewerCoreEvents::onEstablished()
   // Nothing to do until the protocol is initialized (onConnected()).
 }
 
-void ViewerCoreEvents::onConnected(RfbOutputGate *output, const ConnectionInfo &info)
+void ViewerCoreEvents::onConnected(DataOutputStream *output, const ConnectionInfo &info)
 {
   // Set output for client-to-server messages in file transfer, before the
   // GUI thread can start an operation.

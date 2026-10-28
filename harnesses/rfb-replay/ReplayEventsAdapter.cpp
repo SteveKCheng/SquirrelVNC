@@ -50,7 +50,7 @@ void ReplayEventsAdapter::onEstablished()
   addEvent("established");
 }
 
-void ReplayEventsAdapter::onConnected(RfbOutputGate * /*output*/,
+void ReplayEventsAdapter::onConnected(DataOutputStream * /*output*/,
                                       const ConnectionInfo &info)
 {
   addEvent("desktop-name", info.desktopName);

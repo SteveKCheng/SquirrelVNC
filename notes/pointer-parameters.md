@@ -278,6 +278,11 @@ there is no semantic difference between `RfbInputGate` and
 `DataInputStream`; on the output side the gate also says "you may lock
 me".
 
+**Since step 7j of `async-networking.md` (2026-10-28):** both gates are
+gone. The core's test path takes an `InputStream *`, and everything that
+wrote to `RfbOutputGate` takes a `DataOutputStream`. The text below
+describes the state before then.
+
 If this is taken up again:
 
 - A borrowed `RfbInputGate` could be `DataInputStream &`, losing

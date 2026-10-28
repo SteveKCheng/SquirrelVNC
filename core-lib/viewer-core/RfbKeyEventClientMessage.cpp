@@ -33,7 +33,7 @@ RfbKeyEventClientMessage::~RfbKeyEventClientMessage()
 {
 }
 
-void RfbKeyEventClientMessage::send(RfbOutputGate &output)
+void RfbKeyEventClientMessage::send(DataOutputStream &output)
 {
   output.writeUInt8(ClientMsgDefs::KEYBOARD_EVENT);
   output.writeUInt8(m_downFlag);

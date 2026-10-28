@@ -34,7 +34,7 @@ RfbFramebufferUpdateRequestClientMessage::~RfbFramebufferUpdateRequestClientMess
 {
 }
 
-void RfbFramebufferUpdateRequestClientMessage::send(RfbOutputGate & output)
+void RfbFramebufferUpdateRequestClientMessage::send(DataOutputStream & output)
 {
   output.writeUInt8(ClientMsgDefs::FB_UPDATE_REQUEST);
   output.writeUInt8(m_incremental);

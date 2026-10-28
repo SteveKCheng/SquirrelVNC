@@ -55,7 +55,7 @@ FileTransferCapability::~FileTransferCapability()
 {
 }
 
-void FileTransferCapability::setOutput(RfbOutputGate *output)
+void FileTransferCapability::setOutput(DataOutputStream *output)
 {
   m_ftRequestSender.setOutput(output);
 }

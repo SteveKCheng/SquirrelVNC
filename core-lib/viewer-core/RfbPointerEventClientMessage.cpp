@@ -35,7 +35,7 @@ RfbPointerEventClientMessage::~RfbPointerEventClientMessage()
 {
 }
 
-void RfbPointerEventClientMessage::send(RfbOutputGate &output)
+void RfbPointerEventClientMessage::send(DataOutputStream &output)
 {
   output.writeUInt8(ClientMsgDefs::POINTER_EVENT);
   output.writeUInt8(m_buttonMask);

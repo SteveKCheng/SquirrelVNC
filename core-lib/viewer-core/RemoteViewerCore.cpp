@@ -35,7 +35,7 @@ RemoteViewerCore::~RemoteViewerCore()
 {
 }
 
-void RemoteViewerCore::start(InputStream *input, RfbOutputGate *output,
+void RemoteViewerCore::start(InputStream *input, OutputStream *output,
                              std::shared_ptr<CoreEventsAdapter> adapter,
                              bool sharedFlag,
                              UINT64 maxFrameBufferPixels)

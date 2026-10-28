@@ -180,7 +180,7 @@ private:
   //
   void onBell() override;
   void onEstablished() override;
-  void onConnected(RfbOutputGate *output, const ConnectionInfo &info) override;
+  void onConnected(DataOutputStream *output, const ConnectionInfo &info) override;
   void onDisconnect(const StringStorage &message) override;
   void onAuthError(const AuthException &exception) override;
   void onError(const Exception &exception) override;

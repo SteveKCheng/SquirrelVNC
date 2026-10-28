@@ -34,7 +34,7 @@ FileTransferRequestSender::~FileTransferRequestSender()
 {
 }
 
-void FileTransferRequestSender::setOutput(RfbOutputGate *outputStream)
+void FileTransferRequestSender::setOutput(DataOutputStream *outputStream)
 {
   m_output = outputStream;
 }

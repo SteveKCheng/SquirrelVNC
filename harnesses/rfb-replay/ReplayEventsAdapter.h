@@ -60,7 +60,7 @@ public:
   // Logs the desktop name from ServerInit as a "desktop-name" event, then
   // "connected".
   //
-  void onConnected(RfbOutputGate *output, const ConnectionInfo &info) override;
+  void onConnected(DataOutputStream *output, const ConnectionInfo &info) override;
   void onDisconnect(const StringStorage &message) override;
   void onAuthError(const AuthException &exception) override;
   void onError(const Exception &exception) override;

@@ -35,7 +35,7 @@ public:
     (bool incremental, Rect updateRect);
   ~RfbFramebufferUpdateRequestClientMessage() override;
 
-  void send(RfbOutputGate &output) override;
+  void send(DataOutputStream &output) override;
 
 private:
   bool m_incremental;

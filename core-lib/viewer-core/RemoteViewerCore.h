@@ -39,8 +39,8 @@ class CoreEventsAdapter;
 class FrameBuffer;
 class InputStream;
 class Logger;
+class OutputStream;
 class RemoteViewerCoreImpl;
-class RfbOutputGate;
 struct PixelFormat;
 struct Point;
 
@@ -166,22 +166,21 @@ public:
   // needs to change the frame buffer.
   //
   // Write operations (sending data to the server) are performed on the
-  // network thread only, so the RfbOutputGate has no lock: the consumer
-  // posts events (sendKeyboardEvent() and the like), which the network
-  // thread encodes. For a socket, flushing only queues the message
-  // (QueuedOutputStream), and the writer sends it.
+  // network thread only, so the output has no lock: the consumer posts
+  // events (sendKeyboardEvent() and the like), which the network thread
+  // encodes. For a socket, writing only queues the message
+  // (QueuedOutputStream), and flushing wakes the writer, which sends it.
   //
 
   //
   // This version of start() takes the connection as a pair of streams: input
-  // is what the server sends, and output receives what the client sends,
-  // through the output gate. The input is read with blocking reads on the
-  // network thread, which no other connection could share then: it is meant
+  // is what the server sends, and output receives what the client sends.
+  // The input is read with blocking reads on the network thread, which no other connection could share then: it is meant
   // for input in memory, for tests (rfb-replay).
   //
   // Pre-conditions: input and output outlive the connection.
   //
-  void start(InputStream *input, RfbOutputGate *output,
+  void start(InputStream *input, OutputStream *output,
              std::shared_ptr<CoreEventsAdapter> adapter,
              bool sharedFlag = true,
              UINT64 maxFrameBufferPixels = ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS);

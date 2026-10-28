@@ -1083,6 +1083,29 @@ from vcpkg.
     Two changes of behaviour: the core reads the desktop name before it
     checks the frame buffer's size, and the fuzzer now decodes the
     desktop name and the cut text instead of skipping them.
+  - **7j. The gates go** (2026-10-28):
+    - `RfbInputGate` added nothing to `DataInputStream`, which does not
+      buffer either; the core's input buffering is `readLoop()`'s, into
+      `AwaitableReader`. Only the test path of `start()` used the gate,
+      as a plain `InputStream` for `runBlocking()`; it takes an
+      `InputStream *` now.
+    - `RfbOutputGate`, without its lock, was a `DataOutputStream` over a
+      100 KB `BufferedOutputStream` over `QueuedOutputStream`: two
+      buffers. The queue is the only one now: `QueuedOutputStream`
+      wakes the writer in `flush()`, which every message ends with,
+      instead of in each `write()`, and the core writes through a plain
+      `DataOutputStream` over it (or, with streams, over the output
+      stream given to `start()`). The client messages, the file
+      transfer and `CoreEventsAdapter::onConnected()` take
+      `DataOutputStream`.
+    - Considered and left alone (Steve, 2026-10-28): the file transfer's
+      interactivity. Its uploads are stop-and-wait, one chunk of 20 KB
+      to 400 KB at a time, sized to take about 300 ms, so a key typed
+      during an upload can wait about that long behind the chunk on the
+      single TCP stream; and its local file reads and writes still run
+      on the network thread. TightVNC's file transfer is built on the
+      wrong foundations (manual chunking on a single-channel transport)
+      to be worth optimizing; SFTP is the better tool.
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the

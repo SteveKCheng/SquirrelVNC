@@ -33,7 +33,7 @@ public:
   RfbSetPixelFormatClientMessage(const PixelFormat &pixelFormat);
   ~RfbSetPixelFormatClientMessage() override;
 
-  void send(RfbOutputGate &output) override;
+  void send(DataOutputStream &output) override;
 
 protected:
   PixelFormat m_pixelFormat;

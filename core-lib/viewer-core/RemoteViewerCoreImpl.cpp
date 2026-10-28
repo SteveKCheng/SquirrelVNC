@@ -191,9 +191,8 @@ void RemoteViewerCoreImpl::start(std::shared_ptr<CoreEventsAdapter> adapter,
 
   m_fbUpdateNotifier.setAdapter(m_adapter);
 
-  if (m_input == nullptr) {
-    m_ownOutput = std::make_unique<RfbOutputGate>(&m_queuedOutput);
-    m_output = m_ownOutput.get();
+  if (m_output == nullptr) {
+    m_output = std::make_unique<DataOutputStream>(&m_queuedOutput);
   }
   // The connection's reference to the adapter's owner is held by the
   // completion handler.
@@ -230,13 +229,13 @@ void RemoteViewerCoreImpl::start(asio::ip::tcp::socket socket,
   start(std::move(adapter), sharedFlag, maxFrameBufferPixels);
 }
 
-void RemoteViewerCoreImpl::start(InputStream *input, RfbOutputGate *output,
+void RemoteViewerCoreImpl::start(InputStream *input, OutputStream *output,
                              std::shared_ptr<CoreEventsAdapter> adapter,
                              bool sharedFlag,
                              UINT64 maxFrameBufferPixels)
 {
   m_input = input;
-  m_output = output;
+  m_output = std::make_unique<DataOutputStream>(output);
   start(std::move(adapter), sharedFlag, maxFrameBufferPixels);
 }
 
@@ -443,7 +442,7 @@ Task<> RemoteViewerCoreImpl::authenticate()
   if (authenticationType != 0) {
     m_logWriter.detail(_T("Authentication..."));
     if (m_authHandlers.find(authenticationType) != m_authHandlers.end()) {
-      co_await m_authHandlers[authenticationType]->authenticate(m_reader, m_output);
+      co_await m_authHandlers[authenticationType]->authenticate(m_reader, m_output.get());
     } else {
       // Security type is added automatic, but not by user.
       if (authenticationType != SecurityDefs::NONE) {
@@ -742,7 +741,7 @@ Task<> RemoteViewerCoreImpl::run()
     info.protocolString = getProtocolString();
     getEnabledClientMsgCapabilities(&info.clientMsgCodes);
     getEnabledServerMsgCapabilities(&info.serverMsgCodes);
-    m_adapter->onConnected(m_output, info);
+    m_adapter->onConnected(m_output.get(), info);
   } catch (const Exception &ex) {
     m_logWriter.error(_T("Error in CoreEventsAdapter::onConnected(): %s"), ex.getMessage());
   } catch (...) {

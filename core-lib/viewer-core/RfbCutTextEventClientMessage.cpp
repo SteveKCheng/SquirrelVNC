@@ -38,7 +38,7 @@ RfbCutTextEventClientMessage::~RfbCutTextEventClientMessage()
 {
 }
 
-void RfbCutTextEventClientMessage::send(RfbOutputGate &output)
+void RfbCutTextEventClientMessage::send(DataOutputStream &output)
 {
   // Latin-1, as the specification says.
   std::vector<std::byte> cutTextLatin1 = TextEncoding::toLatin1(m_cutText);
@@ -56,7 +56,7 @@ void RfbCutTextEventClientMessage::send(RfbOutputGate &output)
   output.flush();
 }
 
-void RfbCutTextEventClientMessage::sendUtf8(RfbOutputGate &output)
+void RfbCutTextEventClientMessage::sendUtf8(DataOutputStream &output)
 {
   std::vector<std::byte> cutTextUtf8 = TextEncoding::toUtf8(m_cutText);
   if (cutTextUtf8.size() > UINT32_MAX) {

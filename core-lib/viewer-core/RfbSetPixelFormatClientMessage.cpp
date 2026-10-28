@@ -47,7 +47,7 @@ RfbSetPixelFormatClientMessage::~RfbSetPixelFormatClientMessage()
  * 3 -     - padding
  */
 
-void RfbSetPixelFormatClientMessage::send(RfbOutputGate &output)
+void RfbSetPixelFormatClientMessage::send(DataOutputStream &output)
 {
   output.writeUInt8(ClientMsgDefs::SET_PIXEL_FORMAT);
   // padding 3 bytes

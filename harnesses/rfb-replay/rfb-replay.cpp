@@ -29,7 +29,6 @@
 
 #include "io-lib/ByteArrayInputStream.h"
 #include "log-writer/Logger.h"
-#include "network/RfbOutputGate.h"
 #include "util/Exception.h"
 #include "util/ScopeExit.h"
 #include "util/TextEncoding.h"
@@ -477,7 +476,6 @@ int _tmain(int argc, TCHAR *argv[])
                                                      options.splitPiece);
   }
   MemoryOutputStream outputStream;
-  RfbOutputGate outputGate(&outputStream);
 
   // The core's connection runs on the network thread, as in the viewer.
   // Declared before the core, so that it is joined after the core is gone.
@@ -514,7 +512,7 @@ int _tmain(int argc, TCHAR *argv[])
       core->start(_T("127.0.0.1"), server->getPort(), adapterRef, true,
                   options.maxPixels);
     } else {
-      core->start(inputStream.get(), &outputGate, adapterRef, true, options.maxPixels);
+      core->start(inputStream.get(), &outputStream, adapterRef, true, options.maxPixels);
     }
     adapterRef.reset();
 

@@ -25,16 +25,16 @@
 #define _FILE_TRANSFER_REQUEST_SENDER_H_
 
 #include "util/inttypes.h"
-#include "network/RfbOutputGate.h"
+#include "io-lib/DataOutputStream.h"
 #include "io-lib/IOException.h"
 
 #include "log-writer/LogWriter.h"
 
 //
-// Writes file-transfer requests to the output gate.
+// Writes file-transfer requests to the connection's output.
 //
-// Threads: the network thread only, like the gate (no lock: every writer
-// of the gate runs there).
+// Threads: the network thread only, like the output (no lock: every writer
+// of the output runs there).
 //
 class FileTransferRequestSender final
 {
@@ -42,7 +42,7 @@ public:
   FileTransferRequestSender(LogWriter *logWriter);
   ~FileTransferRequestSender();
 
-  void setOutput(RfbOutputGate *outputStream);
+  void setOutput(DataOutputStream *outputStream);
 
   void sendFileListRequest(const TCHAR *fullPath, bool useCompression);
   void sendDownloadRequest(const TCHAR *fullPathName, UINT64 offset);
@@ -57,7 +57,7 @@ public:
 
 protected:
   LogWriter *m_logWriter;
-  RfbOutputGate *m_output;
+  DataOutputStream *m_output;
 };
 
 #endif

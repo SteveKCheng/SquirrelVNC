@@ -25,7 +25,6 @@
 #define _REMOTE_VIEWER_CORE_IMPL_H_
 
 #include "log-writer/LogWriter.h"
-#include "network/RfbOutputGate.h"
 #include "rfb/FrameBuffer.h"
 #include "region/Dimension.h"
 #include "region/Point.h"
@@ -35,7 +34,9 @@
 #include "CoreEventsAdapter.h"
 #include "DecoderStore.h"
 #include "io-lib/AwaitableReader.h"
+#include "io-lib/DataOutputStream.h"
 #include "io-lib/InputStream.h"
+#include "io-lib/OutputStream.h"
 #include "util/Task.h"
 #include "ClientEvents.h"
 #include "FbUpdateNotifier.h"
@@ -83,7 +84,7 @@ public:
 
   ~RemoteViewerCoreImpl() override;
 
-  void start(InputStream *input, RfbOutputGate *output,
+  void start(InputStream *input, OutputStream *output,
              std::shared_ptr<CoreEventsAdapter> adapter,
              bool sharedFlag,
              UINT64 maxFrameBufferPixels);
@@ -322,7 +323,8 @@ private:
   asio::awaitable<std::exception_ptr> serveRequest(AwaitableReader::Request &request);
 
   //
-  // Sends what m_output queues (m_queuedOutput), whenever it is woken, until
+  // Sends what m_output queues (m_queuedOutput), whenever it is woken (by a
+  // flush, or by input to send), until
   // cancelled or a send fails; a failure is given to m_reader as an
   // IOException, so that the protocol code ends too. Before each send, it
   // encodes the input queued meanwhile (m_inputEvents), so that pointer
@@ -577,11 +579,11 @@ private:
   // What the coroutines of the protocol (run() and those it awaits) read;
   // readLoop() feeds it. Used only on the network thread.
   AwaitableReader m_reader;
-  // For a socket, m_ownOutput, which queues into m_queuedOutput; with
-  // streams, the output gate given to start().
-  RfbOutputGate *m_output;
+  // What the protocol writes, made by start(): over m_queuedOutput for a
+  // socket; with streams, over the output stream given to start(). Null
+  // before start(). Used only on the network thread.
+  std::unique_ptr<DataOutputStream> m_output;
   QueuedOutputStream m_queuedOutput;
-  std::unique_ptr<RfbOutputGate> m_ownOutput;
 
   // The adapter given to start(). The connection holds a reference to it
   // while it runs, and each piece of posted work while it waits (see

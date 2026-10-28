@@ -54,7 +54,7 @@ public:
   //
   // This method must called from event onConnected() in CoreEventsAdapter.
   //
-  void setOutput(RfbOutputGate *output);
+  void setOutput(DataOutputStream *output);
 
   //
   // Overrides ServerMessageListener::onServerMessage().
