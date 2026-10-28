@@ -1,11 +1,17 @@
-# Design: asynchronous networking with C++20 coroutines
+# Asynchronous networking with C++20 coroutines
 
 A design discussion (2026-10-20) for replacing the blocking,
 thread-per-job connection code with one event loop and stackless C++20
-coroutines. Nothing here is implemented yet. For the code as it is now,
-see `concurrency.md` (threads and locks), `networking.md` (IPv4-only
-layers, lookup that cannot be cancelled) and `portability.md` (building
-the core on Linux).
+coroutines. 
+
+It has mostly been implemented as of revision `58c69f6e`.
+
+The following notes contain information of how TightVNC 2.8 worked,
+before SquirrelVNC rewrote lots of code wholesale:
+
+  - `concurrency.md`: threads and locks
+  - `networking.md`: IPv4-only layers, host-name lookup that cannot be cancelled
+  - `portability.md`: dependencies on Win32
 
 ## Goals
 
