@@ -27,7 +27,16 @@
 #include "IOException.h"
 
 /**
- * Output stream interface (abstract class).
+ * Interface for a stream of bytes to be written.
+ *
+ * This abstract class models the writing side of a network socket.  
+ * But in SquirrelVNC, there is no derived class of OutputStream that
+ * writes to a socket, because this interface is not asynchronous. 
+ * 
+ * Implementations of this interface in SquirrelVNC generally only write
+ * to memory buffers or synchronous targets (like files).  Asynchronicity
+ * is only implemented, explicitly, in RemoteViewerCore, by buffering
+ * all writes in memory first, up to a limit.
  */
 class OutputStream
 {

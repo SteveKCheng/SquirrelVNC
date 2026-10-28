@@ -27,7 +27,17 @@
 #include "IOException.h"
 
 /**
- * Input stream interface (abstract class).
+ * Interface for a stream of bytes to be read.
+ *
+ * This abstract class models the read side of a network socket.
+ * But in SquirrelVNC, there is no derived class of OutputStream that
+ * reads from a socket, because this interface is not asynchronous.
+ *
+ * Implementations of this interface in SquirrelVNC generally only read
+ * from memory buffers or synchronous targets (like files).  Asynchronicity
+ * is only implemented by an alternate interface, AwaitableReader, that
+ * does no I/O itself, but relies on an external loop to pump its inputs
+ * from the network.
  */
 class InputStream
 {
