@@ -25,7 +25,6 @@
 #define _DECODER_H_
 
 #include "log-writer/LogWriter.h"
-#include "network/RfbInputGate.h"
 #include "region/Rect.h"
 #include "rfb/FrameBuffer.h"
 #include "rfb/EncodingDefs.h"

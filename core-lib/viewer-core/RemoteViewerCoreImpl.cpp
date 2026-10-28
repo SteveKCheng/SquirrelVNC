@@ -230,7 +230,7 @@ void RemoteViewerCoreImpl::start(asio::ip::tcp::socket socket,
   start(std::move(adapter), sharedFlag, maxFrameBufferPixels);
 }
 
-void RemoteViewerCoreImpl::start(RfbInputGate *input, RfbOutputGate *output,
+void RemoteViewerCoreImpl::start(InputStream *input, RfbOutputGate *output,
                              std::shared_ptr<CoreEventsAdapter> adapter,
                              bool sharedFlag,
                              UINT64 maxFrameBufferPixels)
@@ -838,7 +838,7 @@ asio::awaitable<void> RemoteViewerCoreImpl::drive()
   };
 
   if (m_input != nullptr) {
-    // Gates, for tests: the input is in memory, so the blocking reads of
+    // Streams, for tests: the input is in memory, so the blocking reads of
     // runBlocking() do not hold up the loop for long.
     notifyEstablished();
     runBlocking(run(), m_reader, *m_input);

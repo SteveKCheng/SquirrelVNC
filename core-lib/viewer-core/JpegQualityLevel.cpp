@@ -23,6 +23,8 @@
 
 #include "JpegQualityLevel.h"
 
+#include "util/Exception.h"
+
 JpegQualityLevel::JpegQualityLevel(LogWriter *logWriter, int quality)
 : PseudoDecoder(logWriter, qualityToEncoding(quality))
 {

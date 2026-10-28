@@ -107,7 +107,6 @@
     <ClCompile Include="thread\Thread.cpp" />
     <ClCompile Include="network\HostResolver.cpp" />
     <ClCompile Include="network\TcpKeepAlive.cpp" />
-    <ClCompile Include="network\RfbInputGate.cpp" />
     <ClCompile Include="network\RfbOutputGate.cpp" />
     <ClCompile Include="network\socket\SocketException.cpp" />
     <ClCompile Include="util\CommandLineArgs.cpp" />
@@ -193,7 +192,6 @@
     <ClInclude Include="thread\Thread.h" />
     <ClInclude Include="network\HostResolver.h" />
     <ClInclude Include="network\TcpKeepAlive.h" />
-    <ClInclude Include="network\RfbInputGate.h" />
     <ClInclude Include="network\RfbOutputGate.h" />
     <ClInclude Include="network\socket\SocketException.h" />
     <ClInclude Include="util\CharDefs.h" />

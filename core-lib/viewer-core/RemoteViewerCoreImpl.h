@@ -25,7 +25,6 @@
 #define _REMOTE_VIEWER_CORE_IMPL_H_
 
 #include "log-writer/LogWriter.h"
-#include "network/RfbInputGate.h"
 #include "network/RfbOutputGate.h"
 #include "rfb/FrameBuffer.h"
 #include "region/Dimension.h"
@@ -36,6 +35,7 @@
 #include "CoreEventsAdapter.h"
 #include "DecoderStore.h"
 #include "io-lib/AwaitableReader.h"
+#include "io-lib/InputStream.h"
 #include "util/Task.h"
 #include "ClientEvents.h"
 #include "FbUpdateNotifier.h"
@@ -83,7 +83,7 @@ public:
 
   ~RemoteViewerCoreImpl() override;
 
-  void start(RfbInputGate *input, RfbOutputGate *output,
+  void start(InputStream *input, RfbOutputGate *output,
              std::shared_ptr<CoreEventsAdapter> adapter,
              bool sharedFlag,
              UINT64 maxFrameBufferPixels);
@@ -248,7 +248,7 @@ private:
   // CutTextEvent) is dropped until the protocol is initialized; then, for a
   // socket, it is queued in m_inputEvents for writeLoop(), which sends it
   // with send() when the link allows, and the pointer position is given to
-  // the frame buffer notifier at once; with gates, it is sent at once.
+  // the frame buffer notifier at once; with streams, it is sent at once.
   //
   void handle(const KeyEvent &event);
   void handle(const PointerEvent &event);
@@ -276,7 +276,7 @@ private:
   // The connection, on the network thread: an Asio coroutine, spawned by
   // start() and bound to m_stopSignal. It connects (or takes over the
   // socket given to start()), then runs readLoop() and writeLoop() until
-  // the first of them ends; or, with gates, runs run() with runBlocking().
+  // the first of them ends; or, with streams, runs run() with runBlocking().
   // It ends the output queue before it returns.
   //
   // Throws what run() threw, or SocketException if the host cannot be
@@ -544,7 +544,7 @@ private:
 
   // What start() was given: a host and port to connect to; a connected
   // socket (empty if none, and once connect() has moved it to m_socket);
-  // or gates (m_input not null).
+  // or streams (m_input not null).
   StringStorage m_host;
   UINT16 m_port;
   std::optional<asio::ip::tcp::socket> m_acceptedSocket;
@@ -571,14 +571,14 @@ private:
   // set at once. Used only on the network thread.
   bool m_isAtMessageBoundary;
 
-  // With gates, the input gate given to start(), read with runBlocking();
-  // otherwise null.
-  RfbInputGate *m_input;
+  // With streams, the input stream given to start(), read with
+  // runBlocking(); otherwise null.
+  InputStream *m_input;
   // What the coroutines of the protocol (run() and those it awaits) read;
   // readLoop() feeds it. Used only on the network thread.
   AwaitableReader m_reader;
   // For a socket, m_ownOutput, which queues into m_queuedOutput; with
-  // gates, the output gate given to start().
+  // streams, the output gate given to start().
   RfbOutputGate *m_output;
   QueuedOutputStream m_queuedOutput;
   std::unique_ptr<RfbOutputGate> m_ownOutput;

@@ -51,9 +51,6 @@
     <ClCompile Include="network\TcpKeepAlive.cpp">
       <Filter>network</Filter>
     </ClCompile>
-    <ClCompile Include="network\RfbInputGate.cpp">
-      <Filter>network</Filter>
-    </ClCompile>
     <ClCompile Include="network\RfbOutputGate.cpp">
       <Filter>network</Filter>
     </ClCompile>
@@ -303,9 +300,6 @@
       <Filter>network</Filter>
     </ClInclude>
     <ClInclude Include="network\TcpKeepAlive.h">
-      <Filter>network</Filter>
-    </ClInclude>
-    <ClInclude Include="network\RfbInputGate.h">
       <Filter>network</Filter>
     </ClInclude>
     <ClInclude Include="network\RfbOutputGate.h">

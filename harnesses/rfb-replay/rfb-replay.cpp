@@ -29,7 +29,6 @@
 
 #include "io-lib/ByteArrayInputStream.h"
 #include "log-writer/Logger.h"
-#include "network/RfbInputGate.h"
 #include "network/RfbOutputGate.h"
 #include "util/Exception.h"
 #include "util/ScopeExit.h"
@@ -478,14 +477,13 @@ int _tmain(int argc, TCHAR *argv[])
                                                      options.splitPiece);
   }
   MemoryOutputStream outputStream;
-  RfbInputGate inputGate(inputStream.get());
   RfbOutputGate outputGate(&outputStream);
 
   // The core's connection runs on the network thread, as in the viewer.
   // Declared before the core, so that it is joined after the core is gone.
   NetworkThread network;
 
-  // With --tcp, the input is served over a socket instead of the gates.
+  // With --tcp, the input is served over a socket instead of the streams.
   std::unique_ptr<LoopbackServer> server;
   if (options.isTcp) {
     try {
@@ -516,7 +514,7 @@ int _tmain(int argc, TCHAR *argv[])
       core->start(_T("127.0.0.1"), server->getPort(), adapterRef, true,
                   options.maxPixels);
     } else {
-      core->start(&inputGate, &outputGate, adapterRef, true, options.maxPixels);
+      core->start(inputStream.get(), &outputGate, adapterRef, true, options.maxPixels);
     }
     adapterRef.reset();
 

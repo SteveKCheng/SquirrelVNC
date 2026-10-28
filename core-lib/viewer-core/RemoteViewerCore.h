@@ -37,9 +37,9 @@
 class CapabilitiesManager;
 class CoreEventsAdapter;
 class FrameBuffer;
+class InputStream;
 class Logger;
 class RemoteViewerCoreImpl;
-class RfbInputGate;
 class RfbOutputGate;
 struct PixelFormat;
 struct Point;
@@ -173,13 +173,15 @@ public:
   //
 
   //
-  // This version of start() takes any type of connection that can be
-  // specified via a pair of abstract "gates" (RfbInputGate and RfbOutputGate).
-  // The input is read with blocking reads on the network thread, which no
-  // other connection could share then: it is meant for input in memory, for
-  // tests (rfb-replay).
+  // This version of start() takes the connection as a pair of streams: input
+  // is what the server sends, and output receives what the client sends,
+  // through the output gate. The input is read with blocking reads on the
+  // network thread, which no other connection could share then: it is meant
+  // for input in memory, for tests (rfb-replay).
   //
-  void start(RfbInputGate *input, RfbOutputGate *output,
+  // Pre-conditions: input and output outlive the connection.
+  //
+  void start(InputStream *input, RfbOutputGate *output,
              std::shared_ptr<CoreEventsAdapter> adapter,
              bool sharedFlag = true,
              UINT64 maxFrameBufferPixels = ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS);
@@ -218,7 +220,7 @@ public:
   // releases its references to the adapter once it has ended (see start()).
   //
   // The socket, connected here or taken over, is closed when the connection
-  // ends; gates given to start() are not closed.
+  // ends; streams given to start() are not closed.
   //
   void stop();
 

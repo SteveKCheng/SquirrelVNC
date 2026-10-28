@@ -23,6 +23,8 @@
 
 #include "CompressionLevel.h"
 
+#include "util/Exception.h"
+
 CompressionLevel::CompressionLevel(LogWriter *logWriter, int compression)
 : PseudoDecoder(logWriter, levelToEncoding(compression))
 {
