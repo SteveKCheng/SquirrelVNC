@@ -128,10 +128,17 @@ In order of gain for the effort:
    intermediate vector from the JPEG path, about 7 s of the 10.4 above;
    the conversion moves into the AVX2 code that runs anyway. It is
    item 1 of "What the TurboJPEG API gives" in `image-decoding.md`.
-   First, `m_isCPixel` must check the shifts too: it checks only a depth
+   ~~First, `m_isCPixel` must check the shifts too: it checks only a depth
    of 24, 32 bits per pixel and maxima of 255, while `transformArray()`
    assumes red at shift 16 and blue at 0, so a format with red at 0 is
-   drawn with red and blue swapped.
+   drawn with red and blue swapped.~~
+   The condition was right: the Tight specification sends compact 3-byte
+   pixels (red, green, blue) for that format whatever its shifts, so
+   checking the shifts would have read 4 bytes where the server sends 3.
+   The conversions assumed red at shift 16; they now use the format's
+   shifts (2026-10-29, test case `tight-bgr888`). Writing BGRX straight
+   from libjpeg-turbo is right only for red at 16 and blue at 0; another
+   format needs the conversion.
 2. **Copy by rows, not by pixels,** in the other decoders' loops: Tight's
    copy, palette and gradient filters and `drawJpegBytes()`, and ZRLE
    (`ZrleDecoder.cpp:361`), which has the same `i % width`, `i / width`

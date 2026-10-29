@@ -60,8 +60,6 @@ Task<> TightDecoder::decode(AwaitableReader &reader,
   resetDecoders(compressionControl);
   UINT8 compressionType = (compressionControl >> 4) & 0x0F;
 
-  int bytesPerCPixel = fb.getBytesPerPixel();
-
   if (compressionType > MAX_SUBENCODING) {
     throw Exception(_T("Sub-encoding in Tight-encoder are not valid"));
   }
@@ -70,7 +68,7 @@ Task<> TightDecoder::decode(AwaitableReader &reader,
     throw Exception(_T("Error in protocol: incorrect size of rectangle (tight-decoder)"));
 
   if (compressionType == FILL_TYPE) {
-    UINT32 color = co_await readTightPixel(reader, bytesPerCPixel);
+    UINT32 color = co_await readTightPixel(reader, pf);
     fb.fillRect(dstRect, color);
   } else if (compressionType == JPEG_TYPE) {
     co_await processJpeg(reader, fb, dstRect);
@@ -78,32 +76,36 @@ Task<> TightDecoder::decode(AwaitableReader &reader,
     co_await processBasicTypes(reader, fb, dstRect, compressionControl);
 }
 
-std::vector<UINT8> TightDecoder::transformArray(const std::vector<UINT8> &buffer)
+UINT32 TightDecoder::fromCPixel(const PixelFormat &pxFormat, const UINT8 *rgb)
 {
-  std::vector<UINT8> result(buffer.size() * 4 / 3);
-  for (size_t bi = 0, ri = 0; bi < buffer.size(); bi += 3, ri += 4) {
-    result[ri] = buffer[bi + 2];
-    result[ri + 1] = buffer[bi + 1];
-    result[ri + 2] = buffer[bi];
-    result[ri + 3] = 0;
+  return static_cast<UINT32>(rgb[0]) << pxFormat.redShift |
+         static_cast<UINT32>(rgb[1]) << pxFormat.greenShift |
+         static_cast<UINT32>(rgb[2]) << pxFormat.blueShift;
+}
+
+std::vector<UINT8> TightDecoder::transformArray(const PixelFormat &pxFormat,
+                                                const std::vector<UINT8> &buffer)
+{
+  std::vector<UINT8> result(buffer.size() / 3 * 4);
+  for (size_t bi = 0, ri = 0; bi + 3 <= buffer.size(); bi += 3, ri += 4) {
+    UINT32 pixel = fromCPixel(pxFormat, &buffer[bi]);
+    memcpy(&result[ri], &pixel, sizeof(pixel));
   }
   return result;
 }
 
-Task<UINT32> TightDecoder::readTightPixel(AwaitableReader &reader, int bytesPerCPixel)
+Task<UINT32> TightDecoder::readTightPixel(AwaitableReader &reader, const PixelFormat &pxFormat)
 {
   UINT32 color = 0;
-  UINT8 buffer[sizeof(color)];
   if (!m_isCPixel) {
-    co_await reader.readFully(buffer, bytesPerCPixel);
+    UINT8 buffer[sizeof(color)];
+    co_await reader.readFully(buffer, pxFormat.bitsPerPixel / 8);
+    memcpy(&color, buffer, pxFormat.bitsPerPixel / 8);
   } else {
+    UINT8 buffer[3];
     co_await reader.readFully(buffer, 3);
-    UINT8 t = buffer[2];
-    buffer[2] = buffer[0];
-    buffer[0] = t;
-    buffer[3] = 0;
+    color = fromCPixel(pxFormat, buffer);
   }
-  memcpy(&color, buffer, bytesPerCPixel);
   co_return color;
 }
 
@@ -166,7 +168,7 @@ Task<> TightDecoder::processJpeg(AwaitableReader &reader,
     try {
       m_jpeg.decompress(buffer, jpegBufLen, pixels, dstRect);
       if (m_isCPixel) {
-        pixels = transformArray(pixels);
+        pixels = transformArray(frameBuffer.getPixelFormat(), pixels);
         drawTightBytes(frameBuffer, pixels, dstRect);
       } else {
         drawJpegBytes(frameBuffer, pixels, dstRect);
@@ -203,7 +205,7 @@ Task<> TightDecoder::processBasicTypes(AwaitableReader &reader,
   case COPY_FILTER:
     co_await readTightData(reader, buffer, lengthCurrentBpp, decoderId);
     if (m_isCPixel) {
-      buffer = transformArray(buffer);
+      buffer = transformArray(fb.getPixelFormat(), buffer);
     }
     drawTightBytes(fb, buffer, dstRect);
     break;
@@ -213,7 +215,8 @@ Task<> TightDecoder::processBasicTypes(AwaitableReader &reader,
   case PALETTE_FILTER:
     {
       int paletteSize = co_await reader.readUInt8() + 1;
-      std::vector<UINT32> palette = co_await readPalette(reader, paletteSize, bytesPerCPixel);
+      std::vector<UINT32> palette = co_await readPalette(reader, paletteSize,
+                                                         fb.getPixelFormat());
       size_t dataLength = dstRect.area();
       if (paletteSize == 2) {
         dataLength = (dstRect.getWidth() + 7) / 8 * dstRect.getHeight();
@@ -235,11 +238,11 @@ Task<> TightDecoder::processBasicTypes(AwaitableReader &reader,
 
 Task<std::vector<UINT32>> TightDecoder::readPalette(AwaitableReader &reader,
                                       int paletteSize,
-                                      int bytesPerCPixel)
+                                      const PixelFormat &pxFormat)
 {
   std::vector<UINT32> palette(paletteSize);
   for (int i = 0; i < paletteSize; i++) {
-    palette[i] = co_await readTightPixel(reader, bytesPerCPixel);
+    palette[i] = co_await readTightPixel(reader, pxFormat);
   }
   co_return palette;
 }
@@ -449,9 +452,7 @@ UINT32 TightDecoder::getRawTightColor(const PixelFormat &pxFormat,
                                       const size_t offset)
 {
   if (m_isCPixel) {
-    return pixels[offset] << 16 |
-           pixels[offset + 1] << 8 |
-           pixels[offset + 2];
+    return fromCPixel(pxFormat, &pixels[offset]);
   }
   UINT32 rawColor = 0;
   memcpy(&rawColor, &pixels[offset], pxFormat.bitsPerPixel / 8);

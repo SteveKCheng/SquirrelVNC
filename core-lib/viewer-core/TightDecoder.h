@@ -53,11 +53,17 @@ private:
   // throws, m_inflater[i] is unchanged.
   //
   void replaceInflater(int i);
-  Task<UINT32> readTightPixel(AwaitableReader &reader, int bytesPerCPixel);
+  //
+  // Reads one pixel: a compact pixel if m_isCPixel, else a whole pixel of
+  // pxFormat.
+  // Pre: m_isCPixel was set for pxFormat by decode().
+  // Post: returns the pixel in pxFormat, in its low bytes.
+  //
+  Task<UINT32> readTightPixel(AwaitableReader &reader, const PixelFormat &pxFormat);
   Task<int> readCompactSize(AwaitableReader &reader);
   Task<std::vector<UINT32>> readPalette(AwaitableReader &reader,
                           int paletteSize,
-                          int bytesPerCPixel);
+                          const PixelFormat &pxFormat);
   Task<> processJpeg(AwaitableReader &reader,
                      FrameBuffer &frameBuffer,
                      const Rect &dstRect);
@@ -111,11 +117,27 @@ private:
                          const std::vector<UINT8> &pixels,
                          size_t pixelOffset);
 
-  std::vector<UINT8> transformArray(const std::vector<UINT8> &buffer);
+  //
+  // Converts compact pixels to whole pixels of pxFormat.
+  // Pre: m_isCPixel holds for pxFormat; buffer holds whole compact pixels.
+  // Post: returns 4 bytes per pixel, in pxFormat.
+  //
+  static std::vector<UINT8> transformArray(const PixelFormat &pxFormat,
+                                           const std::vector<UINT8> &buffer);
+
+  //
+  // The pixel in pxFormat of a compact pixel (TPIXEL), which is red, green
+  // and blue bytes in this order, whatever the shifts of the format.
+  // Pre: m_isCPixel holds for pxFormat (32 bits per pixel, depth 24, each
+  // maximum 255); rgb points to 3 bytes.
+  //
+  static UINT32 fromCPixel(const PixelFormat &pxFormat, const UINT8 *rgb);
 
   std::vector<std::unique_ptr<Inflater> > m_inflater;
   JpegDecompressor m_jpeg;
 
+  // Set by decode() for each rectangle: whether the pixel format of the
+  // frame buffer makes the server send compact 3-byte pixels.
   bool m_isCPixel;
 private:
   static const int MAX_SUBENCODING = 0x09;

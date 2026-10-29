@@ -34,7 +34,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from rfbgen import (HARNESS_PASSWORD, RGB565, Case, CopyRect, HextileRect,  # noqa: E402
+from rfbgen import (BGR888, HARNESS_PASSWORD, RGB565, Case, CopyRect, HextileRect,  # noqa: E402
                     HextileTile, Image, RawRect, RreRect, TightRect, ZrleLength,
                     ZrleRect, ZrleTile, load_ppm)
 
@@ -364,6 +364,26 @@ def tight_rgb565():
               TightRect(0, 8, 16, 16, ('palette', [RED, BLUE, GREY],
                                        checker(16, 16, 3, 4)), z, stream=1),
               TightRect(16, 8, 16, 16, ('gradient', image), z, stream=2)])
+    c.end_of_input()
+    return c
+
+
+@case
+def tight_bgr888():
+    """Tight at 32 bits per pixel with red at shift 0: the 3-byte pixels
+    are still red, green, blue, and the viewer must place each component
+    at its own shift. Fill, copy, palette, gradient and JPEG.
+    """
+    data, decoded = quadrants_jpeg()
+    c = tight_session('tight-bgr888', pf=BGR888)
+    z = c.tight_streams()
+    image = Image.pattern(32, 24, seed=8)
+    c.update([TightRect(0, 0, 8, 8, ('fill', RED), z),
+              TightRect(8, 0, 16, 8, ('copy', image), z),
+              TightRect(0, 8, 16, 16, ('palette', [RED, BLUE, GREY],
+                                       checker(16, 16, 3, 4)), z, stream=1),
+              TightRect(16, 8, 16, 16, ('gradient', image), z, stream=2)])
+    c.update([TightRect(16, 0, 16, 16, ('jpeg', data, decoded), z)])
     c.end_of_input()
     return c
 

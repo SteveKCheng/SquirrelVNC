@@ -179,6 +179,8 @@ class PixelFormat:
 # Standard formats, as the servers in common use send them.
 RGB888 = PixelFormat(32, 24, False, (255, 255, 255), (16, 8, 0))
 RGB565 = PixelFormat(16, 16, False, (31, 63, 31), (11, 5, 0))
+# Red in the low byte, as a server may offer it.
+BGR888 = PixelFormat(32, 24, False, (255, 255, 255), (0, 8, 16))
 
 
 class Image:
@@ -483,13 +485,10 @@ def tight_is_cpixel(pf):
 
 
 def tight_pixel(pf, comps):
-    """A Tight pixel: R, G, B bytes for 3-byte pixels, else the pixel.
-
-    The viewer swaps the 3 bytes into its 32-bit layout, which is right
-    only with red at shift 16 (as in RGB888); the cases use such formats.
+    """A Tight pixel: R, G, B bytes for 3-byte pixels, whatever the
+    shifts of the format, else the pixel.
     """
     if tight_is_cpixel(pf):
-        assert pf.shifts == (16, 8, 0) and not pf.big_endian
         return bytes(comps)
     return pf.pixel_bytes(comps)
 
