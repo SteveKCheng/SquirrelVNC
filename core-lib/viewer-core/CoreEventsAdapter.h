@@ -32,6 +32,7 @@
 #include "util/Exception.h"
 
 #include "AuthHandler.h"
+#include "CursorImage.h"
 
 #include <vector>
 
@@ -140,6 +141,14 @@ public:
   // notification will be called on initial frame buffer allocation as well.
   //
   virtual void onFrameBufferPropChange(const FrameBuffer &fb) = 0;
+
+  //
+  // The server has sent the shape of its cursor (the RichCursor
+  // pseudo-encoding), for the application to show as its own pointer over
+  // the frame buffer. The core does not draw it into the frame buffer.
+  // A shape of no pixels means that the server shows no cursor.
+  //
+  virtual void onCursorShape(const CursorImage &cursor) = 0;
 };
 
 #endif

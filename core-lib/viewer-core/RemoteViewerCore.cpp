@@ -119,11 +119,6 @@ void RemoteViewerCore::enableCursorShapeUpdates(bool enabled)
   m_impl->enableCursorShapeUpdates(enabled);
 }
 
-void RemoteViewerCore::ignoreCursorShapeUpdates(bool ignored)
-{
-  m_impl->ignoreCursorShapeUpdates(ignored);
-}
-
 CapabilitiesManager &RemoteViewerCore::getCapabilitiesManager()
 {
   return *m_impl;

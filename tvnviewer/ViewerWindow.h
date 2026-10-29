@@ -145,6 +145,12 @@ protected:
   bool handleCutText();
 
   //
+  // Handles WM_USER_CURSOR, on the GUI thread: gives the latest cursor
+  // shape from the server, if not taken already, to the desktop window.
+  //
+  bool handleCursorShape();
+
+  //
   // Handles WM_USER_PASSWORD, on the GUI thread: shows AuthenticationDialog,
   // unless the request has been cancelled meanwhile, and answers the request
   // with what the user entered, or nothing if the user cancelled (or the

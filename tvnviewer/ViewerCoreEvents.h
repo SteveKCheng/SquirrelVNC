@@ -71,6 +71,7 @@ public:
   static const UINT WM_USER_BELL = WM_USER + 7;
   static const UINT WM_USER_CUT_TEXT = WM_USER + 8;
   static const UINT WM_USER_PASSWORD = WM_USER + 9;
+  static const UINT WM_USER_CURSOR = WM_USER + 10;
 
   //
   // desktop gets the frame buffer events, on the notifier thread
@@ -154,6 +155,7 @@ public:
   //
   std::optional<ConnectionInfo> takeConnectionInfo();
   std::optional<StringStorage> takeCutText();
+  std::optional<CursorImage> takeCursorShape();
   Exception getError() const;
   StringStorage getDisconnectMessage() const;
 
@@ -187,6 +189,7 @@ private:
   void onFrameBufferUpdate(const FrameBuffer &fb, const Rect &rect) override;
   void onFrameBufferPropChange(const FrameBuffer &fb) override;
   void onCutText(const StringStorage &cutText) override;
+  void onCursorShape(const CursorImage &cursor) override;
 
   //
   // Posts message to the window, unless it is not attached. Returns
@@ -210,6 +213,9 @@ private:
   // The latest cut text from the server not yet put on the clipboard. Only
   // the latest text matters, so a newer one replaces it.
   std::optional<StringStorage> m_pendingCutText;
+  // The latest cursor shape from the server not yet shown; as for the cut
+  // text, a newer one replaces it.
+  std::optional<CursorImage> m_pendingCursor;
   // The latest error, from onAuthError() or onError().
   Exception m_error;
   // The latest message of onDisconnect().

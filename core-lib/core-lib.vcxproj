@@ -109,7 +109,6 @@
     <ClCompile Include="io-lib\IOException.cpp" />
     <ClCompile Include="io-lib\OutputStream.cpp" />
     <ClCompile Include="rfb\AuthDefs.cpp" />
-    <ClCompile Include="rfb\CursorShape.cpp" />
     <ClCompile Include="rfb\EncodingDefs.cpp" />
     <ClCompile Include="rfb\FrameBuffer.cpp" />
     <ClCompile Include="rfb\HostPath.cpp" />
@@ -124,7 +123,7 @@
     <ClCompile Include="viewer-core\CapsContainer.cpp" />
     <ClCompile Include="viewer-core\CompressionLevel.cpp" />
     <ClCompile Include="viewer-core\CopyRectDecoder.cpp" />
-    <ClCompile Include="viewer-core\CursorPainter.cpp" />
+    <ClCompile Include="viewer-core\CursorImage.cpp" />
     <ClCompile Include="viewer-core\Decoder.cpp" />
     <ClCompile Include="viewer-core\DecoderOfRectangle.cpp" />
     <ClCompile Include="viewer-core\DecoderStore.cpp" />
@@ -199,7 +198,6 @@
     <ClInclude Include="io-lib\IOException.h" />
     <ClInclude Include="io-lib\OutputStream.h" />
     <ClInclude Include="rfb\AuthDefs.h" />
-    <ClInclude Include="rfb\CursorShape.h" />
     <ClInclude Include="rfb\EncodingDefs.h" />
     <ClInclude Include="rfb\FrameBuffer.h" />
     <ClInclude Include="rfb\HostPath.h" />
@@ -217,7 +215,7 @@
     <ClInclude Include="viewer-core\CompressionLevel.h" />
     <ClInclude Include="viewer-core\CopyRectDecoder.h" />
     <ClInclude Include="viewer-core\CoreEventsAdapter.h" />
-    <ClInclude Include="viewer-core\CursorPainter.h" />
+    <ClInclude Include="viewer-core\CursorImage.h" />
     <ClInclude Include="viewer-core\Decoder.h" />
     <ClInclude Include="viewer-core\DecoderOfRectangle.h" />
     <ClInclude Include="viewer-core\DecoderStore.h" />

@@ -33,8 +33,6 @@
 #include "thread/Thread.h"
 #include "win-system/WindowsEvent.h"
 
-#include "CursorPainter.h"
-
 class CoreEventsAdapter;
 
 class FbUpdateNotifier : public Thread
@@ -53,13 +51,6 @@ public:
   void onUpdate(const Rect &rect);
   void onPropertiesFb();
 
-  void updatePointerPos(const Point &position);
-  void setNewCursor(const Point &hotSpot,
-                    UINT16 width, UINT16 height,
-                    const std::vector<UINT8> &cursor, 
-                    const std::vector<UINT8> &bitmask);
-
-  void setIgnoreShapeUpdates(bool ignore);
 protected:
   // Inherited from Thread
   void execute() override;
@@ -67,11 +58,10 @@ protected:
 
   LocalMutex *m_fbLock;
   FrameBuffer *m_frameBuffer;
-  CursorPainter m_cursorPainter;
 
   // Pointer to adapter.
-  // Nothing event (changing properties of frame buffer, update frame buffer
-  // or update cursor) don't sended to adapter, while m_adapter is 0.
+  // Nothing event (changing properties of frame buffer or update frame
+  // buffer) don't sended to adapter, while m_adapter is 0.
   CoreEventsAdapter *m_adapter;
 
   LocalMutex m_updateLock;
@@ -79,17 +69,11 @@ protected:
 
   LogWriter *m_logWriter;
 
-  // In this region added all updates of frame buffer and cursor updates.
+  // In this region added all updates of frame buffer.
   Region m_update;
-
-  // This rectangle save position of cursor.
-  Rect m_oldPosition;
 
   // This flag is true after call onPropertiesFb().
   bool m_isNewSize;
-
-  // This flag is true after set new cursor or update position.
-  bool m_isCursorChange;
 };
 
 #endif

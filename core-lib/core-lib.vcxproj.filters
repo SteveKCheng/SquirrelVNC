@@ -57,9 +57,6 @@
     <ClCompile Include="rfb\AuthDefs.cpp">
       <Filter>rfb</Filter>
     </ClCompile>
-    <ClCompile Include="rfb\CursorShape.cpp">
-      <Filter>rfb</Filter>
-    </ClCompile>
     <ClCompile Include="rfb\EncodingDefs.cpp">
       <Filter>rfb</Filter>
     </ClCompile>
@@ -100,9 +97,6 @@
       <Filter>viewer-core</Filter>
     </ClCompile>
     <ClCompile Include="viewer-core\CopyRectDecoder.cpp">
-      <Filter>viewer-core</Filter>
-    </ClCompile>
-    <ClCompile Include="viewer-core\CursorPainter.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
     <ClCompile Include="viewer-core\Decoder.cpp">
@@ -166,6 +160,9 @@
       <Filter>viewer-core</Filter>
     </ClCompile>
     <ClCompile Include="viewer-core\RfbCutTextEventClientMessage.cpp">
+      <Filter>viewer-core</Filter>
+    </ClCompile>
+    <ClCompile Include="viewer-core\CursorImage.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
     <ClCompile Include="viewer-core\RfbParsing.cpp">
@@ -323,9 +320,6 @@
     <ClInclude Include="rfb\AuthDefs.h">
       <Filter>rfb</Filter>
     </ClInclude>
-    <ClInclude Include="rfb\CursorShape.h">
-      <Filter>rfb</Filter>
-    </ClInclude>
     <ClInclude Include="rfb\EncodingDefs.h">
       <Filter>rfb</Filter>
     </ClInclude>
@@ -375,9 +369,6 @@
       <Filter>viewer-core</Filter>
     </ClInclude>
     <ClInclude Include="viewer-core\CoreEventsAdapter.h">
-      <Filter>viewer-core</Filter>
-    </ClInclude>
-    <ClInclude Include="viewer-core\CursorPainter.h">
       <Filter>viewer-core</Filter>
     </ClInclude>
     <ClInclude Include="viewer-core\Decoder.h">
@@ -444,6 +435,9 @@
       <Filter>viewer-core</Filter>
     </ClInclude>
     <ClInclude Include="viewer-core\RfbCutTextEventClientMessage.h">
+      <Filter>viewer-core</Filter>
+    </ClInclude>
+    <ClInclude Include="viewer-core\CursorImage.h">
       <Filter>viewer-core</Filter>
     </ClInclude>
     <ClInclude Include="viewer-core\RfbParsing.h">

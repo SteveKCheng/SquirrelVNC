@@ -184,7 +184,6 @@ bool ViewerWindow::viewerCoreSettings()
   m_viewerCore->allowCopyRect(m_conConf->isCopyRectAllowed());
   m_viewerCore->setPreferredEncoding(m_conConf->getPreferredEncoding());
 
-  m_viewerCore->ignoreCursorShapeUpdates(m_conConf->isIgnoringShapeUpdates());
   m_viewerCore->enableCursorShapeUpdates(m_conConf->isRequestingShapeUpdates());
 
   // set -1, if compression is disabled
@@ -225,6 +224,9 @@ void ViewerWindow::applySettings()
     }
   }
   changeCursor(m_conConf->getLocalCursorShape());
+  // "Track remote cursor locally": the server's shape as the pointer.
+  m_dsktWnd.setShowRemoteCursor(m_conConf->isRequestingShapeUpdates() &&
+                                !m_conConf->isIgnoringShapeUpdates());
   enableUserElements();
   viewerCoreSettings();
   updateDisplayRequest();
@@ -274,7 +276,9 @@ void ViewerWindow::changeCursor(int type)
       hcur = rLoader->loadStandardCursor(IDC_ARROW);
       break;
   }
-  setClassCursor(hcur);
+  // On the desktop window itself, not the window class, which every viewer
+  // window shares.
+  m_dsktWnd.setLocalCursor(hcur);
 }
 
 bool ViewerWindow::onSysCommand(WPARAM wParam, LPARAM lParam)
@@ -318,6 +322,8 @@ bool ViewerWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
     return handleBell();
   case ViewerCoreEvents::WM_USER_CUT_TEXT:
     return handleCutText();
+  case ViewerCoreEvents::WM_USER_CURSOR:
+    return handleCursorShape();
   case ViewerCoreEvents::WM_USER_PASSWORD:
     return handlePasswordRequest();
   case WM_ACTIVATE:
@@ -1192,6 +1198,15 @@ bool ViewerWindow::handleCutText()
   std::optional<StringStorage> cutText = m_coreEvents.takeCutText();
   if (cutText) {
     m_dsktWnd.setClipboardData(*cutText);
+  }
+  return true;
+}
+
+bool ViewerWindow::handleCursorShape()
+{
+  std::optional<CursorImage> cursor = m_coreEvents.takeCursorShape();
+  if (cursor) {
+    m_dsktWnd.setRemoteCursor(*cursor);
   }
   return true;
 }

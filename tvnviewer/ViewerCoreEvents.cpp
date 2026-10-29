@@ -140,6 +140,20 @@ std::optional<ConnectionInfo> ViewerCoreEvents::takeConnectionInfo()
   return std::exchange(m_pendingConnectionInfo, std::nullopt);
 }
 
+void ViewerCoreEvents::onCursorShape(const CursorImage &cursor)
+{
+  std::lock_guard<std::mutex> lock(m_lock);
+  m_pendingCursor = cursor;
+  // Posted every time, as for the cut text.
+  post(WM_USER_CURSOR);
+}
+
+std::optional<CursorImage> ViewerCoreEvents::takeCursorShape()
+{
+  std::lock_guard<std::mutex> lock(m_lock);
+  return std::exchange(m_pendingCursor, std::nullopt);
+}
+
 std::optional<StringStorage> ViewerCoreEvents::takeCutText()
 {
   std::lock_guard<std::mutex> lock(m_lock);

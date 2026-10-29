@@ -52,7 +52,7 @@ FuzzSession::FuzzSession(FuzzNotifier *notifier)
   m_reader(nullptr),
   m_decoderStore(nullptr),
   m_frameBuffer(nullptr),
-  m_cursorPainter(nullptr)
+  m_cursor()
 {
 }
 
@@ -86,7 +86,11 @@ bool FuzzSession::Outcome::operator==(const Outcome &other) const
   return isRejected == other.isRejected &&
          dimension.isEqualTo(other.dimension) &&
          pixelFormat.isEqualTo(other.pixelFormat) &&
-         pixels == other.pixels;
+         pixels == other.pixels &&
+         cursor.hotSpot.isEqualTo(other.cursor.hotSpot) &&
+         cursor.width == other.cursor.width &&
+         cursor.height == other.cursor.height &&
+         cursor.pixels == other.cursor.pixels;
 }
 
 FuzzSession::Outcome FuzzSession::runOnce(InputStream &stream)
@@ -110,12 +114,11 @@ FuzzSession::Outcome FuzzSession::runOnce(InputStream &stream)
 
   // A new frame buffer for each input too: before ServerInit it is empty.
   FrameBuffer frameBuffer;
-  CursorPainter cursorPainter(&frameBuffer, &m_logWriter);
 
   m_reader = &reader;
   m_frameBuffer = &frameBuffer;
   m_decoderStore = &decoderStore;
-  m_cursorPainter = &cursorPainter;
+  m_cursor = CursorImage();
   try {
     // Reading the input as the core reads a connection: through the reader,
     // which runBlocking() feeds from the stream.
@@ -130,10 +133,10 @@ FuzzSession::Outcome FuzzSession::runOnce(InputStream &stream)
   if (pixels != nullptr) {
     outcome.pixels.assign(pixels, pixels + frameBuffer.getBufferSize());
   }
+  outcome.cursor = m_cursor;
   m_reader = nullptr;
   m_frameBuffer = nullptr;
   m_decoderStore = nullptr;
-  m_cursorPainter = nullptr;
   m_notifier->clearUpdates();
   return outcome;
 }
@@ -198,8 +201,7 @@ Task<bool> FuzzSession::readMessage()
   }
 }
 
-// Mirrors RemoteViewerCoreImpl::receiveFbUpdate(), then does what
-// FbUpdateNotifier::execute() does with the cursor after an update.
+// Mirrors RemoteViewerCoreImpl::receiveFbUpdate().
 Task<> FuzzSession::readFbUpdate()
 {
   UINT16 numberOfRectangles = co_await RfbParsing::readFbUpdateHeader(*m_reader);
@@ -207,10 +209,6 @@ Task<> FuzzSession::readFbUpdate()
   for (int rectangle = 0; rectangle < numberOfRectangles && !isLastRect; rectangle++) {
     isLastRect = co_await readFbUpdateRectangle();
   }
-
-  AutoLock al(&m_fbLock);
-  m_cursorPainter->showCursor();
-  m_cursorPainter->hideCursor();
 }
 
 // Mirrors RemoteViewerCoreImpl::receiveFbUpdateRectangle().
@@ -240,9 +238,8 @@ Task<bool> FuzzSession::readFbUpdateRectangle()
   co_return false;
 }
 
-// Mirrors RemoteViewerCoreImpl::processPseudoEncoding(), with the calls the
-// core makes on FbUpdateNotifier made on the CursorPainter directly, as
-// the notifier does.
+// Mirrors RemoteViewerCoreImpl::processPseudoEncoding(), keeping the cursor
+// shape that the core gives the application.
 Task<> FuzzSession::readPseudoEncoding(const Rect &rect, int encodingType)
 {
   switch (encodingType) {
@@ -261,19 +258,13 @@ Task<> FuzzSession::readPseudoEncoding(const Rect &rect, int encodingType)
         co_await RfbParsing::readRichCursor(*m_reader, rect,
                                           m_frameBuffer->getBytesPerPixel());
 
-      // FbUpdateNotifier::setNewCursor()
-      AutoLock al(&m_fbLock);
-      m_cursorPainter->setNewCursor(cursor.hotSpot, cursor.width, cursor.height,
-                                    cursor.pixels, cursor.bitmask);
+      // CoreEventsAdapter::onCursorShape()
+      m_cursor = CursorImage::fromRichCursor(cursor, m_frameBuffer->getPixelFormat());
     }
     break;
 
   case PseudoEncDefs::POINTER_POS:
-    {
-      Point position(rect.left, rect.top);
-      // FbUpdateNotifier::updatePointerPos()
-      m_cursorPainter->updatePointerPos(position);
-    }
+    // Only logged by the core.
     break;
 
   default:

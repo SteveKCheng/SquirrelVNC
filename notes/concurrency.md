@@ -74,9 +74,12 @@ consequences:
    `FbUpdateNotifier::onUpdate(rect)`, which adds the rectangle to a
    `Region` under `m_updateLock` and signals a `WindowsEvent`.
 2. **Notifier thread.** Wakes, takes the whole region and clears it.
-   While holding `m_fbLock`, it draws the remote cursor into the
-   framebuffer and calls `ViewerWindow::onFrameBufferUpdate` once per
-   rectangle.
+   While holding `m_fbLock`, it ~~draws the remote cursor into the
+   framebuffer and~~ calls `ViewerWindow::onFrameBufferUpdate` once per
+   rectangle. (Since 2026-10-29 the cursor is not drawn into the frame
+   buffer: the core gives the server's shape to the application,
+   `CoreEventsAdapter::onCursorShape()`, which shows it as a Windows
+   cursor.)
 3. **The same callback, still on the notifier thread.**
    `DesktopWindow::updateFramebuffer` copies the pixels into the window's
    DIB section **without** `m_bufferLock`. A comment there says a torn

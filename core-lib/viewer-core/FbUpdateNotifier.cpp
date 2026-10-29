@@ -31,13 +31,9 @@ FbUpdateNotifier::FbUpdateNotifier(FrameBuffer *fb, LocalMutex *fbLock, LogWrite
 : m_frameBuffer(fb),
   m_fbLock(fbLock),
   m_logWriter(logWriter),
-  m_cursorPainter(fb, logWriter),
   m_isNewSize(false),
-  m_isCursorChange(false),
   m_adapter(nullptr)
 {
-  m_oldPosition = m_cursorPainter.hideCursor();
-
   resume();
 }
 
@@ -81,15 +77,11 @@ void FbUpdateNotifier::execute()
 
     // Move updates to local variable with blocking notifier mutex "m_updateLock".
     bool isNewSize;
-    bool isCursorChange;
     Region update;
     {
       AutoLock al(&m_updateLock);
       isNewSize = m_isNewSize;
       m_isNewSize = false;
-
-      isCursorChange = m_isCursorChange;
-      m_isCursorChange = false;
 
       update = m_update;
       m_update.clear();
@@ -111,16 +103,12 @@ void FbUpdateNotifier::execute()
       }
     }
 
-    // Update position on cursor and send frame buffer update event to adapter
+    // Send frame buffer update event to adapter
     // with blocking frame buffer mutex "m_fbLock".
-    if (isCursorChange || !update.isEmpty()) {
+    if (!update.isEmpty()) {
       noUpdates = false;
 
       AutoLock al(m_fbLock);
-	  Rect cursor = m_cursorPainter.showCursor();
-	  update.addRect(cursor);
-	  update.addRect(m_oldPosition);
-
       std::vector<Rect> updateList;
       update.getRectVector(&updateList);
       m_logWriter->detail(_T("FbUpdateNotifier (event): %zu updates"), updateList.size());
@@ -132,10 +120,6 @@ void FbUpdateNotifier::execute()
       } catch (...) {
         m_logWriter->error(_T("FbUpdateNotifier (event): error in update"));
       }
-      
-
-	  m_oldPosition = m_cursorPainter.hideCursor();
-
     }
 
     // Pause this thread, if there are no updates (cursor, frame buffer).
@@ -171,34 +155,3 @@ void FbUpdateNotifier::onPropertiesFb()
   m_logWriter->debug(_T("FbUpdateNotifier: new size of frame buffer"));
 }
 
-void FbUpdateNotifier::updatePointerPos(const Point &position)
-{
-  m_cursorPainter.updatePointerPos(position);
-
-  AutoLock al(&m_updateLock);
-  m_isCursorChange = true;
-  m_eventUpdate.notify();
-}
-
-void FbUpdateNotifier::setNewCursor(const Point &hotSpot,
-                                    UINT16 width, UINT16 height,
-                                    const std::vector<UINT8> &cursor, 
-                                    const std::vector<UINT8> &bitmask)
-{
-  {
-    AutoLock al(m_fbLock);
-    m_cursorPainter.setNewCursor(hotSpot, width, height, cursor, bitmask);
-  }
-  AutoLock al(&m_updateLock);
-  m_isCursorChange = true;
-  m_eventUpdate.notify();
-}
-
-void FbUpdateNotifier::setIgnoreShapeUpdates(bool ignore)
-{
-  m_cursorPainter.setIgnoreShapeUpdates(ignore);
-
-  AutoLock al(&m_updateLock);
-  m_isCursorChange = true;
-  m_eventUpdate.notify();
-}

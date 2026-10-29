@@ -123,8 +123,6 @@ public:
 
   void enableCursorShapeUpdates(bool enabled);
 
-  void ignoreCursorShapeUpdates(bool ignored);
-
   void copyFrameBuffer(FrameBuffer &dst);
 
 private:
@@ -208,7 +206,6 @@ private:
   using JpegQualityEvent = Internal::JpegQualityEvent;
   using CompressionLevelEvent = Internal::CompressionLevelEvent;
   using CursorShapeUpdatesEvent = Internal::CursorShapeUpdatesEvent;
-  using IgnoreCursorShapeUpdatesEvent = Internal::IgnoreCursorShapeUpdatesEvent;
 
   //
   // Hands event to dispatch(): on the network thread (postToLoop()) once
@@ -262,7 +259,6 @@ private:
   void handle(const JpegQualityEvent &event);
   void handle(const CompressionLevelEvent &event);
   void handle(const CursorShapeUpdatesEvent &event);
-  void handle(const IgnoreCursorShapeUpdatesEvent &event);
 
   //
   // Encode input events into m_output: the client messages KeyEvent,

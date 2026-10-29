@@ -25,6 +25,7 @@
 #define _DESKTOP_WINDOW_H_
 
 #include <memory>
+#include <type_traits>
 
 #include "win-system/WinClipboard.h"
 #include "gui/DibFrameBuffer.h"
@@ -41,6 +42,7 @@
 #include "gui/drawing/SolidBrush.h"
 #include "gui/drawing/Graphics.h"
 #include "rfb/RfbKeySym.h"
+#include "viewer-core/CursorImage.h"
 #include "viewer-core/RemoteViewerCore.h"
 
 class DesktopWindow final : public PaintWindow,
@@ -88,6 +90,27 @@ public:
   // Set function for m_winKeyIgnore.
   void setWinKeyIgnore(bool winKeyIgnore) { m_rfbKeySym->setWinKeyIgnore(winKeyIgnore); }
 
+  //
+  // The pointer over the frame buffer (the client area). It is the
+  // server's cursor shape if remote cursors are shown and a shape has come,
+  // else the local cursor. GUI thread; each takes effect at once if the
+  // pointer is over the client area.
+  //
+  // setLocalCursor(): one of the viewer's own cursors, which this window
+  // does not own; null for none. Post-conditions: it is the local cursor.
+  //
+  void setLocalCursor(HCURSOR localCursor);
+  //
+  // Post-conditions: the server's shapes are shown, or not, as show says.
+  //
+  void setShowRemoteCursor(bool show);
+  //
+  // Post-conditions: cursor is the server's shape from now on; a shape of
+  // no pixels hides the pointer. If no Windows cursor can be made of it,
+  // that is logged, and the local cursor is shown until the next shape.
+  //
+  void setRemoteCursor(const CursorImage &cursor);
+
 protected:
   //
   // Overrides RfbKeySymListener::onRfbKeySymEvent().
@@ -120,6 +143,11 @@ protected:
   bool onMouse(unsigned char mouseKeys, unsigned short wheelSpeed, POINT position) override;
   bool onSize(WPARAM wParam, LPARAM lParam);
   bool onDestroy();
+  //
+  // Handles WM_SETCURSOR: over the client area, sets the pointer (see
+  // setLocalCursor()); elsewhere, leaves it to the default handling.
+  //
+  bool onSetCursor(WPARAM wParam, LPARAM lParam);
 
   POINTS getViewerCoord(long xPos, long yPos);
   void calculateWndSize(bool isChanged);
@@ -176,6 +204,18 @@ protected:
   ConnectionConfig *m_conConf;
   bool m_isBackgroundDirty;
 
+  struct CursorDeleter
+  {
+    void operator()(HCURSOR cursor) const { DestroyIcon(cursor); }
+  };
+  using CursorHandle = std::unique_ptr<std::remove_pointer_t<HCURSOR>, CursorDeleter>;
+
+  // See setLocalCursor(). m_remoteCursor is null for a shape of no pixels.
+  HCURSOR m_localCursor;
+  bool m_showRemoteCursor;
+  bool m_hasRemoteCursor;
+  CursorHandle m_remoteCursor;
+
 private:
   void doDraw(DeviceContext *dc);
   void scrollProcessing(int fbWidth, int fbHeight);
@@ -194,6 +234,11 @@ private:
    */
   void repaint(const Rect &repaintRect);
   void calcClientArea();
+
+  // The pointer to show over the client area (see setLocalCursor()).
+  HCURSOR getCursor() const;
+  // Sets the pointer to getCursor() if it is over the client area.
+  void updateCursor();
 };
 
 #endif

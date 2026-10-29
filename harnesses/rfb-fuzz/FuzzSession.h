@@ -27,7 +27,7 @@
 #include "region/Dimension.h"
 #include "rfb/FrameBuffer.h"
 #include "thread/LocalMutex.h"
-#include "viewer-core/CursorPainter.h"
+#include "viewer-core/CursorImage.h"
 #include "viewer-core/DecoderStore.h"
 #include "io-lib/AwaitableReader.h"
 #include "util/Task.h"
@@ -42,8 +42,9 @@
 // ServerInit followed by server messages (notes/testing.md, "Input: a
 // strict subset of RFB").
 //
-// FramebufferUpdate is decoded in full by the real decoders and the real
-// CursorPainter, on the calling thread. Other messages the viewer handles
+// FramebufferUpdate is decoded in full by the real decoders, and cursor
+// shapes converted as for the application (CursorImage), on the calling
+// thread. Other messages the viewer handles
 // are read, with their text decoded, and ignored; any other message type
 // ends the input.
 //
@@ -99,7 +100,7 @@ public:
 private:
   //
   // How one run ended: whether the input was rejected, and the frame
-  // buffer at the end.
+  // buffer and the last cursor shape at the end.
   //
   struct Outcome
   {
@@ -107,6 +108,7 @@ private:
     Dimension dimension;
     PixelFormat pixelFormat;
     std::vector<char> pixels;
+    CursorImage cursor;
 
     bool operator==(const Outcome &other) const;
   };
@@ -133,7 +135,8 @@ private:
   AwaitableReader *m_reader;
   DecoderStore *m_decoderStore;
   FrameBuffer *m_frameBuffer;
-  CursorPainter *m_cursorPainter;
+  // The last cursor shape of the current run.
+  CursorImage m_cursor;
 
   LocalMutex m_fbLock;
 };

@@ -149,9 +149,15 @@ In order of gain for the effort:
    pattern. Raw and Hextile already read whole rows.
 3. **Decode into the DIB** (Phase 4 step 4 of `async-networking.md`,
    reworked): the frame buffer's memory comes from a DIB section the GUI
-   allocates, the local cursor is drawn at paint time instead of into
-   the pixels, and `m_rectangleFb`, `FbUpdateNotifier` and copies 1 to 3
+   allocates, ~~the local cursor is drawn at paint time instead of into
+   the pixels,~~ and `m_rectangleFb`, `FbUpdateNotifier` and copies 1 to 3
    above go. Only the blit remains.
+   Decided with Steve (2026-10-29): the core keeps allocating the frame
+   buffer for now, and the GUI paints it with `StretchDIBits()`; memory
+   from a GUI-provided DIB section comes later. The server's cursor is
+   not drawn at all, at paint time or otherwise: it is shown as a real
+   Windows cursor (done 2026-10-29), unscaled, and a position the server
+   moves its cursor to (PointerPos) is not shown.
 4. **Find out what the paint calls cost** (WPA), before changing how
    updates are invalidated or painted. Painting at a matching depth, 1:1,
    is GDI's fast path; `StretchBlt` or a depth conversion is much slower.

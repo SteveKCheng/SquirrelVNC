@@ -41,8 +41,10 @@
 //
 // Each line is an event name, followed for events that carry text by a
 // space and the text in double quotes, with backslash, double quote and
-// newline written as \\, \" and \n. Text is UTF-8. tests/gen/rfbgen.py
-// writes the expected lines the same way.
+// newline written as \\, \" and \n. Text is UTF-8. A cursor shape is
+// the line "cursor WxH hot X,Y", then each pixel as a space and 8 hex
+// digits (0xAARRGGBB, CursorImage). tests/gen/rfbgen.py writes the
+// expected lines the same way.
 //
 // Threads: the callbacks come on the network thread; waitForEnd() and
 // getEventLog() may be called on any other thread at the same time.
@@ -67,6 +69,8 @@ public:
   // Not recorded (see above).
   void onFrameBufferUpdate(const FrameBuffer &fb, const Rect &update) override;
   void onFrameBufferPropChange(const FrameBuffer &fb) override;
+  // Logs a "cursor" event (see above).
+  void onCursorShape(const CursorImage &cursor) override;
 
   //
   // Wait until the session ends, by disconnection or error.

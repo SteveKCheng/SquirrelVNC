@@ -421,11 +421,6 @@ void RemoteViewerCoreImpl::enableCursorShapeUpdates(bool enabled)
   post(CursorShapeUpdatesEvent{enabled});
 }
 
-void RemoteViewerCoreImpl::ignoreCursorShapeUpdates(bool ignored)
-{
-  post(IgnoreCursorShapeUpdatesEvent{ignored});
-}
-
 void RemoteViewerCoreImpl::stopUpdating(bool isStopped)
 {
   post(StopUpdatingEvent{isStopped});
@@ -1178,17 +1173,16 @@ Task<> RemoteViewerCoreImpl::processPseudoEncoding(const Rect &rect,
         co_await RfbParsing::readRichCursor(m_reader, rect,
                                           m_frameBuffer.getBytesPerPixel());
 
-      m_logWriter.debug(_T("Setting new rich cursor..."));
-      m_fbUpdateNotifier.setNewCursor(cursor.hotSpot, cursor.width, cursor.height,
-                                      cursor.pixels, cursor.bitmask);
+      m_adapter->onCursorShape(CursorImage::fromRichCursor(cursor,
+                                                           m_frameBuffer.getPixelFormat()));
     }
     break;
 
   case PseudoEncDefs::POINTER_POS:
     {
-      m_logWriter.detail(_T("Updating pointer position: [%d, %d]"), rect.left, rect.top);
-      Point position(rect.left, rect.top);
-      m_fbUpdateNotifier.updatePointerPos(position);
+      // Not shown: the application's pointer is the local user's, and
+      // the server moving its own does not move it.
+      m_logWriter.detail(_T("Server's pointer position: [%d, %d]"), rect.left, rect.top);
     }
     break;
 
@@ -1595,8 +1589,6 @@ void RemoteViewerCoreImpl::handle(const PointerEvent &event)
   if (!wasConnected()) {
     return;
   }
-  // At once, even if the message waits: the local cursor follows the mouse.
-  m_fbUpdateNotifier.updatePointerPos(event.position);
   if (m_input != nullptr) {
     send(event);
     return;
@@ -1733,12 +1725,6 @@ void RemoteViewerCoreImpl::handle(const CursorShapeUpdatesEvent &event)
   if (needUpdate) {
     sendChangedEncodings();
   }
-}
-
-void RemoteViewerCoreImpl::handle(const IgnoreCursorShapeUpdatesEvent &event)
-{
-  const auto &[ignored] = event;
-  m_fbUpdateNotifier.setIgnoreShapeUpdates(ignored);
 }
 
 void RemoteViewerCoreImpl::handle(const StopUpdatingEvent &event)

@@ -103,11 +103,6 @@ namespace Internal
     bool isEnabled;
   };
 
-  struct IgnoreCursorShapeUpdatesEvent
-  {
-    bool isIgnored;
-  };
-
   using ClientEvent = std::variant<KeyEvent,
                                    PointerEvent,
                                    CutTextEvent,
@@ -118,8 +113,7 @@ namespace Internal
                                    CopyRectEvent,
                                    JpegQualityEvent,
                                    CompressionLevelEvent,
-                                   CursorShapeUpdatesEvent,
-                                   IgnoreCursorShapeUpdatesEvent>;
+                                   CursorShapeUpdatesEvent>;
 
   //
   // Whether event changes the set of decoders. Such an event waits for the

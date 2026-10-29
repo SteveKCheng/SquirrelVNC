@@ -815,6 +815,55 @@ class ZrleRect:
         return out
 
 
+class RichCursorRect:
+    """A RichCursor pseudo-rectangle: the shape of the server's cursor.
+
+    rows[y][x] is an 8-bit RGB colour, or None where the cursor is
+    transparent; hot is the hot spot, sent as the rectangle's position.
+    The viewer does not draw the cursor into the frame buffer: it gives the
+    shape to the application (CursorImage::fromRichCursor()), which
+    rfb-replay logs as a cursor event (ReplayEventsAdapter.h). An empty
+    rows is a cursor of no pixels.
+    """
+
+    def __init__(self, hot, rows):
+        self.hot = hot
+        self.rows = [list(row) for row in rows]
+        self.h = len(self.rows)
+        self.w = len(self.rows[0]) if self.rows else 0
+        assert all(len(row) == self.w for row in self.rows)
+        self.event_line = None
+
+    def encode(self, fb):
+        pf = fb.pf
+        out = bytearray(u16(self.hot[0]) + u16(self.hot[1]) + u16(self.w)
+                        + u16(self.h) + s32(RICH_CURSOR))
+        mask = bytearray()
+        line = 'cursor %dx%d hot %d,%d' % (self.w, self.h, self.hot[0], self.hot[1])
+        for row in self.rows:
+            byte, bits = 0, 0
+            for rgb in row:
+                opaque = rgb is not None
+                # A transparent pixel is sent too, in any colour.
+                comps = pf.from_rgb8(rgb if opaque else (0, 0, 0))
+                out += pf.pixel_bytes(comps)
+                byte = (byte << 1) | (1 if opaque else 0)
+                bits += 1
+                if bits == 8:
+                    mask.append(byte)
+                    byte, bits = 0, 0
+                if opaque:
+                    r, g, b = pf.to_rgb8(comps)
+                    line += ' %08x' % (0xff000000 | r << 16 | g << 8 | b)
+                else:
+                    line += ' 00000000'
+            if bits:
+                mask.append(byte << (8 - bits))
+        out += mask
+        self.event_line = line
+        return bytes(out)
+
+
 class ZrleLength:
     """A ZRLE rectangle header followed only by the length of its zlib
     data, larger than any data the rectangle can need, and nothing else.
@@ -963,6 +1012,9 @@ class Case:
         self.server += u8(0) + u8(0) + u16(len(rects))
         for rect in rects:
             self.server += rect.encode(self.fb)
+            event_line = getattr(rect, 'event_line', None)
+            if event_line is not None:
+                self.events.append(event_line)
             error = getattr(rect, 'error', None)
             if error is not None:
                 self.event('error', error)

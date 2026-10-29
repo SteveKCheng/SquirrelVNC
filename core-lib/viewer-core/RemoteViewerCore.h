@@ -343,13 +343,6 @@ public:
   void enableCursorShapeUpdates(bool enabled);
 
   //
-  // Ignore or show cursor shape updates (shown by default). If cursor shape
-  // updates are enabled but ignored, remote cursor will not be shown. This
-  // option probably should not be changed unless something goes really wrong.
-  //
-  void ignoreCursorShapeUpdates(bool ignored);
-
-  //
   // The extension point for the modules that extend the core
   // (authentication handlers, the file transfer): they register their
   // capabilities on it before start(), and post work to the network thread

@@ -25,6 +25,7 @@
 #include "util/TextEncoding.h"
 
 #include <chrono>
+#include <stdio.h>
 
 ReplayEventsAdapter::ReplayEventsAdapter()
 : m_hasEnded(false)
@@ -84,6 +85,19 @@ void ReplayEventsAdapter::onFrameBufferUpdate(const FrameBuffer & /* fb */,
 
 void ReplayEventsAdapter::onFrameBufferPropChange(const FrameBuffer & /* fb */)
 {
+}
+
+void ReplayEventsAdapter::onCursorShape(const CursorImage &cursor)
+{
+  char text[64];
+  sprintf_s(text, sizeof(text), "cursor %dx%d hot %d,%d",
+            cursor.width, cursor.height, cursor.hotSpot.x, cursor.hotSpot.y);
+  std::string line(text);
+  for (UINT32 pixel : cursor.pixels) {
+    sprintf_s(text, sizeof(text), " %08x", pixel);
+    line += text;
+  }
+  addEvent(line.c_str());
 }
 
 bool ReplayEventsAdapter::waitForEnd(DWORD milliseconds)

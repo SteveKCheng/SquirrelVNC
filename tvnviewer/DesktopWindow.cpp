@@ -26,6 +26,10 @@
 #include "thread/AutoLock.h"
 #include "util/Exception.h"
 
+#include <algorithm>
+#include <cstring>
+#include <vector>
+
 DesktopWindow::DesktopWindow(LogWriter *logWriter, ConnectionConfig *conConf)
 : m_logWriter(logWriter),
   m_isConnected(false),
@@ -42,7 +46,10 @@ DesktopWindow::DesktopWindow(LogWriter *logWriter, ConnectionConfig *conConf)
   m_altDown(false),
   m_previousMousePos(-1, -1),
   m_previousMouseState(0),
-  m_isBackgroundDirty(false)
+  m_isBackgroundDirty(false),
+  m_localCursor(LoadCursor(nullptr, IDC_ARROW)),
+  m_showRemoteCursor(false),
+  m_hasRemoteCursor(false)
 {
   // Not make_unique(): RfbKeySymListener is a protected base, so only this
   // class can convert this to it.
@@ -124,6 +131,8 @@ bool DesktopWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
     case WM_SETFOCUS:
       m_rfbKeySym->processFocusRestoration();
       return true;
+    case WM_SETCURSOR:
+      return onSetCursor(wParam, lParam);
     case WM_KILLFOCUS:
       m_ctrlDown = false;
       m_altDown = false;
@@ -748,4 +757,127 @@ void DesktopWindow::sendCutTextEvent(const StringStorage &cutText)
     m_logWriter->detail(_T("Error in DesktopWindow::sendCutTextEvent(): %s"),
                         exception.getMessage());
   }
+}
+
+//
+// A Windows cursor of image, or null if it cannot be made.
+//
+// Pre-conditions: image has pixels.
+// Post-conditions: the caller owns the result (DestroyIcon()).
+//
+static HCURSOR createCursor(const CursorImage &image)
+{
+  BITMAPV5HEADER header = {};
+  header.bV5Size = sizeof(header);
+  header.bV5Width = image.width;
+  // Top row first, as the image is.
+  header.bV5Height = -image.height;
+  header.bV5Planes = 1;
+  header.bV5BitCount = 32;
+  header.bV5Compression = BI_BITFIELDS;
+  header.bV5RedMask = 0x00FF0000;
+  header.bV5GreenMask = 0x0000FF00;
+  header.bV5BlueMask = 0x000000FF;
+  header.bV5AlphaMask = 0xFF000000;
+
+  void *bits = nullptr;
+  HDC screen = GetDC(nullptr);
+  HBITMAP colour = CreateDIBSection(screen, reinterpret_cast<BITMAPINFO *>(&header),
+                                    DIB_RGB_COLORS, &bits, nullptr, 0);
+  ReleaseDC(nullptr, screen);
+  if (colour == nullptr) {
+    return nullptr;
+  }
+  memcpy(bits, image.pixels.data(), image.pixels.size() * sizeof(UINT32));
+
+  // The AND mask, 1 where transparent. Windows uses the alpha of the
+  // colour bitmap, but falls back on the mask when every alpha is 0. Rows
+  // of whole 16-bit words, as CreateBitmap() takes them.
+  const size_t maskBytesPerRow = (image.width + 15) / 16 * 2;
+  std::vector<BYTE> mask(maskBytesPerRow * image.height, 0);
+  for (int y = 0; y < image.height; y++) {
+    for (int x = 0; x < image.width; x++) {
+      if ((image.pixels[static_cast<size_t>(y) * image.width + x] >> 24) == 0) {
+        mask[y * maskBytesPerRow + x / 8] |= static_cast<BYTE>(0x80 >> (x % 8));
+      }
+    }
+  }
+  HBITMAP maskBitmap = CreateBitmap(image.width, image.height, 1, 1, mask.data());
+
+  HCURSOR cursor = nullptr;
+  if (maskBitmap != nullptr) {
+    ICONINFO info = {};
+    info.fIcon = FALSE;
+    // From the server, so it may lie outside the shape.
+    info.xHotspot = static_cast<DWORD>(std::clamp(image.hotSpot.x, 0, image.width - 1));
+    info.yHotspot = static_cast<DWORD>(std::clamp(image.hotSpot.y, 0, image.height - 1));
+    info.hbmMask = maskBitmap;
+    info.hbmColor = colour;
+    // Copies the bitmaps.
+    cursor = CreateIconIndirect(&info);
+    DeleteObject(maskBitmap);
+  }
+  DeleteObject(colour);
+  return cursor;
+}
+
+void DesktopWindow::setLocalCursor(HCURSOR localCursor)
+{
+  m_localCursor = localCursor;
+  updateCursor();
+}
+
+void DesktopWindow::setShowRemoteCursor(bool show)
+{
+  m_showRemoteCursor = show;
+  updateCursor();
+}
+
+void DesktopWindow::setRemoteCursor(const CursorImage &cursor)
+{
+  CursorHandle newCursor;
+  bool hasCursor = true;
+  if (!cursor.pixels.empty()) {
+    newCursor.reset(createCursor(cursor));
+    if (!newCursor) {
+      m_logWriter->error(_T("Cannot make a cursor of the server's %dx%d shape"),
+                         cursor.width, cursor.height);
+      hasCursor = false;
+    }
+  }
+  // The old one is destroyed only after the new one is shown.
+  CursorHandle oldCursor = std::move(m_remoteCursor);
+  m_remoteCursor = std::move(newCursor);
+  m_hasRemoteCursor = hasCursor;
+  updateCursor();
+}
+
+HCURSOR DesktopWindow::getCursor() const
+{
+  if (m_showRemoteCursor && m_hasRemoteCursor) {
+    return m_remoteCursor.get();
+  }
+  return m_localCursor;
+}
+
+void DesktopWindow::updateCursor()
+{
+  HWND window = getHWnd();
+  POINT point;
+  if (window == nullptr || !GetCursorPos(&point) || WindowFromPoint(point) != window) {
+    return;
+  }
+  LRESULT hit = SendMessage(window, WM_NCHITTEST, 0, MAKELPARAM(point.x, point.y));
+  if (hit == HTCLIENT) {
+    SetCursor(getCursor());
+  }
+}
+
+bool DesktopWindow::onSetCursor(WPARAM wParam, LPARAM lParam)
+{
+  if (reinterpret_cast<HWND>(wParam) != getHWnd() || LOWORD(lParam) != HTCLIENT) {
+    return false;
+  }
+  SetCursor(getCursor());
+  return true;
 }

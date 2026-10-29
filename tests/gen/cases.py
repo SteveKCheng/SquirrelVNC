@@ -35,8 +35,8 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from rfbgen import (BGR888, HARNESS_PASSWORD, RGB565, Case, CopyRect, HextileRect,  # noqa: E402
-                    HextileTile, Image, RawRect, RreRect, TightRect, ZrleLength,
-                    ZrleRect, ZrleTile, load_ppm)
+                    HextileTile, Image, RawRect, RichCursorRect, RreRect, TightRect,
+                    ZrleLength, ZrleRect, ZrleTile, load_ppm)
 
 CASES = []
 
@@ -364,6 +364,48 @@ def tight_rgb565():
               TightRect(0, 8, 16, 16, ('palette', [RED, BLUE, GREY],
                                        checker(16, 16, 3, 4)), z, stream=1),
               TightRect(16, 8, 16, 16, ('gradient', image), z, stream=2)])
+    c.end_of_input()
+    return c
+
+
+def cursor_rows():
+    """A 10 x 3 cursor shape: opaque and transparent pixels, rows of
+    bitmask longer than a byte."""
+    w, t = (255, 255, 255), None
+    return [[RED, w, t, BLUE, t, t, GREEN, w, t, RED],
+            [t, RED, w, t, GREY, t, t, BLUE, w, t],
+            [GREEN, t, t, w, t, RED, t, t, GREY, BLUE]]
+
+
+@case
+def rich_cursor():
+    """Cursor shapes (RichCursor), which the viewer gives to the
+    application rather than drawing them: one with its hot spot inside,
+    one of no pixels (no cursor), and one whose hot spot is outside it.
+    The frame buffer is unchanged.
+    """
+    c = Case('rich-cursor')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    raw_session(c, 32, 24)
+    c.update([RichCursorRect((2, 1), cursor_rows())])
+    c.update([RichCursorRect((0, 0), [])])
+    c.update([RichCursorRect((12, 4), cursor_rows()[:2])])
+    c.end_of_input()
+    return c
+
+
+@case
+def rich_cursor_rgb565():
+    """A cursor shape at 16 bits per pixel: each component is scaled from
+    its maximum to 255.
+    """
+    c = Case('rich-cursor-rgb565')
+    c.version(b'RFB 003.008\n')
+    c.security_none()
+    c.server_init(32, 24, RGB565)
+    c.update([RawRect(0, 0, 32, 24, Image.pattern(32, 24))])
+    c.update([RichCursorRect((1, 2), cursor_rows())])
     c.end_of_input()
     return c
 
