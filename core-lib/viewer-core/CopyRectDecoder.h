@@ -36,13 +36,11 @@ public:
 
 protected:
   //
-  // Reads the source position, then moves the pixels within frameBuffer
-  // under fbLock.
+  // Reads the source position, then moves the pixels within frameBuffer.
   //
   Task<> decode(AwaitableReader &reader,
                 FrameBuffer &frameBuffer,
-                const Rect &dstRect,
-                std::mutex &fbLock) override;
+                const Rect &dstRect) override;
 
 private:
   // This Point save left-top corner of copy-rectangle.

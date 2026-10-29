@@ -289,22 +289,19 @@ bool RemoteViewerCoreImpl::updatePixelFormat()
     throw Exception(_T("Invalid pixel format"));
   }
 
-  {
-    std::lock_guard<std::mutex> lock(m_fbLock);
-    PixelFormat fbPixelFormat = m_frameBuffer.getPixelFormat();
-    bool isEqual = pxFormat.isEqualTo(fbPixelFormat);
-    // Until the first SetPixelFormat, the frame buffer format may be a
-    // stand-in for a server format that is not true colour (see
-    // readPixelFormat()), so that one is sent even if the formats are equal.
-    if (isEqual && m_isPixelFormatSent) {
-      return false;
-    }
-    if (!isEqual && m_frameBuffer.getBuffer() != nullptr) {
-      Dimension fbDimension = m_frameBuffer.getDimension();
-      setFbProperties(fbDimension, pxFormat);
-    }
-    m_isPixelFormatSent = true;
+  PixelFormat fbPixelFormat = m_frameBuffer.getPixelFormat();
+  bool isEqual = pxFormat.isEqualTo(fbPixelFormat);
+  // Until the first SetPixelFormat, the frame buffer format may be a
+  // stand-in for a server format that is not true colour (see
+  // readPixelFormat()), so that one is sent even if the formats are equal.
+  if (isEqual && m_isPixelFormatSent) {
+    return false;
   }
+  if (!isEqual && m_frameBuffer.getBuffer() != nullptr) {
+    Dimension fbDimension = m_frameBuffer.getDimension();
+    setFbProperties(fbDimension, pxFormat);
+  }
+  m_isPixelFormatSent = true;
 
   RfbSetPixelFormatClientMessage pixelFormatMessage(pxFormat);
   pixelFormatMessage.send(*m_output);
@@ -336,11 +333,7 @@ void RemoteViewerCoreImpl::sendFbUpdateRequest(bool incremental)
   }
 
   bool isIncremental = incremental && !isRefresh && !isUpdateFbProperties;
-  Rect updateRect;
-  {
-    std::lock_guard<std::mutex> lock(m_fbLock);
-    updateRect = m_frameBuffer.getDimension().getRect();
-  }
+  Rect updateRect = m_frameBuffer.getDimension().getRect();
 
   if (isIncremental) {
     m_logWriter.debug(_T("Sending frame buffer incremental update request [%dx%d]..."),
@@ -679,6 +672,7 @@ void RemoteViewerCoreImpl::setFbProperties(const Dimension &fbDimension,
                    fbDimension.width, fbDimension.height);
   m_logWriter.info(_T("Frame buffer pixel format: %s"), pxString.getString());
 
+  std::unique_lock<std::mutex> lock(m_fbLock);
   if (!m_frameBuffer.setProperties(fbDimension, fbPixelFormat)) {
     StringStorage error;
     error.format(_T("Failed to set property frame buffer. ")
@@ -688,6 +682,7 @@ void RemoteViewerCoreImpl::setFbProperties(const Dimension &fbDimension,
     throw Exception(error.getString());
   }
   m_frameBuffer.setColor(0, 0, 0);
+  lock.unlock();
   refreshFrameBuffer();
   m_damage.clear();
   m_adapter->onFrameBufferPropChange(fbDimension, fbPixelFormat);
@@ -1130,7 +1125,7 @@ Task<bool> RemoteViewerCoreImpl::receiveFbUpdateRectangle()
       m_logWriter.debug(_T("Decoding..."));
 
       DecoderOfRectangle *rectangleDecoder = dynamic_cast<DecoderOfRectangle *>(decoder);
-      co_await rectangleDecoder->process(m_reader, m_frameBuffer, rect, m_fbLock);
+      co_await rectangleDecoder->process(m_reader, m_frameBuffer, rect);
       m_damage.addRect(rect);
 
       m_logWriter.debug(_T("Decoded"));
@@ -1154,7 +1149,6 @@ Task<> RemoteViewerCoreImpl::processPseudoEncoding(const Rect &rect,
   case PseudoEncDefs::DESKTOP_SIZE:
     m_logWriter.info(_T("Changed size of desktop"));
     {
-      std::lock_guard<std::mutex> lock(m_fbLock);
       Dimension dimension(rect);
       PixelFormat pixelFormat = m_frameBuffer.getPixelFormat();
       setFbProperties(dimension, pixelFormat);
@@ -1342,10 +1336,7 @@ Task<> RemoteViewerCoreImpl::clientAndServerInit()
 
   RfbParsing::ServerInit serverInit =
     co_await RfbParsing::readServerInit(m_reader, m_logWriter);
-  {
-    std::lock_guard<std::mutex> lock(m_fbLock);
-    setFbProperties(serverInit.dimension, serverInit.pixelFormat);
-  }
+  setFbProperties(serverInit.dimension, serverInit.pixelFormat);
 
   m_remoteDesktopName = serverInit.desktopName;
   m_logWriter.info(_T("Server remote name: %s"), m_remoteDesktopName.getString());

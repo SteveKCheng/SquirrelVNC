@@ -31,7 +31,6 @@
 #include "io-lib/AwaitableReader.h"
 #include "util/Task.h"
 
-#include <mutex>
 #include <vector>
 
 //
@@ -130,8 +129,6 @@ private:
   FrameBuffer *m_frameBuffer;
   // The last cursor shape of the current run.
   CursorImage m_cursor;
-
-  std::mutex m_fbLock;
 };
 
 #endif // _FUZZ_SESSION_H_

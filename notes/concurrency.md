@@ -102,7 +102,8 @@ a slow painter never builds up a backlog.~~
 `cpu-usage.md` showed one paint per rectangle, about 1,700 a second):
 
 1. **Network thread.** The decoders draw into the core's frame buffer
-   under `m_fbLock` (a `std::mutex`), around each write only. The core
+   ~~under `m_fbLock` (a `std::mutex`), around each write only~~ without
+   a lock (since 2026-10-29, second change: see below). The core
    adds each rectangle to `m_damage`, and at the end of the
    FramebufferUpdate gives the region to the adapter,
    `onFrameBufferUpdate(damage)`. A new size or pixel format replaces
@@ -123,9 +124,15 @@ a slow painter never builds up a backlog.~~
 So each update is drawn once, by its decoder, and blitted once. The
 merging happens twice, in `ViewerCoreEvents` and in Windows' update
 region, so the GUI paints at most once per pass through its message
-loop however fast updates come. The paint and the decoders exclude
+loop however fast updates come. ~~The paint and the decoders exclude
 each other: no torn reads, and the frame buffer cannot be replaced
-while it is painted. The cursor is a Windows cursor, not in the pixels.
+while it is painted.~~ The paint holds `m_fbLock`, so the frame buffer
+cannot be replaced while it is painted; the network thread takes it only
+to replace it. The decoders do not take it: a paint during a write may
+show a mix of old and new pixels there, which the paint brought by that
+update's damage then repaints (reasoning at `m_fbLock` in
+`RemoteViewerCoreImpl.h`). Holding it while drawing made the decoders
+wait for each paint (`cpu-usage.md`, 2026-10-29). The cursor is a Windows cursor, not in the pixels.
 A paint that finds the frame buffer replaced before the GUI has heard
 of it paints the background there; the report that follows repaints
 all.

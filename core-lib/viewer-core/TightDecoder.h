@@ -40,13 +40,11 @@ public:
 
 protected:
   //
-  // Reads the data of each subencoding whole, then draws it under fbLock.
-  // A JPEG is decompressed before fbLock is taken.
+  // Reads the data of each subencoding whole, then draws it.
   //
   Task<> decode(AwaitableReader &reader,
                 FrameBuffer &frameBuffer,
-                const Rect &dstRect,
-                std::mutex &fbLock) override;
+                const Rect &dstRect) override;
 
 private:
   void reset();
@@ -71,13 +69,11 @@ private:
                           const PixelFormat &pxFormat);
   Task<> processJpeg(AwaitableReader &reader,
                      FrameBuffer &frameBuffer,
-                     const Rect &dstRect,
-                     std::mutex &fbLock);
+                     const Rect &dstRect);
   Task<> processBasicTypes(AwaitableReader &reader,
                            FrameBuffer &frameBuffer,
                            const Rect &dstRect,
-                           UINT8 compControl,
-                           std::mutex &fbLock);
+                           UINT8 compControl);
   Task<> readTightData(AwaitableReader &reader,
                        std::vector<UINT8> &buffer,
                        size_t expectedLength,

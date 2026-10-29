@@ -143,6 +143,29 @@ update, end to end"): damage reported once per FramebufferUpdate,
 merged, and invalidated on the GUI thread. The scaling cost per paint
 remains, but paints are now few. To be measured again.
 
+### 2026-10-29: after the rework, scaled down
+
+Trace `CAITSITH.10-29-2026.08-01-15.etl` (about 60 s, scaled down), of
+the build painting from the core's frame buffer under its lock:
+
+- Paints are few: the GUI thread woke about 3,500 times, 40 to 60
+  paints a second.
+- But each paint scales the whole view with `HALFTONE`, about 12 ms:
+  27.9 s of the GUI thread's CPU, 2.7 s of it GDI clearing a temporary
+  bitmap on each call. The clip region does not limit the halftoning.
+- The network thread waited for the frame buffer's lock 1,187 times,
+  11.6 s in all (up to 25 ms each), all in `TightDecoder::processJpeg()`
+  and all ended by the paint: decoding stalled about a fifth of the
+  time. The GUI thread never waited for it.
+- The network thread's 38 s of CPU is mostly the JPEG path (libjpeg,
+  `drawTightBytes()`, `transformArray()`): items 1 and 2 below.
+
+So the decoders no longer take the lock (Steve's proposal), only the
+replacement of the frame buffer does; and the paint is to scale only
+the part around `rcPaint`. Steve keeps `HALFTONE` for its quality: the
+cost is CPU, not lag, and unscaled full screen (his usual use) takes
+GDI's plain copy (`COLORONCOLOR`, equal sizes).
+
 ### Copies per pixel today
 
 1. The decoder writes into the rectangle buffer (`m_rectangleFb`) —

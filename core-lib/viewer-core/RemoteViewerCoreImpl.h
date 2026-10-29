@@ -392,8 +392,7 @@ private:
   // taller than ViewerBufferSize::MAX_CURSOR_SIZE, or a desktop size that
   // setFbProperties() rejects; IOException if the input fails.
   //
-  // A coroutine (util/Task.h): it awaits its reads from reader, and takes
-  // m_fbLock only where it does not read.
+  // A coroutine (util/Task.h): it awaits its reads from reader.
   //
   Task<> processPseudoEncoding(const Rect &rect, int encType);
 
@@ -489,9 +488,10 @@ private:
   //
   // Update properties (Dimension and PixelfFormat) of m_frameBuffer.
   //
-  // Pre-conditions: m_fbLock is held.
+  // Pre-conditions: network thread; m_fbLock is not held (it takes it, to
+  // replace the frame buffer).
   // Post-conditions: m_frameBuffer has the given size and format, filled
-  // with black.
+  // with black; the adapter is told (onFrameBufferPropChange()).
   // Throws Exception before changing the frame buffer if the size is
   // negative, has more pixels than m_maxFrameBufferPixels or does not fit
   // in memory (ViewerBufferSize::fitsFrameBuffer()), or the format is not
@@ -625,9 +625,20 @@ private:
   // The frame buffer, which holds what the server shows (the decoders draw
   // into it), and its lock.
   //
-  // Guards the pixels of m_frameBuffer, which other threads read; its
-  // properties change only on the network thread, under the lock. Not
-  // recursive.
+  // The network thread is the only one that writes m_frameBuffer, and it
+  // takes m_fbLock only to replace it (setFbProperties()): a new size or
+  // pixel format, and so new memory. Another thread reads it only while
+  // holding m_fbLock (accessFrameBuffer(), copyFrameBuffer()), so the
+  // memory it reads stays valid.
+  //
+  // The decoders draw without the lock, so a paint may read pixels while
+  // they are written, and show a mix of old and new there (a data race on
+  // the pixels, with GDI reading them in the kernel). That is accepted:
+  // the damage is reported only after the drawing, through
+  // ViewerCoreEvents' mutex and the message queue, so the paint it brings
+  // reads the finished pixels and repaints the mixed area. Holding the lock
+  // while drawing made the decoders wait for every paint, which scales the
+  // whole view (notes/cpu-usage.md, 2026-10-29). Not recursive.
   std::mutex m_fbLock;
   FrameBuffer m_frameBuffer;
   // What the FramebufferUpdate being read has drawn so far; given to the
@@ -638,7 +649,7 @@ private:
 
   bool m_isNewPixelFormat;
   PixelFormat m_viewerPixelFormat;
-  // True once SetPixelFormat has been sent. Protected by m_fbLock.
+  // True once SetPixelFormat has been sent. Network thread.
   bool m_isPixelFormatSent;
 
   bool m_isRefreshing;

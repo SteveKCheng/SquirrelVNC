@@ -40,18 +40,16 @@ public:
   //
   Task<> process(AwaitableReader &reader,
                  FrameBuffer &frameBuffer,
-                 const Rect &rect,
-                 std::mutex &fbLock) override;
+                 const Rect &rect) override;
 
 protected:
   //
   // Reads the pixels of rect into a buffer, then copies them into
-  // frameBuffer under fbLock.
+  // frameBuffer.
   //
   Task<> decode(AwaitableReader &reader,
                 FrameBuffer &frameBuffer,
-                const Rect &rect,
-                std::mutex &fbLock) override;
+                const Rect &rect) override;
 
 private:
   static const size_t AREA_OF_ONE_PART = 1024 * 64;

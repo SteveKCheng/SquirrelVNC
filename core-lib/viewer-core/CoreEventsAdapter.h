@@ -139,7 +139,6 @@ public:
   // The frame buffer has been replaced, with the given size and pixel
   // format, and is all black: on ServerInit, and on a change of size
   // (DesktopSize) or pixel format. Damage reported before is void.
-  // Called with the frame buffer's lock held.
   //
   virtual void onFrameBufferPropChange(const Dimension &dimension,
                                        const PixelFormat &pixelFormat) = 0;

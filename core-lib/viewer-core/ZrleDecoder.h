@@ -46,11 +46,10 @@ protected:
   // Pre-condition: the frame buffer's pixel format is valid
   // (PixelFormat::isValid()).
   // Reads and inflates the whole rectangle first, then decodes it tile by
-  // tile, drawing each tile under fbLock.
+  // tile.
   Task<> decode(AwaitableReader &reader,
                 FrameBuffer &frameBuffer,
-                const Rect &dstRect,
-                std::mutex &fbLock) override;
+                const Rect &dstRect) override;
 
 
   //

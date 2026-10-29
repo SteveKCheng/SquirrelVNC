@@ -42,13 +42,11 @@ protected:
   // Throws Exception, after drawing the subrectangles before it, if a
   // subrectangle does not lie within dstRect; IOException if the input
   // fails.
-  // Draws the background, then each subrectangle as it is read, each
-  // under fbLock.
+  // Draws the background, then each subrectangle as it is read.
   //
   Task<> decode(AwaitableReader &reader,
                 FrameBuffer &framebuffer,
-                const Rect &dstRect,
-                std::mutex &fbLock) override;
+                const Rect &dstRect) override;
 };
 
 #endif

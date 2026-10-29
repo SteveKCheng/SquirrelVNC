@@ -45,15 +45,14 @@ protected:
   // than 16 pixels).  On an exception, the tiles before the bad one have
   // already been drawn, and nothing of the bad one.
   //
-  // Each tile is read whole, then drawn under fbLock.
+  // Each tile is read whole, then drawn.
   //
   // Pre: framebuffer has the pixel format the server sends, so that each
   // colour read is framebuffer->getBytesPerPixel() bytes.
   //
   Task<> decode(AwaitableReader &reader,
                 FrameBuffer &framebuffer,
-                const Rect &dstRect,
-                std::mutex &fbLock) override;
+                const Rect &dstRect) override;
 private:
   static const int TILE_SIZE = 16;
 

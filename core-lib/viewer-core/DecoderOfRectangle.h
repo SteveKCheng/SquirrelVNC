@@ -41,10 +41,9 @@ public:
   // with decode().
   //
   // Threads: called on the thread that reads the connection, which is the
-  // only thread that changes the properties of frameBuffer (its size and
-  // pixel format), so they are read without fbLock. The pixels of
-  // frameBuffer are shared with other threads, so they are written and
-  // read only while holding fbLock (see decode()).
+  // only thread that writes frameBuffer. Its pixels are drawn without a
+  // lock, though another thread may be painting them: see
+  // RemoteViewerCoreImpl::m_fbLock for why that is accepted.
   //
   // A coroutine (util/Task.h), as decode() is. The arguments must stay
   // valid until the Task has finished; awaiting it at once, as callers do,
@@ -55,22 +54,17 @@ public:
   //
   virtual Task<> process(AwaitableReader &reader,
                          FrameBuffer &frameBuffer,
-                         const Rect &rect,
-                         std::mutex &fbLock);
+                         const Rect &rect);
 
 protected:
   //
   // Reads the update of rect from reader and draws it into frameBuffer.
   //
-  // A coroutine: each read is awaited. It holds fbLock while it writes or
-  // reads the pixels of frameBuffer, and never across a read, so that a
-  // slow connection cannot hold up the threads that paint the frame
-  // buffer: data is read first, then drawn.
+  // A coroutine: each read is awaited.
   //
   virtual Task<> decode(AwaitableReader &reader,
                         FrameBuffer &frameBuffer,
-                        const Rect &rect,
-                        std::mutex &fbLock) = 0;
+                        const Rect &rect) = 0;
 };
 
 #endif

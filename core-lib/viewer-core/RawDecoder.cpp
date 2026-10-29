@@ -38,8 +38,7 @@ RawDecoder::~RawDecoder()
 
 Task<> RawDecoder::process(AwaitableReader &reader,
                            FrameBuffer &frameBuffer,
-                           const Rect &rect,
-                           std::mutex &fbLock)
+                           const Rect &rect)
 {
   // If area of rectangle is 0, then exit from process: nothing update.
   if (rect.area() == 0) {
@@ -57,7 +56,7 @@ Task<> RawDecoder::process(AwaitableReader &reader,
   // Process all rectangle without last part of rectangle or 
   // two last part, if area of last part is less half of AREA_OF_ONE_PART.
   while (deltaRect.bottom + deltaHeight / 2 < rect.bottom) {
-    co_await DecoderOfRectangle::process(reader, frameBuffer, deltaRect, fbLock);
+    co_await DecoderOfRectangle::process(reader, frameBuffer, deltaRect);
 
     // Increment position of rectangle.
     deltaRect.move(0, deltaHeight);
@@ -66,13 +65,12 @@ Task<> RawDecoder::process(AwaitableReader &reader,
   // And process remainder parts of rectangle.
   deltaRect.top = std::max(rect.top, deltaRect.bottom - deltaHeight);
   deltaRect.bottom = rect.bottom;
-  co_await DecoderOfRectangle::process(reader, frameBuffer, deltaRect, fbLock);
+  co_await DecoderOfRectangle::process(reader, frameBuffer, deltaRect);
 }
 
 Task<> RawDecoder::decode(AwaitableReader &reader,
                      FrameBuffer &frameBuffer,
-                     const Rect &rect,
-                     std::mutex &fbLock)
+                     const Rect &rect)
 {
   size_t bytesPerPixel = frameBuffer.getPixelFormat().bitsPerPixel / 8;
   size_t bytesPerLine = bytesPerPixel * rect.getWidth();
@@ -85,7 +83,6 @@ Task<> RawDecoder::decode(AwaitableReader &reader,
   }
   co_await reader.readFully(pixels.data(), pixels.size());
 
-  std::lock_guard<std::mutex> lock(fbLock);
   for (int y = 0; y < rect.getHeight(); y++) {
     memcpy(frameBuffer.getBufferPtr(rect.left, rect.top + y),
            &pixels[y * bytesPerLine], bytesPerLine);

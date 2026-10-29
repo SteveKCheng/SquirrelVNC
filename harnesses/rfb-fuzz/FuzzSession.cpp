@@ -154,12 +154,11 @@ Task<> FuzzSession::readServerInit()
 {
   RfbParsing::ServerInit serverInit =
     co_await RfbParsing::readServerInit(*m_reader, m_logWriter);
-  std::lock_guard<std::mutex> lock(m_fbLock);
   setFrameBuffer(serverInit.dimension, serverInit.pixelFormat);
 }
 
 // Mirrors RemoteViewerCoreImpl::setFbProperties(), with the fuzzer's limit.
-// Pre-conditions: m_fbLock is held.
+// No lock: the fuzzer has one thread.
 void FuzzSession::setFrameBuffer(const Dimension &dimension,
                                  const PixelFormat &pixelFormat)
 {
@@ -228,7 +227,7 @@ Task<bool> FuzzSession::readFbUpdateRectangle()
     // As in the core, the result of the cast is not checked: every
     // decoder registered for an encoding that is not pseudo is one.
     DecoderOfRectangle *rectangleDecoder = dynamic_cast<DecoderOfRectangle *>(decoder);
-    co_await rectangleDecoder->process(*m_reader, *m_frameBuffer, rect, m_fbLock);
+    co_await rectangleDecoder->process(*m_reader, *m_frameBuffer, rect);
   } else {
     co_await readPseudoEncoding(rect, encodingType);
   }
@@ -242,7 +241,6 @@ Task<> FuzzSession::readPseudoEncoding(const Rect &rect, int encodingType)
   switch (encodingType) {
   case PseudoEncDefs::DESKTOP_SIZE:
     {
-      std::lock_guard<std::mutex> lock(m_fbLock);
       Dimension dimension(rect);
       PixelFormat pixelFormat = m_frameBuffer->getPixelFormat();
       setFrameBuffer(dimension, pixelFormat);
