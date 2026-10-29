@@ -109,6 +109,13 @@ a slow painter never builds up a backlog.~~
    `onFrameBufferUpdate(damage)`. A new size or pixel format replaces
    the frame buffer under the lock and calls `onFrameBufferPropChange()`
    instead, which voids the damage before it.
+   *Also since 2026-10-29 (Steve): when `readLoop()` is about to wait for
+   the socket in the middle of an update, with nothing received and
+   unread (`available()` is 0), it reports the rectangles drawn so far,
+   as the old TightVNC viewer showed a slow update as it came. Not when
+   bytes are waiting already, so a fast link costs no extra paints. A
+   rectangle still being decoded is not included: the stall shows the
+   finished ones.*
 2. **`ViewerCoreEvents`** (on the network thread) merges the changes
    into its pending ones, under its own lock, and posts
    `WM_USER_FRAME_BUFFER` only if none is posted already.

@@ -126,10 +126,12 @@ public:
   virtual void onError(const Exception &exception) = 0;
 
   //
-  // The pixels in damage have changed: called once for each
-  // FramebufferUpdate, after all its rectangles are drawn, if any is. The
-  // pixels are read with RemoteViewerCore::accessFrameBuffer(), from
-  // another thread.
+  // The pixels in damage have changed: called at the end of each
+  // FramebufferUpdate that drew anything, with what it drew; and in the
+  // middle of one, with the rectangles drawn so far, when the core waits
+  // for more of it from the network. Each rectangle is reported once, when
+  // its drawing is done. The pixels are read with
+  // RemoteViewerCore::accessFrameBuffer(), from another thread.
   //
   // Post-conditions (the core's): damage lies within the frame buffer.
   //

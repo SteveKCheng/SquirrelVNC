@@ -941,6 +941,12 @@ asio::awaitable<void> RemoteViewerCoreImpl::readLoop()
           std::rethrow_exception(failure);
         }
       } else {
+        asio::error_code availableError;
+        if (m_socket->available(availableError) == 0) {
+          // About to wait for the server: show what it has drawn so far. On
+          // an error the read below fails too, so this is a last report.
+          reportDamage();
+        }
         auto [error, length] =
           co_await m_socket->async_read_some(asio::buffer(chunk),
                                              asio::as_tuple(asio::use_awaitable));
@@ -1096,16 +1102,21 @@ Task<> RemoteViewerCoreImpl::receiveFbUpdate()
     m_logWriter.debug(_T("Receiving rectangle #%d..."), rectangle);
     isLastRect = co_await receiveFbUpdateRectangle();
   }
-  if (!m_damage.isEmpty()) {
-    m_adapter->onFrameBufferUpdate(m_damage);
-    m_damage.clear();
-  }
+  reportDamage();
 
   m_isNeedRequestUpdate = true;
   if (m_isFreeze)
     co_return;
   m_logWriter.detail(_T("Sending of frame buffer update request..."));
   sendFbUpdateRequest(!m_forceFullUpdate);
+}
+
+void RemoteViewerCoreImpl::reportDamage()
+{
+  if (!m_damage.isEmpty()) {
+    m_adapter->onFrameBufferUpdate(m_damage);
+    m_damage.clear();
+  }
 }
 
 Task<bool> RemoteViewerCoreImpl::receiveFbUpdateRectangle()

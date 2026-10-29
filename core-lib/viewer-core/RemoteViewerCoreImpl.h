@@ -304,6 +304,13 @@ private:
   // exception kept in m_runError; a read error, a failed request, or a
   // cancellation, is given to m_reader, so that the protocol code unwinds.
   //
+  // Before it waits for the socket with nothing received and not read, it
+  // reports the damage of the FramebufferUpdate being read so far
+  // (reportDamage()): a server that stalls part way through an update, on
+  // a slow link, has what it sent shown meanwhile. Not when bytes are
+  // already waiting: only reads that may wait for the network cost a
+  // paint.
+  //
   asio::awaitable<void> readLoop();
 
   //
@@ -369,6 +376,13 @@ private:
   //   * then send FramebufferUpdateRequest client message (code 3).
   //
   Task<> receiveFbUpdate();
+
+  //
+  // Gives m_damage, if not empty, to the adapter (onFrameBufferUpdate()),
+  // and clears it. m_damage holds only rectangles whose drawing is done.
+  // Pre-conditions: network thread.
+  //
+  void reportDamage();
 
   //
   // Receive rectangle, decode it and add it to m_damage.
@@ -641,7 +655,8 @@ private:
   std::mutex m_fbLock;
   FrameBuffer m_frameBuffer;
   // What the FramebufferUpdate being read has drawn so far; given to the
-  // adapter at its end. Network thread.
+  // adapter at its end, and before readLoop() waits for the network in
+  // the middle of it. Network thread.
   Region m_damage;
 
   Dimension m_desktopSize;

@@ -177,12 +177,15 @@ public:
   // with the protocol code, and writing. It also makes every notification
   // through the adapter interface.
   //
-  // The decoders draw into the frame buffer on the network thread, under
-  // its lock. The adapter is told what changed (onFrameBufferUpdate(), once
-  // for each FramebufferUpdate, and onFrameBufferPropChange()); the
-  // application reads the pixels from its own thread, through
-  // accessFrameBuffer(), which holds the lock: the decoders wait for it,
-  // so it must be held only briefly.
+  // The decoders draw into the frame buffer on the network thread, without
+  // its lock, which only replacing the frame buffer takes there. The
+  // adapter is told what changed (onFrameBufferUpdate(), at the end of each
+  // FramebufferUpdate and while one waits for the network part way, and
+  // onFrameBufferPropChange()); the application reads the pixels from its
+  // own thread, through accessFrameBuffer(), which holds the lock. A read
+  // may see a rectangle half drawn; its damage, reported once it is done,
+  // brings the repaint that shows it whole (see m_fbLock in
+  // RemoteViewerCoreImpl.h).
   //
   // Write operations (sending data to the server) are performed on the
   // network thread only, so the output has no lock: the consumer posts
