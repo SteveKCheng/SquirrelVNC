@@ -343,24 +343,22 @@ void ZrleDecoder::drawTile(FrameBuffer &fb,
                            const Rect &tileRect,
                            const std::vector<char> &pixels)
 {
-  int width = tileRect.getWidth();
-  size_t fbBytesPerPixel = m_bytesPerPixel;
-
-  if (fbBytesPerPixel == 3) {
-    fbBytesPerPixel = 4;
-  }
-
-  int tileLength = tileRect.area();
-
-  int x = tileRect.left;
-  int y = tileRect.top;
-   
+  const int width = tileRect.getWidth();
   const char *pixelsPtr = &pixels.front();
-  char *bufferPtr = nullptr;
-  for (int i = 0; i < tileLength; i++) {
-    bufferPtr = (char*)fb.getBufferPtr(x + i % width, y + i / width);
-    memset(bufferPtr, 0, fbBytesPerPixel);
-    memcpy(bufferPtr, pixelsPtr, m_bytesPerPixel);
-    pixelsPtr+=m_bytesPerPixel;
+
+  if (m_bytesPerPixel != 3) {
+    const size_t bytesPerRow = width * m_bytesPerPixel;
+    for (int y = 0; y < tileRect.getHeight(); y++, pixelsPtr += bytesPerRow) {
+      memcpy(fb.getBufferPtr(tileRect.left, tileRect.top + y), pixelsPtr, bytesPerRow);
+    }
+    return;
+  }
+  // 3-byte CPIXELs: the low 3 bytes of a 4-byte pixel (see decode()).
+  for (int y = 0; y < tileRect.getHeight(); y++) {
+    char *bufferPtr = static_cast<char *>(fb.getBufferPtr(tileRect.left, tileRect.top + y));
+    for (int x = 0; x < width; x++, pixelsPtr += 3, bufferPtr += 4) {
+      memcpy(bufferPtr, pixelsPtr, 3);
+      bufferPtr[3] = 0;
+    }
   }
 }

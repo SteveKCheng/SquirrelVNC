@@ -136,6 +136,14 @@ private:
   //
   static UINT32 fromCPixel(const PixelFormat &pxFormat, const UINT8 *rgb);
 
+  //
+  // The libjpeg-turbo colour space that writes pixels of pxFormat itself,
+  // 4 bytes each: JCS_EXT_BGRA for red at shift 16 and blue at 0 (B, G, R
+  // then 0xFF in memory), JCS_EXT_RGBA for red at 0 and blue at 16; else
+  // JCS_UNKNOWN, and the decoder converts from RGB.
+  //
+  static J_COLOR_SPACE getDirectJpegColorSpace(const PixelFormat &pxFormat);
+
   std::vector<std::unique_ptr<Inflater> > m_inflater;
   JpegDecompressor m_jpeg;
 

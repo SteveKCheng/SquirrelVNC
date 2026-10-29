@@ -205,6 +205,13 @@ In order of gain for the effort:
    copy, palette and gradient filters and `drawJpegBytes()`, and ZRLE
    (`ZrleDecoder.cpp:361`), which has the same `i % width`, `i / width`
    pattern. Raw and Hextile already read whole rows.
+   *Items 1 and 2 done 2026-10-29, in the classic API: `JpegDecompressor`
+   writes rows at a given pitch in a given colour space, and Tight JPEG
+   uses `JCS_EXT_BGRA` (red at 16) or `JCS_EXT_RGBA` (red at 0) straight
+   into the frame buffer; other formats decode to RGB and convert as
+   before. Tight's copy, palette, gradient and `drawJpegBytes()` loops
+   and ZRLE's `drawTile()` work by rows. A JPEG that fails part way may
+   now leave some of its rows drawn.*
 3. **Decode into the DIB** (Phase 4 step 4 of `async-networking.md`,
    reworked): the frame buffer's memory comes from a DIB section the GUI
    allocates, ~~the local cursor is drawn at paint time instead of into

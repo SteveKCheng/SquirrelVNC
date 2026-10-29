@@ -99,7 +99,9 @@ build already installs `turbojpeg.lib` and `turbojpeg.h` next to
    write directly into the ~~rectangle buffer~~ frame buffer, saving a full copy and a
    per-pixel conversion in `TightDecoder`. Other formats keep the
    conversion. For sessions heavy in Tight JPEG, probably the largest
-   practical gain.
+   practical gain. *Done 2026-10-29 with the classic API's
+   `JCS_EXT_BGRA` and `JCS_EXT_RGBA` (`cpu-usage.md`, "What to do" 1);
+   the move to TurboJPEG is still open.*
 2. **Validating before decoding.** `tj3DecompressHeader()` gives the
    width, height and subsampling, so they can be checked against the
    rectangle before any image buffers are set up.

@@ -48,16 +48,26 @@ public:
 
   ~JpegDecompressor();
 
-  /*
-   * Decompress JPEG data from the given buffer. Image size must be known in
-   * advance, and dst_buf should have place for (w * h * 3) bytes. The output
-   * format is an array of bytes where each pixel is represented by three bytes
-   * for red, green and blue components, in that order.
-   */
-  void decompress(std::vector<UINT8> &buffer,
+  //
+  // Decompresses the JPEG in the first jpegBufLen bytes of buffer, whose
+  // size must be dstRect's, into rows of pixels in colorSpace: JCS_RGB
+  // (3 bytes a pixel: red, green, blue), or one of libjpeg-turbo's 4-byte
+  // spaces such as JCS_EXT_BGRA. Row y goes to rows + y * bytesPerRow, so
+  // the rows can be those of a frame buffer.
+  //
+  // Pre-conditions: rows has room for dstRect's height rows of
+  // bytesPerRow bytes, and bytesPerRow is at least dstRect's width times
+  // the pixel size of colorSpace.
+  // Throws Exception if the data is not a JPEG of dstRect's size, before
+  // writing any row, or if it fails to decompress, which may leave some
+  // rows written. The decompressor is ready for the next JPEG either way.
+  //
+  void decompress(const std::vector<UINT8> &buffer,
                   size_t jpegBufLen,
-                  std::vector<UINT8> &pixels,
-                  const Rect &dstRect);
+                  const Rect &dstRect,
+                  J_COLOR_SPACE colorSpace,
+                  UINT8 *rows,
+                  size_t bytesPerRow);
 
 private:
   /*

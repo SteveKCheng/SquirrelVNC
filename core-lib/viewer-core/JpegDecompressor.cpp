@@ -64,25 +64,20 @@ void JpegDecompressor::outputMessage(j_common_ptr /* cinfo */)
   return;
 }
 
-void JpegDecompressor::decompress(std::vector<UINT8> &buffer,
+void JpegDecompressor::decompress(const std::vector<UINT8> &buffer,
                                   size_t jpegBufLen,
-                                  std::vector<UINT8> &pixels,
-                                  const Rect &dstRect)
+                                  const Rect &dstRect,
+                                  J_COLOR_SPACE colorSpace,
+                                  UINT8 *rows,
+                                  size_t bytesPerRow)
 {
   if (!dstRect.isValid())
     throw Exception(_T("invalid destination rectangle in jpeg-decompressor"));
 
   if (buffer.size() == 0 || buffer.size() < jpegBufLen)
     throw Exception(_T("incorrect size of buffer in jpeg-decompressor"));
-  UINT8 *src_buf = &buffer.front();
+  const UINT8 *src_buf = &buffer.front();
   size_t src_buf_size = jpegBufLen;
-
-  size_t width = dstRect.getWidth();
-  size_t height = dstRect.getHeight();
-  size_t pixelBufferCount =  width * height * BYTES_PER_PIXEL;
-  if (pixels.size() == 0 || pixels.size() < pixelBufferCount)
-    throw Exception(_T("incorrect size of pixels-buffer in jpeg-decompressor"));
-  UINT8 *dst_buf = &pixels.front();
 
   try {
     /* Initialize data source and read the header. */
@@ -100,7 +95,7 @@ void JpegDecompressor::decompress(std::vector<UINT8> &buffer,
     }
 
     /* Configure and start decompression. */
-    m_jpeg.cinfo.out_color_space = JCS_RGB;
+    m_jpeg.cinfo.out_color_space = colorSpace;
     jpeg_start_decompress(&m_jpeg.cinfo);
     if (m_jpeg.cinfo.output_width != jpegWidth ||
         m_jpeg.cinfo.output_height != jpegHeight ) {
@@ -110,11 +105,8 @@ void JpegDecompressor::decompress(std::vector<UINT8> &buffer,
 
     /* Consume decompressed data. */
     while (m_jpeg.cinfo.output_scanline < m_jpeg.cinfo.output_height) {
-      size_t bufferIndex = m_jpeg.cinfo.output_scanline;
-      size_t bufferOffset = bufferIndex * width * BYTES_PER_PIXEL;
-
       JSAMPROW row_ptr[1];
-      row_ptr[0] = &dst_buf[bufferOffset];
+      row_ptr[0] = rows + m_jpeg.cinfo.output_scanline * bytesPerRow;
       if (jpeg_read_scanlines(&m_jpeg.cinfo, row_ptr, 1) != 1) {
         jpeg_abort_decompress(&m_jpeg.cinfo);
         throw Exception(_T("error decompressing JPEG data"));

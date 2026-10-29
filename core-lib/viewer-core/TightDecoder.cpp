@@ -83,6 +83,22 @@ UINT32 TightDecoder::fromCPixel(const PixelFormat &pxFormat, const UINT8 *rgb)
          static_cast<UINT32>(rgb[2]) << pxFormat.blueShift;
 }
 
+J_COLOR_SPACE TightDecoder::getDirectJpegColorSpace(const PixelFormat &pxFormat)
+{
+  if (pxFormat.bitsPerPixel != 32 || pxFormat.bigEndian ||
+      pxFormat.redMax != 255 || pxFormat.greenMax != 255 || pxFormat.blueMax != 255 ||
+      pxFormat.greenShift != 8) {
+    return JCS_UNKNOWN;
+  }
+  if (pxFormat.redShift == 16 && pxFormat.blueShift == 0) {
+    return JCS_EXT_BGRA;
+  }
+  if (pxFormat.redShift == 0 && pxFormat.blueShift == 16) {
+    return JCS_EXT_RGBA;
+  }
+  return JCS_UNKNOWN;
+}
+
 std::vector<UINT8> TightDecoder::transformArray(const PixelFormat &pxFormat,
                                                 const std::vector<UINT8> &buffer)
 {
@@ -162,16 +178,25 @@ Task<> TightDecoder::processJpeg(AwaitableReader &reader,
   co_await reader.readFully(&buffer.front(), jpegBufLen);
 
   if (dstRect.area() != 0) {
-    std::vector<UINT8> pixels;
-    pixels.resize(dstRect.area() * JpegDecompressor::BYTES_PER_PIXEL);
-
     try {
-      m_jpeg.decompress(buffer, jpegBufLen, pixels, dstRect);
-      if (m_isCPixel) {
-        pixels = transformArray(frameBuffer.getPixelFormat(), pixels);
-        drawTightBytes(frameBuffer, pixels, dstRect);
+      const PixelFormat pxFormat = frameBuffer.getPixelFormat();
+      const J_COLOR_SPACE directSpace = getDirectJpegColorSpace(pxFormat);
+      if (directSpace != JCS_UNKNOWN) {
+        // Straight into the frame buffer's rows.
+        m_jpeg.decompress(buffer, jpegBufLen, dstRect, directSpace,
+                          static_cast<UINT8 *>(frameBuffer.getBufferPtr(dstRect.left,
+                                                                        dstRect.top)),
+                          frameBuffer.getBytesPerRow());
       } else {
-        drawJpegBytes(frameBuffer, pixels, dstRect);
+        std::vector<UINT8> pixels(dstRect.area() * JpegDecompressor::BYTES_PER_PIXEL);
+        m_jpeg.decompress(buffer, jpegBufLen, dstRect, JCS_RGB, pixels.data(),
+                          dstRect.getWidth() * JpegDecompressor::BYTES_PER_PIXEL);
+        if (m_isCPixel) {
+          pixels = transformArray(pxFormat, pixels);
+          drawTightBytes(frameBuffer, pixels, dstRect);
+        } else {
+          drawJpegBytes(frameBuffer, pixels, dstRect);
+        }
       }
     } catch (const Exception &ex) {
       StringStorage error;
@@ -299,36 +324,31 @@ void TightDecoder::drawPalette(FrameBuffer &fb,
                                const std::vector<UINT8> &pixels,
                                const Rect &dstRect)
 {
-  // TODO: removed duplicate code (draw Tight bytes)
-  int width = dstRect.getWidth();
+  const int width = dstRect.getWidth();
+  const int height = dstRect.getHeight();
+  const int bytesPerPixel = fb.getBytesPerPixel();
 
-  int bytesPerPixel = fb.getBytesPerPixel();
-
-  int dstLength = dstRect.area();
-
-  int x = dstRect.left;
-  int y = dstRect.top;
-  int stride = fb.getBytesPerRow();
-  char *basePtr = (char*)fb.getBufferPtr(x, y);
   if (palette.size() == 2) {
-    int offset = 8;
-    int index = -1;
-    for (int i = 0; i < dstLength; i++) {
-      void *pixelPtr = basePtr + bytesPerPixel * (i % width) + stride * (i / width);
-      if (offset == 0 || i % width == 0) {
-        offset = 8;
-        index++;
+    // One bit a pixel, the first in the high bit; rows of whole bytes.
+    const size_t indexBytesPerRow = (width + 7) / 8;
+    for (int y = 0; y < height; y++) {
+      char *pixelPtr = static_cast<char *>(fb.getBufferPtr(dstRect.left, dstRect.top + y));
+      const UINT8 *indices = &pixels[y * indexBytesPerRow];
+      for (int x = 0; x < width; x++, pixelPtr += bytesPerPixel) {
+        int index = (indices[x / 8] >> (7 - x % 8)) & 0x01;
+        memcpy(pixelPtr, &palette[index], bytesPerPixel);
       }
-      offset--;
-      memcpy(pixelPtr, &palette[(pixels[index] >> offset) & 0x01], bytesPerPixel);
     }
   } else { // size of palette != 2
-    for (int i = 0; i < dstLength; i++) {
-      void *pixelPtr = basePtr + bytesPerPixel * (i % width) + stride * (i / width);
-      if (pixels[i] < palette.size()) {
-        memcpy(pixelPtr, &palette[pixels[i]], bytesPerPixel);
-      } else {
-        m_logWriter->error(_T("Tight decoder: Invalid index in palette."));
+    for (int y = 0; y < height; y++) {
+      char *pixelPtr = static_cast<char *>(fb.getBufferPtr(dstRect.left, dstRect.top + y));
+      const UINT8 *indices = &pixels[static_cast<size_t>(y) * width];
+      for (int x = 0; x < width; x++, pixelPtr += bytesPerPixel) {
+        if (indices[x] < palette.size()) {
+          memcpy(pixelPtr, &palette[indices[x]], bytesPerPixel);
+        } else {
+          m_logWriter->error(_T("Tight decoder: Invalid index in palette."));
+        }
       }
     }
   }
@@ -338,18 +358,10 @@ void TightDecoder::drawTightBytes(FrameBuffer &fb,
                                   const std::vector<UINT8> &pixels,
                                   const Rect &dstRect)
 {
-  // TODO: removed duplicate code (zrle)
-  int width = dstRect.getWidth();
-
-  int bytesPerPixel = fb.getBytesPerPixel();
-
-  int dstLength = dstRect.area();
-
-  int x = dstRect.left;
-  int y = dstRect.top;
-  for (int i = 0; i < dstLength; i++) {
-    void *pixelPtr = fb.getBufferPtr(x + i % width, y + i / width);
-    memcpy(pixelPtr, &pixels[i * bytesPerPixel], bytesPerPixel);
+  const size_t bytesPerRow = static_cast<size_t>(dstRect.getWidth()) * fb.getBytesPerPixel();
+  for (int y = 0; y < dstRect.getHeight(); y++) {
+    memcpy(fb.getBufferPtr(dstRect.left, dstRect.top + y), &pixels[y * bytesPerRow],
+           bytesPerRow);
   }
 }
 
@@ -357,26 +369,19 @@ void TightDecoder::drawJpegBytes(FrameBuffer &fb,
                                  const std::vector<UINT8> &pixels,
                                  const Rect &dstRect)
 {
-  // TODO: removed duplicate code (draw tight bytes)
-  int width = dstRect.getWidth();
+  const int width = dstRect.getWidth();
+  const int fbBytesPerPixel = fb.getBytesPerPixel();
+  const PixelFormat pxFormat = fb.getPixelFormat();
 
-  int fbBytesPerPixel = fb.getBytesPerPixel();
-  int bytesPerCPixel = 3;
-  PixelFormat pxFormat = fb.getPixelFormat();
-
-  int dstLength = dstRect.area();
-
-  int x = dstRect.left;
-  int y = dstRect.top;
-  for (int i = 0; i < dstLength; i++) {
-    UINT8 color[4] = {0, 0, 0, 0};
-    memcpy(&color, &pixels[i * bytesPerCPixel], bytesPerCPixel);
-    UINT32 pixel = (((UINT32)color[0] * pxFormat.redMax + 127) / 255 << pxFormat.redShift | 
-                   ((UINT32)color[1] * pxFormat.greenMax + 127) / 255 << pxFormat.greenShift |
-                   ((UINT32)color[2] * pxFormat.blueMax + 127) / 255 << pxFormat.blueShift);
-
-    void *pixelPtr = fb.getBufferPtr(x + i % width, y + i / width);
-    memcpy(pixelPtr, &pixel, fbBytesPerPixel);
+  const UINT8 *rgb = pixels.data();
+  for (int y = 0; y < dstRect.getHeight(); y++) {
+    char *pixelPtr = static_cast<char *>(fb.getBufferPtr(dstRect.left, dstRect.top + y));
+    for (int x = 0; x < width; x++, rgb += 3, pixelPtr += fbBytesPerPixel) {
+      UINT32 pixel = (((UINT32)rgb[0] * pxFormat.redMax + 127) / 255 << pxFormat.redShift |
+                     ((UINT32)rgb[1] * pxFormat.greenMax + 127) / 255 << pxFormat.greenShift |
+                     ((UINT32)rgb[2] * pxFormat.blueMax + 127) / 255 << pxFormat.blueShift);
+      memcpy(pixelPtr, &pixel, fbBytesPerPixel);
+    }
   }
 }
 
@@ -427,6 +432,7 @@ void TightDecoder::drawGradient(FrameBuffer &fb,
     // exchange thisRow and prevRow:
     RowType &thisRow = opRows[opRowIndex];
     RowType &prevRow = opRows[opRowIndex = (opRowIndex + 1) % 2];
+    char *pixelPtr = static_cast<char *>(fb.getBufferPtr(dstRect.left, dstRect.top + i));
 
     for (size_t j = 3; j < opRowLength; j += 3, pixelOffset += bytesPerCPixel) {
       UINT8 rawColor[3];
@@ -440,9 +446,8 @@ void TightDecoder::drawGradient(FrameBuffer &fb,
         thisRow[j + index] = (converted + rawColor[index]) & max[index];
         color |= static_cast<UINT32>(thisRow[j + index] & max[index]) << shift[index];
       }
-      void *pixelPtr = fb.getBufferPtr(static_cast<int>(dstRect.left + j/3 - 1),
-                                        dstRect.top + i);
       memcpy(pixelPtr, &color, fbBytesPerPixel);
+      pixelPtr += fbBytesPerPixel;
     }
   }
 }
