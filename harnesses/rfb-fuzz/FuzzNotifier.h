@@ -42,7 +42,7 @@ public:
   //
   // Pre-conditions: fb, fbLock and logWriter outlive this object.
   //
-  FuzzNotifier(FrameBuffer *fb, LocalMutex *fbLock, LogWriter *logWriter)
+  FuzzNotifier(FrameBuffer *fb, std::mutex *fbLock, LogWriter *logWriter)
   : FbUpdateNotifier(fb, fbLock, logWriter)
   {
   }

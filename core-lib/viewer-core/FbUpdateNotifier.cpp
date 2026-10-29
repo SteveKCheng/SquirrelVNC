@@ -27,7 +27,7 @@
 
 #include "CoreEventsAdapter.h"
 
-FbUpdateNotifier::FbUpdateNotifier(FrameBuffer *fb, LocalMutex *fbLock, LogWriter *logWriter)
+FbUpdateNotifier::FbUpdateNotifier(FrameBuffer *fb, std::mutex *fbLock, LogWriter *logWriter)
 : m_frameBuffer(fb),
   m_fbLock(fbLock),
   m_logWriter(logWriter),
@@ -93,7 +93,7 @@ void FbUpdateNotifier::execute()
       noUpdates = false;
       m_logWriter->debug(_T("FbUpdateNotifier (event): new size of frame buffer"));
       try {
-        AutoLock al(m_fbLock);
+        std::lock_guard<std::mutex> lock(*m_fbLock);
         m_adapter->onFrameBufferPropChange(*m_frameBuffer);
         // FIXME: it's bad code. Must work without one next line, but not it.
         Rect fbRect = m_frameBuffer->getDimension().getRect();
@@ -108,7 +108,7 @@ void FbUpdateNotifier::execute()
     if (!update.isEmpty()) {
       noUpdates = false;
 
-      AutoLock al(m_fbLock);
+      std::lock_guard<std::mutex> lock(*m_fbLock);
       std::vector<Rect> updateList;
       update.getRectVector(&updateList);
       m_logWriter->detail(_T("FbUpdateNotifier (event): %zu updates"), updateList.size());

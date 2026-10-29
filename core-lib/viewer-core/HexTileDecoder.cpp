@@ -39,7 +39,7 @@ HexTileDecoder::~HexTileDecoder()
 Task<> HexTileDecoder::decode(AwaitableReader &reader,
                               FrameBuffer &framebuffer,
                               const Rect &dstRect,
-                              LocalMutex &fbLock)
+                              std::mutex &fbLock)
 {
   // shorcut
   const int bytesPerPixel = framebuffer.getBytesPerPixel();
@@ -70,7 +70,7 @@ Task<> HexTileDecoder::decode(AwaitableReader &reader,
         rawPixels.resize(bytesPerLine * tileRect.getHeight());
         co_await reader.readFully(rawPixels.data(), rawPixels.size());
 
-        AutoLock al(&fbLock);
+        std::lock_guard<std::mutex> lock(fbLock);
         for (int row = 0; row < tileRect.getHeight(); row++) {
           memcpy(framebuffer.getBufferPtr(tileRect.left, tileRect.top + row),
                  &rawPixels[row * bytesPerLine], bytesPerLine);
@@ -115,7 +115,7 @@ Task<> HexTileDecoder::decode(AwaitableReader &reader,
             throw Exception(_T("Server error in HexTile encoding: background color not accepted"));
         }
 
-        AutoLock al(&fbLock);
+        std::lock_guard<std::mutex> lock(fbLock);
         if (backgroundAccepted)
           framebuffer.fillRect(tileRect, background);
         for (const SubRect &subRect : subRects) {

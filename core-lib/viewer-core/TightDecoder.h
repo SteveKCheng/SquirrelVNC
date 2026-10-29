@@ -46,7 +46,7 @@ protected:
   Task<> decode(AwaitableReader &reader,
                 FrameBuffer &frameBuffer,
                 const Rect &dstRect,
-                LocalMutex &fbLock) override;
+                std::mutex &fbLock) override;
 
 private:
   void reset();
@@ -72,12 +72,12 @@ private:
   Task<> processJpeg(AwaitableReader &reader,
                      FrameBuffer &frameBuffer,
                      const Rect &dstRect,
-                     LocalMutex &fbLock);
+                     std::mutex &fbLock);
   Task<> processBasicTypes(AwaitableReader &reader,
                            FrameBuffer &frameBuffer,
                            const Rect &dstRect,
                            UINT8 compControl,
-                           LocalMutex &fbLock);
+                           std::mutex &fbLock);
   Task<> readTightData(AwaitableReader &reader,
                        std::vector<UINT8> &buffer,
                        size_t expectedLength,

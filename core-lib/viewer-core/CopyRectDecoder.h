@@ -42,7 +42,7 @@ protected:
   Task<> decode(AwaitableReader &reader,
                 FrameBuffer &frameBuffer,
                 const Rect &dstRect,
-                LocalMutex &fbLock) override;
+                std::mutex &fbLock) override;
 
 private:
   // This Point save left-top corner of copy-rectangle.

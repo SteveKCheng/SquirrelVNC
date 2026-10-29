@@ -156,7 +156,7 @@ Task<> FuzzSession::readServerInit()
 {
   RfbParsing::ServerInit serverInit =
     co_await RfbParsing::readServerInit(*m_reader, m_logWriter);
-  AutoLock al(&m_fbLock);
+  std::lock_guard<std::mutex> lock(m_fbLock);
   setFrameBuffer(serverInit.dimension, serverInit.pixelFormat);
 }
 
@@ -245,7 +245,7 @@ Task<> FuzzSession::readPseudoEncoding(const Rect &rect, int encodingType)
   switch (encodingType) {
   case PseudoEncDefs::DESKTOP_SIZE:
     {
-      AutoLock al(&m_fbLock);
+      std::lock_guard<std::mutex> lock(m_fbLock);
       Dimension dimension(rect);
       PixelFormat pixelFormat = m_frameBuffer->getPixelFormat();
       setFrameBuffer(dimension, pixelFormat);

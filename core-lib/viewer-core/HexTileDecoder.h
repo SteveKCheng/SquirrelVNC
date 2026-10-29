@@ -53,7 +53,7 @@ protected:
   Task<> decode(AwaitableReader &reader,
                 FrameBuffer &framebuffer,
                 const Rect &dstRect,
-                LocalMutex &fbLock) override;
+                std::mutex &fbLock) override;
 private:
   static const int TILE_SIZE = 16;
 

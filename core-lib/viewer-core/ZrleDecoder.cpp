@@ -41,7 +41,7 @@ ZrleDecoder::~ZrleDecoder()
 Task<> ZrleDecoder::decode(AwaitableReader &reader,
                            FrameBuffer &frameBuffer,
                            const Rect &dstRect,
-                           LocalMutex &fbLock)
+                           std::mutex &fbLock)
 {
   size_t maxUnpackedSize = getMaxSizeOfRectangle(dstRect);
   co_await readAndInflate(reader, maxUnpackedSize);
@@ -137,7 +137,7 @@ Task<> ZrleDecoder::decode(AwaitableReader &reader,
         readPaletteRleTile(&unpackedDataStream, pixels, tileRect, type);
       }
 
-      AutoLock al(&fbLock);
+      std::lock_guard<std::mutex> lock(fbLock);
       drawTile(frameBuffer, tileRect, pixels);
     } // tile(x, y)
   } // tile(..., y)

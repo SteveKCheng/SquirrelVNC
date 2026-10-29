@@ -35,11 +35,11 @@ CopyRectDecoder::~CopyRectDecoder()
 Task<> CopyRectDecoder::decode(AwaitableReader &reader,
                                FrameBuffer &frameBuffer,
                                const Rect &dstRect,
-                               LocalMutex &fbLock)
+                               std::mutex &fbLock)
 {
   m_sourcePosition.x = co_await reader.readInt16();
   m_sourcePosition.y = co_await reader.readInt16();
 
-  AutoLock al(&fbLock);
+  std::lock_guard<std::mutex> lock(fbLock);
   frameBuffer.move(dstRect, m_sourcePosition.x, m_sourcePosition.y);
 }

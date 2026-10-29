@@ -33,12 +33,14 @@
 #include "thread/Thread.h"
 #include "win-system/WindowsEvent.h"
 
+#include <mutex>
+
 class CoreEventsAdapter;
 
 class FbUpdateNotifier : public Thread
 {
 public:
-  FbUpdateNotifier(FrameBuffer *fb, LocalMutex *fbLock, LogWriter *logger);
+  FbUpdateNotifier(FrameBuffer *fb, std::mutex *fbLock, LogWriter *logger);
   FbUpdateNotifier(const FbUpdateNotifier &) = delete;
   FbUpdateNotifier &operator=(const FbUpdateNotifier &) = delete;
   FbUpdateNotifier(FbUpdateNotifier &&) = delete;
@@ -56,7 +58,7 @@ protected:
   void execute() override;
   void onTerminate() override;
 
-  LocalMutex *m_fbLock;
+  std::mutex *m_fbLock;
   FrameBuffer *m_frameBuffer;
 
   // Pointer to adapter.

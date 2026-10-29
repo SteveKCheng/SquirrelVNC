@@ -37,7 +37,7 @@ DecoderOfRectangle::~DecoderOfRectangle()
 Task<> DecoderOfRectangle::process(AwaitableReader &reader,
                                    FrameBuffer &frameBuffer,
                                    const Rect &rect,
-                                   LocalMutex &fbLock,
+                                   std::mutex &fbLock,
                                    FbUpdateNotifier &fbNotifier)
 {
   co_await decode(reader, frameBuffer, rect, fbLock);

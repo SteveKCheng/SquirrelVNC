@@ -41,7 +41,7 @@ public:
   Task<> process(AwaitableReader &reader,
                  FrameBuffer &frameBuffer,
                  const Rect &rect,
-                 LocalMutex &fbLock,
+                 std::mutex &fbLock,
                  FbUpdateNotifier &fbNotifier) override;
 
 protected:
@@ -52,7 +52,7 @@ protected:
   Task<> decode(AwaitableReader &reader,
                 FrameBuffer &frameBuffer,
                 const Rect &rect,
-                LocalMutex &fbLock) override;
+                std::mutex &fbLock) override;
 
 private:
   static const size_t AREA_OF_ONE_PART = 1024 * 64;

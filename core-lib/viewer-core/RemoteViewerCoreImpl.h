@@ -625,13 +625,13 @@ private:
   // (notes/async-networking.md, Phase 4 step 7).
   bool m_wasConnected;
 
-  // This is general frame buffer of RemoteViewerCoreImpl and local mutex to change him.
-  // This frame buffer contain actual state of remote desktop.
-  // Cursor painted on him before calling CoreEventsAdapter::onFrameBufferUpdate()
-  // and erased after (thread FbUpdateNotifier).
+  // The frame buffer, which holds what the server shows (the decoders draw
+  // into it), and its lock.
   //
-  // Mutex m_fbLock must locked into only this thread, else may be deadlock.
-  LocalMutex m_fbLock;
+  // Guards the pixels of m_frameBuffer, which other threads read; its
+  // properties change only on the network thread, under the lock. Not
+  // recursive.
+  std::mutex m_fbLock;
   FrameBuffer m_frameBuffer;
 
   Dimension m_desktopSize;

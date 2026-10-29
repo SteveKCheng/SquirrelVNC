@@ -26,7 +26,6 @@
 #include "log-writer/LogWriter.h"
 #include "region/Dimension.h"
 #include "rfb/FrameBuffer.h"
-#include "thread/LocalMutex.h"
 #include "viewer-core/CursorImage.h"
 #include "viewer-core/DecoderStore.h"
 #include "io-lib/AwaitableReader.h"
@@ -34,6 +33,7 @@
 
 #include "FuzzNotifier.h"
 
+#include <mutex>
 #include <vector>
 
 //
@@ -138,7 +138,7 @@ private:
   // The last cursor shape of the current run.
   CursorImage m_cursor;
 
-  LocalMutex m_fbLock;
+  std::mutex m_fbLock;
 };
 
 #endif // _FUZZ_SESSION_H_

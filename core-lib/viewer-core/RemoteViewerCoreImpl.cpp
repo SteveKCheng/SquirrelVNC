@@ -299,7 +299,7 @@ bool RemoteViewerCoreImpl::updatePixelFormat()
   }
 
   {
-    AutoLock al(&m_fbLock);
+    std::lock_guard<std::mutex> lock(m_fbLock);
     PixelFormat fbPixelFormat = m_frameBuffer.getPixelFormat();
     bool isEqual = pxFormat.isEqualTo(fbPixelFormat);
     // Until the first SetPixelFormat, the frame buffer format may be a
@@ -347,7 +347,7 @@ void RemoteViewerCoreImpl::sendFbUpdateRequest(bool incremental)
   bool isIncremental = incremental && !isRefresh && !isUpdateFbProperties;
   Rect updateRect;
   {
-    AutoLock al(&m_fbLock);
+    std::lock_guard<std::mutex> lock(m_fbLock);
     updateRect = m_frameBuffer.getDimension().getRect();
   }
 
@@ -1158,7 +1158,7 @@ Task<> RemoteViewerCoreImpl::processPseudoEncoding(const Rect &rect,
   case PseudoEncDefs::DESKTOP_SIZE:
     m_logWriter.info(_T("Changed size of desktop"));
     {
-      AutoLock al(&m_fbLock);
+      std::lock_guard<std::mutex> lock(m_fbLock);
       Dimension dimension(rect);
       PixelFormat pixelFormat = m_frameBuffer.getPixelFormat();
       setFbProperties(dimension, pixelFormat);
@@ -1347,7 +1347,7 @@ Task<> RemoteViewerCoreImpl::clientAndServerInit()
   RfbParsing::ServerInit serverInit =
     co_await RfbParsing::readServerInit(m_reader, m_logWriter);
   {
-    AutoLock al(&m_fbLock);
+    std::lock_guard<std::mutex> lock(m_fbLock);
     setFbProperties(serverInit.dimension, serverInit.pixelFormat);
   }
 
@@ -1741,7 +1741,7 @@ void RemoteViewerCoreImpl::handle(const StopUpdatingEvent &event)
 
 void RemoteViewerCoreImpl::copyFrameBuffer(FrameBuffer &dst)
 {
-  AutoLock al(&m_fbLock);
+  std::lock_guard<std::mutex> lock(m_fbLock);
   if (!dst.clone(m_frameBuffer)) {
     throw Exception(_T("Failed to copy the frame buffer"));
   }

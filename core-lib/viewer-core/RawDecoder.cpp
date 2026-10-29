@@ -39,7 +39,7 @@ RawDecoder::~RawDecoder()
 Task<> RawDecoder::process(AwaitableReader &reader,
                            FrameBuffer &frameBuffer,
                            const Rect &rect,
-                           LocalMutex &fbLock,
+                           std::mutex &fbLock,
                            FbUpdateNotifier &fbNotifier)
 {
   // If area of rectangle is 0, then exit from process: nothing update.
@@ -75,7 +75,7 @@ Task<> RawDecoder::process(AwaitableReader &reader,
 Task<> RawDecoder::decode(AwaitableReader &reader,
                      FrameBuffer &frameBuffer,
                      const Rect &rect,
-                     LocalMutex &fbLock)
+                     std::mutex &fbLock)
 {
   size_t bytesPerPixel = frameBuffer.getPixelFormat().bitsPerPixel / 8;
   size_t bytesPerLine = bytesPerPixel * rect.getWidth();
@@ -88,7 +88,7 @@ Task<> RawDecoder::decode(AwaitableReader &reader,
   }
   co_await reader.readFully(pixels.data(), pixels.size());
 
-  AutoLock al(&fbLock);
+  std::lock_guard<std::mutex> lock(fbLock);
   for (int y = 0; y < rect.getHeight(); y++) {
     memcpy(frameBuffer.getBufferPtr(rect.left, rect.top + y),
            &pixels[y * bytesPerLine], bytesPerLine);

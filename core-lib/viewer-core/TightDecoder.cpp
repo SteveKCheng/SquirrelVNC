@@ -44,7 +44,7 @@ TightDecoder::~TightDecoder()
 Task<> TightDecoder::decode(AwaitableReader &reader,
                             FrameBuffer &fb,
                             const Rect &dstRect,
-                            LocalMutex &fbLock)
+                            std::mutex &fbLock)
 {
  // The width of any Tight-encoded rectangle cannot exceed 2048
  // pixels. If a rectangle is wider, it must be split into several rectangles
@@ -70,7 +70,7 @@ Task<> TightDecoder::decode(AwaitableReader &reader,
 
   if (compressionType == FILL_TYPE) {
     UINT32 color = co_await readTightPixel(reader, pf);
-    AutoLock al(&fbLock);
+    std::lock_guard<std::mutex> lock(fbLock);
     fb.fillRect(dstRect, color);
   } else if (compressionType == JPEG_TYPE) {
     co_await processJpeg(reader, fb, dstRect, fbLock);
@@ -150,7 +150,7 @@ Task<int> TightDecoder::readCompactSize(AwaitableReader &reader)
 Task<> TightDecoder::processJpeg(AwaitableReader &reader,
                                  FrameBuffer &frameBuffer,
                                  const Rect &dstRect,
-                                 LocalMutex &fbLock)
+                                 std::mutex &fbLock)
 {
   if (!ViewerBufferSize::fitsDecoderBuffer(dstRect.getWidth(), dstRect.getHeight(),
                                             JpegDecompressor::BYTES_PER_PIXEL)) {
@@ -172,10 +172,10 @@ Task<> TightDecoder::processJpeg(AwaitableReader &reader,
       m_jpeg.decompress(buffer, jpegBufLen, pixels, dstRect);
       if (m_isCPixel) {
         pixels = transformArray(frameBuffer.getPixelFormat(), pixels);
-        AutoLock al(&fbLock);
+        std::lock_guard<std::mutex> lock(fbLock);
         drawTightBytes(frameBuffer, pixels, dstRect);
       } else {
-        AutoLock al(&fbLock);
+        std::lock_guard<std::mutex> lock(fbLock);
         drawJpegBytes(frameBuffer, pixels, dstRect);
       }
     } catch (const Exception &ex) {
@@ -191,7 +191,7 @@ Task<> TightDecoder::processBasicTypes(AwaitableReader &reader,
                                        FrameBuffer &fb,
                                        const Rect &dstRect,
                                        UINT8 compressionControl,
-                                       LocalMutex &fbLock)
+                                       std::mutex &fbLock)
 {
   int decoderId = (compressionControl & STREAM_ID_MASK) >> 4;
   int filterId = COPY_FILTER;
@@ -214,7 +214,7 @@ Task<> TightDecoder::processBasicTypes(AwaitableReader &reader,
       buffer = transformArray(fb.getPixelFormat(), buffer);
     }
     {
-      AutoLock al(&fbLock);
+      std::lock_guard<std::mutex> lock(fbLock);
       drawTightBytes(fb, buffer, dstRect);
     }
     break;
@@ -231,7 +231,7 @@ Task<> TightDecoder::processBasicTypes(AwaitableReader &reader,
         dataLength = (dstRect.getWidth() + 7) / 8 * dstRect.getHeight();
       }
       co_await readTightData(reader, buffer, dataLength, decoderId);
-      AutoLock al(&fbLock);
+      std::lock_guard<std::mutex> lock(fbLock);
       drawPalette(fb, palette, buffer, dstRect);
     }
     break;
@@ -239,7 +239,7 @@ Task<> TightDecoder::processBasicTypes(AwaitableReader &reader,
   case GRADIENT_FILTER:
     co_await readTightData(reader, buffer, lengthCurrentBpp, decoderId);
     {
-      AutoLock al(&fbLock);
+      std::lock_guard<std::mutex> lock(fbLock);
       drawGradient(fb, buffer, dstRect);
     }
     break;

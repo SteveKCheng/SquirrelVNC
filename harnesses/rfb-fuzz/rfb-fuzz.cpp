@@ -33,7 +33,6 @@
 
 #include "log-writer/LogWriter.h"
 #include "rfb/FrameBuffer.h"
-#include "thread/LocalMutex.h"
 #include "util/ScopeExit.h"
 
 #include "FuzzNotifier.h"
@@ -43,6 +42,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <mutex>
 #include <vector>
 
 #ifdef _MSC_VER
@@ -56,7 +56,7 @@ static FuzzNotifier *getNotifier()
 {
   static LogWriter logWriter(nullptr);
   static FrameBuffer frameBuffer;
-  static LocalMutex fbLock;
+  static std::mutex fbLock;
   static FuzzNotifier notifier(&frameBuffer, &fbLock, &logWriter);
   return &notifier;
 }

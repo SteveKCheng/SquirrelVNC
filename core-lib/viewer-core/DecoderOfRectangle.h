@@ -59,7 +59,7 @@ public:
   virtual Task<> process(AwaitableReader &reader,
                          FrameBuffer &frameBuffer,
                          const Rect &rect,
-                         LocalMutex &fbLock,
+                         std::mutex &fbLock,
                          FbUpdateNotifier &fbNotifier);
 
 protected:
@@ -74,7 +74,7 @@ protected:
   virtual Task<> decode(AwaitableReader &reader,
                         FrameBuffer &frameBuffer,
                         const Rect &rect,
-                        LocalMutex &fbLock) = 0;
+                        std::mutex &fbLock) = 0;
 };
 
 #endif
