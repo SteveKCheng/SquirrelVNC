@@ -65,7 +65,6 @@ bool FrameBuffer::clone(const FrameBuffer &srcFrameBuffer)
 
 void FrameBuffer::setColor(UINT8 red, UINT8 green, UINT8 blue)
 {
-  int pixelSize = m_pixelFormat.bitsPerPixel / 8;
   UINT32 redPix = static_cast<UINT32>(red * m_pixelFormat.redMax / 255) <<
                   m_pixelFormat.redShift;
   UINT32 greenPix = static_cast<UINT32>(green * m_pixelFormat.greenMax / 255) <<
@@ -74,11 +73,7 @@ void FrameBuffer::setColor(UINT8 red, UINT8 green, UINT8 blue)
                    m_pixelFormat.blueShift;
   UINT32 color = redPix | greenPix | bluePix;
 
-  UINT8 *endPixPtr = (UINT8 *)m_buffer + getBufferSize();
-  UINT8 *pixPtr = (UINT8 *)m_buffer;
-  for (; pixPtr <= endPixPtr - pixelSize; pixPtr += pixelSize) {
-    memcpy(pixPtr, &color, pixelSize);
-  }
+  fillRect(m_dimension.getRect(), color);
 }
 
 void FrameBuffer::fillRect(const Rect &dstRect, UINT32 color)
@@ -171,19 +166,15 @@ bool FrameBuffer::copyFrom(const Rect &dstRect, const FrameBuffer &srcFrameBuffe
 
   // Shortcuts
   int pixelSize = m_pixelFormat.bitsPerPixel / 8;
-  int dstStrideBytes = m_dimension.width * pixelSize;
-  int srcStrideBytes = srcFrameBuffer.getDimension().width * pixelSize;
+  size_t dstStrideBytes = getBytesPerRow();
+  size_t srcStrideBytes = srcFrameBuffer.getBytesPerRow();
 
   int resultHeight = dstClippedRect.getHeight();
-  int resultWidthBytes = dstClippedRect.getWidth() * pixelSize;
+  size_t resultWidthBytes = static_cast<size_t>(dstClippedRect.getWidth()) * pixelSize;
 
-  UINT8 *pdst = (UINT8 *)m_buffer
-                + dstClippedRect.top * dstStrideBytes
-                + pixelSize * dstClippedRect.left;
-
-  UINT8 *psrc = (UINT8 *)srcFrameBuffer.getBuffer()
-                + srcClippedRect.top * srcStrideBytes
-                + pixelSize * srcClippedRect.left;
+  UINT8 *pdst = static_cast<UINT8 *>(getBufferPtr(dstClippedRect.left, dstClippedRect.top));
+  const UINT8 *psrc = static_cast<const UINT8 *>(
+    srcFrameBuffer.getBufferPtr(srcClippedRect.left, srcClippedRect.top));
 
   for (int i = 0; i < resultHeight; i++, pdst += dstStrideBytes, psrc += srcStrideBytes) {
     memcpy(pdst, psrc, resultWidthBytes);
@@ -215,19 +206,16 @@ bool FrameBuffer::cmpFrom(const Rect &dstRect, const FrameBuffer &srcFrameBuffer
 
   // Shortcuts
   int pixelSize = m_pixelFormat.bitsPerPixel / 8;
-  int dstStrideBytes = m_dimension.width * pixelSize;
-  int srcStrideBytes = srcFrameBuffer.getDimension().width * pixelSize;
+  size_t dstStrideBytes = getBytesPerRow();
+  size_t srcStrideBytes = srcFrameBuffer.getBytesPerRow();
 
   int resultHeight = dstClippedRect.getHeight();
-  int resultWidthBytes = dstClippedRect.getWidth() * pixelSize;
+  size_t resultWidthBytes = static_cast<size_t>(dstClippedRect.getWidth()) * pixelSize;
 
-  UINT8 *pdst = (UINT8 *)m_buffer
-                + dstClippedRect.top * dstStrideBytes
-                + pixelSize * dstClippedRect.left;
-
-  UINT8 *psrc = (UINT8 *)srcFrameBuffer.getBuffer()
-                + srcClippedRect.top * srcStrideBytes
-                + pixelSize * srcClippedRect.left;
+  const UINT8 *pdst = static_cast<const UINT8 *>(
+    getBufferPtr(dstClippedRect.left, dstClippedRect.top));
+  const UINT8 *psrc = static_cast<const UINT8 *>(
+    srcFrameBuffer.getBufferPtr(srcClippedRect.left, srcClippedRect.top));
 
   for (int i = 0; i < resultHeight; i++, pdst += dstStrideBytes, psrc += srcStrideBytes) {
     if (memcmp(pdst, psrc, resultWidthBytes) != 0) {
@@ -249,19 +237,17 @@ void FrameBuffer::move(const Rect &dstRect, const int srcX, const int srcY)
 
   // Data copy
   int pixelSize = m_pixelFormat.bitsPerPixel / 8;
-  int strideBytes = m_dimension.width * pixelSize;
+  size_t strideBytes = getBytesPerRow();
 
   int resultHeight = dstClippedRect.getHeight();
-  int resultWidthBytes = dstClippedRect.getWidth() * pixelSize;
+  size_t resultWidthBytes = static_cast<size_t>(dstClippedRect.getWidth()) * pixelSize;
 
   UINT8 *pdst, *psrc;
 
   if (srcY > dstRect.top) {
     // Pointers set to first string of the rectanles
-    pdst = (UINT8 *)m_buffer + dstClippedRect.top * strideBytes
-           + pixelSize * dstClippedRect.left;
-    psrc = (UINT8 *)m_buffer + srcClippedRect.top * strideBytes
-           + pixelSize * srcClippedRect.left;
+    pdst = static_cast<UINT8 *>(getBufferPtr(dstClippedRect.left, dstClippedRect.top));
+    psrc = static_cast<UINT8 *>(getBufferPtr(srcClippedRect.left, srcClippedRect.top));
 
     for (int i = 0; i < resultHeight; i++, pdst += strideBytes, psrc += strideBytes) {
       memcpy(pdst, psrc, resultWidthBytes);
@@ -269,10 +255,8 @@ void FrameBuffer::move(const Rect &dstRect, const int srcX, const int srcY)
 
   } else {
     // Pointers set to last string of the rectanles
-    pdst = (UINT8 *)m_buffer + (dstClippedRect.bottom - 1) * strideBytes
-           + pixelSize * dstClippedRect.left;
-    psrc = (UINT8 *)m_buffer + (srcClippedRect.bottom - 1) * strideBytes
-           + pixelSize * srcClippedRect.left;
+    pdst = static_cast<UINT8 *>(getBufferPtr(dstClippedRect.left, dstClippedRect.bottom - 1));
+    psrc = static_cast<UINT8 *>(getBufferPtr(srcClippedRect.left, srcClippedRect.bottom - 1));
 
     for (int i = resultHeight - 1; i >= 0; i--, pdst -= strideBytes, psrc -= strideBytes) {
       memmove(pdst, psrc, resultWidthBytes);
@@ -337,15 +321,18 @@ UINT8 FrameBuffer::getBytesPerPixel() const
 
 void *FrameBuffer::getBufferPtr(int x, int y) const
 {
-  char *ptr = (char *)m_buffer;
-  ptr += (y * m_dimension.width + x) * getBytesPerPixel();
-
-  return (void *)ptr;
+  return static_cast<char *>(m_buffer) + static_cast<size_t>(y) * getBytesPerRow() +
+         static_cast<size_t>(x) * getBytesPerPixel();
 }
 
-int FrameBuffer::getBufferSize() const
-{ 
-  return (int)((UINT64)m_dimension.area() * m_pixelFormat.bitsPerPixel / 8);
+size_t FrameBuffer::getBytesPerRow() const
+{
+  return static_cast<size_t>(m_dimension.width) * getBytesPerPixel();
+}
+
+size_t FrameBuffer::getBufferSize() const
+{
+  return getBytesPerRow() * m_dimension.height;
 }
 
 bool FrameBuffer::resizeBuffer()

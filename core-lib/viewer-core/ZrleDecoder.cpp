@@ -345,17 +345,19 @@ void ZrleDecoder::drawTile(FrameBuffer &fb,
 {
   const int width = tileRect.getWidth();
   const char *pixelsPtr = &pixels.front();
+  char *rowPtr = static_cast<char *>(fb.getBufferPtr(tileRect.left, tileRect.top));
 
   if (m_bytesPerPixel != 3) {
     const size_t bytesPerRow = width * m_bytesPerPixel;
-    for (int y = 0; y < tileRect.getHeight(); y++, pixelsPtr += bytesPerRow) {
-      memcpy(fb.getBufferPtr(tileRect.left, tileRect.top + y), pixelsPtr, bytesPerRow);
+    for (int y = 0; y < tileRect.getHeight();
+         y++, pixelsPtr += bytesPerRow, rowPtr += fb.getBytesPerRow()) {
+      memcpy(rowPtr, pixelsPtr, bytesPerRow);
     }
     return;
   }
   // 3-byte CPIXELs: the low 3 bytes of a 4-byte pixel (see decode()).
-  for (int y = 0; y < tileRect.getHeight(); y++) {
-    char *bufferPtr = static_cast<char *>(fb.getBufferPtr(tileRect.left, tileRect.top + y));
+  for (int y = 0; y < tileRect.getHeight(); y++, rowPtr += fb.getBytesPerRow()) {
+    char *bufferPtr = rowPtr;
     for (int x = 0; x < width; x++, pixelsPtr += 3, bufferPtr += 4) {
       memcpy(bufferPtr, pixelsPtr, 3);
       bufferPtr[3] = 0;

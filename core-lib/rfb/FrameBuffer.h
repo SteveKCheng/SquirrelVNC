@@ -122,11 +122,15 @@ public:
   // pixel. getBufferPtr(0, 0) should be equivalent to getBuffer(). This
   // function does not check if the coordinates are within the frame buffer
   // boundaries.
+  // Post-conditions: getBufferPtr(x, y + 1) is getBytesPerRow() bytes past
+  // getBufferPtr(x, y): code that walks down the rows advances by that.
   virtual void *getBufferPtr(int x, int y) const;
 
-  virtual inline int getBufferSize() const;
-  virtual inline int getBytesPerRow() const { return m_dimension.width *
-                                             m_pixelFormat.bitsPerPixel / 8; }
+  // The size of the buffer: getBytesPerRow() * height.
+  size_t getBufferSize() const;
+  // The distance in bytes from a pixel to the one below it. Never less
+  // than width * getBytesPerPixel().
+  size_t getBytesPerRow() const;
 
 protected:
   // Post-conditions: getBuffer() is a new buffer of getBufferSize() bytes,

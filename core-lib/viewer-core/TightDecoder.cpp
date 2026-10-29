@@ -331,8 +331,9 @@ void TightDecoder::drawPalette(FrameBuffer &fb,
   if (palette.size() == 2) {
     // One bit a pixel, the first in the high bit; rows of whole bytes.
     const size_t indexBytesPerRow = (width + 7) / 8;
-    for (int y = 0; y < height; y++) {
-      char *pixelPtr = static_cast<char *>(fb.getBufferPtr(dstRect.left, dstRect.top + y));
+    char *rowPtr = static_cast<char *>(fb.getBufferPtr(dstRect.left, dstRect.top));
+    for (int y = 0; y < height; y++, rowPtr += fb.getBytesPerRow()) {
+      char *pixelPtr = rowPtr;
       const UINT8 *indices = &pixels[y * indexBytesPerRow];
       for (int x = 0; x < width; x++, pixelPtr += bytesPerPixel) {
         int index = (indices[x / 8] >> (7 - x % 8)) & 0x01;
@@ -340,8 +341,9 @@ void TightDecoder::drawPalette(FrameBuffer &fb,
       }
     }
   } else { // size of palette != 2
-    for (int y = 0; y < height; y++) {
-      char *pixelPtr = static_cast<char *>(fb.getBufferPtr(dstRect.left, dstRect.top + y));
+    char *rowPtr = static_cast<char *>(fb.getBufferPtr(dstRect.left, dstRect.top));
+    for (int y = 0; y < height; y++, rowPtr += fb.getBytesPerRow()) {
+      char *pixelPtr = rowPtr;
       const UINT8 *indices = &pixels[static_cast<size_t>(y) * width];
       for (int x = 0; x < width; x++, pixelPtr += bytesPerPixel) {
         if (indices[x] < palette.size()) {
@@ -359,9 +361,9 @@ void TightDecoder::drawTightBytes(FrameBuffer &fb,
                                   const Rect &dstRect)
 {
   const size_t bytesPerRow = static_cast<size_t>(dstRect.getWidth()) * fb.getBytesPerPixel();
-  for (int y = 0; y < dstRect.getHeight(); y++) {
-    memcpy(fb.getBufferPtr(dstRect.left, dstRect.top + y), &pixels[y * bytesPerRow],
-           bytesPerRow);
+  char *rowPtr = static_cast<char *>(fb.getBufferPtr(dstRect.left, dstRect.top));
+  for (int y = 0; y < dstRect.getHeight(); y++, rowPtr += fb.getBytesPerRow()) {
+    memcpy(rowPtr, &pixels[y * bytesPerRow], bytesPerRow);
   }
 }
 
@@ -374,8 +376,9 @@ void TightDecoder::drawJpegBytes(FrameBuffer &fb,
   const PixelFormat pxFormat = fb.getPixelFormat();
 
   const UINT8 *rgb = pixels.data();
-  for (int y = 0; y < dstRect.getHeight(); y++) {
-    char *pixelPtr = static_cast<char *>(fb.getBufferPtr(dstRect.left, dstRect.top + y));
+  char *rowPtr = static_cast<char *>(fb.getBufferPtr(dstRect.left, dstRect.top));
+  for (int y = 0; y < dstRect.getHeight(); y++, rowPtr += fb.getBytesPerRow()) {
+    char *pixelPtr = rowPtr;
     for (int x = 0; x < width; x++, rgb += 3, pixelPtr += fbBytesPerPixel) {
       UINT32 pixel = (((UINT32)rgb[0] * pxFormat.redMax + 127) / 255 << pxFormat.redShift |
                      ((UINT32)rgb[1] * pxFormat.greenMax + 127) / 255 << pxFormat.greenShift |
@@ -428,11 +431,12 @@ void TightDecoder::drawGradient(FrameBuffer &fb,
   UINT16 shift[3] = {pxFormat.redShift, pxFormat.greenShift, pxFormat.blueShift};
   size_t pixelOffset = 0;
 
-  for (int i = 0; i < dstRect.getHeight(); ++i) {
+  char *rowPtr = static_cast<char *>(fb.getBufferPtr(dstRect.left, dstRect.top));
+  for (int i = 0; i < dstRect.getHeight(); ++i, rowPtr += fb.getBytesPerRow()) {
     // exchange thisRow and prevRow:
     RowType &thisRow = opRows[opRowIndex];
     RowType &prevRow = opRows[opRowIndex = (opRowIndex + 1) % 2];
-    char *pixelPtr = static_cast<char *>(fb.getBufferPtr(dstRect.left, dstRect.top + i));
+    char *pixelPtr = rowPtr;
 
     for (size_t j = 3; j < opRowLength; j += 3, pixelOffset += bytesPerCPixel) {
       UINT8 rawColor[3];

@@ -69,9 +69,11 @@ Task<> HexTileDecoder::decode(AwaitableReader &reader,
         rawPixels.resize(bytesPerLine * tileRect.getHeight());
         co_await reader.readFully(rawPixels.data(), rawPixels.size());
 
-        for (int row = 0; row < tileRect.getHeight(); row++) {
-          memcpy(framebuffer.getBufferPtr(tileRect.left, tileRect.top + row),
-                 &rawPixels[row * bytesPerLine], bytesPerLine);
+        UINT8 *rowPtr = static_cast<UINT8 *>(framebuffer.getBufferPtr(tileRect.left,
+                                                                      tileRect.top));
+        for (int row = 0; row < tileRect.getHeight();
+             row++, rowPtr += framebuffer.getBytesPerRow()) {
+          memcpy(rowPtr, &rawPixels[row * bytesPerLine], bytesPerLine);
         }
       } else {
         if (flags & 0x2) {

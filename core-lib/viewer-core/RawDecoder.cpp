@@ -83,8 +83,8 @@ Task<> RawDecoder::decode(AwaitableReader &reader,
   }
   co_await reader.readFully(pixels.data(), pixels.size());
 
-  for (int y = 0; y < rect.getHeight(); y++) {
-    memcpy(frameBuffer.getBufferPtr(rect.left, rect.top + y),
-           &pixels[y * bytesPerLine], bytesPerLine);
+  char *rowPtr = static_cast<char *>(frameBuffer.getBufferPtr(rect.left, rect.top));
+  for (int y = 0; y < rect.getHeight(); y++, rowPtr += frameBuffer.getBytesPerRow()) {
+    memcpy(rowPtr, &pixels[y * bytesPerLine], bytesPerLine);
   }
 }

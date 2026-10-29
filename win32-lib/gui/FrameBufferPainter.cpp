@@ -83,9 +83,9 @@ void FrameBufferPainter::paint(HDC hdc, const FrameBuffer &fb, const Rect &src, 
   const void *bits = fb.getBufferPtr(0, src.top);
   if (dibBytesPerRow != bytesPerRow) {
     m_alignedRows.resize(dibBytesPerRow * src.getHeight());
-    for (int y = 0; y < src.getHeight(); y++) {
-      memcpy(&m_alignedRows[y * dibBytesPerRow], fb.getBufferPtr(0, src.top + y),
-             bytesPerRow);
+    const BYTE *rowPtr = static_cast<const BYTE *>(bits);
+    for (int y = 0; y < src.getHeight(); y++, rowPtr += bytesPerRow) {
+      memcpy(&m_alignedRows[y * dibBytesPerRow], rowPtr, bytesPerRow);
     }
     bits = m_alignedRows.data();
   }
