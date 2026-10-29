@@ -29,6 +29,7 @@
 
 #include "io-lib/ByteArrayInputStream.h"
 #include "log-writer/Logger.h"
+#include "rfb/FrameBuffer.h"
 #include "util/Exception.h"
 #include "util/ScopeExit.h"
 #include "util/TextEncoding.h"
@@ -72,6 +73,9 @@ static const TCHAR USAGE[] =
   _T("  --ppm FILE         final frame buffer as PPM\n")
   _T("  --password TEXT    for VNC authentication (default: password)\n")
   _T("  --max-pixels N     frame buffer limit (default: 4096 x 4096)\n")
+  _T("  --row-alignment N  frame buffer rows at multiples of 2^N bytes\n")
+  _T("                     (default: 3, so that rows of every pixel size\n")
+  _T("                     have bytes past their pixels at some widths)\n")
   _T("  --timeout SECONDS  give up on a session that has not ended\n")
   _T("                     (default: 30)\n")
   _T("  --log LEVEL        core log on stderr, 0 to 9 (default: 1, errors)\n")
@@ -136,6 +140,7 @@ struct Options
   StringStorage password = _T("password");
   bool isPasswordGiven = false;
   UINT64 maxPixels = 4096 * 4096;
+  unsigned int rowAlignmentLog2 = 3;
   DWORD timeoutMs = 30 * 1000;
   int logLevel = 1;
   // 0: the input in as few pieces as the core asks for.
@@ -178,6 +183,13 @@ static bool parseOptions(int argc, TCHAR *argv[], Options *options)
         options->isPasswordGiven = true;
       } else if (_tcscmp(arg, _T("--max-pixels")) == 0) {
         options->maxPixels = _tcstoui64(value, nullptr, 10);
+      } else if (_tcscmp(arg, _T("--row-alignment")) == 0) {
+        options->rowAlignmentLog2 = static_cast<unsigned int>(_tcstoul(value, nullptr, 10));
+        if (options->rowAlignmentLog2 > FrameBuffer::MAX_ROW_ALIGNMENT_LOG2) {
+          _ftprintf(stderr, _T("--row-alignment is at most %u\n\n%s"),
+                    FrameBuffer::MAX_ROW_ALIGNMENT_LOG2, USAGE);
+          return false;
+        }
       } else if (_tcscmp(arg, _T("--timeout")) == 0) {
         options->timeoutMs = static_cast<DWORD>(_tcstoul(value, nullptr, 10)) * 1000;
       } else if (_tcscmp(arg, _T("--log")) == 0) {
@@ -508,11 +520,13 @@ int _tmain(int argc, TCHAR *argv[])
   std::vector<char> ppm;
   try {
     authHandler.addAuthCapability(core->getCapabilitiesManager());
+    RemoteViewerCore::StartupOptions startupOptions;
+    startupOptions.maxFrameBufferPixels = options.maxPixels;
+    startupOptions.rowAlignmentLog2 = options.rowAlignmentLog2;
     if (server) {
-      core->start(_T("127.0.0.1"), server->getPort(), adapterRef, true,
-                  options.maxPixels);
+      core->start(_T("127.0.0.1"), server->getPort(), adapterRef, startupOptions);
     } else {
-      core->start(inputStream.get(), &outputStream, adapterRef, true, options.maxPixels);
+      core->start(inputStream.get(), &outputStream, adapterRef, startupOptions);
     }
     adapterRef.reset();
 

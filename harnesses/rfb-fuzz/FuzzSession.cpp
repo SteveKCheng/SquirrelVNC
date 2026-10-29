@@ -112,6 +112,7 @@ FuzzSession::Outcome FuzzSession::runOnce(InputStream &stream)
 
   // A new frame buffer for each input too: before ServerInit it is empty.
   FrameBuffer frameBuffer;
+  frameBuffer.setRowAlignmentLog2(ROW_ALIGNMENT_LOG2);
 
   m_reader = &reader;
   m_frameBuffer = &frameBuffer;
@@ -127,9 +128,15 @@ FuzzSession::Outcome FuzzSession::runOnce(InputStream &stream)
   }
   outcome.dimension = frameBuffer.getDimension();
   outcome.pixelFormat = frameBuffer.getPixelFormat();
-  const char *pixels = static_cast<const char *>(frameBuffer.getBuffer());
-  if (pixels != nullptr) {
-    outcome.pixels.assign(pixels, pixels + frameBuffer.getBufferSize());
+  // Row by row: the bytes past each row's pixels hold nothing in
+  // particular.
+  if (frameBuffer.getBuffer() != nullptr) {
+    const size_t pixelBytesPerRow =
+      static_cast<size_t>(outcome.dimension.width) * frameBuffer.getBytesPerPixel();
+    for (int y = 0; y < outcome.dimension.height; y++) {
+      const char *row = static_cast<const char *>(frameBuffer.getBufferPtr(0, y));
+      outcome.pixels.insert(outcome.pixels.end(), row, row + pixelBytesPerRow);
+    }
   }
   outcome.cursor = m_cursor;
   m_reader = nullptr;
@@ -162,7 +169,7 @@ void FuzzSession::setFrameBuffer(const Dimension &dimension,
                                  const PixelFormat &pixelFormat)
 {
   RfbParsing::checkFrameBufferProperties(dimension, pixelFormat,
-                                       MAX_FRAME_BUFFER_PIXELS);
+                                       MAX_FRAME_BUFFER_PIXELS, ROW_ALIGNMENT_LOG2);
   if (!m_frameBuffer->setProperties(dimension, pixelFormat)) {
     throw Exception(_T("Failed to set property frame buffer"));
   }

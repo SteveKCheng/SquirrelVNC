@@ -61,10 +61,17 @@ class FuzzSession final
 public:
   //
   // The largest frame buffer accepted, in pixels, so that runs stay fast.
-  // The viewer's own limit is far larger (the maxFrameBufferPixels
-  // argument of RemoteViewerCore::start()).
+  // The viewer's own limit is far larger
+  // (RemoteViewerCore::StartupOptions::maxFrameBufferPixels).
   //
   static const UINT64 MAX_FRAME_BUFFER_PIXELS = 256 * 256;
+
+  //
+  // The frame buffer's row alignment: 8 bytes, more than the GUI's 4, so
+  // that rows of every pixel size have bytes past their pixels at some
+  // widths, and code that walks the rows by width finds the wrong pixels.
+  //
+  static const unsigned int ROW_ALIGNMENT_LOG2 = 3;
 
   FuzzSession();
   ~FuzzSession();

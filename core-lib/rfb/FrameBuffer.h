@@ -34,6 +34,17 @@
 class FrameBuffer
 {
 public:
+  // The largest row alignment, as a power of 2: rows at multiples of 4 KiB.
+  static const unsigned int MAX_ROW_ALIGNMENT_LOG2 = 12;
+
+  // The bytes from a pixel to the one below it, in a frame buffer of
+  // width pixels of bytesPerPixel bytes with rows aligned to
+  // 2^rowAlignmentLog2 bytes: width * bytesPerPixel, rounded up to a
+  // multiple of the alignment.
+  // Pre-conditions: width and bytesPerPixel are not negative;
+  // rowAlignmentLog2 <= MAX_ROW_ALIGNMENT_LOG2.
+  static UINT64 bytesPerRowFor(int width, int bytesPerPixel, unsigned int rowAlignmentLog2);
+
   FrameBuffer(void);
   FrameBuffer(const FrameBuffer &) = delete;
   FrameBuffer &operator=(const FrameBuffer &) = delete;
@@ -128,9 +139,22 @@ public:
 
   // The size of the buffer: getBytesPerRow() * height.
   size_t getBufferSize() const;
-  // The distance in bytes from a pixel to the one below it. Never less
-  // than width * getBytesPerPixel().
+  // The distance in bytes from a pixel to the one below it:
+  // bytesPerRowFor() the width, pixel size and row alignment. The bytes
+  // past a row's pixels, if any, are part of the buffer but hold nothing
+  // in particular: nothing here reads or writes them.
   size_t getBytesPerRow() const;
+
+  // Sets the row alignment: each row starts a multiple of
+  // 2^rowAlignmentLog2 bytes from the start of the buffer (0: rows follow
+  // one another with no gap). The default is 0. It is this frame
+  // buffer's own: assignProperties() and clone() keep it.
+  // Pre-conditions: rowAlignmentLog2 <= MAX_ROW_ALIGNMENT_LOG2; the next
+  // call is one that allocates the buffer (setProperties(),
+  // setDimension(), setPixelFormat(), assignProperties() or clone()), as
+  // the buffer's layout changes with it.
+  void setRowAlignmentLog2(unsigned int rowAlignmentLog2);
+  unsigned int getRowAlignmentLog2() const { return m_rowAlignmentLog2; }
 
 protected:
   // Post-conditions: getBuffer() is a new buffer of getBufferSize() bytes,
@@ -147,6 +171,8 @@ protected:
   Dimension m_dimension;
 
   PixelFormat m_pixelFormat;
+  // See setRowAlignmentLog2().
+  unsigned int m_rowAlignmentLog2;
   // The pixels: m_ownBuffer's, or a buffer given to setBuffer().
   void *m_buffer;
   std::unique_ptr<UINT8[]> m_ownBuffer;

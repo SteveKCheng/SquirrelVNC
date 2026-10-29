@@ -37,26 +37,23 @@ RemoteViewerCore::~RemoteViewerCore()
 
 void RemoteViewerCore::start(InputStream *input, OutputStream *output,
                              std::shared_ptr<CoreEventsAdapter> adapter,
-                             bool sharedFlag,
-                             UINT64 maxFrameBufferPixels)
+                             const StartupOptions &options)
 {
-  m_impl->start(input, output, std::move(adapter), sharedFlag, maxFrameBufferPixels);
+  m_impl->start(input, output, std::move(adapter), options);
 }
 
 void RemoteViewerCore::start(const TCHAR *host, UINT16 port,
                              std::shared_ptr<CoreEventsAdapter> adapter,
-                             bool sharedFlag,
-                             UINT64 maxFrameBufferPixels)
+                             const StartupOptions &options)
 {
-  m_impl->start(host, port, std::move(adapter), sharedFlag, maxFrameBufferPixels);
+  m_impl->start(host, port, std::move(adapter), options);
 }
 
 void RemoteViewerCore::start(asio::ip::tcp::socket socket,
                              std::shared_ptr<CoreEventsAdapter> adapter,
-                             bool sharedFlag,
-                             UINT64 maxFrameBufferPixels)
+                             const StartupOptions &options)
 {
-  m_impl->start(std::move(socket), std::move(adapter), sharedFlag, maxFrameBufferPixels);
+  m_impl->start(std::move(socket), std::move(adapter), options);
 }
 
 void RemoteViewerCore::stop()

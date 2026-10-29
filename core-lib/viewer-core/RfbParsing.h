@@ -100,13 +100,15 @@ namespace RfbParsing
   // ServerInit or in a DesktopSize rectangle.
   //
   // Post-conditions: returns if pixelFormat is valid and the frame buffer,
-  // and the viewer's buffers derived from it, fit: at most maxPixels
-  // pixels, and ViewerBufferSize::fitsFrameBuffer().
+  // with its rows aligned to 2^rowAlignmentLog2 bytes, and the viewer's
+  // buffers derived from it, fit: at most maxPixels pixels, and
+  // ViewerBufferSize::fitsFrameBuffer().
   // Throws Exception otherwise.
   //
   void checkFrameBufferProperties(const Dimension &dimension,
                                   const PixelFormat &pixelFormat,
-                                  UINT64 maxPixels);
+                                  UINT64 maxPixels,
+                                  unsigned int rowAlignmentLog2);
 
   //
   // Reads the type of the next server message: one byte, or for TightVNC's

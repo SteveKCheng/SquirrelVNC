@@ -111,6 +111,31 @@ public:
   ~RemoteViewerCore();
 
   //
+  // What the consumer chooses when it starts a connection (start()).
+  //
+  struct StartupOptions
+  {
+    // Whether the server may keep other viewers connected (ClientInit's
+    // shared-flag).
+    bool sharedFlag = true;
+
+    // The largest frame buffer the server may ask for, in pixels
+    // (width * height), in ServerInit or in DesktopSize updates; a larger
+    // one ends the session with an Exception, reported through
+    // CoreEventsAdapter::onError().
+    UINT64 maxFrameBufferPixels = ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS;
+
+    // Each row of the frame buffer starts a multiple of 2^rowAlignmentLog2
+    // bytes from the start of the buffer, as a consumer that paints the
+    // pixels may need (a Windows DIB's rows are whole 32-bit words: 2).
+    // FrameBuffer::getBytesPerRow() is the row length that results; any
+    // bytes past a row's pixels hold nothing in particular. 0: rows are
+    // exactly their pixels, with no alignment. At most
+    // FrameBuffer::MAX_ROW_ALIGNMENT_LOG2.
+    unsigned int rowAlignmentLog2 = 0;
+  };
+
+  //
   // Each overloaded start() function actually starts operation.
   //
   // All start() functions attach the object to the specified data connection
@@ -125,10 +150,9 @@ public:
   // calling thread. Only one of these functions should be called, and it
   // should be called just once.
   //
-  // maxFrameBufferPixels is the largest frame buffer the server may ask
-  // for, in pixels (width * height), in ServerInit or in DesktopSize
-  // updates; a larger one ends the session with an Exception, reported
-  // through CoreEventsAdapter::onError().
+  // options are the consumer's choices (StartupOptions). Throws Exception
+  // if they are out of range (rowAlignmentLog2 too large), before
+  // starting anything.
   //
   // On various events, corresponding callback functions will be called via
   // the CoreEventsAdapter interface (the adapter). To receive these
@@ -177,8 +201,7 @@ public:
   //
   void start(InputStream *input, OutputStream *output,
              std::shared_ptr<CoreEventsAdapter> adapter,
-             bool sharedFlag = true,
-             UINT64 maxFrameBufferPixels = ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS);
+             const StartupOptions &options);
 
   //
   // This version initiates new TCP connection to the specified host and port,
@@ -187,8 +210,7 @@ public:
   //
   void start(const TCHAR *host, UINT16 port,
              std::shared_ptr<CoreEventsAdapter> adapter,
-             bool sharedFlag = true,
-             UINT64 maxFrameBufferPixels = ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS);
+             const StartupOptions &options);
 
   //
   // This version expects a connected TCP socket. For example, it can be used
@@ -201,8 +223,7 @@ public:
   //
   void start(asio::ip::tcp::socket socket,
              std::shared_ptr<CoreEventsAdapter> adapter,
-             bool sharedFlag = true,
-             UINT64 maxFrameBufferPixels = ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS);
+             const StartupOptions &options);
 
   //
   // Stop operation: cancels the connection, on the network thread, whatever

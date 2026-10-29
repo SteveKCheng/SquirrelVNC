@@ -22,6 +22,7 @@
 //
 
 #include "FrameBuffer.h"
+#include <cassert>
 #include <string.h>
 
 // Returns true if pf is equal to the pixel format of fb.  getPixelFormat()
@@ -33,8 +34,17 @@ static inline bool hasPixelFormatOf(const PixelFormat &pf, const FrameBuffer &fb
   return pf.isEqualTo(fbPixelFormat);
 }
 
+UINT64 FrameBuffer::bytesPerRowFor(int width, int bytesPerPixel,
+                                   unsigned int rowAlignmentLog2)
+{
+  assert(width >= 0 && bytesPerPixel >= 0 && rowAlignmentLog2 <= MAX_ROW_ALIGNMENT_LOG2);
+  const UINT64 alignmentMask = (static_cast<UINT64>(1) << rowAlignmentLog2) - 1;
+  return (static_cast<UINT64>(width) * bytesPerPixel + alignmentMask) & ~alignmentMask;
+}
+
 FrameBuffer::FrameBuffer(void)
-: m_buffer(nullptr)
+: m_rowAlignmentLog2(0),
+  m_buffer(nullptr)
 {
   memset(&m_pixelFormat, 0, sizeof(m_pixelFormat));
 }
@@ -327,7 +337,14 @@ void *FrameBuffer::getBufferPtr(int x, int y) const
 
 size_t FrameBuffer::getBytesPerRow() const
 {
-  return static_cast<size_t>(m_dimension.width) * getBytesPerPixel();
+  return static_cast<size_t>(bytesPerRowFor(m_dimension.width, getBytesPerPixel(),
+                                            m_rowAlignmentLog2));
+}
+
+void FrameBuffer::setRowAlignmentLog2(unsigned int rowAlignmentLog2)
+{
+  assert(rowAlignmentLog2 <= MAX_ROW_ALIGNMENT_LOG2);
+  m_rowAlignmentLog2 = rowAlignmentLog2;
 }
 
 size_t FrameBuffer::getBufferSize() const

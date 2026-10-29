@@ -118,7 +118,8 @@ Task<ServerInit> readServerInit(AwaitableReader &reader, LogWriter &logWriter)
 
 void checkFrameBufferProperties(const Dimension &dimension,
                                 const PixelFormat &pixelFormat,
-                                UINT64 maxPixels)
+                                UINT64 maxPixels,
+                                unsigned int rowAlignmentLog2)
 {
   const int width = dimension.width;
   const int height = dimension.height;
@@ -127,7 +128,8 @@ void checkFrameBufferProperties(const Dimension &dimension,
   }
   if (static_cast<UINT64>(width) * height > maxPixels ||
       !ViewerBufferSize::fitsFrameBuffer(width, height,
-                                         pixelFormat.bitsPerPixel / 8)) {
+                                         pixelFormat.bitsPerPixel / 8,
+                                         rowAlignmentLog2)) {
     throw Exception(_T("Framebuffer is too large"));
   }
 }

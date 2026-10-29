@@ -41,6 +41,7 @@
 #include "ClientEvents.h"
 #include "FrameBufferAccess.h"
 #include "QueuedOutputStream.h"
+#include "RemoteViewerCore.h"
 #include "ServerMessageListener.h"
 #include "ViewerBufferSize.h"
 
@@ -86,18 +87,15 @@ public:
 
   void start(InputStream *input, OutputStream *output,
              std::shared_ptr<CoreEventsAdapter> adapter,
-             bool sharedFlag,
-             UINT64 maxFrameBufferPixels);
+             const RemoteViewerCore::StartupOptions &options);
 
   void start(const TCHAR *host, UINT16 port,
              std::shared_ptr<CoreEventsAdapter> adapter,
-             bool sharedFlag,
-             UINT64 maxFrameBufferPixels);
+             const RemoteViewerCore::StartupOptions &options);
 
   void start(asio::ip::tcp::socket socket,
              std::shared_ptr<CoreEventsAdapter> adapter,
-             bool sharedFlag,
-             UINT64 maxFrameBufferPixels);
+             const RemoteViewerCore::StartupOptions &options);
 
   void stop();
 
@@ -357,8 +355,8 @@ private:
   //
   // This one includes common code reused by public start(...) functions.
   //
-  void start(std::shared_ptr<CoreEventsAdapter> adapter, bool sharedFlag,
-             UINT64 maxFrameBufferPixels);
+  void start(std::shared_ptr<CoreEventsAdapter> adapter,
+             const RemoteViewerCore::StartupOptions &options);
 
   //
   // RFB protocol implementation.
@@ -493,7 +491,8 @@ private:
   // Post-conditions: m_frameBuffer has the given size and format, filled
   // with black; the adapter is told (onFrameBufferPropChange()).
   // Throws Exception before changing the frame buffer if the size is
-  // negative, has more pixels than m_maxFrameBufferPixels or does not fit
+  // negative, has more pixels than m_options.maxFrameBufferPixels or does
+  // not fit
   // in memory (ViewerBufferSize::fitsFrameBuffer()), or the format is not
   // valid (PixelFormat::isValid()); and Exception if a buffer cannot be
   // set up.
@@ -612,9 +611,9 @@ private:
   // Set by start(). Consumer thread only (see wasStarted()).
   bool m_wasStarted;
 
-  // The frame buffer limit, in pixels. Set by start(), before the network
-  // thread reads it.
-  UINT64 m_maxFrameBufferPixels;
+  // What start() was given. Set by start(), before the network thread
+  // reads it; then read only.
+  RemoteViewerCore::StartupOptions m_options;
 
   // This flag is set after onConnected(). Network thread only (or, before
   // start(), the thread that calls it), like the fields below that have no
@@ -658,7 +657,6 @@ private:
 
   bool m_isNeedRequestUpdate;
 
-  bool m_sharedFlag;
   int m_major;
   int m_minor;
   bool m_isTightEnabled;

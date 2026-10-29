@@ -120,6 +120,9 @@ rfb-replay --check CASE
   --password TEXT    for VNC authentication (default: CASE.password
                      with --check, if it exists, otherwise "password")
   --max-pixels N     framebuffer limit (default: 4096 × 4096)
+  --row-alignment N  framebuffer rows at multiples of 2^N bytes (default:
+                     3, so that rows of every pixel size have bytes past
+                     their pixels at some widths)
   --timeout SECONDS  give up on a session that has not ended (default: 30)
   --log LEVEL        core log on stderr, 0 to 9 (default: 1, errors)
 ```

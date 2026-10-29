@@ -93,18 +93,18 @@ void ViewerInstance::start()
   // block, which keeps the core and what is registered with it alive.
   std::shared_ptr<ViewerInstance> self = shared_from_this();
   std::shared_ptr<CoreEventsAdapter> adapter = m_viewerWnd.getCoreEvents().getAdapter(self);
+  RemoteViewerCore::StartupOptions options;
+  options.sharedFlag = m_conConf.getSharedFlag();
   if (m_socket) {
     asio::ip::tcp::socket socket = std::move(*m_socket);
     m_socket.reset();
-    m_viewerCore.start(std::move(socket),
-                       std::move(adapter), m_conConf.getSharedFlag());
+    m_viewerCore.start(std::move(socket), std::move(adapter), options);
   } else {
     StringStorage strHost;
     m_condata.getReducedHost(&strHost);
     // HostPath only accepts ports from 0 to 65535.
     UINT16 portVal = static_cast<UINT16>(m_condata.getPort());
-    m_viewerCore.start(strHost.getString(), portVal,
-                       std::move(adapter), m_conConf.getSharedFlag());
+    m_viewerCore.start(strHost.getString(), portVal, std::move(adapter), options);
   }
   // Last, so that a window whose connection failed to start does not keep
   // the instance alive.

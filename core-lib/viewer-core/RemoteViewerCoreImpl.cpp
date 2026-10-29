@@ -136,7 +136,6 @@ void RemoteViewerCoreImpl::init()
   m_output = nullptr;
 
   m_wasStarted = false;
-  m_maxFrameBufferPixels = ViewerBufferSize::DEFAULT_MAX_FRAME_BUFFER_PIXELS;
   m_wasConnected = false;
   m_isNewPixelFormat = false;
   m_isPixelFormatSent = false;
@@ -164,8 +163,7 @@ RemoteViewerCoreImpl::~RemoteViewerCoreImpl()
 }
 
 void RemoteViewerCoreImpl::start(std::shared_ptr<CoreEventsAdapter> adapter,
-                             bool sharedFlag,
-                             UINT64 maxFrameBufferPixels)
+                                 const RemoteViewerCore::StartupOptions &options)
 {
   m_logWriter.detail(_T("Starting remote viewer core..."));
 
@@ -176,10 +174,16 @@ void RemoteViewerCoreImpl::start(std::shared_ptr<CoreEventsAdapter> adapter,
   if (m_wasStarted) {
     throw Exception(_T("Remote viewer core is already started"));
   }
+  if (options.rowAlignmentLog2 > FrameBuffer::MAX_ROW_ALIGNMENT_LOG2) {
+    throw Exception(_T("Remote viewer core is not started: the row alignment is too large"));
+  }
   m_wasStarted = true;
 
-  m_sharedFlag = sharedFlag;
-  m_maxFrameBufferPixels = maxFrameBufferPixels;
+  m_options = options;
+  // No lock: the network thread has not started, and the consumer, the
+  // only other thread that reads the frame buffer, is this one. The frame
+  // buffer has no pixels yet; they are allocated with this alignment.
+  m_frameBuffer.setRowAlignmentLog2(options.rowAlignmentLog2);
   m_adapter = adapter.get();
   m_adapterRef = adapter;
 
@@ -204,31 +208,28 @@ void RemoteViewerCoreImpl::start(std::shared_ptr<CoreEventsAdapter> adapter,
 void RemoteViewerCoreImpl::start(const TCHAR *host,
                              UINT16 port,
                              std::shared_ptr<CoreEventsAdapter> adapter,
-                             bool sharedFlag,
-                             UINT64 maxFrameBufferPixels)
+                             const RemoteViewerCore::StartupOptions &options)
 {
   m_host = host;
   m_port = port;
-  start(std::move(adapter), sharedFlag, maxFrameBufferPixels);
+  start(std::move(adapter), options);
 }
 void RemoteViewerCoreImpl::start(asio::ip::tcp::socket socket,
                              std::shared_ptr<CoreEventsAdapter> adapter,
-                             bool sharedFlag,
-                             UINT64 maxFrameBufferPixels)
+                             const RemoteViewerCore::StartupOptions &options)
 {
   assert(socket.is_open());
   m_acceptedSocket.emplace(std::move(socket));
-  start(std::move(adapter), sharedFlag, maxFrameBufferPixels);
+  start(std::move(adapter), options);
 }
 
 void RemoteViewerCoreImpl::start(InputStream *input, OutputStream *output,
                              std::shared_ptr<CoreEventsAdapter> adapter,
-                             bool sharedFlag,
-                             UINT64 maxFrameBufferPixels)
+                             const RemoteViewerCore::StartupOptions &options)
 {
   m_input = input;
   m_output = std::make_unique<DataOutputStream>(output);
-  start(std::move(adapter), sharedFlag, maxFrameBufferPixels);
+  start(std::move(adapter), options);
 }
 
 bool RemoteViewerCoreImpl::wasStarted() const
@@ -655,7 +656,8 @@ void RemoteViewerCoreImpl::setFbProperties(const Dimension &fbDimension,
                                        const PixelFormat &fbPixelFormat)
 {
   RfbParsing::checkFrameBufferProperties(fbDimension, fbPixelFormat,
-                                       m_maxFrameBufferPixels);
+                                       m_options.maxFrameBufferPixels,
+                                       m_options.rowAlignmentLog2);
 
   const PixelFormat &pxFormat = fbPixelFormat;
   StringStorage pxString;
@@ -1325,12 +1327,12 @@ Task<> RemoteViewerCoreImpl::handshake()
  */
 Task<> RemoteViewerCoreImpl::clientAndServerInit()
 {
-  if (m_sharedFlag) {
+  if (m_options.sharedFlag) {
     m_logWriter.info(_T("Setting share flag in on..."));
   } else {
     m_logWriter.info(_T("Setting share flag is off..."));
   }
-  m_output->writeUInt8(m_sharedFlag);
+  m_output->writeUInt8(m_options.sharedFlag);
   m_output->flush();
   m_logWriter.debug(_T("Shared flag is set"));
 
