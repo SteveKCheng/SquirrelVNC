@@ -86,14 +86,16 @@ void runFrameBufferTests()
 
   const PixelFormat pf8 = StandardPixelFormatFactory::create8bppPixelFormat();
 
-  // 5 pixels wide, rows of 8 bytes.
+  // 5 pixels wide, rows of 32 bytes.
   FrameBuffer fb;
-  fb.setRowAlignmentLog2(3);
+  fb.setRowAlignmentLog2(5);
   fb.setProperties(Dimension(5, 4), pf8);
-  check(fb.getBytesPerRow() == 8 && fb.getBufferSize() == 32 &&
+  check(fb.getBytesPerRow() == 32 && fb.getBufferSize() == 4*32 &&
         static_cast<UINT8 *>(fb.getBufferPtr(2, 3)) ==
-          static_cast<UINT8 *>(fb.getBuffer()) + 3 * 8 + 2,
+          static_cast<UINT8 *>(fb.getBuffer()) + 3 * 32 + 2,
         "FrameBuffer with aligned rows: row length, size and pixel addresses");
+  check((reinterpret_cast<std::uintptr_t>(fb.getBufferPtr(0, 0)) & 31u) == 0,
+        "FrameBuffer is allocated with memory-address alignment");
 
   fillPadding(fb);
   fb.setColor(0, 0, 0);

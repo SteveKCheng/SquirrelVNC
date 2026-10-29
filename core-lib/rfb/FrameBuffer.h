@@ -29,13 +29,25 @@
 
 #include <memory>
 
-// FIXME: Move implementation to the .cpp file.
+/**
+ * Functor for @c std::unique_ptr to de-allocate an aligned memory block allocated
+ * with <c>operator new</c> with a @c std::align_val_t argument.
+ */
+class AlignedDeleter final
+{
+  std::align_val_t m_alignment;
+public:
+  AlignedDeleter(std::align_val_t alignment = std::align_val_t{ 1 }) noexcept : m_alignment(alignment) {}
+  void operator()(void* ptr) noexcept { ::operator delete[](ptr, m_alignment); }
+};
 
+// FIXME: Move implementation to the .cpp file.
 class FrameBuffer
 {
 public:
-  // The largest row alignment, as a power of 2: rows at multiples of 4 KiB.
-  static const unsigned int MAX_ROW_ALIGNMENT_LOG2 = 12;
+  // The largest row alignment, as a power of 2: 
+  // rows at multiples of 256 bytes (= 2048 bits, more than enough for any SIMD)
+  static const unsigned int MAX_ROW_ALIGNMENT_LOG2 = 8;
 
   // The bytes from a pixel to the one below it, in a frame buffer of
   // width pixels of bytesPerPixel bytes with rows aligned to
@@ -175,7 +187,8 @@ protected:
   unsigned int m_rowAlignmentLog2;
   // The pixels: m_ownBuffer's, or a buffer given to setBuffer().
   void *m_buffer;
-  std::unique_ptr<UINT8[]> m_ownBuffer;
+  typedef std::unique_ptr<UINT8[], AlignedDeleter> AlignedBufferPtr;
+  AlignedBufferPtr m_ownBuffer;
 };
 
 #endif // __FRAMEBUFFER_H__

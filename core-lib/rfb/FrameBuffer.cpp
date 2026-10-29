@@ -354,8 +354,12 @@ size_t FrameBuffer::getBufferSize() const
 
 bool FrameBuffer::resizeBuffer()
 {
+  assert(rowAlignmentLog2 <= MAX_ROW_ALIGNMENT_LOG2);
+
   // Allocated before the old buffer is freed, which it then replaces.
-  m_ownBuffer = std::make_unique_for_overwrite<UINT8[]>(getBufferSize());
+  auto alignment = static_cast<std::align_val_t>(static_cast<UINT64>(1) << m_rowAlignmentLog2);
+  m_ownBuffer = AlignedBufferPtr{ static_cast<UINT8*>(::operator new[](getBufferSize(), alignment)),
+                                  AlignedDeleter{ alignment } };
   m_buffer = m_ownBuffer.get();
   return true;
 }
