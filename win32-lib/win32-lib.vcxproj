@@ -134,7 +134,6 @@
     <ClCompile Include="file-lib\File.cpp" />
     <ClCompile Include="file-lib\WinFile.cpp" />
     <ClCompile Include="file-lib\WinFileChannel.cpp" />
-    <ClCompile Include="win-system\DibSection.cpp" />
     <ClCompile Include="win-system\DisplayRequest.cpp" />
     <ClCompile Include="win-system\Environment.cpp" />
     <ClCompile Include="win-system\Registry.cpp" />
@@ -155,11 +154,11 @@
     <ClCompile Include="gui\CheckBox.cpp" />
     <ClCompile Include="gui\ComboBox.cpp" />
     <ClCompile Include="gui\Control.cpp" />
-    <ClCompile Include="gui\DibFrameBuffer.cpp" />
     <ClCompile Include="gui\ListView.cpp" />
     <ClCompile Include="gui\Menu.cpp" />
     <ClCompile Include="gui\NotifyIcon.cpp" />
     <ClCompile Include="gui\NotifyIconWindow.cpp" />
+    <ClCompile Include="gui\FrameBufferPainter.cpp" />
     <ClCompile Include="gui\PaintWindow.cpp" />
     <ClCompile Include="gui\ProgressBar.cpp" />
     <ClCompile Include="gui\ScaledIcons.cpp" />
@@ -225,7 +224,6 @@
     <ClInclude Include="file-lib\FileChannel.h" />
     <ClInclude Include="file-lib\WinFile.h" />
     <ClInclude Include="file-lib\WinFileChannel.h" />
-    <ClInclude Include="win-system\DibSection.h" />
     <ClInclude Include="win-system\DisplayRequest.h" />
     <ClInclude Include="win-system\Environment.h" />
     <ClInclude Include="win-system\HookEventListener.h" />
@@ -247,11 +245,11 @@
     <ClInclude Include="gui\CheckBox.h" />
     <ClInclude Include="gui\ComboBox.h" />
     <ClInclude Include="gui\Control.h" />
-    <ClInclude Include="gui\DibFrameBuffer.h" />
     <ClInclude Include="gui\ListView.h" />
     <ClInclude Include="gui\Menu.h" />
     <ClInclude Include="gui\NotifyIcon.h" />
     <ClInclude Include="gui\NotifyIconWindow.h" />
+    <ClInclude Include="gui\FrameBufferPainter.h" />
     <ClInclude Include="gui\PaintWindow.h" />
     <ClInclude Include="gui\ProgressBar.h" />
     <ClInclude Include="gui\ScaledIcons.h" />

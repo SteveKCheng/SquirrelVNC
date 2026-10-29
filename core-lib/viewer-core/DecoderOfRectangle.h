@@ -29,8 +29,6 @@
 #include "io-lib/AwaitableReader.h"
 #include "util/Task.h"
 
-class FbUpdateNotifier;
-
 class DecoderOfRectangle : public Decoder
 {
 public:
@@ -39,8 +37,8 @@ public:
   ~DecoderOfRectangle() override;
 
   //
-  // Reads the update of rect from reader, draws it into frameBuffer with
-  // decode(), then tells fbNotifier that rect has changed.
+  // Reads the update of rect from reader, and draws it into frameBuffer
+  // with decode().
   //
   // Threads: called on the thread that reads the connection, which is the
   // only thread that changes the properties of frameBuffer (its size and
@@ -53,14 +51,12 @@ public:
   // ensures that.
   //
   // Pre-conditions: rect lies within frameBuffer.
-  // Throws what decode() throws; fbNotifier is then not told, though
-  // decode() may have drawn part of rect.
+  // Throws what decode() throws, which may have drawn part of rect.
   //
   virtual Task<> process(AwaitableReader &reader,
                          FrameBuffer &frameBuffer,
                          const Rect &rect,
-                         std::mutex &fbLock,
-                         FbUpdateNotifier &fbNotifier);
+                         std::mutex &fbLock);
 
 protected:
   //

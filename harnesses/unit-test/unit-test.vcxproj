@@ -96,6 +96,7 @@
     <ClCompile Include="ExceptionTests.cpp" />
     <ClCompile Include="FileInfoListTests.cpp" />
     <ClCompile Include="FileTests.cpp" />
+    <ClCompile Include="FrameBufferPainterTests.cpp" />
     <ClCompile Include="HostPathTests.cpp" />
     <ClCompile Include="HostResolverTests.cpp" />
     <ClCompile Include="IniTests.cpp" />

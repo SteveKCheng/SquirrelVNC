@@ -20,7 +20,7 @@ Windows message queue is used in some places.
 |---|---|---|
 | **GUI** (main) | Runs the one message loop for all windows (every viewer window, the login dialog, the tray icon). Paints; handles keyboard and mouse. **Also writes key, pointer and clipboard messages directly to the socket.** | `TvnViewer::processMessages` |
 | **Core**, one per connection | Connects, handshakes and authenticates, then a blocking loop: read a message, decode rectangles, send the next update request. | `RemoteViewerCore` (a `Thread`) |
-| **Notifier**, one per connection | Takes the accumulated changed region and calls the GUI's adapter callbacks, which copy pixels into the window's DIB. | `FbUpdateNotifier` |
+| ~~**Notifier**, one per connection~~ | ~~Takes the accumulated changed region and calls the GUI's adapter callbacks, which copy pixels into the window's DIB.~~ *Removed 2026-10-29: the GUI paints the core's frame buffer itself (see "A framebuffer update, end to end").* | `FbUpdateNotifier` |
 | Listener (listening mode only) | Waits for incoming connections. *Since Phase 4 step 6 of `async-networking.md`, no thread of its own: a `TcpAcceptor` accepts on the network thread.* | `TcpServer` → `ConnectionListener` |
 | File-transfer delete | Deletes local files. *Since Phase 4 step 5d of `async-networking.md`, on the shared `BlockingWorkPool` thread instead, started on first use.* | `LocalFilesDeleteOperation` |
 
@@ -80,23 +80,55 @@ consequences:
    buffer: the core gives the server's shape to the application,
    `CoreEventsAdapter::onCursorShape()`, which shows it as a Windows
    cursor.)
-3. **The same callback, still on the notifier thread.**
+3. ~~**The same callback, still on the notifier thread.**
    `DesktopWindow::updateFramebuffer` copies the pixels into the window's
    DIB section **without** `m_bufferLock`. A comment there says a torn
    frame is accepted and the next update fixes it. It then calls
-   `InvalidateRect`.
-4. **GUI thread.** Windows turns the invalidated area into a `WM_PAINT`.
+   `InvalidateRect`.~~
+4. ~~**GUI thread.** Windows turns the invalidated area into a `WM_PAINT`.
    `onPaint` takes `m_bufferLock` and draws the DIB to the screen with
-   `BitBlt` or `StretchBlt`.
+   `BitBlt` or `StretchBlt`.~~
 
 ~~So each update is copied three times: decode buffer → core framebuffer
 → DIB → screen.~~
-So each update is copied twice: core framebuffer → DIB → screen.
+~~So each update is copied twice: core framebuffer → DIB → screen.~~
 
-The part that works like a queue is the **merging of changes**: the
+~~The part that works like a queue is the **merging of changes**: the
 notifier's `Region` plus its event, and Windows' own update region
 behind `InvalidateRect`. Both collapse a burst of changes into one, so
-a slow painter never builds up a backlog.
+a slow painter never builds up a backlog.~~
+
+**Since 2026-10-29** (branch `framebuffer`; the WPR trace in
+`cpu-usage.md` showed one paint per rectangle, about 1,700 a second):
+
+1. **Network thread.** The decoders draw into the core's frame buffer
+   under `m_fbLock` (a `std::mutex`), around each write only. The core
+   adds each rectangle to `m_damage`, and at the end of the
+   FramebufferUpdate gives the region to the adapter,
+   `onFrameBufferUpdate(damage)`. A new size or pixel format replaces
+   the frame buffer under the lock and calls `onFrameBufferPropChange()`
+   instead, which voids the damage before it.
+2. **`ViewerCoreEvents`** (on the network thread) merges the changes
+   into its pending ones, under its own lock, and posts
+   `WM_USER_FRAME_BUFFER` only if none is posted already.
+3. **GUI thread.** `ViewerWindow` takes all the changes at once and
+   gives them to `DesktopWindow`, which maps the damage to window
+   coordinates with its `ScaleManager` (now used on the GUI thread
+   only) and invalidates it, or everything after a replacement. Windows
+   merges the invalidations into one `WM_PAINT`, whose handler takes
+   the frame buffer's lock (`RemoteViewerCore::accessFrameBuffer()`)
+   and paints straight from it with `StretchDIBits()`
+   (`FrameBufferPainter`).
+
+So each update is drawn once, by its decoder, and blitted once. The
+merging happens twice, in `ViewerCoreEvents` and in Windows' update
+region, so the GUI paints at most once per pass through its message
+loop however fast updates come. The paint and the decoders exclude
+each other: no torn reads, and the frame buffer cannot be replaced
+while it is painted. The cursor is a Windows cursor, not in the pixels.
+A paint that finds the frame buffer replaced before the GUI has heard
+of it paints the background there; the report that follows repaints
+all.
 
 ## How work is synchronized
 
@@ -205,11 +237,13 @@ None of these is a security issue; all are latent.
      `destroyAllInstances()` runs the deletions while it waits.*
 2. **Data races that Windows tolerates:**
    - pixels written into the DIB while it is being painted (deliberate,
-     see above);
+     see above); *gone 2026-10-29: no DIB, and the paint holds the
+     frame buffer's lock;*
    - `DesktopWindow::m_scManager` read in `repaint()` on the notifier
      thread while the GUI thread changes it in `onSize` /
-     `calcClientArea` without the lock;
-   - `m_isBackgroundDirty`, ~~and the core's `m_error` /
+     `calcClientArea` without the lock; *gone 2026-10-29: `repaint()`
+     runs on the GUI thread;*
+   - `m_isBackgroundDirty` (*removed 2026-10-29*), ~~and the core's `m_error` /
      `m_disconnectMessage`,~~ written without locks (the later
      `PostMessage` gives ordering in practice); *the error and disconnect
      message, and `ViewerWindow::m_stopped` read on the network thread,
@@ -222,7 +256,9 @@ None of these is a security issue; all are latent.
    adapter callbacks, and `DesktopWindow::setNewFramebuffer` then takes
    `m_bufferLock` inside it (its own comment says `FIXME: Nested locks
    should not be used`). File-transfer operations notify their listeners
-   while holding the listener-list lock.
+   while holding the listener-list lock. *Since 2026-10-29 only
+   `onFrameBufferPropChange()` is called with `m_fbLock` held, and the
+   adapter only records it and posts; `m_bufferLock` is gone.*
 4. **Display glitch seen when changing the local cursor** (Steve,
    2026-10-26, while testing Phase 1 step 6). Changing the local cursor
    option during a session blanked the screen once; afterwards only
@@ -234,7 +270,8 @@ None of these is a security issue; all are latent.
    (`doSize()`, `DesktopWindow::setScale()`) while the notifier thread
    copies into the DIB without `m_bufferLock` (see "A framebuffer
    update, end to end"), and `m_isBackgroundDirty` written without a
-   lock.
+   lock. *Both candidates are gone since 2026-10-29 (no DIB, no
+   notifier thread, no `m_isBackgroundDirty`); to be tested again.*
 
 ## Which code needs a recursive mutex
 

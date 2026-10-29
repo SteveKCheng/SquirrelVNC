@@ -29,6 +29,8 @@
 #include "io-lib/IOException.h"
 #include "rfb/FrameBuffer.h"
 #include "region/Rect.h"
+#include "region/Region.h"
+#include "rfb/PixelFormat.h"
 #include "util/Exception.h"
 
 #include "AuthHandler.h"
@@ -63,13 +65,12 @@ struct ConnectionInfo
 // remote screen, then you should override two functions: onFrameBufferUpdate()
 // and onFrameBufferPropChange().
 //
-// Threads: the events are called on the network thread, except
-// onFrameBufferUpdate() and onFrameBufferPropChange(), which are called on
-// its FbUpdateNotifier thread. An implementation must not wait for the GUI
-// thread: no SendMessage(), and no calls on its windows that Windows turns
-// into one (ShowWindow() and the like). The GUI thread may itself be waiting
-// for the notifier thread to finish, in ~RemoteViewerCore(), and the network
-// thread runs every connection. Post to the GUI thread instead.
+// Threads: the events are called on the network thread. An implementation
+// must not wait for the GUI thread: no SendMessage(), and no calls on its
+// windows that Windows turns into one (ShowWindow() and the like), since
+// the network thread runs every connection, and the GUI thread may be
+// waiting for the frame buffer's lock (RemoteViewerCore::
+// accessFrameBuffer()). Post to the GUI thread instead.
 //
 
 class CoreEventsAdapter
@@ -124,23 +125,24 @@ public:
   //
   virtual void onError(const Exception &exception) = 0;
 
-  // this event after update of frame buffer "fb" in rectangle "update".
-  // guaranteed correct of frame buffer's area in rectangle "update".
   //
-  // Frame buffer contents has been changed. During this callback,
-  // the frame buffer is locked, and the rectangle is guaranteed to be valid
-  // (no guarantees about other areas of the frame buffer).
+  // The pixels in damage have changed: called once for each
+  // FramebufferUpdate, after all its rectangles are drawn, if any is. The
+  // pixels are read with RemoteViewerCore::accessFrameBuffer(), from
+  // another thread.
   //
-  virtual void onFrameBufferUpdate(const FrameBuffer &fb, const Rect &update) = 0;
+  // Post-conditions (the core's): damage lies within the frame buffer.
+  //
+  virtual void onFrameBufferUpdate(const Region &damage) = 0;
 
-  // changed properties of frame buffer.
-  // In this moment frame buffer area is dirty and may be contained incorrect data
   //
-  // Some properties of the frame buffer have been changed. Assume that new
-  // frame buffer has been created and the old one has been destroyed. This
-  // notification will be called on initial frame buffer allocation as well.
+  // The frame buffer has been replaced, with the given size and pixel
+  // format, and is all black: on ServerInit, and on a change of size
+  // (DesktopSize) or pixel format. Damage reported before is void.
+  // Called with the frame buffer's lock held.
   //
-  virtual void onFrameBufferPropChange(const FrameBuffer &fb) = 0;
+  virtual void onFrameBufferPropChange(const Dimension &dimension,
+                                       const PixelFormat &pixelFormat) = 0;
 
   //
   // The server has sent the shape of its cursor (the RichCursor

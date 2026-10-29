@@ -34,10 +34,9 @@
 // The CoreEventsAdapter of rfb-replay: records the events that come from
 // the protocol thread as lines of text, and signals the end of the session.
 //
-// Events from the notifier thread (frame buffer updates and property
-// changes) are not recorded, because when they come, and how they are
-// merged, varies from run to run; the final frame buffer is compared
-// instead (RemoteViewerCore::copyFrameBuffer()).
+// The frame buffer events (updates and property changes) are not
+// recorded: the final frame buffer is compared instead
+// (RemoteViewerCore::copyFrameBuffer()).
 //
 // Each line is an event name, followed for events that carry text by a
 // space and the text in double quotes, with backslash, double quote and
@@ -67,8 +66,9 @@ public:
   void onAuthError(const AuthException &exception) override;
   void onError(const Exception &exception) override;
   // Not recorded (see above).
-  void onFrameBufferUpdate(const FrameBuffer &fb, const Rect &update) override;
-  void onFrameBufferPropChange(const FrameBuffer &fb) override;
+  void onFrameBufferUpdate(const Region &damage) override;
+  void onFrameBufferPropChange(const Dimension &dimension,
+                               const PixelFormat &pixelFormat) override;
   // Logs a "cursor" event (see above).
   void onCursorShape(const CursorImage &cursor) override;
 

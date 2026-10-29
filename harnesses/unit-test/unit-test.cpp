@@ -76,6 +76,7 @@ int wmain()
     runHostResolverTests();
     runTcpAcceptorTests();
     runClientEventsTests();
+    runFrameBufferPainterTests();
   } catch (const Exception &e) {
     printf("FAIL unexpected exception: %ls\n", e.getMessage());
     g_failures++;

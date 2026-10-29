@@ -145,6 +145,12 @@ protected:
   bool handleCutText();
 
   //
+  // Handles WM_USER_FRAME_BUFFER, on the GUI thread: gives the desktop
+  // window what changed in the frame buffer, to be painted.
+  //
+  bool handleFrameBufferChanges();
+
+  //
   // Handles WM_USER_CURSOR, on the GUI thread: gives the latest cursor
   // shape from the server, if not taken already, to the desktop window.
   //

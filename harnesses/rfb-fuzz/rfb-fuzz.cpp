@@ -31,39 +31,23 @@
 // corpus and the regression inputs can be checked in every build.
 //
 
-#include "log-writer/LogWriter.h"
-#include "rfb/FrameBuffer.h"
 #include "util/ScopeExit.h"
 
-#include "FuzzNotifier.h"
 #include "FuzzSession.h"
 
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 
-#include <mutex>
 #include <vector>
 
 #ifdef _MSC_VER
 #pragma warning(disable: 6262) // suppress warning on use of a ~64KB buffer on the stack
 #endif
 
-//
-// The notifier shared by every input (see FuzzNotifier).
-//
-static FuzzNotifier *getNotifier()
-{
-  static LogWriter logWriter(nullptr);
-  static FrameBuffer frameBuffer;
-  static std::mutex fbLock;
-  static FuzzNotifier notifier(&frameBuffer, &fbLock, &logWriter);
-  return &notifier;
-}
-
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
-  FuzzSession session(getNotifier());
+  FuzzSession session;
   session.run(data, size);
   return 0;
 }

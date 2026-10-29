@@ -35,14 +35,13 @@ public:
   //
   // This method is inherited from DecoderOfRectangle.
   //
-  // In parts of about AREA_OF_ONE_PART pixels, each read, drawn and
-  // notified in turn, so that a large rectangle shows as it arrives.
+  // In parts of about AREA_OF_ONE_PART pixels, each read and drawn in
+  // turn, so that the buffer for a part stays small.
   //
   Task<> process(AwaitableReader &reader,
                  FrameBuffer &frameBuffer,
                  const Rect &rect,
-                 std::mutex &fbLock,
-                 FbUpdateNotifier &fbNotifier) override;
+                 std::mutex &fbLock) override;
 
 protected:
   //

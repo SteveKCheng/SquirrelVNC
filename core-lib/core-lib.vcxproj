@@ -132,7 +132,6 @@
     <ClCompile Include="viewer-core\TcpAcceptor.cpp" />
     <ClCompile Include="viewer-core\QueuedOutputStream.cpp" />
     <ClCompile Include="viewer-core\DesktopSizeDecoder.cpp" />
-    <ClCompile Include="viewer-core\FbUpdateNotifier.cpp" />
     <ClCompile Include="viewer-core\FileTransferCapability.cpp" />
     <ClCompile Include="viewer-core\HexTileDecoder.cpp" />
     <ClCompile Include="viewer-core\JpegDecompressor.cpp" />
@@ -225,7 +224,7 @@
     <ClInclude Include="viewer-core\ClientEvents.h" />
     <ClInclude Include="viewer-core\QueuedOutputStream.h" />
     <ClInclude Include="viewer-core\DesktopSizeDecoder.h" />
-    <ClInclude Include="viewer-core\FbUpdateNotifier.h" />
+    <ClInclude Include="viewer-core\FrameBufferAccess.h" />
     <ClInclude Include="viewer-core\FileTransferCapability.h" />
     <ClInclude Include="viewer-core\HexTileDecoder.h" />
     <ClInclude Include="viewer-core\JpegDecompressor.h" />

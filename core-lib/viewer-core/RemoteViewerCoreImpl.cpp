@@ -112,7 +112,6 @@ RemoteViewerCoreImpl::RemoteViewerCoreImpl(asio::any_io_executor executor, Logge
   m_isStopping(false),
   m_isFinished(false),
   m_isAtMessageBoundary(false),
-  m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter),
   m_decoderStore(&m_logWriter),
   m_isTightEnabled(true),
   m_isUtf8ClipboardEnabled(false)
@@ -160,11 +159,6 @@ RemoteViewerCoreImpl::~RemoteViewerCoreImpl()
 {
   // The connection is over, so stop() posts nothing (see start()).
   assert(m_adapterRef.expired());
-  try {
-    m_fbUpdateNotifier.terminate();
-    m_fbUpdateNotifier.wait();
-  } catch (...) {
-  }
   // A socket given to a start() that failed is closed with
   // m_acceptedSocket.
 }
@@ -188,8 +182,6 @@ void RemoteViewerCoreImpl::start(std::shared_ptr<CoreEventsAdapter> adapter,
   m_maxFrameBufferPixels = maxFrameBufferPixels;
   m_adapter = adapter.get();
   m_adapterRef = adapter;
-
-  m_fbUpdateNotifier.setAdapter(m_adapter);
 
   if (m_output == nullptr) {
     m_output = std::make_unique<DataOutputStream>(&m_queuedOutput);
@@ -252,7 +244,6 @@ bool RemoteViewerCoreImpl::wasConnected() const
 void RemoteViewerCoreImpl::stop()
 {
   m_isStopping = true;
-  m_fbUpdateNotifier.terminate();
   if (wasStarted()) {
     // The signal is not thread-safe: it is emitted on the network thread,
     // and only while drive() may still be cancelled.
@@ -698,7 +689,8 @@ void RemoteViewerCoreImpl::setFbProperties(const Dimension &fbDimension,
   }
   m_frameBuffer.setColor(0, 0, 0);
   refreshFrameBuffer();
-  m_fbUpdateNotifier.onPropertiesFb();
+  m_damage.clear();
+  m_adapter->onFrameBufferPropChange(fbDimension, fbPixelFormat);
   m_logWriter.debug(_T("Frame buffer properties set"));
 }
 
@@ -1107,6 +1099,10 @@ Task<> RemoteViewerCoreImpl::receiveFbUpdate()
     m_logWriter.debug(_T("Receiving rectangle #%d..."), rectangle);
     isLastRect = co_await receiveFbUpdateRectangle();
   }
+  if (!m_damage.isEmpty()) {
+    m_adapter->onFrameBufferUpdate(m_damage);
+    m_damage.clear();
+  }
 
   m_isNeedRequestUpdate = true;
   if (m_isFreeze)
@@ -1134,8 +1130,8 @@ Task<bool> RemoteViewerCoreImpl::receiveFbUpdateRectangle()
       m_logWriter.debug(_T("Decoding..."));
 
       DecoderOfRectangle *rectangleDecoder = dynamic_cast<DecoderOfRectangle *>(decoder);
-      co_await rectangleDecoder->process(m_reader, m_frameBuffer, rect, m_fbLock,
-                                         m_fbUpdateNotifier);
+      co_await rectangleDecoder->process(m_reader, m_frameBuffer, rect, m_fbLock);
+      m_damage.addRect(rect);
 
       m_logWriter.debug(_T("Decoded"));
     } else { // decoder is 0
@@ -1737,6 +1733,11 @@ void RemoteViewerCoreImpl::handle(const StopUpdatingEvent &event)
     m_logWriter.detail(_T("Sending of frame buffer update request..."));
     sendFbUpdateRequest(!m_forceFullUpdate);
   }
+}
+
+FrameBufferAccess RemoteViewerCoreImpl::accessFrameBuffer()
+{
+  return FrameBufferAccess(std::unique_lock<std::mutex>(m_fbLock), m_frameBuffer);
 }
 
 void RemoteViewerCoreImpl::copyFrameBuffer(FrameBuffer &dst)

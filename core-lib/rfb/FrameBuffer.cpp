@@ -155,57 +155,6 @@ void FrameBuffer::clipRect(const Rect &dstRect, const Rect &srcBufferRect,
   srcClippedRect->move(srcRect.left, srcRect.top);
 }
 
-bool FrameBuffer::overlay(const Rect &dstRect,
-                          const FrameBuffer &srcFrameBuffer,
-                          int srcX, int srcY,
-                          const char *andMask)
-{
-  if (!hasPixelFormatOf(m_pixelFormat, srcFrameBuffer)) {
-    return false;
-  }
-  if (m_pixelFormat.bitsPerPixel == 32) {
-    return overlayT<UINT32>(dstRect, srcFrameBuffer, srcX, srcY, andMask);
-  } else if (m_pixelFormat.bitsPerPixel == 16) {
-    return overlayT<UINT16>(dstRect, srcFrameBuffer, srcX, srcY, andMask);
-  } else if (m_pixelFormat.bitsPerPixel == 8) {
-    return overlayT<UINT8>(dstRect, srcFrameBuffer, srcX, srcY, andMask);
-  } else {
-    _ASSERT(false);
-  }
-  return false;
-}
-
-template<class PIXEL_T> bool FrameBuffer::overlayT(const Rect &dstRect,
-                                                   const FrameBuffer &srcFrameBuffer,
-                                                   int srcX, int srcY,
-                                                   const char *andMask)
-{
-  Rect srcClippedRect, dstClippedRect;
-
-  clipRect(dstRect, srcFrameBuffer, srcX, srcY, &dstClippedRect, &srcClippedRect);
-  if (dstClippedRect.area() <= 0 || srcClippedRect.area() <= 0) {
-    return true;
-  }
-
-  PIXEL_T *dstPixels = (PIXEL_T *)getBuffer();
-  PIXEL_T *srcPixels = (PIXEL_T *)srcFrameBuffer.getBuffer();
-  int srcWidth = srcFrameBuffer.getDimension().width;
-  int dstWidth = getDimension().width;
-  size_t bytesPerRow = (srcWidth + 7) / 8;
-  for (int iRow = srcClippedRect.top; iRow < srcClippedRect.bottom; iRow++) {
-    for (int iCol = srcClippedRect.left; iCol < srcClippedRect.right; iCol++) {
-      unsigned char curByte = andMask[iRow * bytesPerRow + iCol / 8];
-      bool andBit = (curByte & 128 >> iCol % 8) != 0;
-      if (andBit) {
-        int iDstRow = dstClippedRect.top + iRow - srcY - srcClippedRect.top;
-        int iDstCol = dstClippedRect.left + iCol - srcX - srcClippedRect.left;
-        dstPixels[iDstRow * dstWidth + iDstCol] = srcPixels[iRow * srcWidth + iCol];
-      }
-    }
-  }
-  return true;
-}
-
 bool FrameBuffer::copyFrom(const Rect &dstRect, const FrameBuffer &srcFrameBuffer,
                            int srcX, int srcY)
 {

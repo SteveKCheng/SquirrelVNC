@@ -22,15 +22,13 @@
 
 #include "ViewerCoreEvents.h"
 
-#include "DesktopWindow.h"
-
 #include <utility>
 
-ViewerCoreEvents::ViewerCoreEvents(DesktopWindow &desktop, Logger *logger)
+ViewerCoreEvents::ViewerCoreEvents(Logger *logger)
 : m_logWriter(logger),
-  m_desktop(desktop),
   m_fileTransfer(nullptr),
   m_window(nullptr),
+  m_isFrameBufferPosted(false),
   m_isPasswordRequestCancelled(false)
 {
 }
@@ -115,14 +113,34 @@ void ViewerCoreEvents::onError(const Exception &exception)
   post(WM_USER_ERROR);
 }
 
-void ViewerCoreEvents::onFrameBufferUpdate(const FrameBuffer &fb, const Rect &rect)
+void ViewerCoreEvents::onFrameBufferUpdate(const Region &damage)
 {
-  m_desktop.updateFramebuffer(fb, rect);
+  std::lock_guard<std::mutex> lock(m_lock);
+  m_pendingFrameBuffer.damage.add(damage);
+  if (!m_isFrameBufferPosted) {
+    m_isFrameBufferPosted = post(WM_USER_FRAME_BUFFER);
+  }
 }
 
-void ViewerCoreEvents::onFrameBufferPropChange(const FrameBuffer &fb)
+void ViewerCoreEvents::onFrameBufferPropChange(const Dimension &dimension,
+                                               const PixelFormat &pixelFormat)
 {
-  m_desktop.setNewFramebuffer(fb);
+  std::lock_guard<std::mutex> lock(m_lock);
+  m_pendingFrameBuffer.isReplaced = true;
+  m_pendingFrameBuffer.dimension = dimension;
+  m_pendingFrameBuffer.pixelFormat = pixelFormat;
+  // In the old frame buffer's coordinates; all of it is drawn again.
+  m_pendingFrameBuffer.damage.clear();
+  if (!m_isFrameBufferPosted) {
+    m_isFrameBufferPosted = post(WM_USER_FRAME_BUFFER);
+  }
+}
+
+ViewerCoreEvents::FrameBufferChanges ViewerCoreEvents::takeFrameBufferChanges()
+{
+  std::lock_guard<std::mutex> lock(m_lock);
+  m_isFrameBufferPosted = false;
+  return std::exchange(m_pendingFrameBuffer, FrameBufferChanges());
 }
 
 void ViewerCoreEvents::onCutText(const StringStorage &cutText)

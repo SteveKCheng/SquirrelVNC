@@ -32,13 +32,12 @@
 #include <mutex>
 #include <optional>
 
-class DesktopWindow;
 
 //
 // The part of a viewer window that its connection calls: RemoteViewerCore's
 // adapter (CoreEventsAdapter), and the password prompt of
-// ViewerVncAuthHandler. It runs on the network thread (the frame buffer
-// events on the notifier thread), so it holds no reference to the window,
+// ViewerVncAuthHandler. It runs on the network thread, so it holds no
+// reference to the window,
 // whose members belong to the GUI thread: it keeps what the connection
 // reports, and posts a message to the window for each event, whose handler
 // (ViewerWindow) takes it from here on the GUI thread. It is not nested in
@@ -72,16 +71,27 @@ public:
   static const UINT WM_USER_CUT_TEXT = WM_USER + 8;
   static const UINT WM_USER_PASSWORD = WM_USER + 9;
   static const UINT WM_USER_CURSOR = WM_USER + 10;
+  static const UINT WM_USER_FRAME_BUFFER = WM_USER + 11;
 
   //
-  // desktop gets the frame buffer events, on the notifier thread
-  // (DesktopWindow::updateFramebuffer() and setNewFramebuffer(), which lock
-  // the frame buffer themselves); logger may be null. Nothing is posted
-  // until attach().
+  // What changed in the frame buffer since the window last took it
+  // (takeFrameBufferChanges()).
   //
-  // Pre-conditions: desktop outlives this object.
+  struct FrameBufferChanges
+  {
+    // Whether the frame buffer was replaced (onFrameBufferPropChange());
+    // dimension and pixelFormat are then its new properties.
+    bool isReplaced = false;
+    Dimension dimension;
+    PixelFormat pixelFormat;
+    // The area drawn since, in frame buffer coordinates.
+    Region damage;
+  };
+
   //
-  ViewerCoreEvents(DesktopWindow &desktop, Logger *logger);
+  // logger may be null. Nothing is posted until attach().
+  //
+  explicit ViewerCoreEvents(Logger *logger);
   ViewerCoreEvents(const ViewerCoreEvents &) = delete;
   ViewerCoreEvents &operator=(const ViewerCoreEvents &) = delete;
   ViewerCoreEvents(ViewerCoreEvents &&) = delete;
@@ -156,6 +166,11 @@ public:
   std::optional<ConnectionInfo> takeConnectionInfo();
   std::optional<StringStorage> takeCutText();
   std::optional<CursorImage> takeCursorShape();
+  //
+  // Post-conditions: returns what changed in the frame buffer, merged, and
+  // nothing is pending; the next change posts WM_USER_FRAME_BUFFER again.
+  //
+  FrameBufferChanges takeFrameBufferChanges();
   Exception getError() const;
   StringStorage getDisconnectMessage() const;
 
@@ -174,7 +189,9 @@ private:
   //
   // The events of CoreEventsAdapter. Each keeps what it is given, if
   // anything, and posts the message of the same name; onEstablished() does
-  // nothing, and the frame buffer events go to the desktop window.
+  // nothing. The frame buffer events merge into the pending changes, and
+  // post WM_USER_FRAME_BUFFER only when none is posted already, so that the
+  // window takes all that has come since it last painted, at once.
   // onConnected() also gives the file transfer its output before posting,
   // so that it is ready when the window enables file transfer. The events
   // that end the connection (onDisconnect(), onAuthError(), onError()) also
@@ -186,8 +203,9 @@ private:
   void onDisconnect(const StringStorage &message) override;
   void onAuthError(const AuthException &exception) override;
   void onError(const Exception &exception) override;
-  void onFrameBufferUpdate(const FrameBuffer &fb, const Rect &rect) override;
-  void onFrameBufferPropChange(const FrameBuffer &fb) override;
+  void onFrameBufferUpdate(const Region &damage) override;
+  void onFrameBufferPropChange(const Dimension &dimension,
+                               const PixelFormat &pixelFormat) override;
   void onCutText(const StringStorage &cutText) override;
   void onCursorShape(const CursorImage &cursor) override;
 
@@ -199,7 +217,6 @@ private:
   bool post(UINT message, WPARAM wParam = 0) noexcept;
 
   LogWriter m_logWriter;
-  DesktopWindow &m_desktop;
   // Set before the connection starts; used on the network thread then.
   FileTransferCapability *m_fileTransfer;
 
@@ -216,6 +233,10 @@ private:
   // The latest cursor shape from the server not yet shown; as for the cut
   // text, a newer one replaces it.
   std::optional<CursorImage> m_pendingCursor;
+  // The frame buffer's changes not yet taken, and whether
+  // WM_USER_FRAME_BUFFER is posted for them.
+  FrameBufferChanges m_pendingFrameBuffer;
+  bool m_isFrameBufferPosted;
   // The latest error, from onAuthError() or onError().
   Exception m_error;
   // The latest message of onDisconnect().

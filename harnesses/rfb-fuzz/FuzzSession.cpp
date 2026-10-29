@@ -46,9 +46,8 @@
 // Shared with rfb-replay.
 #include "../rfb-replay/SplitInputStream.h"
 
-FuzzSession::FuzzSession(FuzzNotifier *notifier)
-: m_notifier(notifier),
-  m_logWriter(nullptr),
+FuzzSession::FuzzSession()
+: m_logWriter(nullptr),
   m_reader(nullptr),
   m_decoderStore(nullptr),
   m_frameBuffer(nullptr),
@@ -137,7 +136,6 @@ FuzzSession::Outcome FuzzSession::runOnce(InputStream &stream)
   m_reader = nullptr;
   m_frameBuffer = nullptr;
   m_decoderStore = nullptr;
-  m_notifier->clearUpdates();
   return outcome;
 }
 
@@ -230,8 +228,7 @@ Task<bool> FuzzSession::readFbUpdateRectangle()
     // As in the core, the result of the cast is not checked: every
     // decoder registered for an encoding that is not pseudo is one.
     DecoderOfRectangle *rectangleDecoder = dynamic_cast<DecoderOfRectangle *>(decoder);
-    co_await rectangleDecoder->process(*m_reader, *m_frameBuffer, rect, m_fbLock,
-                                       *m_notifier);
+    co_await rectangleDecoder->process(*m_reader, *m_frameBuffer, rect, m_fbLock);
   } else {
     co_await readPseudoEncoding(rect, encodingType);
   }

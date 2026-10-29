@@ -132,9 +132,6 @@
     <ClCompile Include="file-lib\WinFileChannel.cpp">
       <Filter>file-lib</Filter>
     </ClCompile>
-    <ClCompile Include="win-system\DibSection.cpp">
-      <Filter>win-system</Filter>
-    </ClCompile>
     <ClCompile Include="win-system\DisplayRequest.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
@@ -195,9 +192,6 @@
     <ClCompile Include="gui\Control.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="gui\DibFrameBuffer.cpp">
-      <Filter>gui</Filter>
-    </ClCompile>
     <ClCompile Include="gui\ListView.cpp">
       <Filter>gui</Filter>
     </ClCompile>
@@ -208,6 +202,9 @@
       <Filter>gui</Filter>
     </ClCompile>
     <ClCompile Include="gui\NotifyIconWindow.cpp">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\FrameBufferPainter.cpp">
       <Filter>gui</Filter>
     </ClCompile>
     <ClCompile Include="gui\PaintWindow.cpp">
@@ -401,9 +398,6 @@
     <ClInclude Include="file-lib\WinFileChannel.h">
       <Filter>file-lib</Filter>
     </ClInclude>
-    <ClInclude Include="win-system\DibSection.h">
-      <Filter>win-system</Filter>
-    </ClInclude>
     <ClInclude Include="win-system\DisplayRequest.h">
       <Filter>win-system</Filter>
     </ClInclude>
@@ -467,9 +461,6 @@
     <ClInclude Include="gui\Control.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="gui\DibFrameBuffer.h">
-      <Filter>gui</Filter>
-    </ClInclude>
     <ClInclude Include="gui\ListView.h">
       <Filter>gui</Filter>
     </ClInclude>
@@ -480,6 +471,9 @@
       <Filter>gui</Filter>
     </ClInclude>
     <ClInclude Include="gui\NotifyIconWindow.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\FrameBufferPainter.h">
       <Filter>gui</Filter>
     </ClInclude>
     <ClInclude Include="gui\PaintWindow.h">

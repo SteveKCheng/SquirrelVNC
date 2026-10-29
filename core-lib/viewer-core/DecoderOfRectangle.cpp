@@ -23,8 +23,6 @@
 
 #include "DecoderOfRectangle.h"
 
-#include "FbUpdateNotifier.h"
-
 DecoderOfRectangle::DecoderOfRectangle(LogWriter *logWriter, int encoding)
 : Decoder(logWriter, encoding)
 {
@@ -37,9 +35,7 @@ DecoderOfRectangle::~DecoderOfRectangle()
 Task<> DecoderOfRectangle::process(AwaitableReader &reader,
                                    FrameBuffer &frameBuffer,
                                    const Rect &rect,
-                                   std::mutex &fbLock,
-                                   FbUpdateNotifier &fbNotifier)
+                                   std::mutex &fbLock)
 {
   co_await decode(reader, frameBuffer, rect, fbLock);
-  fbNotifier.onUpdate(rect);
 }

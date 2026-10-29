@@ -123,9 +123,6 @@
     <ClCompile Include="viewer-core\DesktopSizeDecoder.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
-    <ClCompile Include="viewer-core\FbUpdateNotifier.cpp">
-      <Filter>viewer-core</Filter>
-    </ClCompile>
     <ClCompile Include="viewer-core\FileTransferCapability.cpp">
       <Filter>viewer-core</Filter>
     </ClCompile>
@@ -398,7 +395,7 @@
     <ClInclude Include="viewer-core\DesktopSizeDecoder.h">
       <Filter>viewer-core</Filter>
     </ClInclude>
-    <ClInclude Include="viewer-core\FbUpdateNotifier.h">
+    <ClInclude Include="viewer-core\FrameBufferAccess.h">
       <Filter>viewer-core</Filter>
     </ClInclude>
     <ClInclude Include="viewer-core\FileTransferCapability.h">

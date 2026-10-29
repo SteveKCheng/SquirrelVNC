@@ -20,41 +20,41 @@
 //-------------------------------------------------------------------------
 //
 
-#ifndef _FUZZ_NOTIFIER_H_
-#define _FUZZ_NOTIFIER_H_
+#ifndef _FRAME_BUFFER_ACCESS_H_
+#define _FRAME_BUFFER_ACCESS_H_
 
-#include "thread/AutoLock.h"
-#include "viewer-core/FbUpdateNotifier.h"
+#include "rfb/FrameBuffer.h"
+
+#include <mutex>
 
 //
-// The FbUpdateNotifier that DecoderOfRectangle::process() needs, for a
-// program that never starts it.
+// Read access to a connection's frame buffer, holding the frame buffer's
+// lock for as long as it lives (RemoteViewerCore::accessFrameBuffer()).
+// The decoders wait to draw until it is gone, so a holder sees whole
+// rectangles, and the frame buffer is not replaced meanwhile (a change of
+// size or pixel format).
 //
-// The notifier's thread is created suspended and stays that way, so
-// onUpdate() only adds to a region and nothing reports updates. A
-// FbUpdateNotifier that is never started cannot be destroyed without
-// leaking its suspended thread, so one object serves a whole fuzzing run,
-// and clearUpdates() empties its region between inputs.
+// Hold one only briefly, as a paint does, and never on the network
+// thread, which takes the lock itself. Movable, not copyable.
 //
-class FuzzNotifier final : public FbUpdateNotifier
+class FrameBufferAccess final
 {
 public:
   //
-  // Pre-conditions: fb, fbLock and logWriter outlive this object.
+  // Pre-conditions: lock holds the mutex that guards frameBuffer, which
+  // outlives this object.
   //
-  FuzzNotifier(FrameBuffer *fb, std::mutex *fbLock, LogWriter *logWriter)
-  : FbUpdateNotifier(fb, fbLock, logWriter)
+  FrameBufferAccess(std::unique_lock<std::mutex> lock, const FrameBuffer &frameBuffer)
+  : m_lock(std::move(lock)),
+    m_frameBuffer(&frameBuffer)
   {
   }
 
-  //
-  // Post-conditions: the region of updates is empty.
-  //
-  void clearUpdates()
-  {
-    AutoLock al(&m_updateLock);
-    m_update.clear();
-  }
+  const FrameBuffer &get() const { return *m_frameBuffer; }
+
+private:
+  std::unique_lock<std::mutex> m_lock;
+  const FrameBuffer *m_frameBuffer;
 };
 
-#endif // _FUZZ_NOTIFIER_H_
+#endif // _FRAME_BUFFER_ACCESS_H_

@@ -28,15 +28,16 @@
 #include <type_traits>
 
 #include "win-system/WinClipboard.h"
-#include "gui/DibFrameBuffer.h"
 #include "log-writer/LogWriter.h"
 #include "region/Point.h"
 #include "region/Rect.h"
+#include "region/Region.h"
 #include "region/Dimension.h"
 #include "rfb/FrameBuffer.h"
-#include "thread/LocalMutex.h"
+#include "rfb/PixelFormat.h"
 #include "ScaleManager.h"
 #include "client-config-lib/ConnectionConfig.h"
+#include "gui/FrameBufferPainter.h"
 #include "gui/PaintWindow.h"
 #include "gui/ScrollBar.h"
 #include "gui/drawing/SolidBrush.h"
@@ -53,11 +54,23 @@ public:
   ~DesktopWindow() override;
 
   void setClipboardData(const StringStorage &strText);
-  void updateFramebuffer(const FrameBuffer &framebuffer,
-                         const Rect &dstRect);
-  // this function must be called if size of image was changed
-  // or the number of bits per pixel
-  void setNewFramebuffer(const FrameBuffer &framebuffer);
+
+  //
+  // The window paints the connection's frame buffer itself, under its lock
+  // (RemoteViewerCore::accessFrameBuffer()); these tell it what changed,
+  // on the GUI thread, as ViewerCoreEvents reports it.
+  //
+  // updateFramebuffer(): damage, in frame buffer coordinates, has changed.
+  // Post-conditions: the part of the window that shows it is invalidated,
+  // to be painted again.
+  //
+  void updateFramebuffer(const Region &damage);
+  //
+  // The frame buffer has been replaced: a new size or pixel format.
+  // Post-conditions: the window shows a frame buffer of these properties,
+  // and all of it is invalidated.
+  //
+  void setNewFramebuffer(const Dimension &dimension, const PixelFormat &pixelFormat);
 
   // set scale of image, can -1 = Auto, in percent
   void setScale(int scale);
@@ -187,12 +200,12 @@ protected:
   int m_fbHeight;
   SolidBrush m_brush;
 
-  // frame buffer
-  LocalMutex m_bufferLock;
-  DibFrameBuffer m_framebuffer;
-  // This variable save server dimension.
-  // Dimension of m_framebuffer can be large m_serverDimension.
-  Dimension m_serverDimension;
+  // The properties of the frame buffer, as last reported to
+  // setNewFramebuffer(). The connection's own may have changed since, until
+  // the change is reported.
+  Dimension m_fbDimension;
+  PixelFormat m_pixelFormat;
+  FrameBufferPainter m_painter;
 
   // clipboard
   WinClipboard m_clipboard;
@@ -202,7 +215,6 @@ protected:
 
   RemoteViewerCore *m_viewerCore;
   ConnectionConfig *m_conConf;
-  bool m_isBackgroundDirty;
 
   struct CursorDeleter
   {
@@ -217,20 +229,26 @@ protected:
   CursorHandle m_remoteCursor;
 
 private:
-  void doDraw(DeviceContext *dc);
+  void doDraw(DeviceContext *dc, HDC hdc);
   void scrollProcessing(int fbWidth, int fbHeight);
   void drawBackground(DeviceContext *dc, const RECT &rcMain, const RECT &rcImage);
-  void drawImage(const RECT &src, const RECT &dst);
+  //
+  // Paints the src part of the frame buffer at dst in hdc, scaling it if
+  // their sizes differ, holding the frame buffer's lock. If the frame
+  // buffer no longer has the properties last reported, dst is filled with
+  // the background instead: the report is on its way, and repaints all.
+  //
+  // Pre-conditions: GUI thread, during WM_PAINT.
+  // Throws Exception if GDI fails to paint.
+  //
+  void drawImage(DeviceContext *dc, HDC hdc, const RECT &src, const RECT &dst);
   /**
    * Invalidates the part of the window that shows an area of the frame
    * buffer, so that it is drawn again.
    * @param repaintRect the area, in frame-buffer coordinates.
-   * @post If the background is dirty, the whole window is invalidated and
-   *       the background is no longer marked dirty. Otherwise only the
-   *       visible part of the area is invalidated (with a margin of one
-   *       pixel for rounding when scaled), or the whole window when that
-   *       part is at most one pixel wide or high; nothing is invalidated
-   *       when none of the area is visible.
+   * @post The visible part of the area is invalidated, with a margin of
+   *       one pixel for rounding when scaled; nothing is invalidated when
+   *       none of the area is visible.
    */
   void repaint(const Rect &repaintRect);
   void calcClientArea();

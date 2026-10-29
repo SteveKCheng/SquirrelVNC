@@ -69,11 +69,6 @@ public:
   virtual bool copyFrom(const FrameBuffer &srcFrameBuffer,
                 int srcX, int srcY);
 
-  // Overlays the source image to this with by the AND mask
-  virtual bool overlay(const Rect &dstRect,
-               const FrameBuffer &srcFrameBuffer,
-               int srcX, int srcY,
-               const char *andMask);
   virtual void move(const Rect &dstRect, const int srcX, const int srcY);
   // Return value: true - if equal
   //               false - if PixelFormats or data differs
@@ -144,11 +139,6 @@ protected:
   void clipRect(const Rect &dstRect, const Rect &srcBufferRect,
                 const int srcX, const int srcY,
                 Rect *dstClippedRect, Rect *srcClippedRect);
-
-  template<class PIXEL_T> bool overlayT(const Rect &dstRect,
-                                        const FrameBuffer &srcFrameBuffer,
-                                        int srcX, int srcY,
-                                        const char *andMask);
 
   Dimension m_dimension;
 

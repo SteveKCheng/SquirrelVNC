@@ -832,7 +832,13 @@ from vcpkg.
   loop copies into the DIB) would only move the notifier's copy onto
   the network thread. It becomes "decode into the DIB", after the fixes
   in `cpu-usage.md`, "What to do". Until then step 7 keeps
-  `WindowsEvent`, which the notifier uses.
+  `WindowsEvent`, which the notifier uses. *Done 2026-10-29 on branch
+  `framebuffer`, as reworked with Steve: the decoders draw into the
+  core's frame buffer, the core reports damage once per
+  FramebufferUpdate, and the GUI paints the frame buffer under its lock
+  (`concurrency.md`, "A framebuffer update, end to end"). The core
+  allocates the frame buffer for now; memory from a DIB section the GUI
+  provides comes later.*
 - **Step 5, file transfer on the loop** (agreed with Steve, 2026-10-26).
   Today the dialog calls `FileTransferCore` on the GUI thread (starting
   operations, so their first request is sent from there), the reply

@@ -54,5 +54,6 @@ void runNetworkThreadTests();
 void runHostResolverTests();
 void runTcpAcceptorTests();
 void runClientEventsTests();
+void runFrameBufferPainterTests();
 
 #endif // _UNIT_TEST_H_

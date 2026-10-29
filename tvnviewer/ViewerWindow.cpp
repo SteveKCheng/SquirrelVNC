@@ -49,7 +49,7 @@ ViewerWindow::ViewerWindow(WindowsApplication *application,
   m_fileTransfer(nullptr),
   m_conData(conData),
   m_dsktWnd(&m_logWriter, conConf),
-  m_coreEvents(m_dsktWnd, logger),
+  m_coreEvents(logger),
   m_isConnected(false),
   m_sizeIsChanged(false),
   m_hooksEnabledFirstTime(true),
@@ -324,6 +324,8 @@ bool ViewerWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
     return handleCutText();
   case ViewerCoreEvents::WM_USER_CURSOR:
     return handleCursorShape();
+  case ViewerCoreEvents::WM_USER_FRAME_BUFFER:
+    return handleFrameBufferChanges();
   case ViewerCoreEvents::WM_USER_PASSWORD:
     return handlePasswordRequest();
   case WM_ACTIVATE:
@@ -1199,6 +1201,16 @@ bool ViewerWindow::handleCutText()
   if (cutText) {
     m_dsktWnd.setClipboardData(*cutText);
   }
+  return true;
+}
+
+bool ViewerWindow::handleFrameBufferChanges()
+{
+  ViewerCoreEvents::FrameBufferChanges changes = m_coreEvents.takeFrameBufferChanges();
+  if (changes.isReplaced) {
+    m_dsktWnd.setNewFramebuffer(changes.dimension, changes.pixelFormat);
+  }
+  m_dsktWnd.updateFramebuffer(changes.damage);
   return true;
 }
 

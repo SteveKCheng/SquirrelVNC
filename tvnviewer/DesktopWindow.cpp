@@ -23,7 +23,6 @@
 
 #include "DesktopWindow.h"
 
-#include "thread/AutoLock.h"
 #include "util/Exception.h"
 
 #include <algorithm>
@@ -46,7 +45,6 @@ DesktopWindow::DesktopWindow(LogWriter *logWriter, ConnectionConfig *conConf)
   m_altDown(false),
   m_previousMousePos(-1, -1),
   m_previousMouseState(0),
-  m_isBackgroundDirty(false),
   m_localCursor(LoadCursor(nullptr, IDC_ARROW)),
   m_showRemoteCursor(false),
   m_hasRemoteCursor(false)
@@ -89,10 +87,8 @@ void DesktopWindow::onPaint(DeviceContext *dc, PAINTSTRUCT *paintStruct)
 
   if (paintRect.area() != 0) {
     try {
-      AutoLock al(&m_bufferLock);
-      m_framebuffer.setTargetDC(paintStruct->hdc);
       if (!m_clientArea.isEmpty()) {
-        doDraw(dc);
+        doDraw(dc, paintStruct->hdc);
       }
     } catch (const Exception &ex) {
       m_logWriter->error(_T("Error in onPaint: %s"), ex.getMessage());
@@ -329,11 +325,10 @@ void DesktopWindow::setClipboardData(const StringStorage &strText)
   }
 }
 
-void DesktopWindow::doDraw(DeviceContext *dc)
+void DesktopWindow::doDraw(DeviceContext *dc, HDC hdc)
 {
-  AutoLock al(&m_bufferLock);
-  int fbWidth  = m_framebuffer.getDimension().width;
-  int fbHeight = m_framebuffer.getDimension().height;
+  int fbWidth  = m_fbDimension.width;
+  int fbHeight = m_fbDimension.height;
 
   if (!fbWidth || !fbHeight) {
     Graphics graphics(dc);
@@ -372,7 +367,7 @@ void DesktopWindow::doDraw(DeviceContext *dc)
     drawBackground(dc, rcClient, rcDst);
   }
 
-  drawImage(rcSrc, rcDst);
+  drawImage(dc, hdc, rcSrc, rcDst);
 }
 
 void DesktopWindow::applyScrollbarChanges(bool isChanged, bool isVert, bool isHorz, int wndWidth, int wndHeight)
@@ -481,23 +476,26 @@ void DesktopWindow::calcClientArea() {
   }
 }
 
-void DesktopWindow::drawImage(const RECT &src, const RECT &dst)
+void DesktopWindow::drawImage(DeviceContext *dc, HDC hdc, const RECT &src, const RECT &dst)
 {
-  Rect rc_src(src);
-  Rect rc_dest(dst);
-
-  AutoLock al(&m_bufferLock);
-  
-  if ((src.right - src.left) == (dst.right - dst.left) &&
-     (src.bottom - src.top) == (dst.bottom - dst.top) &&
-     src.left == dst.left &&
-     src.right == dst.right &&
-     src.top == dst.top &&
-     src.bottom == dst.bottom) {
-    m_framebuffer.blitFromDibSection(rc_dest);
-  } else {
-    m_framebuffer.stretchFromDibSection(rc_dest, rc_src);
+  Rect srcRect(src);
+  Rect dstRect(dst);
+  if (m_viewerCore == nullptr || srcRect.area() == 0 || dstRect.area() == 0) {
+    return;
   }
+
+  FrameBufferAccess access = m_viewerCore->accessFrameBuffer();
+  const FrameBuffer &fb = access.get();
+  if (!fb.getDimension().isEqualTo(m_fbDimension) ||
+      !fb.getPixelFormat().isEqualTo(m_pixelFormat) ||
+      fb.getBuffer() == nullptr ||
+      !fb.getDimension().getRect().intersection(srcRect).isEqualTo(srcRect)) {
+    Graphics graphics(dc);
+    graphics.fillRect(dstRect.left, dstRect.top, dstRect.right, dstRect.bottom, m_brush);
+    return;
+  }
+
+  m_painter.paint(hdc, fb, srcRect, dstRect);
 }
 
 bool DesktopWindow::onSize(WPARAM /* wParam */, LPARAM /* lParam */) 
@@ -513,61 +511,27 @@ bool DesktopWindow::onDestroy()
   return true;
 }
 
-void DesktopWindow::updateFramebuffer(const FrameBuffer &framebuffer,
-                                     const Rect &dstRect)
+void DesktopWindow::updateFramebuffer(const Region &damage)
 {
-  // This code doesn't require blocking of m_framebuffer.
-  //
-  // If in this moment Windows paint frame buffer to screen,
-  // then image on viewer is not valid, but next update fix this
-  // It is not critical.
-  //
-  // Size of framebuffer can not changed, because onFrameBufferUpdate()
-  // and onFrameBufferPropChange() may be called only from one thread.
-
-  if (!m_framebuffer.copyFrom(dstRect, framebuffer, dstRect.left, dstRect.top)) {
-    m_logWriter->error(_T("Possible invalide region. (%d, %d), (%d, %d)"),
-                       dstRect.left, dstRect.top, dstRect.right, dstRect.bottom);
-    m_logWriter->interror(_T("Error in updateFramebuffer (ViewerWindow)"));
+  std::vector<Rect> rects;
+  damage.getRectVector(&rects);
+  for (const Rect &rect : rects) {
+    repaint(rect);
   }
-  repaint(dstRect);
 }
 
-void DesktopWindow::setNewFramebuffer(const FrameBuffer &framebuffer)
+void DesktopWindow::setNewFramebuffer(const Dimension &dimension, const PixelFormat &pixelFormat)
 {
-  Dimension dimension = framebuffer.getDimension();
-  Dimension olddimension = m_framebuffer.getDimension();
-
-  bool isBackgroundDirty = dimension.width < olddimension.width || 
-                           dimension.height < olddimension.height;
-
   m_logWriter->detail(_T("Desktop size: %d, %d"),  dimension.width, dimension.height);
-  {
-    // FIXME: Nested locks should not be used.
-    AutoLock al(&m_bufferLock);
-
-    m_serverDimension = dimension;
-    if (!dimension.isEmpty()) {
-      // the width and height should be aligned to 4
-      int alignWidth = (dimension.width + 3) / 4;
-      dimension.width = alignWidth * 4;
-      int alignHeight = (dimension.height + 3) / 4;
-      dimension.height = alignHeight * 4;
-      PixelFormat pixelFormat = framebuffer.getPixelFormat();
-      m_framebuffer.setProperties(dimension, pixelFormat, getHWnd());
-      m_framebuffer.setColor(0, 0, 0);
-      m_scManager.setScreenResolution(dimension.width, dimension.height);
-    } else {
-      // If size of remote frame buffer is (0, 0), then fill viewer.
-      // Otherwise user might think that everything hangs.
-      m_framebuffer.setColor(0, 0, 0);
-    }
+  m_fbDimension = dimension;
+  m_pixelFormat = pixelFormat;
+  if (!dimension.isEmpty()) {
+    m_scManager.setScreenResolution(dimension.width, dimension.height);
   }
-  if (dimension.isEmpty()) {
-    Rect rect = dimension.getRect();
-    repaint(rect);
-  } else {
-    m_isBackgroundDirty = isBackgroundDirty;
+  // All of it, the background around the image too, which a smaller frame
+  // buffer leaves uncovered.
+  if (getHWnd() != nullptr) {
+    redraw();
   }
 }
 
@@ -577,17 +541,11 @@ void DesktopWindow::repaint(const Rect &repaintRect)
   m_scManager.getSourceRect(&rect);
   Rect paint = repaintRect;
   paint = paint.intersection(rect);
-  if (paint.isEmpty() && !m_isBackgroundDirty) {
+  if (paint.isEmpty()) {
     // None of it is visible.
     return;
   }
 
-  // checks what we getted a valid rectangle
-  if (paint.getWidth() <= 1 || paint.getHeight() <= 1 || m_isBackgroundDirty) {
-    m_isBackgroundDirty = false;
-    redraw();
-    return;
-  }
   Rect wnd;
   m_scManager.getWndFromScreen(paint, &wnd);
   m_scManager.getDestinationRect(&rect);
@@ -610,7 +568,6 @@ void DesktopWindow::repaint(const Rect &repaintRect)
 
 void DesktopWindow::setScale(int scale)
 {
-  AutoLock al(&m_bufferLock);
   m_scManager.setScale(scale);
   m_winResize = true;
   // Invalidate all area of desktop window.
@@ -641,26 +598,24 @@ Rect DesktopWindow::getViewerGeometry()
   viewerRect.setHeight(m_scManager.getVertPoints());
   viewerRect.setWidth(m_scManager.getHorzPoints());
   if (viewerRect.area() == 0) {
-    viewerRect.setWidth(m_framebuffer.getDimension().width);
-    viewerRect.setHeight(m_framebuffer.getDimension().height);
+    viewerRect.setWidth(m_fbDimension.width);
+    viewerRect.setHeight(m_fbDimension.height);
   }
   return viewerRect;
 }
 
 Rect DesktopWindow::getFrameBufferGeometry()
 {
-  AutoLock al(&m_bufferLock);
-  return m_framebuffer.getDimension().getRect();
+  return m_fbDimension.getRect();
 }
 
 void DesktopWindow::getServerGeometry(Rect *rect, int *pixelsize)
 {
-  AutoLock al(&m_bufferLock);
   if (rect != nullptr) {
-    *rect = m_serverDimension.getRect();
+    *rect = m_fbDimension.getRect();
   }
   if (pixelsize != nullptr) {
-    *pixelsize = m_framebuffer.getBitsPerPixel();
+    *pixelsize = m_pixelFormat.bitsPerPixel;
   }
 }
 

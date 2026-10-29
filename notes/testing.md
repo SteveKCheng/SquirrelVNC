@@ -7,7 +7,8 @@ implemented yet. The motivation is the Region bug fixed after the /W4
 work: every region came out empty and the viewer showed a black screen.
 
 That bug did not touch the framebuffer itself: the decoders still drew
-into it, but `FbUpdateNotifier` merges the updated areas into a
+into it, but `FbUpdateNotifier` (since removed: the core's `m_damage`
+now) merges the updated areas into a
 `Region`, which came out empty, so the GUI was never told to repaint.
 So the replay tests below, which compare the final framebuffer, would
 not have caught it. What would have is a unit test of `Region`, run as
@@ -24,7 +25,8 @@ stdin/stdout", "Order of work").
   and fuzzing of FramebufferUpdate messages, read by the fuzzer itself
   and passed to the real decoders.
 - **Out, for now:** fuzzing whole sessions. `RemoteViewerCore` runs a
-  protocol thread and an `FbUpdateNotifier` thread, so coverage is not
+  protocol thread and an `FbUpdateNotifier` thread (*gone since
+  2026-10-29*), so coverage is not
   deterministic, and a single-threaded mode would be thrown away by the
   asynchronous rewrite. Once the rewrite makes the core single-threaded
   and sans-I/O, a whole-session target becomes easy; add it then.
@@ -331,10 +333,12 @@ directly (see "Corpus and regressions").
 
 Everything runs on the fuzzer's thread, with new decoders for each
 input, so per-decoder state (the zlib streams of Tight and ZRLE)
-starts fresh. `process()` always calls `notify()`, so it needs an
+starts fresh. ~~`process()` always calls `notify()`, so it needs an
 `FbUpdateNotifier`. A real one that is never started will do: its
 thread is created suspended, `onUpdate()` only adds to a region, and
-the destructor does not wait for a thread that never ran.
+the destructor does not wait for a thread that never ran.~~ *Since
+2026-10-29 the decoders need no notifier: the core collects the damage
+itself.*
 
 ### Duplication, and how to keep it honest
 

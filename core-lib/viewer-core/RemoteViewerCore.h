@@ -27,6 +27,7 @@
 #include "util/CommonHeader.h"
 #include "util/inttypes.h"
 
+#include "FrameBufferAccess.h"
 #include "ViewerBufferSize.h"
 
 #include <asio/any_io_executor.hpp>
@@ -101,8 +102,7 @@ public:
   RemoteViewerCore &operator=(RemoteViewerCore &&) = delete;
 
   //
-  // Ends the frame buffer notifier's thread, waiting for it, and closes a
-  // socket taken over by start() but never used. Never throws.
+  // Closes a socket taken over by start() but never used. Never throws.
   //
   // Pre-conditions: if start() was called, the connection has released
   // every reference to the adapter it was given (see start()): the object
@@ -150,20 +150,15 @@ public:
   //
   // The threading model is the following. The connection is driven on the
   // network thread (notes/async-networking.md, Phase 4): connecting, reading
-  // with the protocol code, and writing. This thread is referred to as the
-  // "input thread" below. It also performs most notifications via the
-  // adapter interface, except for two notifications which report changes in
-  // the frame buffer.
+  // with the protocol code, and writing. It also makes every notification
+  // through the adapter interface.
   //
-  // The notifications related to the frame buffer, onFrameBufferUpdate() and
-  // onFrameBufferPropChange(), will be called from a separate thread (let's
-  // call it "frame buffer notifier"). The whole purpose of this thread is to
-  // perform these two callbacks. This architecture allows input thread to
-  // continue reading network data while callbacks are executed. However, note
-  // that the frame buffer is locked in these two callbacks, so it's still
-  // possible to block the input thread by doing too much work in the
-  // callbacks -- obviously, the input thread will be blocked as soon as it
-  // needs to change the frame buffer.
+  // The decoders draw into the frame buffer on the network thread, under
+  // its lock. The adapter is told what changed (onFrameBufferUpdate(), once
+  // for each FramebufferUpdate, and onFrameBufferPropChange()); the
+  // application reads the pixels from its own thread, through
+  // accessFrameBuffer(), which holds the lock: the decoders wait for it,
+  // so it must be held only briefly.
   //
   // Write operations (sending data to the server) are performed on the
   // network thread only, so the output has no lock: the consumer posts
@@ -211,8 +206,7 @@ public:
 
   //
   // Stop operation: cancels the connection, on the network thread, whatever
-  // it is doing (resolving, connecting, reading or writing), and ends the
-  // frame buffer notifier's thread.
+  // it is doing (resolving, connecting, reading or writing).
   //
   // This function will return control to the caller immediately, and the
   // connection may run for some time after the function has finished. It
@@ -355,19 +349,25 @@ public:
   //
   // Copy the frame buffer, as the decoders have left it, into dst.
   //
-  // May be called at any time. A test program calls it once the session
-  // has ended, because CoreEventsAdapter's update events come from another
-  // thread and may not report the last updates.
+  // May be called at any time, on any thread but the network thread. A
+  // test program calls it once the session has ended.
   //
-  // Pre-conditions: dst is not 0.
   // Post-conditions: dst has the dimension and pixel format of the frame
   // buffer and a copy of its pixels, taken under the frame buffer's lock.
-  // The copy never
-  // contains a cursor, since the notifier draws the cursor and removes it
-  // again under the same lock. Before ServerInit the copy is empty.
+  // Before ServerInit the copy is empty.
   // Throws Exception if dst cannot be set up, or std::bad_alloc.
   //
   void copyFrameBuffer(FrameBuffer &dst);
+
+  //
+  // Read access to the frame buffer, for painting it: holds the frame
+  // buffer's lock until the result is destroyed (see FrameBufferAccess).
+  // May be called at any time, on any thread but the network thread.
+  //
+  // Post-conditions: the result's frame buffer is the connection's, empty
+  // (0 x 0) before ServerInit.
+  //
+  FrameBufferAccess accessFrameBuffer();
 
 private:
   std::unique_ptr<RemoteViewerCoreImpl> m_impl;

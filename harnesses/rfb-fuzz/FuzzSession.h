@@ -31,8 +31,6 @@
 #include "io-lib/AwaitableReader.h"
 #include "util/Task.h"
 
-#include "FuzzNotifier.h"
-
 #include <mutex>
 #include <vector>
 
@@ -69,10 +67,7 @@ public:
   //
   static const UINT64 MAX_FRAME_BUFFER_PIXELS = 256 * 256;
 
-  //
-  // Pre-conditions: notifier outlives this object, and is never started.
-  //
-  FuzzSession(FuzzNotifier *notifier);
+  FuzzSession();
   ~FuzzSession();
 
   //
@@ -92,8 +87,7 @@ public:
   // Post-conditions: the input has been read up to its end, or up to the
   // first point where the viewer would reject it; rejection (Exception) is
   // caught, as it is correct behaviour. Anything else (a crash, an ASan
-  // report, a hang, the two runs differing) is a finding. The notifier's
-  // region is empty again.
+  // report, a hang, the two runs differing) is a finding.
   //
   void run(const UINT8 *data, size_t size);
 
@@ -127,7 +121,6 @@ private:
   Task<bool> readFbUpdateRectangle();
   Task<> readPseudoEncoding(const Rect &rect, int encodingType);
 
-  FuzzNotifier *m_notifier;
   // Without a logger: it logs nothing.
   LogWriter m_logWriter;
   // Valid only during run(); they point to objects local to it.

@@ -39,7 +39,7 @@
 #include "io-lib/OutputStream.h"
 #include "util/Task.h"
 #include "ClientEvents.h"
-#include "FbUpdateNotifier.h"
+#include "FrameBufferAccess.h"
 #include "QueuedOutputStream.h"
 #include "ServerMessageListener.h"
 #include "ViewerBufferSize.h"
@@ -124,6 +124,8 @@ public:
   void enableCursorShapeUpdates(bool enabled);
 
   void copyFrameBuffer(FrameBuffer &dst);
+
+  FrameBufferAccess accessFrameBuffer();
 
 private:
   //
@@ -245,8 +247,7 @@ private:
   // what each does, and what it may throw. Input (KeyEvent, PointerEvent,
   // CutTextEvent) is dropped until the protocol is initialized; then, for a
   // socket, it is queued in m_inputEvents for writeLoop(), which sends it
-  // with send() when the link allows, and the pointer position is given to
-  // the frame buffer notifier at once; with streams, it is sent at once.
+  // with send() when the link allows; with streams, it is sent at once.
   //
   void handle(const KeyEvent &event);
   void handle(const PointerEvent &event);
@@ -372,7 +373,7 @@ private:
   Task<> receiveFbUpdate();
 
   //
-  // Receive rectangle, decode it and notify m_fbUpdateNotifier.
+  // Receive rectangle, decode it and add it to m_damage.
   //
   // Returns true if this rectangle should be the last one in this update,
   // false otherwise. This is needed to support LastRect pseudo-encoding
@@ -591,10 +592,6 @@ private:
   // See also: C++ standard 12.6.2 - Initializing bases and members.
   DecoderStore m_decoderStore;
 
-  // m_fbUpdateNotifier depends on m_logWriter and must be defined after it.
-  // See also: C++ standard 12.6.2 - Initializing bases and members.
-  FbUpdateNotifier m_fbUpdateNotifier;
-
   CapsContainer m_authCaps;
   std::map<UINT32, AuthHandler *> m_authHandlers;
 
@@ -633,6 +630,9 @@ private:
   // recursive.
   std::mutex m_fbLock;
   FrameBuffer m_frameBuffer;
+  // What the FramebufferUpdate being read has drawn so far; given to the
+  // adapter at its end. Network thread.
+  Region m_damage;
 
   Dimension m_desktopSize;
 

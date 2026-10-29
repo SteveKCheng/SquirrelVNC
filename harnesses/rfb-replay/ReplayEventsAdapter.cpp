@@ -78,12 +78,12 @@ void ReplayEventsAdapter::onError(const Exception &exception)
   markEnded();
 }
 
-void ReplayEventsAdapter::onFrameBufferUpdate(const FrameBuffer & /* fb */,
-                                              const Rect & /* update */)
+void ReplayEventsAdapter::onFrameBufferUpdate(const Region & /* damage */)
 {
 }
 
-void ReplayEventsAdapter::onFrameBufferPropChange(const FrameBuffer & /* fb */)
+void ReplayEventsAdapter::onFrameBufferPropChange(const Dimension & /* dimension */,
+                                                  const PixelFormat & /* pixelFormat */)
 {
 }
 

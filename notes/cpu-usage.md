@@ -108,6 +108,41 @@ notifier's 1.9 s in `InvalidateRect` (one call per rectangle, from
 another thread), it could be contention on win32k's lock, or many small
 paints. Not known from this profile: see "Measuring" for WPA.
 
+### 2026-10-28: a WPR trace, scaled down
+
+Trace `CAITSITH.10-28-2026.14-08-09.etl` (Windows Performance Recorder,
+outside the repository with the other profiles), of a Release build
+showing the remote screen scaled down, about 35 s of updates. Read with
+TraceProcessor (the .NET library behind WPA): context switches with the
+stacks of each wait and of the thread that ended it, and CPU samples.
+
+- **Paints:** 61,852 `WM_PAINT`s on the GUI thread, and 61,842 wake-ups
+  of its message pump by the notifier's `InvalidateRect`: one paint per
+  rectangle, about 1,700 a second, with no merging. That was the
+  problem.
+- **Lock contention on win32k's lock, small:** the GUI thread waited on
+  it 2,823 times in `BeginPaint` (45 ms in all, most waits under
+  0.1 ms), 55 ms in `EndPaint`, about 0.5 s in all its calls; nearly
+  every wait ended by the notifier leaving `InvalidateRect`. The
+  notifier waited 0.3 s on it in `InvalidateRect`.
+- **`BeginPaint` cost CPU, not waiting:** 1.7 s, in setting up the DC
+  and its clip region (`GetDCEx`, `GreSelectVisRgn`, `GreCombineRgn`):
+  about 28 µs a call, times 62k calls.
+- **`StretchBlt` with `HALFTONE`:** 7.5 s of the GUI thread's 14.2 s,
+  6.2 s of it in software halftoning; about 120 µs a paint.
+- **The core thread:** 3.5 s in `SetEvent`, waking the notifier about
+  90k times (about 39 µs each, probably dear because the sandbox is a
+  virtual machine), and 0.7 s waiting for `m_fbLock` in
+  `DecoderOfRectangle::copy()`, held by the notifier across
+  `InvalidateRect`.
+- The trace itself costs: win32k's `EtwTrace*` frames, about 0.9 s on
+  the GUI thread.
+
+Hence the rework of 2026-10-29 (`concurrency.md`, "A framebuffer
+update, end to end"): damage reported once per FramebufferUpdate,
+merged, and invalidated on the GUI thread. The scaling cost per paint
+remains, but paints are now few. To be measured again.
+
 ### Copies per pixel today
 
 1. The decoder writes into the rectangle buffer (`m_rectangleFb`) —
@@ -162,6 +197,13 @@ In order of gain for the effort:
    updates are invalidated or painted. Painting at a matching depth, 1:1,
    is GDI's fast path; `StretchBlt` or a depth conversion is much slower.
    Beyond that is Direct2D or Direct3D: a separate project.
+   *Measured 2026-10-28 (above), and done 2026-10-29 with item 3: the
+   decoders draw into the core's frame buffer, the GUI paints it with
+   `StretchDIBits()` under its lock, and `FbUpdateNotifier`, the DIB and
+   copies 2 and 3 are gone. Still to do: items 1 and 2, then profile
+   again. The paint still scales the whole view and relies on the clip
+   region; if halftoning stays dear, give `StretchDIBits()` only the part
+   around `rcPaint`, with a margin of a pixel or two.*
 
 ### Does removing `FbUpdateNotifier` cost performance?
 

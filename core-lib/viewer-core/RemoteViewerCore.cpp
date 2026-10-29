@@ -128,3 +128,8 @@ void RemoteViewerCore::copyFrameBuffer(FrameBuffer &dst)
 {
   m_impl->copyFrameBuffer(dst);
 }
+
+FrameBufferAccess RemoteViewerCore::accessFrameBuffer()
+{
+  return m_impl->accessFrameBuffer();
+}
