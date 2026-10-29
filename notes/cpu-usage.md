@@ -166,6 +166,19 @@ the part around `rcPaint`. Steve keeps `HALFTONE` for its quality: the
 cost is CPU, not lag, and unscaled full screen (his usual use) takes
 GDI's plain copy (`COLORONCOLOR`, equal sizes).
 
+### 2026-10-29: Very Sleepy, after the JPEG work
+
+Steve's profile `capture-20261029.sleepy` (135 s), of the build with the
+decoders drawing without the lock and Tight JPEG decoded straight into
+the frame buffer:
+
+- `NtGdiStretchDIBitsInternal` takes 25 s, as expected for the paint;
+  every other function is now minor.
+- Task Manager shows 3 to 4 % CPU, against about 20 % before (unscaled,
+  from memory), and the laptop runs noticeably cooler.
+
+No WPR trace was taken: not needed at these numbers.
+
 ### Copies per pixel today
 
 1. The decoder writes into the rectangle buffer (`m_rectangleFb`) —
@@ -234,6 +247,19 @@ In order of gain for the effort:
    again. The paint still scales the whole view and relies on the clip
    region; if halftoning stays dear, give `StretchDIBits()` only the part
    around `rcPaint`, with a margin of a pixel or two.*
+
+5. **Paint 8- and 16-bit frame buffers in place.** A DIB's rows are
+   whole 32-bit words, so `FrameBufferPainter` copied the rows of a frame
+   buffer whose rows were not (8 or 16 bits per pixel, at some widths)
+   before each paint. *Done 2026-10-29: the consumer chooses the frame
+   buffer's row alignment (`RemoteViewerCore::StartupOptions::
+   rowAlignmentLog2`); the GUI asks for 4 bytes, and the painter paints
+   rows laid out as a DIB's in place, the DIB as wide as the frame
+   buffer so that GDI sees none of the padding. Frame buffers with other
+   rows are still copied. (Describing the DIB as wide as the rows would
+   paint any alignment in place; a test of a scaled paint found no
+   padding bleeding into the edge that way, but one test is not a
+   guarantee about `HALFTONE`, so the painter does not rely on it.)*
 
 ### Does removing `FbUpdateNotifier` cost performance?
 

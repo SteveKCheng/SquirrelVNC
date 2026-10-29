@@ -33,9 +33,13 @@
 // Paints a frame buffer, or part of it, into a device context with
 // StretchDIBits(), straight from the frame buffer's memory.
 //
-// It keeps a buffer for frame buffers whose rows are not whole 32-bit
-// words (8 or 16 bits per pixel, at some widths), which a DIB's rows must
-// be: their rows are copied before painting.
+// A DIB's rows are its width in pixels rounded up to whole 32-bit words.
+// A frame buffer whose rows are laid out that way (FrameBuffer rows
+// aligned to 4 bytes: setRowAlignmentLog2(2)) is painted in place, the
+// DIB as wide as the frame buffer, so that GDI sees none of the bytes
+// past a row's pixels. Otherwise (rows not aligned, at 8 or 16 bits per
+// pixel and some widths, or aligned to more than 4 bytes) the rows are
+// copied into a buffer kept here before painting.
 //
 // Threads: one thread at a time, as a window paints.
 //

@@ -77,15 +77,19 @@ static void setUpBitmapInfo(FrameBufferBitmapInfo *info, const PixelFormat &pixe
 void FrameBufferPainter::paint(HDC hdc, const FrameBuffer &fb, const Rect &src, const Rect &dst)
 {
   // The DIB is the rows of src, whole, so that its top row is row 0
-  // whichever way StretchDIBits() counts rows.
+  // whichever way StretchDIBits() counts rows. It is as wide as the frame
+  // buffer, not as its rows, so that GDI never sees the bytes past a row's
+  // pixels, whatever HALFTONE reads around the source rectangle.
+  const size_t pixelBytesPerRow =
+    static_cast<size_t>(fb.getDimension().width) * fb.getBytesPerPixel();
+  const size_t dibBytesPerRow = (pixelBytesPerRow + 3) / 4 * 4;
   const size_t bytesPerRow = fb.getBytesPerRow();
-  const size_t dibBytesPerRow = (bytesPerRow + 3) / 4 * 4;
   const void *bits = fb.getBufferPtr(0, src.top);
   if (dibBytesPerRow != bytesPerRow) {
     m_alignedRows.resize(dibBytesPerRow * src.getHeight());
     const BYTE *rowPtr = static_cast<const BYTE *>(bits);
     for (int y = 0; y < src.getHeight(); y++, rowPtr += bytesPerRow) {
-      memcpy(&m_alignedRows[y * dibBytesPerRow], rowPtr, bytesPerRow);
+      memcpy(&m_alignedRows[y * dibBytesPerRow], rowPtr, pixelBytesPerRow);
     }
     bits = m_alignedRows.data();
   }

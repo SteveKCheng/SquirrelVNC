@@ -32,6 +32,7 @@
 #include "util/Exception.h"
 
 #include <cstring>
+#include <string>
 
 namespace
 {
@@ -133,10 +134,13 @@ void runFrameBufferPainterTests()
           "FrameBufferPainter paints nothing outside the destination");
   }
 
-  // 8 bits per pixel, a width whose rows are not whole 32-bit words: each
-  // row is copied, and the colour table gives the colours.
-  {
+  // 8 bits per pixel, a width whose pixels are not whole 32-bit words: the
+  // colour table gives the colours. Rows of their pixels only and rows of
+  // 8 bytes are copied; rows of 4 bytes are a DIB's, painted in place.
+  for (unsigned int alignment : {0u, 2u, 3u}) {
+    const std::string rows = " (rows aligned to 2^" + std::to_string(alignment) + " bytes)";
     FrameBuffer fb;
+    fb.setRowAlignmentLog2(alignment);
     fb.setProperties(Dimension(5, 3), StandardPixelFormatFactory::create8bppPixelFormat());
     // Red is 3 bits at shift 0, green 3 at 3, blue 2 at 6.
     const UINT8 values[] = {0x07, 0x38, 0xC0, 0xFF, 0x00};
@@ -154,7 +158,7 @@ void runFrameBufferPainterTests()
         same = same && target.at(x, y) == colours[(x + y) % 5];
       }
     }
-    check(same, "FrameBufferPainter paints an 8-bit frame buffer of an odd width");
+    check(same, ("FrameBufferPainter paints an 8-bit frame buffer of an odd width" + rows).c_str());
 
     // Only the second and third rows.
     Target part(5, 2, 0x123456);
@@ -165,12 +169,15 @@ void runFrameBufferPainterTests()
         same = same && part.at(x, y) == colours[(x + y + 1) % 5];
       }
     }
-    check(same, "FrameBufferPainter paints rows from the middle of an 8-bit frame buffer");
+    check(same, ("FrameBufferPainter paints rows from the middle of an 8-bit frame buffer" +
+                 rows).c_str());
   }
 
   // 16 bits per pixel (red 5, green 6, blue 5), an odd width.
-  {
+  for (unsigned int alignment : {0u, 2u, 3u}) {
+    const std::string rows = " (rows aligned to 2^" + std::to_string(alignment) + " bytes)";
     FrameBuffer fb;
+    fb.setRowAlignmentLog2(alignment);
     fb.setProperties(Dimension(3, 2), StandardPixelFormatFactory::create16bppPixelFormat());
     const UINT16 values[] = {0xF800, 0x07E0, 0x001F};
     const UINT32 colours[] = {0xFF0000, 0x00FF00, 0x0000FF};
@@ -187,7 +194,7 @@ void runFrameBufferPainterTests()
         same = same && isNear(target.at(x, y), colours[(x + y) % 3]);
       }
     }
-    check(same, "FrameBufferPainter paints a 16-bit frame buffer of an odd width");
+    check(same, ("FrameBufferPainter paints a 16-bit frame buffer of an odd width" + rows).c_str());
   }
 
   // Scaled: twice the size, a frame buffer of one colour stays that colour.
@@ -204,5 +211,27 @@ void runFrameBufferPainterTests()
       }
     }
     check(same, "FrameBufferPainter scales a frame buffer to twice its size");
+  }
+
+  // Scaled, black pixels in rows with white bytes past them: no white may
+  // reach the right edge. (A painter that showed GDI the padding, as a
+  // DIB as wide as the rows, passed this too on the test machine in 2026-10:
+  // HALFTONE did not read past the source there.)
+  for (unsigned int alignment : {0u, 2u, 3u}) {
+    const std::string rows = " (rows aligned to 2^" + std::to_string(alignment) + " bytes)";
+    FrameBuffer fb;
+    fb.setRowAlignmentLog2(alignment);
+    fb.setProperties(Dimension(5, 3), StandardPixelFormatFactory::create8bppPixelFormat());
+    memset(fb.getBuffer(), 0xFF, fb.getBufferSize());
+    fb.setColor(0, 0, 0);
+    Target target(15, 9, 0x123456);
+    painter.paint(target.dc(), fb, Rect(0, 0, 5, 3), Rect(0, 0, 15, 9));
+    bool same = true;
+    for (int y = 0; y < 9; y++) {
+      for (int x = 0; x < 15; x++) {
+        same = same && isNear(target.at(x, y), 0x000000);
+      }
+    }
+    check(same, ("FrameBufferPainter scales without the bytes past the rows' pixels" + rows).c_str());
   }
 }

@@ -95,6 +95,9 @@ void ViewerInstance::start()
   std::shared_ptr<CoreEventsAdapter> adapter = m_viewerWnd.getCoreEvents().getAdapter(self);
   RemoteViewerCore::StartupOptions options;
   options.sharedFlag = m_conConf.getSharedFlag();
+  // Rows as a DIB's, which DesktopWindow paints from in place
+  // (FrameBufferPainter).
+  options.rowAlignmentLog2 = 2;
   if (m_socket) {
     asio::ip::tcp::socket socket = std::move(*m_socket);
     m_socket.reset();
