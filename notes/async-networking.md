@@ -1125,6 +1125,10 @@ from vcpkg.
     `AwaitableReader` and `QueuedOutputStream`. Removing `io-lib`'s
     other streams in favour of the standard library would be too much
     churn for the benefit (Steve).
+  - **7l. `thread` and `WindowsEvent` go** (2026-10-29): with
+    `FbUpdateNotifier` gone, nothing used `Thread`, `LocalMutex`,
+    `AutoLock`, `Lockable` or `WindowsEvent`; three files still included
+    `thread/AutoLock.h` for nothing. Every lock left is a `std::mutex`.
 
 Phase 3 and step 4.2 are where behaviour really changes: Phase 3 lets
 the parser stop mid-message, and 4.2 changes which thread owns the

@@ -36,7 +36,6 @@
 #include "log-writer/LogWriter.h"
 #include "viewer-core/BlockingWorkPool.h"
 #include "viewer-core/NetworkThread.h"
-#include "thread/AutoLock.h"
 
 #include <map>
 #include <memory>

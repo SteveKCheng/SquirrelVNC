@@ -25,7 +25,6 @@
 #include "io-lib/ByteArrayInputStream.h"
 #include "rfb/EncodingDefs.h"
 #include "rfb/MsgDefs.h"
-#include "thread/AutoLock.h"
 #include "viewer-core/CopyRectDecoder.h"
 #include "viewer-core/DesktopSizeDecoder.h"
 #include "viewer-core/HexTileDecoder.h"

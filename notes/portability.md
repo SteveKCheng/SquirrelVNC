@@ -46,7 +46,8 @@ From the includes between libraries and the Win32 calls in each:
 
 The core reaches the Windows-only layer in exactly three places:
 
-- `viewer-core/FbUpdateNotifier.h` uses `win-system/WindowsEvent`;
+- ~~`viewer-core/FbUpdateNotifier.h` uses `win-system/WindowsEvent`;~~
+  *(both gone 2026-10-29)*
 - ~~`network/socket/*` uses `win-system/WsaStartup`;~~ *(gone in Phase 4
   step 7 of `async-networking.md`: Asio initializes WinSock)*
 - `file-lib/WinFile.cpp` uses `SystemException` and `Environment`.
@@ -54,13 +55,15 @@ The core reaches the Windows-only layer in exactly three places:
 The Win32 calls in the foundations all have standard C++ or POSIX
 replacements:
 
-- **Threads.** `LocalMutex` is a `CRITICAL_SECTION`, which is
+- ~~**Threads.** `LocalMutex` is a `CRITICAL_SECTION`, which is
   recursive, so it maps to `std::recursive_mutex`. `Thread` is
   `CreateThread` plus `WaitForSingleObject`; `suspend()` is only used to
   start the thread after construction, and `setPriority()` and
   `getThreadId()` are never called outside the class. `WindowsEvent`
   maps to a `std::condition_variable`. Rewrite these on the standard
-  library for all platforms, with no `#ifdef`.
+  library for all platforms, with no `#ifdef`.~~ *Done: the `thread`
+  folder and `WindowsEvent` are deleted (2026-10-29); the code uses
+  `std::thread`, `std::mutex` and `std::condition_variable`.*
 - **Sockets.** Plain BSD calls (`socket`, `connect`, `select`, `recv`,
   `send`, `getaddrinfo`). The only differences are `closesocket`,
   `ioctlsocket(FIONREAD)`, `WSAGetLastError`, `SOCKET`, `WSAStartup` and
@@ -292,7 +295,8 @@ both with Asio; see `async-networking.md`.
 2. **The cheap Clang fixes.** Done; see "Clang" above.
 3. **Untangle the layers** so that the core libraries never include
    `win-system`, `gui` or `config-lib`:
-   - rewrite `thread` and `WindowsEvent` on the standard library;
+   - ~~rewrite `thread` and `WindowsEvent` on the standard library;~~
+     *(done 2026-10-29)*
    - move `RfbKeySym`/`Keymap` out of the core;
    - add a small socket compatibility header;
    - make file transfer optional in `viewer-core`, or port `file-lib`;

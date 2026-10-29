@@ -145,14 +145,17 @@ Mostly **mutexes on shared data plus flags**. There are about 22
 `m_requestUpdateLock` and others), each guarding one or two fields.
 *Since Phase 4 step 7b of `async-networking.md`, the core keeps only
 `m_fbLock` and `m_startLock`: the others guarded fields now used only on
-the network thread, as did the output gate's lock and `CapsContainer`'s.*
+the network thread, as did the output gate's lock and `CapsContainer`'s.
+Since 2026-10-29 `LocalMutex` is deleted; the locks left are
+`std::mutex`.*
 
 Other threads ask the core for work by setting a flag that it reads
 before its next update request: `refreshFrameBuffer()` sets
 `m_isRefreshing`, `setPixelFormat()` sets `m_isNewPixelFormat`. There
 is no message to the core thread.
 
-`WindowsEvent` (an auto-reset event) is used only to wake the notifier.
+~~`WindowsEvent` (an auto-reset event) is used only to wake the notifier.~~
+*(The notifier and `WindowsEvent` are gone since 2026-10-29.)*
 
 ## The Windows message queue
 
@@ -281,6 +284,9 @@ None of these is a security issue; all are latent.
    notifier thread, no `m_isBackgroundDirty`); to be tested again.*
 
 ## Which code needs a recursive mutex
+
+*Historical: `LocalMutex` is deleted (2026-10-29), and none of the
+locks left is recursive.*
 
 `LocalMutex` is a `CRITICAL_SECTION`, which is recursive. Searching for
 functions that take a lock and then call a function of the same class

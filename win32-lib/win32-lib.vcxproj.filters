@@ -25,9 +25,6 @@
     <Filter Include="network\socket">
       <UniqueIdentifier>{c7a3212d-35fb-5647-856b-f8a6d094056d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="thread">
-      <UniqueIdentifier>{5ac1d3d9-b39e-52da-9704-9955a5b4dc06}</UniqueIdentifier>
-    </Filter>
     <Filter Include="util">
       <UniqueIdentifier>{e4267247-b8c3-5ffb-a7c9-10b7611ce222}</UniqueIdentifier>
     </Filter>
@@ -36,15 +33,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="thread\AutoLock.cpp">
-      <Filter>thread</Filter>
-    </ClCompile>
-    <ClCompile Include="thread\LocalMutex.cpp">
-      <Filter>thread</Filter>
-    </ClCompile>
-    <ClCompile Include="thread\Thread.cpp">
-      <Filter>thread</Filter>
-    </ClCompile>
     <ClCompile Include="network\HostResolver.cpp">
       <Filter>network</Filter>
     </ClCompile>
@@ -168,9 +156,6 @@
     <ClCompile Include="win-system\WindowsApplication.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
-    <ClCompile Include="win-system\WindowsEvent.cpp">
-      <Filter>win-system</Filter>
-    </ClCompile>
     <ClCompile Include="win-system\WinHooks.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
@@ -278,18 +263,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="thread\AutoLock.h">
-      <Filter>thread</Filter>
-    </ClInclude>
-    <ClInclude Include="thread\LocalMutex.h">
-      <Filter>thread</Filter>
-    </ClInclude>
-    <ClInclude Include="thread\Lockable.h">
-      <Filter>thread</Filter>
-    </ClInclude>
-    <ClInclude Include="thread\Thread.h">
-      <Filter>thread</Filter>
-    </ClInclude>
     <ClInclude Include="network\HostResolver.h">
       <Filter>network</Filter>
     </ClInclude>
@@ -435,9 +408,6 @@
       <Filter>win-system</Filter>
     </ClInclude>
     <ClInclude Include="win-system\WindowsApplication.h">
-      <Filter>win-system</Filter>
-    </ClInclude>
-    <ClInclude Include="win-system\WindowsEvent.h">
       <Filter>win-system</Filter>
     </ClInclude>
     <ClInclude Include="win-system\WinHooks.h">
