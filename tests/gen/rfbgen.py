@@ -284,9 +284,8 @@ class CopyRect:
 
     The viewer copies within the frame buffer as if from a snapshot of
     it, whichever way the two areas overlap (FrameBuffer::move()), and
-    copies only where both areas lie in the frame buffer. Unlike the
-    other decoders, it copies into the frame buffer directly, not into
-    the rectangle buffer (CopyRectDecoder::copy()).
+    copies only where both areas lie in the frame buffer
+    (CopyRectDecoder::decode()).
     """
 
     def __init__(self, x, y, w, h, src_x, src_y):
@@ -314,9 +313,8 @@ class RreRect:
     Subrectangles are given relative to the rectangle, as (x, y, width,
     height, rgb). The viewer must reject one that does not lie within the
     rectangle (RreDecoder::decode()), and error is set to the message the
-    session ends with. Nothing of that rectangle then reaches the frame
-    buffer: decoders draw into a separate rectangle buffer, which
-    DecoderOfRectangle::process() copies only after decoding succeeds.
+    session ends with. Decoders draw into the frame buffer as they go, so
+    the background and the subrectangles before the bad one stay there.
     """
 
     ERROR = 'Error in protocol: RRE subrectangle outside its rectangle'
@@ -338,10 +336,10 @@ class RreRect:
             out += pf.pixel_bytes(comps) + u16(sx) + u16(sy) + u16(sw) + u16(sh)
             if sx + sw > self.w or sy + sh > self.h:
                 self.error = self.ERROR
-            fills.append((self.x + sx, self.y + sy, sw, sh, comps))
-        if self.error is None:
-            for fill in fills:
-                fb.fill(*fill)
+            if self.error is None:
+                fills.append((self.x + sx, self.y + sy, sw, sh, comps))
+        for fill in fills:
+            fb.fill(*fill)
         return bytes(out)
 
 
@@ -373,8 +371,9 @@ class HextileRect:
 
     tiles holds one HextileTile per tile. A subrectangle that does not lie
     within its tile must make the viewer stop (HexTileDecoder::decode());
-    error is then set, and, as for RreRect, nothing of the rectangle
-    reaches the frame buffer.
+    error is then set. The viewer draws each tile once it has read it
+    whole, so the tiles before the bad one stay in the frame buffer, and
+    nothing of the bad one.
     """
 
     ERROR = 'Error in protocol: Hextile subrectangle outside its tile'
@@ -400,6 +399,9 @@ class HextileRect:
         fills = []
         background = foreground = None
         for (tx, ty, tw, th), tile in zip(rects, self.tiles):
+            if self.error is None:
+                # The tiles read whole so far.
+                drawn = len(fills)
             if tile.raw is not None:
                 out += u8(1)
                 for row in range(ty, ty + th):
@@ -437,8 +439,9 @@ class HextileRect:
                         self.error = self.ERROR
                 fills.append((tx + sx, ty + sy, sw, sh, pf.from_rgb8(colour)))
         if self.error is None:
-            for fill in fills:
-                fb.fill(*fill)
+            drawn = len(fills)
+        for fill in fills[:drawn]:
+            fb.fill(*fill)
         return bytes(out)
 
 
@@ -511,15 +514,12 @@ class TightRect:
     the viewer must reject. compression overrides the control byte's
     compression type.
 
-    As for RreRect, a rectangle the viewer rejects (error) leaves nothing
-    in the frame buffer.
+    A rectangle the viewer rejects (error) leaves nothing in the frame
+    buffer: Tight reads all of a rectangle's data before drawing it.
 
     A JPEG the viewer cannot decode is not an error: TightDecoder::
-    processJpeg() logs it and goes on, and the rectangle gets what the
-    rectangle buffer held there. That is what the frame buffer showed,
-    unless a CopyRect changed the area since (CopyRect writes to the
-    frame buffer only), so such a case must not follow a CopyRect over
-    the same area. The model leaves the frame buffer unchanged.
+    processJpeg() logs it and goes on, leaving the frame buffer
+    unchanged there.
     """
 
     BAD_TYPE = 'Sub-encoding in Tight-encoder are not valid'
@@ -704,9 +704,9 @@ class ZrleRect:
     compressed, so that it inflates short. The viewer then fails on
     reading past the inflated data, which raises an IOException, so the
     session ends with a disconnect event ("End of stream reached"), not
-    an error; disconnect is set to its message. As for the other
-    encodings, a rectangle the viewer does not finish leaves nothing in
-    the frame buffer.
+    an error; disconnect is set to its message. The viewer draws each
+    tile once it has decoded it, so the tiles whose data was left whole
+    stay in the frame buffer.
     """
 
     def __init__(self, x, y, w, h, tiles, stream, shorten=0):
@@ -729,8 +729,12 @@ class ZrleRect:
         assert len(rects) == len(self.tiles), \
             'expected %d tiles, got %d' % (len(rects), len(self.tiles))
         data = bytearray()
-        pixels = {}
+        # For each tile: where its data ends, and its pixels.
+        tile_ends = []
+        tile_pixels = []
         for (tx, ty, tw, th), tile in zip(rects, self.tiles):
+            pixels = {}
+            tile_pixels.append(pixels)
             kind = tile.kind
             order = [(tx + i % tw, ty + i // tw) for i in range(tw * th)]
             if kind[0] == 'raw':
@@ -796,13 +800,16 @@ class ZrleRect:
                 assert i == len(order), 'runs must cover the tile'
             else:
                 raise ValueError(kind[0])
+            tile_ends.append(len(data))
         if self.shorten:
             data = data[:-self.shorten]
             self.disconnect = END_OF_STREAM
         packed = self.stream.compress(bytes(data))
         out = (u16(self.x) + u16(self.y) + u16(self.w) + u16(self.h)
                + s32(ZRLE) + u32(len(packed)) + packed)
-        if self.disconnect is None:
+        for end, pixels in zip(tile_ends, tile_pixels):
+            if end > len(data):
+                break
             for (x, y), comps in pixels.items():
                 fb.rows[y][x] = comps
         return out

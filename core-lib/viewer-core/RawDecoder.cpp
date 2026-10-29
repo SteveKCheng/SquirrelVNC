@@ -24,6 +24,8 @@
 #include "RawDecoder.h"
 
 #include <algorithm>
+#include <cstring>
+#include <vector>
 
 RawDecoder::RawDecoder(LogWriter *logWriter)
 : DecoderOfRectangle(logWriter, EncodingDefs::RAW)
@@ -36,10 +38,9 @@ RawDecoder::~RawDecoder()
 
 Task<> RawDecoder::process(AwaitableReader &reader,
                            FrameBuffer &frameBuffer,
-                           FrameBuffer &secondFrameBuffer,
                            const Rect &rect,
-                           LocalMutex *fbLock,
-                           FbUpdateNotifier *fbNotifier)
+                           LocalMutex &fbLock,
+                           FbUpdateNotifier &fbNotifier)
 {
   // If area of rectangle is 0, then exit from process: nothing update.
   if (rect.area() == 0) {
@@ -57,8 +58,7 @@ Task<> RawDecoder::process(AwaitableReader &reader,
   // Process all rectangle without last part of rectangle or 
   // two last part, if area of last part is less half of AREA_OF_ONE_PART.
   while (deltaRect.bottom + deltaHeight / 2 < rect.bottom) {
-    co_await DecoderOfRectangle::process(reader,
-                                         frameBuffer, secondFrameBuffer, deltaRect, fbLock,
+    co_await DecoderOfRectangle::process(reader, frameBuffer, deltaRect, fbLock,
                                          fbNotifier);
 
     // Increment position of rectangle.
@@ -68,20 +68,29 @@ Task<> RawDecoder::process(AwaitableReader &reader,
   // And process remainder parts of rectangle.
   deltaRect.top = std::max(rect.top, deltaRect.bottom - deltaHeight);
   deltaRect.bottom = rect.bottom;
-  co_await DecoderOfRectangle::process(reader,
-                                       frameBuffer, secondFrameBuffer, deltaRect, fbLock,
+  co_await DecoderOfRectangle::process(reader, frameBuffer, deltaRect, fbLock,
                                        fbNotifier);
 }
 
 Task<> RawDecoder::decode(AwaitableReader &reader,
                      FrameBuffer &frameBuffer,
-                     const Rect &rect)
+                     const Rect &rect,
+                     LocalMutex &fbLock)
 {
   size_t bytesPerPixel = frameBuffer.getPixelFormat().bitsPerPixel / 8;
   size_t bytesPerLine = bytesPerPixel * rect.getWidth();
 
   if (!frameBuffer.getDimension().getRect().intersection(rect).isEqualTo(rect))
     throw Exception(_T("Error in protocol: incorrect size of rectangle"));
-  for (int y = rect.top; y < rect.bottom; y++)
-    co_await reader.readFully(frameBuffer.getBufferPtr(rect.left, y), bytesPerLine);
+  std::vector<char> pixels(bytesPerLine * rect.getHeight());
+  if (pixels.empty()) {
+    co_return;
+  }
+  co_await reader.readFully(pixels.data(), pixels.size());
+
+  AutoLock al(&fbLock);
+  for (int y = 0; y < rect.getHeight(); y++) {
+    memcpy(frameBuffer.getBufferPtr(rect.left, rect.top + y),
+           &pixels[y * bytesPerLine], bytesPerLine);
+  }
 }

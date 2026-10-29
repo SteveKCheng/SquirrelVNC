@@ -96,7 +96,7 @@ build already installs `turbojpeg.lib` and `turbojpeg.h` next to
 1. **Decoding straight into the frame buffer's layout.**
    `tj3Decompress8()` takes an output pixel format and a row pitch. For
    the usual 32-bit format, B, G, R, X in memory (`TJPF_BGRX`), it can
-   write directly into the rectangle buffer, saving a full copy and a
+   write directly into the ~~rectangle buffer~~ frame buffer, saving a full copy and a
    per-pixel conversion in `TightDecoder`. Other formats keep the
    conversion. For sessions heavy in Tight JPEG, probably the largest
    practical gain.
@@ -156,12 +156,14 @@ use `tests/gen/jpeg/quadrants-16x16.jpg`, made by
 viewer cannot decode is not an error: `processJpeg()` logs it and the
 rectangle keeps its old contents (`tight-jpeg-wrong-size`).
 
-Strictly, the rectangle gets the rectangle buffer's contents
+~~Strictly, the rectangle gets the rectangle buffer's contents
 (`m_rectangleFb`), which are the frame buffer's except where a CopyRect
 has changed the area since: `CopyRectDecoder::copy()` writes to the
 frame buffer only. So after a CopyRect, an undecodable JPEG over the
 same area shows what was there before the copy. Harmless, but worth
-fixing in the rewrite: draw nothing at all when the JPEG fails.
+fixing in the rewrite: draw nothing at all when the JPEG fails.~~
+Fixed (2026-10-29): the decoders draw into the frame buffer itself, and
+the rectangle buffer is gone, so an undecodable JPEG draws nothing.
 
 ## The rewrite, when it comes
 

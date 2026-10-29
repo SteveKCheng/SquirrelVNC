@@ -133,7 +133,6 @@ private:
   AwaitableReader *m_reader;
   DecoderStore *m_decoderStore;
   FrameBuffer *m_frameBuffer;
-  FrameBuffer *m_rectangleFb;
   CursorPainter *m_cursorPainter;
 
   LocalMutex m_fbLock;

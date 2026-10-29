@@ -39,50 +39,42 @@ public:
   ~DecoderOfRectangle() override;
 
   //
-  // This function does the following:
-  //   1. read update of dstRect from reader
-  //   2. decode rectangle on "secondFrameBuffer"
-  //   3. copy rectangle from secondFrameBuffer to "frameBuffer"
-  //   4. notify fbNotifier
-  // His called decode(), copy() and notify() by order, defined in implementation.
+  // Reads the update of rect from reader, draws it into frameBuffer with
+  // decode(), then tells fbNotifier that rect has changed.
   //
-  // This function is thread-safe for frameBuffer.
+  // Threads: called on the thread that reads the connection, which is the
+  // only thread that changes the properties of frameBuffer (its size and
+  // pixel format), so they are read without fbLock. The pixels of
+  // frameBuffer are shared with other threads, so they are written and
+  // read only while holding fbLock (see decode()).
   //
-  // A coroutine (util/Task.h), as decode() is: it reads through reader, and
-  // takes fbLock only after the reads, in copy(), which does not suspend.
-  // The arguments must stay valid until the Task has finished; awaiting it
-  // at once, as callers do, ensures that.
+  // A coroutine (util/Task.h), as decode() is. The arguments must stay
+  // valid until the Task has finished; awaiting it at once, as callers do,
+  // ensures that.
+  //
+  // Pre-conditions: rect lies within frameBuffer.
+  // Throws what decode() throws; fbNotifier is then not told, though
+  // decode() may have drawn part of rect.
   //
   virtual Task<> process(AwaitableReader &reader,
                          FrameBuffer &frameBuffer,
-                         FrameBuffer &secondFrameBuffer,
                          const Rect &rect,
-                         LocalMutex *fbLock,
-                         FbUpdateNotifier *fbNotifier);
+                         LocalMutex &fbLock,
+                         FbUpdateNotifier &fbNotifier);
 
 protected:
   //
-  // This method read rectangle-update from reader and decode on frameBuffer.
-  // A coroutine: each read is awaited.
+  // Reads the update of rect from reader and draws it into frameBuffer.
+  //
+  // A coroutine: each read is awaited. It holds fbLock while it writes or
+  // reads the pixels of frameBuffer, and never across a read, so that a
+  // slow connection cannot hold up the threads that paint the frame
+  // buffer: data is read first, then drawn.
   //
   virtual Task<> decode(AwaitableReader &reader,
                         FrameBuffer &frameBuffer,
-                        const Rect &rect) = 0;
-
-  //
-  // This method copy rectangle from srcFrameBuffer to dstFrameBuffer.
-  // This function is thread-safe from dstFrameBuffer.
-  //
-  virtual void copy(FrameBuffer &dstFrameBuffer,
-                    const FrameBuffer &srcFrameBuffer,
-                    const Rect &rect,
-                    LocalMutex *fbLock);
-
-  //
-  // This method notify fbNotifier about update of rect.
-  //
-  void notify(FbUpdateNotifier *fbNotifier,
-              const Rect &rect);
+                        const Rect &rect,
+                        LocalMutex &fbLock) = 0;
 };
 
 #endif

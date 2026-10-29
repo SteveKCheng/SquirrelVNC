@@ -36,19 +36,13 @@ public:
 
 protected:
   //
-  // This method inherited by DecoderOfRectangle.
+  // Reads the source position, then moves the pixels within frameBuffer
+  // under fbLock.
   //
   Task<> decode(AwaitableReader &reader,
                 FrameBuffer &frameBuffer,
-                const Rect &dstRect) override;
-
-  //
-  // This method inherited by DecoderOfRectangle.
-  //
-  void copy(FrameBuffer &dstFrameBuffer,
-            const FrameBuffer &srcFrameBuffer,
-            const Rect &rect,
-            LocalMutex *fbLock) override;
+                const Rect &dstRect,
+                LocalMutex &fbLock) override;
 
 private:
   // This Point save left-top corner of copy-rectangle.

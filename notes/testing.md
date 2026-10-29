@@ -616,11 +616,17 @@ included, and draws the result into the model. To add an encoding:
    the specification says, where they differ; name the C++ function in
    the docstring. The Kaitai description (`tests/kaitai`) may need the
    encoding too.
-2. Draw into the model only if the viewer would accept the rectangle.
+2. ~~Draw into the model only if the viewer would accept the rectangle.
    Decoders draw into a separate rectangle buffer, which
    `DecoderOfRectangle::process()` copies to the frame buffer only
    after decoding succeeds, so a rejected rectangle leaves the frame
-   buffer unchanged.
+   buffer unchanged.~~
+   Draw into the model what the viewer leaves in the frame buffer.
+   Decoders draw into it as they go (since 2026-10-29), so a rejected
+   rectangle can leave the part drawn before the error: RRE its
+   background and earlier subrectangles, Hextile and ZRLE their earlier
+   tiles. Tight reads all of a rectangle's data first and leaves
+   nothing.
 3. For input the viewer must reject, set the object's `error` to the
    exact message the viewer throws. `Case.update()` then records an
    `error` event and expects no more client bytes; the case should send

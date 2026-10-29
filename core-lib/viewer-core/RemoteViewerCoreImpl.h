@@ -493,9 +493,9 @@ private:
   // Update properties (Dimension and PixelfFormat) of m_frameBuffer.
   //
   // Pre-conditions: m_fbLock is held.
-  // Post-conditions: m_frameBuffer and m_rectangleFb have the given size
-  // and format, filled with black.
-  // Throws Exception before changing either frame buffer if the size is
+  // Post-conditions: m_frameBuffer has the given size and format, filled
+  // with black.
+  // Throws Exception before changing the frame buffer if the size is
   // negative, has more pixels than m_maxFrameBufferPixels or does not fit
   // in memory (ViewerBufferSize::fitsFrameBuffer()), or the format is not
   // valid (PixelFormat::isValid()); and Exception if a buffer cannot be
@@ -639,14 +639,6 @@ private:
   FrameBuffer m_frameBuffer;
 
   Dimension m_desktopSize;
-
-  // Decoder work with this framebuffer. It is not actual frame buffer,
-  // it only easy buffer, common to all decoders. In future this frame buffer 
-  // may be replaced small buffers (e.g. 64KB) into ever decoder.
-  //
-  // After finish of decoding Decoder copy data to m_frameBuffer.
-  // This buffer is not need to blocking: read information is one-thread.
-  FrameBuffer m_rectangleFb;
 
   bool m_isNewPixelFormat;
   PixelFormat m_viewerPixelFormat;

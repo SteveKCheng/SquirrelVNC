@@ -43,16 +43,26 @@ protected:
   // background colour was sent, and for a subrectangle that does not lie
   // within its tile (tiles at the right and bottom edges may be smaller
   // than 16 pixels).  On an exception, the tiles before the bad one have
-  // already been drawn.
+  // already been drawn, and nothing of the bad one.
+  //
+  // Each tile is read whole, then drawn under fbLock.
   //
   // Pre: framebuffer has the pixel format the server sends, so that each
   // colour read is framebuffer->getBytesPerPixel() bytes.
   //
   Task<> decode(AwaitableReader &reader,
                 FrameBuffer &framebuffer,
-                const Rect &dstRect) override;
+                const Rect &dstRect,
+                LocalMutex &fbLock) override;
 private:
   static const int TILE_SIZE = 16;
+
+  // A subrectangle of a tile as read, before it is drawn.
+  struct SubRect
+  {
+    Rect rect;
+    UINT32 colour;
+  };
 };
 
 #endif

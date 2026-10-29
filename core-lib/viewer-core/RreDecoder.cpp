@@ -34,14 +34,18 @@ RreDecoder::~RreDecoder()
 
 Task<> RreDecoder::decode(AwaitableReader &reader,
                           FrameBuffer &frameBuffer,
-                          const Rect &dstRect)
+                          const Rect &dstRect,
+                          LocalMutex &fbLock)
 {
   UINT32 numberRectangle = co_await reader.readUInt32();
   size_t bytesPerPixel = frameBuffer.getBytesPerPixel();
 
   UINT32 backgroundColor;
   co_await reader.readFully(&backgroundColor, bytesPerPixel);
-  frameBuffer.fillRect(dstRect, backgroundColor);
+  {
+    AutoLock al(&fbLock);
+    frameBuffer.fillRect(dstRect, backgroundColor);
+  }
 
   while (numberRectangle--) {
     UINT32 color;
@@ -60,6 +64,7 @@ Task<> RreDecoder::decode(AwaitableReader &reader,
 
     Rect rect(x, y, x + w, y + h);
     rect.move(dstRect.left, dstRect.top);
+    AutoLock al(&fbLock);
     frameBuffer.fillRect(rect, color);
   }
 }

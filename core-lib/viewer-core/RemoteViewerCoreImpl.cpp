@@ -693,8 +693,7 @@ void RemoteViewerCoreImpl::setFbProperties(const Dimension &fbDimension,
                    fbDimension.width, fbDimension.height);
   m_logWriter.info(_T("Frame buffer pixel format: %s"), pxString.getString());
 
-  if (!m_frameBuffer.setProperties(fbDimension, fbPixelFormat) ||
-      !m_rectangleFb.setProperties(fbDimension, fbPixelFormat)) {
+  if (!m_frameBuffer.setProperties(fbDimension, fbPixelFormat)) {
     StringStorage error;
     error.format(_T("Failed to set property frame buffer. ")
                  _T("Dimension: (%d, %d), Pixel format: %s"),
@@ -702,7 +701,6 @@ void RemoteViewerCoreImpl::setFbProperties(const Dimension &fbDimension,
                  pxString.getString());
     throw Exception(error.getString());
   }
-  m_rectangleFb.setColor(0, 0, 0);
   m_frameBuffer.setColor(0, 0, 0);
   refreshFrameBuffer();
   m_fbUpdateNotifier.onPropertiesFb();
@@ -1141,9 +1139,8 @@ Task<bool> RemoteViewerCoreImpl::receiveFbUpdateRectangle()
       m_logWriter.debug(_T("Decoding..."));
 
       DecoderOfRectangle *rectangleDecoder = dynamic_cast<DecoderOfRectangle *>(decoder);
-      co_await rectangleDecoder->process(m_reader,
-                                         m_frameBuffer, m_rectangleFb, rect, &m_fbLock,
-                                         &m_fbUpdateNotifier);
+      co_await rectangleDecoder->process(m_reader, m_frameBuffer, rect, m_fbLock,
+                                         m_fbUpdateNotifier);
 
       m_logWriter.debug(_T("Decoded"));
     } else { // decoder is 0

@@ -33,18 +33,13 @@ CopyRectDecoder::~CopyRectDecoder()
 }
 
 Task<> CopyRectDecoder::decode(AwaitableReader &reader,
-                               FrameBuffer & /* frameBuffer */,
-                               const Rect & /* dstRect */)
+                               FrameBuffer &frameBuffer,
+                               const Rect &dstRect,
+                               LocalMutex &fbLock)
 {
   m_sourcePosition.x = co_await reader.readInt16();
   m_sourcePosition.y = co_await reader.readInt16();
-}
 
-void CopyRectDecoder::copy(FrameBuffer &dstFrameBuffer,
-                           const FrameBuffer & /* srcFrameBuffer */,
-                           const Rect &rect,
-                           LocalMutex *fbLock)
-{
-  AutoLock al(fbLock);
-  dstFrameBuffer.move(rect, m_sourcePosition.x, m_sourcePosition.y);
+  AutoLock al(&fbLock);
+  frameBuffer.move(dstRect, m_sourcePosition.x, m_sourcePosition.y);
 }

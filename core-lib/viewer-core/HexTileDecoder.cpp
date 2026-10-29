@@ -24,6 +24,8 @@
 #include "HexTileDecoder.h"
 
 #include <algorithm>
+#include <cstring>
+#include <vector>
 
 HexTileDecoder::HexTileDecoder(LogWriter *logWriter)
 : DecoderOfRectangle(logWriter, EncodingDefs::HEXTILE)
@@ -36,7 +38,8 @@ HexTileDecoder::~HexTileDecoder()
 
 Task<> HexTileDecoder::decode(AwaitableReader &reader,
                               FrameBuffer &framebuffer,
-                              const Rect &dstRect)
+                              const Rect &dstRect,
+                              LocalMutex &fbLock)
 {
   // shorcut
   const int bytesPerPixel = framebuffer.getBytesPerPixel();
@@ -45,6 +48,10 @@ Task<> HexTileDecoder::decode(AwaitableReader &reader,
   UINT32 foreground = 0;
 
   bool backgroundAccepted = false;
+
+  // A tile as read: its raw pixels, or its subrectangles.
+  std::vector<char> rawPixels;
+  std::vector<SubRect> subRects;
 
   for (int y = dstRect.top; y < dstRect.bottom; y += TILE_SIZE) {
     for (int x = dstRect.left; x < dstRect.right; x += TILE_SIZE) {
@@ -59,18 +66,22 @@ Task<> HexTileDecoder::decode(AwaitableReader &reader,
       UINT8 flags = co_await reader.readUInt8();
       // If tile-coding is RAW.
       if (flags & 0x1) {
-        for (int row = tileRect.top; row < tileRect.bottom; row++)
-          co_await reader.readFully(framebuffer.getBufferPtr(tileRect.left, row),
-                           tileRect.getWidth() * bytesPerPixel);
+        const size_t bytesPerLine = tileRect.getWidth() * bytesPerPixel;
+        rawPixels.resize(bytesPerLine * tileRect.getHeight());
+        co_await reader.readFully(rawPixels.data(), rawPixels.size());
+
+        AutoLock al(&fbLock);
+        for (int row = 0; row < tileRect.getHeight(); row++) {
+          memcpy(framebuffer.getBufferPtr(tileRect.left, tileRect.top + row),
+                 &rawPixels[row * bytesPerLine], bytesPerLine);
+        }
       } else {
         if (flags & 0x2) {
           co_await reader.readFully(&background, bytesPerPixel);
           backgroundAccepted = true;
         }
 
-        if (backgroundAccepted)
-          framebuffer.fillRect(tileRect, background);
-
+        subRects.clear();
         if (flags & 0x4)
           co_await reader.readFully(&foreground, bytesPerPixel);
 
@@ -97,11 +108,18 @@ Task<> HexTileDecoder::decode(AwaitableReader &reader,
             Rect subRect(subX, subY, subX + w, subY + h);
 
             subRect.move(tileRect.left, tileRect.top);
-            framebuffer.fillRect(subRect, foreground);
+            subRects.push_back({subRect, foreground});
           }
         } else { // exist subrect
           if (!backgroundAccepted)
             throw Exception(_T("Server error in HexTile encoding: background color not accepted"));
+        }
+
+        AutoLock al(&fbLock);
+        if (backgroundAccepted)
+          framebuffer.fillRect(tileRect, background);
+        for (const SubRect &subRect : subRects) {
+          framebuffer.fillRect(subRect.rect, subRect.colour);
         }
       } // it tile is not RAW
     } // for each tiles in line

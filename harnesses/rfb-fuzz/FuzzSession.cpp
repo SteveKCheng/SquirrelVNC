@@ -52,7 +52,6 @@ FuzzSession::FuzzSession(FuzzNotifier *notifier)
   m_reader(nullptr),
   m_decoderStore(nullptr),
   m_frameBuffer(nullptr),
-  m_rectangleFb(nullptr),
   m_cursorPainter(nullptr)
 {
 }
@@ -111,12 +110,10 @@ FuzzSession::Outcome FuzzSession::runOnce(InputStream &stream)
 
   // A new frame buffer for each input too: before ServerInit it is empty.
   FrameBuffer frameBuffer;
-  FrameBuffer rectangleFb;
   CursorPainter cursorPainter(&frameBuffer, &m_logWriter);
 
   m_reader = &reader;
   m_frameBuffer = &frameBuffer;
-  m_rectangleFb = &rectangleFb;
   m_decoderStore = &decoderStore;
   m_cursorPainter = &cursorPainter;
   try {
@@ -135,7 +132,6 @@ FuzzSession::Outcome FuzzSession::runOnce(InputStream &stream)
   }
   m_reader = nullptr;
   m_frameBuffer = nullptr;
-  m_rectangleFb = nullptr;
   m_decoderStore = nullptr;
   m_cursorPainter = nullptr;
   m_notifier->clearUpdates();
@@ -168,11 +164,9 @@ void FuzzSession::setFrameBuffer(const Dimension &dimension,
 {
   RfbParsing::checkFrameBufferProperties(dimension, pixelFormat,
                                        MAX_FRAME_BUFFER_PIXELS);
-  if (!m_frameBuffer->setProperties(dimension, pixelFormat) ||
-      !m_rectangleFb->setProperties(dimension, pixelFormat)) {
+  if (!m_frameBuffer->setProperties(dimension, pixelFormat)) {
     throw Exception(_T("Failed to set property frame buffer"));
   }
-  m_rectangleFb->setColor(0, 0, 0);
   m_frameBuffer->setColor(0, 0, 0);
 }
 
@@ -238,9 +232,8 @@ Task<bool> FuzzSession::readFbUpdateRectangle()
     // As in the core, the result of the cast is not checked: every
     // decoder registered for an encoding that is not pseudo is one.
     DecoderOfRectangle *rectangleDecoder = dynamic_cast<DecoderOfRectangle *>(decoder);
-    co_await rectangleDecoder->process(*m_reader,
-                                       *m_frameBuffer, *m_rectangleFb, rect, &m_fbLock,
-                                       m_notifier);
+    co_await rectangleDecoder->process(*m_reader, *m_frameBuffer, rect, m_fbLock,
+                                       *m_notifier);
   } else {
     co_await readPseudoEncoding(rect, encodingType);
   }

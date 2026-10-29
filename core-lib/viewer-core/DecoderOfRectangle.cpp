@@ -35,28 +35,11 @@ DecoderOfRectangle::~DecoderOfRectangle()
 }
 
 Task<> DecoderOfRectangle::process(AwaitableReader &reader,
-                     FrameBuffer &frameBuffer,
-                     FrameBuffer &secondFrameBuffer,
-                     const Rect &rect,
-                     LocalMutex *fbLock,
-                     FbUpdateNotifier *fbNotifier)
+                                   FrameBuffer &frameBuffer,
+                                   const Rect &rect,
+                                   LocalMutex &fbLock,
+                                   FbUpdateNotifier &fbNotifier)
 {
-  co_await decode(reader, secondFrameBuffer, rect);
-  copy(frameBuffer, secondFrameBuffer, rect, fbLock);
-  notify(fbNotifier, rect);
-}
-
-void DecoderOfRectangle::copy(FrameBuffer &dstFrameBuffer,
-                   const FrameBuffer &srcFrameBuffer,
-                   const Rect &rect,
-                   LocalMutex *fbLock)
-{
-  AutoLock al(fbLock);
-  dstFrameBuffer.copyFrom(rect, srcFrameBuffer, rect.left, rect.top);
-}
-
-void DecoderOfRectangle::notify(FbUpdateNotifier *fbNotifier,
-                     const Rect &rect)
-{
-  fbNotifier->onUpdate(rect);
+  co_await decode(reader, frameBuffer, rect, fbLock);
+  fbNotifier.onUpdate(rect);
 }

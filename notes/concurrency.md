@@ -60,10 +60,17 @@ consequences:
 
 ## A framebuffer update, end to end
 
-1. **Core thread.** The decoder reads from the blocking socket and
+1. ~~**Core thread.** The decoder reads from the blocking socket and
    decodes into a private second buffer (`m_rectangleFb`), with no lock.
    It then copies the rectangle into the shared `m_frameBuffer` while
    holding `m_fbLock` (`DecoderOfRectangle::copy`). Finally it calls
+   `FbUpdateNotifier::onUpdate(rect)`, which adds the rectangle to a
+   `Region` under `m_updateLock` and signals a `WindowsEvent`.~~
+   **Network thread** (since 2026-10-29). The decoder reads the
+   rectangle's data, then draws it into the shared `m_frameBuffer` while
+   holding `m_fbLock`, taking the lock only around each write and never
+   across a read, so that a slow connection cannot hold it (Hextile and
+   RRE draw piece by piece, Raw in parts). Finally it calls
    `FbUpdateNotifier::onUpdate(rect)`, which adds the rectangle to a
    `Region` under `m_updateLock` and signals a `WindowsEvent`.
 2. **Notifier thread.** Wakes, takes the whole region and clears it.
@@ -79,8 +86,9 @@ consequences:
    `onPaint` takes `m_bufferLock` and draws the DIB to the screen with
    `BitBlt` or `StretchBlt`.
 
-So each update is copied three times: decode buffer → core framebuffer
-→ DIB → screen.
+~~So each update is copied three times: decode buffer → core framebuffer
+→ DIB → screen.~~
+So each update is copied twice: core framebuffer → DIB → screen.
 
 The part that works like a queue is the **merging of changes**: the
 notifier's `Region` plus its event, and Windows' own update region

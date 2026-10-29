@@ -45,9 +45,12 @@ protected:
   // high 3 bytes, which is not supported.
   // Pre-condition: the frame buffer's pixel format is valid
   // (PixelFormat::isValid()).
+  // Reads and inflates the whole rectangle first, then decodes it tile by
+  // tile, drawing each tile under fbLock.
   Task<> decode(AwaitableReader &reader,
                 FrameBuffer &frameBuffer,
-                const Rect &dstRect) override;
+                const Rect &dstRect,
+                LocalMutex &fbLock) override;
 
 
   //

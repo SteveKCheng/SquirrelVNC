@@ -117,6 +117,10 @@ paints. Not known from this profile: see "Measuring" for WPA.
    (`DesktopWindow::updateFramebuffer()`).
 4. `WM_PAINT` blits the DIB to the window.
 
+Since 2026-10-29, copy 2 is gone: the decoders draw into the shared
+frame buffer, taking `m_fbLock` only around each write (never across a
+network read), and `m_rectangleFb` is removed.
+
 ## What to do
 
 In order of gain for the effort:

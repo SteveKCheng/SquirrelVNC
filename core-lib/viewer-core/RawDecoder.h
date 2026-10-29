@@ -35,17 +35,24 @@ public:
   //
   // This method is inherited from DecoderOfRectangle.
   //
+  // In parts of about AREA_OF_ONE_PART pixels, each read, drawn and
+  // notified in turn, so that a large rectangle shows as it arrives.
+  //
   Task<> process(AwaitableReader &reader,
                  FrameBuffer &frameBuffer,
-                 FrameBuffer &secondFrameBuffer,
                  const Rect &rect,
-                 LocalMutex *fbLock,
-                 FbUpdateNotifier *fbNotifier) override;
+                 LocalMutex &fbLock,
+                 FbUpdateNotifier &fbNotifier) override;
 
 protected:
+  //
+  // Reads the pixels of rect into a buffer, then copies them into
+  // frameBuffer under fbLock.
+  //
   Task<> decode(AwaitableReader &reader,
                 FrameBuffer &frameBuffer,
-                const Rect &rect) override;
+                const Rect &rect,
+                LocalMutex &fbLock) override;
 
 private:
   static const size_t AREA_OF_ONE_PART = 1024 * 64;
