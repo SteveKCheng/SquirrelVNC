@@ -1,8 +1,8 @@
 # Asynchronous networking with C++20 coroutines
 
 A design discussion (2026-10-20) for replacing the blocking,
-thread-per-job connection code with one event loop and stackless C++20
-coroutines. 
+thread-per-job connection code, inherited from TightVNC, 
+with one event loop and stackless C++20 coroutines. 
 
 It has mostly been implemented as of revision `58c69f6e`.
 
@@ -28,7 +28,7 @@ before SquirrelVNC rewrote lots of code wholesale:
 - **Testability:** fuzzing and replay tests that drive the protocol
   code deterministically, on one thread, from bytes in memory.
 
-## Weaknesses of the blocking sockets today
+## Weaknesses of the blocking sockets in TightVNC
 
 TCP_NODELAY is already set, so Nagle's algorithm is not among these.
 *(Only on outgoing connections, it turned out; accepted ones, in
