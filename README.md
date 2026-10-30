@@ -30,6 +30,19 @@ aiming for major improvements in aesthetics, performance, features and security.
   - Unnecessary Win32-specific code and abstractions have been replaced by portable, standard C++
   - Automatically tested through unit tests, protocol replay, and fuzzing \[[details](notes/testing.md)\]
 
+## Prospective work, not yet done
+
+  - Continuous updates + fence
+  - VeNCrypt (TLS encryption)
+  - IPv6
+  - Decoding H.264
+  - Reading and writing configuration from flat files, not Windows Registry
+  - Saving passwords in Windows Credential Manager
+  - Further improve usability and look of the GUI
+  - Automated development and testing of elements of the GUI
+  - DevOps
+  - Formal release for end-users
+
 ## Goals of this project
 
   - Fast, lightweight VNC viewer
