@@ -18,7 +18,7 @@ It will take a while to address all the problems, so:
 
 ### Prefix labels on revision comments
 
-  - `[SECURITY]`: bad or undefined behavior, that should not happen if the code correctly defended against the outside thread
+  - `[SECURITY]`: bad or undefined behavior, that should not happen if the code correctly defended against the outside threat
     - Threat model is detailed in `notes/security.md`
     - This category subsumes memory corruption issues, even if they may be hard to exploit. (It's not worth our effort to distinguish severities more finely.)
   - `[PORTABILITY]`: use of platform-specific behavior, or accidental but deterministic behavior of a certain compiler or run-time
