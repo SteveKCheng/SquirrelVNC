@@ -1,4 +1,11 @@
-# Observations on CPU usage
+# Reducing CPU usage
+
+Most of the plan to reduce CPU usage has been implemented as of revision `94b5dc9e`.
+
+The following is a historical record, on the original state of SquirrelVNC, and the plan undertaken to address
+its performance problems.
+
+## Initial observations 
 
 Preliminary observations from the main author.  The following discussion needs uploaded profiling data backing it up.
 (See "Measurements" below.)

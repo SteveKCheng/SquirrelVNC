@@ -10,7 +10,7 @@
   - [Threading and concurrency model from the TightVNC codebase](concurrency.md)
   - [Q&A on the Asio C++ library](cpp-asio.md)
   - [Q&A on C++20 coroutines](cpp-coro.md)
-  - [Observations on CPU usage](cpu-usage.md)
+  - [Reducing CPU usage](cpu-usage.md)
   - [Dead code dropped from TightVNC](dead-code.md)
   - [Auto-generation of dialog resources](dialog-resources.md)
   - [Issues with VNC file transfer](file-transfer.md)
