@@ -592,8 +592,8 @@ scripts, not kept. Each result was reviewed by hand.
 
 ### Phase 3: really resumable, still on the core thread
 
-How the reader suspends the protocol code and the driver resumes it is
-explained in `async-networking-resumption.md`.
+The note, “[How the protocol core is suspended and resumed](async-networking-resumption.md)”,
+explains the low-level mechanics in more detail.
 
 - The reader suspends when its buffer runs short. A small driver on the
   existing core thread does a blocking `recv`, appends the bytes and
