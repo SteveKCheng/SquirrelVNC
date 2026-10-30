@@ -1,16 +1,34 @@
 # SquirrelVNC, a VNC client for Windows
 
-SquirrelVNC is a fork of TightVNC's viewer with improvements in aesthetics, performance, features and security.
+SquirrelVNC is a fork of the [VNC](https://en.wikipedia.org/wiki/VNC) viewer from TightVNC 2.8.90,
+aiming for major improvements in aesthetics, performance, features and security.
 
 ![](art/logo-publish.svg)
 
-## Improvements over TightVNC
+## Current user-facing improvements over TightVNC
 
   - In “view-only mode”, the screen is prevented from locking / turning off for power-saving.
   - Program is DPI-aware
+  - Reduced CPU usage and memory in decoding and rendering frames \[[details](notes/cpu-usage.md)\]
+  - Coalescing of pointer movements (when the connection to the VNC server is slow)
+  - Fully supports Unicode (UTF-8 encoding in the RFB protocol)
   - Modernized icons and logo
-  - Codebase upgraded to latest compilers and libraries
-  - Security fixes \[[details](notes/security.md)\]
+  - Many fixes of bugs regarding: 
+    - security vulnerabilities \[[details](notes/security.md)\]
+    - memory corruption (crashes) 
+    - resource leaks 
+    - general robustness
+
+## Architectural improvements over TightVNC
+
+  - Codebase upgraded to latest C++20 compilers and libraries
+  - The code is better documented
+    - pre-, post-conditions spelled out more clearly
+  - Network communication is fully asynchronous \[[details](notes/async-networking.md)\]
+  - Coordination between the network-facing thread and the GUI thread is coordinated by message-passing
+    - TightVNC 2.8 uses locks everywhere, and often gets them wrong
+  - Unnecessary Win32-specific code and abstractions have been replaced by portable, standard C++
+  - Automatically tested through unit tests, protocol replay, and fuzzing \[[details](notes/testing.md)\]
 
 ## Goals of this project
 
