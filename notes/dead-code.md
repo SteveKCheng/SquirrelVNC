@@ -322,3 +322,14 @@ git diff -U0 --diff-filter=M 630df21~1 20956d9 -- '*.cpp' | grep '^-[^-/ {}#	]'
   has no display rotation, and RFB does not ask for any.
   Their strict-aliasing entry in `portability.md` went with them.
 - **`LoginDialog::setConConf()`**, declared but never defined or called.
+- **`network/socket/`** Win32-specific socket abstractions replaced by Asio
+- **`RfbInputGate`, `RfbOutputGate`, `BufferedInputStream`, `BufferedOutputStream`**: 
+  `RemoteCoreViewer` does its own buffering in a way compatible 
+  with its async framework.  Buffering of synchronous files should be
+  implemented via standard C/C++ I/O.
+- **`DibSection`, `DibFrameBuffer`**: the core writes a raw bitmap for a
+  framebuffer, and the DIB headers/metadata are externally applied
+- **`LocalMutex`, `AutoLock`, `Lockable`, `WindowsEvent`**: removed after all consumers
+  had been switched to use message-passing in favor of locks, or standard
+  C++11 `std::mutex`
+
