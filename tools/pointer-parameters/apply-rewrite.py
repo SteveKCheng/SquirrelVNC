@@ -14,7 +14,7 @@ of a parameter it could not convert (to be edited by hand).
 """
 import json,re,sys,collections
 T=json.load(open(sys.argv[1])); OUT=sys.argv[2]; ROOT=sys.argv[3].rstrip('/')+'/'
-PRE='C:\\Users\\sandbox\\dev\\tightvnc-2.8.90-gpl\\'
+PRE='C:\\Users\\sandbox\\dev\\SquirrelVNC\\'
 targets={(t['file'],t['line'],t['col']) for t in T}
 rx=re.compile(r"^(\w+) 0x\w+ <(.+?):(\d+):(\d+)(?:, (?:col:(\d+)|line:(\d+):(\d+)))?>(.*)$")
 def node(l):

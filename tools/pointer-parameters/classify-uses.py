@@ -21,7 +21,7 @@ import re,json,collections,sys
 J=sys.argv[1]
 G=json.load(open(J+'/grp.json'))
 rx=re.compile(r"^ParmVarDecl 0x\w+ <([^:<>,]+(?::[^:<>,]+)?):(\d+):\d+[^>]*> (?:col:\d+|line:\d+:\d+)(?: used| referenced)?(?: (\w+))? '([^']*)'")
-PRE='C:\\Users\\sandbox\\dev\\tightvnc-2.8.90-gpl\\'
+PRE='C:\\Users\\sandbox\\dev\\SquirrelVNC\\'
 def key(l):
     m=rx.match(l)
     if not m: return None

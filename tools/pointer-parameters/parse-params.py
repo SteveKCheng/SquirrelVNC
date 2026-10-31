@@ -21,7 +21,7 @@ S=sys.argv[1]; H=S+'/h/'
 rx=re.compile(r"^ParmVarDecl 0x\w+ <(?:C:\\Users\\sandbox\\dev\\tightvnc-2\.8\.90-gpl\\)([^:<>]+):(\d+):(\d+)[^>]*> (?:col:\d+|line:\d+:\d+)(?: used| referenced)?(?: (\w+))? '([^']*)'(?::'([^']*)')?")
 seen={}
 for l in open(S+'/ptr.out',encoding='utf-8',errors='replace'):
-    if 'vcpkg_installed' in l or 'tightvnc-2.8.90-gpl' not in l: continue
+    if 'vcpkg_installed' in l or 'SquirrelVNC' not in l: continue
     m=rx.match(l)
     if not m: print('NOMATCH',l.strip(),file=sys.stderr); continue
     f,ln,col,name,wt,ct=m.groups(); f=f.replace('\\','/'); ct=ct or wt

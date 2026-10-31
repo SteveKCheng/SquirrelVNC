@@ -12,7 +12,7 @@ WORK/ana3.json, the final per-parameter data, with each group's
 non-obvious call-site arguments (file:line and source line).
 """
 import re,json,collections,sys
-J=sys.argv[1]; PRE='C:\\Users\\sandbox\\dev\\tightvnc-2.8.90-gpl\\'
+J=sys.argv[1]; PRE='C:\\Users\\sandbox\\dev\\SquirrelVNC\\'
 G=json.load(open(J+'/ana2.json'))
 loc2g={}
 for i,g in enumerate(G):
