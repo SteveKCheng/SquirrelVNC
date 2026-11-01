@@ -35,8 +35,10 @@
 #include <vector>
 
 //
-// Looks up the IPv4 addresses of a host name, asynchronously, for the
-// network thread (notes/async-networking.md, "Host name resolution").
+// Looks up the IPv4 and IPv6 addresses of a host name, or parses a numeric
+// address of either family (IPv6 without brackets, with an optional
+// "%zone"), asynchronously, for the network thread
+// (notes/async-networking.md, "Host name resolution").
 //
 // Windows' GetAddrInfoExW, rather than Asio's resolver: it takes the name
 // in UTF-16, converting an internationalised name to Punycode itself; it
@@ -45,8 +47,10 @@
 // lookup on a hidden thread and only discards its result.
 //
 // The completion signature is void(std::error_code, std::vector of
-// endpoints). The endpoints carry port, in the order the system gives
-// them; asio::async_connect() tries them in turn.
+// endpoints). The endpoints carry port, and for IPv6 the scope (zone), in
+// the order the system gives them: sorted by RFC 6724, usually IPv6 first
+// where the computer has IPv6 connectivity. asio::async_connect() tries
+// them in turn.
 //
 // Cancellation, through the completion handler's cancellation slot (any
 // type), cancels the lookup; the handler then receives

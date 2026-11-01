@@ -62,7 +62,7 @@ namespace
 
   bool contains(const Result &result, const char *address, UINT16 port)
   {
-    asio::ip::tcp::endpoint wanted(asio::ip::make_address_v4(address), port);
+    asio::ip::tcp::endpoint wanted(asio::ip::make_address(address), port);
     return std::find(result.endpoints.begin(), result.endpoints.end(), wanted) !=
            result.endpoints.end();
   }
@@ -79,6 +79,17 @@ void runHostResolverTests()
   Result local = resolve(network, _T("localhost"), 5901);
   check(!local.error && contains(local, "127.0.0.1", 5901),
         "asyncResolve finds localhost");
+
+  Result numeric6 = resolve(network, _T("::1"), 5902);
+  check(!numeric6.error && numeric6.endpoints.size() == 1 && contains(numeric6, "::1", 5902),
+        "asyncResolve gives a numeric IPv6 address back, with the port");
+
+  Result scoped = resolve(network, _T("fe80::1%5"), 5903);
+  check(!scoped.error && scoped.endpoints.size() == 1 &&
+        scoped.endpoints[0].address().is_v6() &&
+        scoped.endpoints[0].address().to_v6().scope_id() == 5 &&
+        contains(scoped, "fe80::1%5", 5903),
+        "asyncResolve keeps the zone of a link-local IPv6 address");
 
   Result unknown = resolve(network, _T("no-such-host.invalid"), 5900);
   check(unknown.error && unknown.endpoints.empty(),

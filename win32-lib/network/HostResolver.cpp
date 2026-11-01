@@ -33,6 +33,7 @@
 #include <asio/prefer.hpp>
 
 #include <atomic>
+#include <cstring>
 #include <new>
 #include <utility>
 
@@ -86,7 +87,9 @@ namespace
       }
 
       ADDRINFOEXW hints = {};
-      hints.ai_family = AF_INET;
+      // Both families, in the order the system prefers (RFC 6724), so that
+      // a host with A and AAAA records falls back to IPv4 when IPv6 fails.
+      hints.ai_family = AF_UNSPEC;
       hints.ai_socktype = SOCK_STREAM;
       hints.ai_protocol = IPPROTO_TCP;
       INT error = GetAddrInfoExW(host.getString(), nullptr, NS_ALL, nullptr, &hints,
@@ -141,6 +144,15 @@ namespace
             if (info->ai_family == AF_INET && info->ai_addrlen >= sizeof(sockaddr_in)) {
               const sockaddr_in *address = reinterpret_cast<const sockaddr_in *>(info->ai_addr);
               endpoints.emplace_back(asio::ip::address_v4(ntohl(address->sin_addr.s_addr)),
+                                     m_port);
+            } else if (info->ai_family == AF_INET6 &&
+                       info->ai_addrlen >= sizeof(sockaddr_in6)) {
+              // The scope (zone) matters for link-local addresses.
+              const sockaddr_in6 *address = reinterpret_cast<const sockaddr_in6 *>(info->ai_addr);
+              asio::ip::address_v6::bytes_type bytes;
+              static_assert(sizeof(bytes) == sizeof(address->sin6_addr.s6_addr));
+              std::memcpy(bytes.data(), address->sin6_addr.s6_addr, bytes.size());
+              endpoints.emplace_back(asio::ip::address_v6(bytes, address->sin6_scope_id),
                                      m_port);
             }
           }

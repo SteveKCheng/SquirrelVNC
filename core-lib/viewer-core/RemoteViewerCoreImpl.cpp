@@ -894,14 +894,20 @@ asio::awaitable<void> RemoteViewerCoreImpl::connect()
     if (resolveError) {
       throwConnectError(resolveError);
     }
-    m_logWriter.detail(_T("Connecting to the host \"%s:%hu\" (%hs)..."),
-                       m_host.getString(), m_port,
-                       endpoints.front().address().to_string().c_str());
+    // An IPv6 address in brackets, so that its colons are not taken for the
+    // port's.
+    bool isIPv6Host = m_host.findChar(_T(':')) != -1;
+    m_logWriter.detail(isIPv6Host ? _T("Connecting to the host \"[%s]:%hu\" (%zu addresses)...")
+                                  : _T("Connecting to the host \"%s:%hu\" (%zu addresses)..."),
+                       m_host.getString(), m_port, endpoints.size());
     auto [connectError, endpoint] =
       co_await asio::async_connect(*m_socket, endpoints, asio::as_tuple(asio::use_awaitable));
     if (connectError) {
       throwConnectError(connectError);
     }
+    const asio::ip::address address = endpoint.address();
+    m_logWriter.detail(address.is_v6() ? _T("Connected to [%hs]:%hu") : _T("Connected to %hs:%hu"),
+                       address.to_string().c_str(), endpoint.port());
   }
   configureSocket();
 }

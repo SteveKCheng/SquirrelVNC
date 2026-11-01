@@ -209,7 +209,9 @@ public:
   //
   // This version initiates new TCP connection to the specified host and port,
   // and then uses the established connection for data exchange. (Asio
-  // initializes Windows sockets itself.)
+  // initializes Windows sockets itself.) host is a name, or a numeric IPv4
+  // or IPv6 address; IPv6 without brackets, as HostPath::getVncHost() gives
+  // it. Each address of a name is tried in turn, IPv6 or IPv4.
   //
   void start(const TCHAR *host, UINT16 port,
              std::shared_ptr<CoreEventsAdapter> adapter,
