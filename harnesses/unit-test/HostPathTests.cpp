@@ -94,7 +94,37 @@ void runHostPathTests()
     { L"ssh/", true, L"localhost", 5900, L"ssh", 22 },
     { L"", false },
     { L"bad host", false },
-    { L"[::1]", false },
+    // IPv6 addresses, in brackets only; a bare one keeps TightVNC's meaning.
+    { L"[::1]", true, L"::1", 5900, L"", 0 },
+    { L"[fd00::5]:1", true, L"fd00::5", 5901, L"", 0 },
+    { L"[fd00::5]:100", true, L"fd00::5", 100, L"", 0 },
+    { L"[fd00::5]::5901", true, L"fd00::5", 5901, L"", 0 },
+    { L"[2001:DB8:0:0:8:800:200C:417A]", true, L"2001:DB8:0:0:8:800:200C:417A", 5900, L"", 0 },
+    { L"[::ffff:192.168.0.1]", true, L"::ffff:192.168.0.1", 5900, L"", 0 },
+    { L"[fe80::1%12]::5901", true, L"fe80::1%12", 5901, L"", 0 },
+    { L"ssh/[fd00::5]:1", true, L"fd00::5", 5901, L"ssh", 22 },
+    { L"fe80::1", true, L"fe80", 1, L"", 0 },
+    { L"::1", true, L"localhost", 1, L"", 0 },
+    { L"[]", false },
+    { L"[]:1", false },
+    { L"[::1", false },
+    { L"[::1:1", false },
+    { L"::1]", false },
+    { L"[::1]x", false },
+    { L"[::1]:", false },
+    { L"[::1]:x", false },
+    { L"[[::1]]", false },
+    { L"[host]", false },                    // a name is not bracketed
+    { L"[192.168.0.1]", false },             // nor is IPv4
+    { L"[fd00::5::6]", false },              // two "::"
+    { L"[1:2:3:4:5:6:7:8:9]", false },
+    { L"[12345::1]", false },
+    { L"[fe80::1%]", false },
+    { L"[fe80::1%eth0]", false },            // Windows zones are numbers
+    { L"[fe80::1%12345678901]", false },
+    { L"[fe80::1%1%2]", false },
+    { L"[fd00::\uff10]", false },           // fullwidth digit zero
+    { L"[fd00:: 5]", false },
     { L"host\\x", false },
     // Internationalised names, which GetAddrInfoW() converts to Punycode.
     { L"b\u00fccher.example", true, L"b\u00fccher.example", 5900, L"", 0 },
@@ -135,4 +165,30 @@ void runHostPathTests()
 
   check(hostPath.set(L"first::1") && !hostPath.set(L"bad host") && !hostPath.isValid(),
         "HostPath forgets a valid path when set to an invalid one");
+
+  // joinHostAndPort(), as for a .vnc file's host and port.
+  struct JoinCase
+  {
+    const wchar_t *host;
+    const wchar_t *port;
+    const wchar_t *path;
+  };
+  static const JoinCase JOIN_CASES[] = {
+    { L"host", L"5901", L"host::5901" },
+    { L"192.168.0.1", L"5", L"192.168.0.1::5" },
+    { L"fd00::5", L"5901", L"[fd00::5]::5901" },
+    { L"fe80::1%12", L"1", L"[fe80::1%12]::1" },
+    { L"[fd00::5]", L"5901", L"[fd00::5]::5901" },
+  };
+  for (const JoinCase &c : JOIN_CASES) {
+    StringStorage path = HostPath::joinHostAndPort(StringStorage(c.host), StringStorage(c.port));
+    char what[200];
+    sprintf_s(what, "HostPath::joinHostAndPort(\"%ls\", \"%ls\") is \"%ls\"",
+              c.host, c.port, c.path);
+    check(path.str() == c.path, what);
+  }
+  check(hostPath.set(HostPath::joinHostAndPort(StringStorage(L"fd00::5"),
+                                               StringStorage(L"5901")).getString()) &&
+        hostPath.getVncHost().str() == L"fd00::5" && hostPath.getVncPort() == 5901,
+        "HostPath parses what joinHostAndPort gives for an IPv6 address");
 }

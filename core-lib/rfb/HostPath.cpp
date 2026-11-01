@@ -23,10 +23,52 @@
 
 #include "HostPath.h"
 
+#include <asio/ip/address_v6.hpp>
+
 #include <tchar.h>
+
+#include <string>
+#include <system_error>
 
 namespace
 {
+  //
+  // Post-conditions: returns true if the length characters at literal are
+  // an IPv6 address, as written between the brackets of a path: in text
+  // form (RFC 4291, which Asio parses), optionally followed by '%' and a
+  // zone, which on Windows is the number of an interface, as
+  // "fe80::1%12".
+  //
+  bool isValidIPv6Literal(const TCHAR *literal, size_t length)
+  {
+    static const size_t MAX_ZONE_CHARS = 10;  // UINT32_MAX has 10 digits
+    auto isDigit = [](TCHAR c) { return c >= _T('0') && c <= _T('9'); };
+    std::string address;
+    size_t i = 0;
+    for (; i < length && literal[i] != _T('%'); i++) {
+      TCHAR c = literal[i];
+      if (!isDigit(c) && !(c >= _T('a') && c <= _T('f')) && !(c >= _T('A') && c <= _T('F')) &&
+          c != _T(':') && c != _T('.')) {
+        return false;
+      }
+      address.push_back(static_cast<char>(c));
+    }
+    if (i < length) {
+      size_t zoneLength = length - i - 1;
+      if (zoneLength < 1 || zoneLength > MAX_ZONE_CHARS) {
+        return false;
+      }
+      for (size_t j = i + 1; j < length; j++) {
+        if (!isDigit(literal[j])) {
+          return false;
+        }
+      }
+    }
+    std::error_code error;
+    asio::ip::make_address_v6(address.c_str(), error);
+    return !error;
+  }
+
   //
   // Post-conditions: returns true if c, a character outside ASCII, may be
   // part of a host name: false for control characters, white space,
@@ -168,7 +210,8 @@ HostPath::set(const TCHAR *path)
     tokenStart++; // skip '/'
   }
 
-  // Handle VNC host name.
+  // Handle VNC host name, or IPv6 address in brackets, which are dropped.
+  bool isVncHostIPv6 = false;
   if (tokens[2] == 0) {
     m_vncHost.setString(_T("localhost"));
   } else {
@@ -177,7 +220,17 @@ HostPath::set(const TCHAR *path)
       clear();
       return false;
     }
-    m_vncHost = StringStorage(StringStorage::StdString(tokenStart, hostLen));
+    if (*tokenStart == _T('[')) {
+      if (hostLen < 3 || tokenStart[hostLen - 1] != _T(']') ||
+          !isValidIPv6Literal(tokenStart + 1, hostLen - 2)) {
+        clear();
+        return false;
+      }
+      isVncHostIPv6 = true;
+      m_vncHost = StringStorage(StringStorage::StdString(tokenStart + 1, hostLen - 2));
+    } else {
+      m_vncHost = StringStorage(StringStorage::StdString(tokenStart, hostLen));
+    }
   }
   tokenStart += tokens[2];
 
@@ -213,7 +266,7 @@ HostPath::set(const TCHAR *path)
   }
 
   // Perform strict validation of m_vncHost (and m_sshHost if present).
-  if (!validateHostNames()) {
+  if (!validateHostNames(isVncHostIPv6)) {
     clear();
     return false;
   }
@@ -249,7 +302,16 @@ HostPath::parsePath(size_t results[]) const
     vncHostStart = slashPtr + 1;
   }
 
-  const TCHAR *colonPtr = _tcschr(vncHostStart, _T(':'));
+  // The colons of an IPv6 address in brackets do not start the port. With
+  // no closing bracket, the first colon does, and the host is invalid.
+  const TCHAR *colonSearchStart = vncHostStart;
+  if (*vncHostStart == _T('[')) {
+    const TCHAR *closePtr = _tcschr(vncHostStart, _T(']'));
+    if (closePtr != nullptr) {
+      colonSearchStart = closePtr + 1;
+    }
+  }
+  const TCHAR *colonPtr = _tcschr(colonSearchStart, _T(':'));
   if (colonPtr != nullptr) {
     results[2] = colonPtr - vncHostStart;
     results[3] = _tcsnlen(colonPtr, m_MAX_PATH_LEN);
@@ -259,7 +321,7 @@ HostPath::parsePath(size_t results[]) const
 }
 
 bool
-HostPath::validateHostNames() const
+HostPath::validateHostNames(bool isVncHostIPv6) const
 {
   const TCHAR* acceptChars =
     _T(".-_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890");
@@ -292,9 +354,22 @@ HostPath::validateHostNames() const
 
   size_t vncHostLen = m_vncHost.getLength();
   if (vncHostLen < 1 || vncHostLen > m_VNC_HOST_MAX_CHARS ||
-      !isValidHostName(m_vncHost.getString(), vncHostLen)) {
+      !(isVncHostIPv6 ? isValidIPv6Literal(m_vncHost.getString(), vncHostLen)
+                      : isValidHostName(m_vncHost.getString(), vncHostLen))) {
     return false;
   }
 
   return true;
+}
+
+StringStorage
+HostPath::joinHostAndPort(const StringStorage &host, const StringStorage &port)
+{
+  const TCHAR *format = _T("%s::%s");
+  if (host.findChar(_T(':')) != -1 && !host.beginsWith(_T('['))) {
+    format = _T("[%s]::%s");
+  }
+  StringStorage path;
+  path.format(format, host.getString(), port.getString());
+  return path;
 }

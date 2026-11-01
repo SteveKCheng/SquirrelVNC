@@ -46,6 +46,12 @@ public:
   // GetAddrInfoW() converts to Punycode; see isValidHostName() in
   // HostPath.cpp. An SSH user name is ASCII only.
   //
+  // vnchost may also be an IPv6 address in brackets, optionally with a
+  // numeric zone: "[fd00::5]", "[fd00::5]:1", "[fe80::1%12]::5901". The
+  // brackets are required, since TightVNC's syntax already gives a bare
+  // "fe80::1" a meaning: host "fe80", port 1. getVncHost() returns the
+  // address without the brackets. (sshhost cannot be an IPv6 address.)
+  //
   // Returns true on success.  Returns false, and leaves the object empty
   // (isValid() is false), if path is null, empty or longer than
   // m_MAX_PATH_LEN characters, is not of the form above, names an invalid
@@ -62,6 +68,15 @@ public:
   const int getSshPort() const            { return m_sshPort; }
   const StringStorage &getVncHost() const { return m_vncHost; }
   const int getVncPort() const            { return m_vncPort; }
+
+  //
+  // Returns host and port joined as "host::port", for set(): as the host
+  // and port of a .vnc file, or of the -host and -port options, are given.
+  // A host with a colon, which can only be an IPv6 address, is put in
+  // brackets, unless it begins with one already. Nothing is validated:
+  // set() does that.
+  //
+  static StringStorage joinHostAndPort(const StringStorage &host, const StringStorage &port);
 
 private:
   static const size_t m_SSH_USER_MAX_CHARS;
@@ -104,9 +119,10 @@ private:
   // UTF-16 code units). m_sshHost may be
   // empty, that does not make the function return false. However,
   // m_vncHost is mandatory so the function will return false if it is
-  // empty.
+  // empty. If isVncHostIPv6, m_vncHost, which was in brackets, must be an
+  // IPv6 address instead of a host name.
   //
-  bool validateHostNames() const;
+  bool validateHostNames(bool isVncHostIPv6) const;
 
   int m_defaultPort;
 };

@@ -223,9 +223,7 @@ void ViewerCmdLine::parseOptionsFile()
   }
   StringStorage port;
   if (sm.getString(_T("port"), &port)) {
-    StringStorage hostString;
-    hostString.format(_T("%s::%s"), host.getString(), port.getString());
-    m_conData->setHost(hostString);
+    m_conData->setHost(HostPath::joinHostAndPort(host, port));
   } else {
     m_conData->setHost(host);
   }
@@ -429,11 +427,13 @@ void ViewerCmdLine::parseHostArg()
   StringStorage host;
   m_wpcl.getArgument(1, &host);
 
-  // A port in the argument wins over -port.
-  if (host.findChar(_T(':')) == -1 && isPresent(PORT)) {
-    StringStorage hostPort;
-    hostPort.format(_T("%s::%s"), host.getString(), m_options[PORT].getString());
-    m_conData->setHost(hostPort);
+  // A port in the argument wins over -port. The colons of an IPv6 address
+  // in brackets are not a port's (HostPath::set()).
+  size_t closePos = host.beginsWith(_T('[')) ? host.findChar(_T(']')) : 0;
+  bool hasPort = closePos != static_cast<size_t>(-1) &&
+                 host.str().find(_T(':'), closePos) != StringStorage::StdString::npos;
+  if (!hasPort && isPresent(PORT)) {
+    m_conData->setHost(HostPath::joinHostAndPort(host, m_options[PORT]));
   } else {
     m_conData->setHost(host);
   }
@@ -452,8 +452,7 @@ bool ViewerCmdLine::parseHostOptions()
   if (!isPresent(PORT)) {
     strHost = m_options[HOST];
   } else {
-    strHost.format(_T("%s::%s"), m_options[HOST].getString(),
-                                m_options[PORT].getString());
+    strHost = HostPath::joinHostAndPort(m_options[HOST], m_options[PORT]);
   }
   m_conData->setHost(strHost);
   return true;
