@@ -25,6 +25,15 @@ to `core-lib`, and what Win32 use is left in `core-lib`, are in
 original investigation (2026-10-20), kept as a record, with corrections
 inline.
 
+**Status (2026-10-31, later; branch `portability-2`).** TCHAR stays in
+`core-lib`, fixed per platform; see "TCHAR: decision". The first
+clean-ups are done: `_ASSERT` is `assert` in `core-lib` (and `<crtdbg.h>`
+is included nowhere); `DesCrypt`, `Exception`, `Inflater`, `inttypes.h`,
+`ListenerContainer.h`, `ZLibBase` and `ZLibException` moved from
+`win32-lib/util` to `core-lib/util`; `RfbKeySym` and
+`RfbKeySymListener.h` moved from `core-lib/rfb` to `win32-lib/rfb`.
+"Current state" below is corrected inline.
+
 ## Current state (2026-10-31)
 
 ### What `core-lib` depends on
@@ -49,6 +58,10 @@ these folders:
 | `util/DesCrypt.h` | 1 | no |
 | `util/Keymap.h` | 1 (`rfb/RfbKeySym.h`) | Windows keyboard (`VK_*`) |
 
+*Since moved into `core-lib`: `inttypes.h`, `Exception`, `Inflater`,
+`ZLibException`, `ListenerContainer.h` and `DesCrypt`. `Keymap.h` is no
+longer included from `core-lib`, since `RfbKeySym` moved to `win32-lib`.*
+
 The direction of the old plan's step 3 ("the core libraries never
 include `win-system`, `gui` or `config-lib`") has thus been reached,
 except for keyboard translation, and the file-transfer code's use of
@@ -71,17 +84,20 @@ are the files that include it, outside its own folder.
 | `util/VncPassCrypt.{h,cpp}` | `tvnviewer/ConnectionData.cpp` | Same unneeded `CommonHeader.h` include as `DesCrypt.cpp`. Only the GUI uses it (passwords in `.vnc` files and the registry), so it can move or stay. |
 | `util/Unicode.{h,cpp}` | `log-writer/FileAccount.cpp` | Portable, but its only purpose is the UTF-16 BOM of the log file; stays with `log-writer`. |
 
-So `inttypes.h`, `ListenerContainer.h`, `DesCrypt` and `ZLibBase` can move
-to `core-lib` as they are (after dropping the stray include).
+~~So `inttypes.h`, `ListenerContainer.h`, `DesCrypt` and `ZLibBase` can move
+to `core-lib` as they are (after dropping the stray include).~~ *Moved,
+and `DesCrypt.cpp` includes `<cstring>` instead.*
 
 **Portable except for TCHAR and `StringStorage`.** These move once the
 TCHAR question is settled (see "TCHAR" below), or with `StringStorage`
-itself, since it is what they need from Windows:
+itself, since it is what they need from Windows. *(Settled: TCHAR is
+allowed in `core-lib`; see "TCHAR: decision".)*
 
-- `util/Exception.{h,cpp}`, `util/ZLibException.{h,cpp}`,
+- ~~`util/Exception.{h,cpp}`, `util/ZLibException.{h,cpp}`,~~
   `file-lib/EOFException.{h,cpp}` (whose base, `io-lib/IOException`, is
-  in `core-lib` already).
-- `util/Inflater.{h,cpp}`: also two `_ASSERT`s.
+  in `core-lib` already). *`Exception` and `ZLibException` moved.*
+- ~~`util/Inflater.{h,cpp}`: also two `_ASSERT`s.~~ *Moved, with
+  `assert`.*
 - `log-writer/LogWriter.{h,cpp}`, `log-writer/Logger.h`: also SAL's
   `_Printf_format_string_` (an empty macro elsewhere would do), and
   `util/CharDefs.h`, which only includes `<tchar.h>` under `WIN32`.
@@ -147,9 +163,11 @@ types and calls:
    virtual keys into keysyms, with `ToUnicodeEx`, `VK_*`, `WCHAR` and
    `std::wstring`, and includes `util/Keymap.h` from `win32-lib`. Only
    `tvnviewer/DesktopWindow` and `harnesses/viewer-keysym-test` use it;
-   `viewer-core` does not. Move it to `tvnviewer` (with `Keymap`, and
-   `RfbKeySymListener.h`, which is portable but only meaningful there).
+   `viewer-core` does not. ~~Move it to `tvnviewer` (with `Keymap`, and
+   `RfbKeySymListener.h`, which is portable but only meaningful there).~~
    This is the largest piece, and the only one that is Windows by nature.
+   *Moved to `win32-lib/rfb` instead, with `RfbKeySymListener.h`, next
+   to `util/Keymap`: the keysym test harness uses it too.*
 2. **`region/Rect.h`: conversions to and from Win32 `RECT`**: a
    constructor from `RECT`, `toWindowsRect()`, `fromWindowsRect()`. For
    them it includes `util/CommonHeader.h`, so every user of `Rect` gets
@@ -160,8 +178,12 @@ types and calls:
    `rfb/RfbKeySym.cpp`, `viewer-core/CapabilitiesManager.h` and
    `viewer-core/RemoteViewerCore.h`. It brings `winhdr.h` and
    `StringTable` (Win32 string resources). Each of these needs only
-   `StringStorage`, or nothing.
-4. **`_ASSERT` from `<crtdbg.h>`**, instead of `assert`:
+   `StringStorage`, or nothing. *(`RfbKeySym.cpp` is no longer in
+   `core-lib`.)*
+4. ~~**`_ASSERT` from `<crtdbg.h>`**, instead of `assert`:~~ *Done:
+   each is `assert`, but `Decoder.cpp`'s, which is deleted. Unknown
+   encodings do reach it, since the encoding comes from the server, and
+   `processPseudoEncoding()` rejects them with an exception.*
    `ft-client-lib/DownloadOperation.cpp` (`_ASSERT(FALSE)`),
    `ft-client-lib/UploadOperation.cpp` (two), `rfb/FrameBuffer.cpp`,
    `rfb/StandardPixelFormatFactory.cpp`, `rfb/RfbKeySym.cpp` and
@@ -193,20 +215,36 @@ code's own definitions, and in `JpegDecompressor.cpp` from libjpeg.
 in `rfb`), with 455 `_T(` sites. 64 format strings use `%s` and 6 use
 `%hs`; with `TCHAR = char` on Linux, `%s` keeps its meaning, but `%hs` is
 a Microsoft extension, not standard C, so those six need a macro or a
-rewrite. The recommendation below (UTF-8 `char` as TCHAR off Windows)
-still stands.
+rewrite. ~~The recommendation below (UTF-8 `char` as TCHAR off Windows)
+still stands.~~ *Decided; see next.*
+
+### TCHAR: decision
+
+*(2026-10-31.)* TCHAR is allowed in `core-lib`: changing it would cause
+too much churn. The choice is fixed per platform: `TCHAR` is `WCHAR` on
+Windows, as now, and `char` (holding UTF-8) on Linux, where a central
+header does `typedef char TCHAR` (with `_T()` and the `_tcs*` names to
+match).
+
+UTF-8 strings on Windows too, converted to UTF-16 at each Win32 call, is
+possible but not wanted: the GUI calls Windows APIs often enough that
+converting on demand only adds complexity, and the strings are short,
+so the extra storage of UTF-16 does not matter.
 
 ### Suggested order now
 
 1. Small clean-ups on Windows, with no behaviour change: drop the stray
    `CommonHeader.h` includes; move the `RECT` conversions out of `Rect`;
-   `_ASSERT` to `assert`; `DateTime` to `steady_clock` in file transfer;
-   delete `GetCPUtime`.
-2. Move `RfbKeySym` and `Keymap` to `tvnviewer`.
-3. Move the files that are already portable (`inttypes.h`,
-   `ListenerContainer.h`, `DesCrypt`, `ZLibBase`) to `core-lib`.
-4. Trim `StringStorage.h`'s include of `winhdr.h`, then decide on TCHAR,
-   after which the second group above can move.
+   ~~`_ASSERT` to `assert`;~~ `DateTime` to `steady_clock` in file transfer;
+   delete `GetCPUtime`. *(`_ASSERT` done.)*
+2. ~~Move `RfbKeySym` and `Keymap` to `tvnviewer`.~~ *Done: `RfbKeySym`
+   moved to `win32-lib`, where `Keymap` already is.*
+3. ~~Move the files that are already portable (`inttypes.h`,
+   `ListenerContainer.h`, `DesCrypt`, `ZLibBase`) to `core-lib`.~~ *Done,
+   with `Exception`, `ZLibException` and `Inflater`.*
+4. Trim `StringStorage.h`'s include of `winhdr.h`, then ~~decide on TCHAR,~~
+   *(decided: see "TCHAR: decision")* after which the second group above
+   can move.
 5. Make file transfer optional in `viewer-core`, or port `file-lib`:
    still the open question from the original plan. Until then, a
    non-Windows build of `core-lib` leaves out `ft-client-lib` and
@@ -307,7 +345,8 @@ Recommendation: the Linux build uses `TCHAR = char`, holding UTF-8.
 
 The long-term clean version would be UTF-8 `std::string` in the core on
 both platforms, converting at the Win32 boundary. That is much bigger
-and not needed for the goals here.
+and not needed for the goals here. *(Not to be done; see "TCHAR:
+decision".)*
 
 ## A command-line RFB client over stdin/stdout
 
@@ -505,7 +544,7 @@ both with Asio; see `async-networking.md`.
    `win-system`, `gui` or `config-lib`:
    - ~~rewrite `thread` and `WindowsEvent` on the standard library;~~
      *(done 2026-10-29)*
-   - move `RfbKeySym`/`Keymap` out of the core;
+   - ~~move `RfbKeySym`/`Keymap` out of the core;~~ *(done 2026-10-31)*
    - ~~add a small socket compatibility header;~~ *(Asio instead)*
    - make file transfer optional in `viewer-core`, or port `file-lib`;
    - add a TCHAR compatibility header for the Linux build.
