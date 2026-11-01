@@ -344,7 +344,8 @@ can go in either order.
   `file-lib`), which must build on Linux and never include
   `<windows.h>`; and **win** (`win-system`, `gui`, `config-lib`,
   `client-config-lib`, plus the Windows-only parts moved out of core:
-  `RfbKeySym`, `Keymap`, `ResourceLoader`/`StringTable`, `GetCPUtime`).
+  `RfbKeySym`, `Keymap`, `ResourceLoader`/`StringTable`, ~~`GetCPUtime`~~
+  *(deleted as dead code, 2026-11-01)*).
   The boundary then becomes enforceable by the Linux build. Unused code
   costs nothing: the linker takes from a static library only the
   objects that resolve a symbol, and `/OPT:REF` (or `--gc-sections`)

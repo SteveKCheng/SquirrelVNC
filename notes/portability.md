@@ -150,9 +150,9 @@ below), `util/CommonHeader.h`, `util/winhdr.h`, and the rest of
 `log-writer` (`FileAccount`, `FileLogger`, `LogDump`: thread and process
 ids, `SYSTEMTIME`, UTF-16 log files).
 
-**Dead:** `util/GetCPUtime.{h,cpp}` is compiled but included nowhere.
+~~**Dead:** `util/GetCPUtime.{h,cpp}` is compiled but included nowhere.
 (Its header ends with `#endif _GETCPUTIME_H_`, a stray token MSVC only
-warns about.)
+warns about.)~~ *Deleted (2026-11-01; `dead-code.md`).*
 
 ### Win32-specific code left in `core-lib`
 
@@ -236,7 +236,7 @@ so the extra storage of UTF-16 does not matter.
 1. Small clean-ups on Windows, with no behaviour change: drop the stray
    `CommonHeader.h` includes; move the `RECT` conversions out of `Rect`;
    ~~`_ASSERT` to `assert`;~~ `DateTime` to `steady_clock` in file transfer;
-   delete `GetCPUtime`. *(`_ASSERT` done.)*
+   ~~delete `GetCPUtime`~~. *(`_ASSERT` and `GetCPUtime` done.)*
 2. ~~Move `RfbKeySym` and `Keymap` to `tvnviewer`.~~ *Done: `RfbKeySym`
    moved to `win32-lib`, where `Keymap` already is.*
 3. ~~Move the files that are already portable (`inttypes.h`,
@@ -314,7 +314,8 @@ replacements:
     `string-encoding.md`) converts UTF-8 with
     `MultiByteToWideChar`/`WideCharToMultiByte`; Latin-1 needs no Win32
     call.
-  - `GetCPUtime` uses `GetProcessTimes`.
+  - ~~`GetCPUtime` uses `GetProcessTimes`.~~ *(Deleted as dead code,
+    2026-11-01.)*
   - `ResourceLoader`/`StringTable` read Win32 resources, but only
     `tvnviewer` uses them.
 - **Files.** `file-lib` uses `CreateFile`, `FindFirstFile`, `MoveFile`,

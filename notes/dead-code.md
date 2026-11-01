@@ -270,6 +270,12 @@ git diff -U0 --diff-filter=M 630df21~1 20956d9 -- '*.cpp' | grep '^-[^-/ {}#	]'
   called. Every log message still asked it for statistics to print, under
   a mutex, and got none. It was found through a narrowing warning
   (C4267) in its statistics code.
+- **util/GetCPUtime** (both files): `getCPUTime()` and `getKernelTime()`
+  (process CPU time, through `GetProcessTimes()`), and an inline `rdtsc()`
+  that read the time-stamp counter with x86 inline assembly (returning 0
+  on x64). Its only user was `ProfileLogger`, removed above, but it stayed
+  compiled into `win32-lib`, included by nothing. Found while surveying
+  `win32-lib` for portability (`portability.md`).
 - **viewer-core/WatermarksController** (both files) and
   **viewer-core/watermark-bmp.h**, which drew a watermark over the remote
   desktop in TightVNC's demo version. Everything that used them was

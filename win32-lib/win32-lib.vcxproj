@@ -110,7 +110,6 @@
     <ClCompile Include="util\CommandLineFormatException.cpp" />
     <ClCompile Include="util\CommandLineFormatHelp.cpp" />
     <ClCompile Include="util\DateTime.cpp" />
-    <ClCompile Include="util\GetCPUtime.cpp" />
     <ClCompile Include="util\Keymap.cpp" />
     <ClCompile Include="util\ResourceLoader.cpp" />
     <ClCompile Include="util\StringParser.cpp" />
@@ -187,7 +186,6 @@
     <ClInclude Include="util\CommandLineFormatHelp.h" />
     <ClInclude Include="util\CommonHeader.h" />
     <ClInclude Include="util\DateTime.h" />
-    <ClInclude Include="util\GetCPUtime.h" />
     <ClInclude Include="util\Keymap.h" />
     <ClInclude Include="util\ResourceLoader.h" />
     <ClInclude Include="util\StringParser.h" />

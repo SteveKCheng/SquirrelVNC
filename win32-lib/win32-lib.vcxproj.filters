@@ -60,9 +60,6 @@
     <ClCompile Include="util\DateTime.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="util\GetCPUtime.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
     <ClCompile Include="util\Keymap.cpp">
       <Filter>util</Filter>
     </ClCompile>
@@ -285,9 +282,6 @@
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="util\DateTime.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="util\GetCPUtime.h">
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="util\Keymap.h">
