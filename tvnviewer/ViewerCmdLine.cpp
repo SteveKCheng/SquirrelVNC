@@ -429,17 +429,13 @@ void ViewerCmdLine::parseHostArg()
   StringStorage host;
   m_wpcl.getArgument(1, &host);
 
-  if (host.findChar(_T(':')) != -1) {
-    m_conData->setHost(host);
+  // A port in the argument wins over -port.
+  if (host.findChar(_T(':')) == -1 && isPresent(PORT)) {
+    StringStorage hostPort;
+    hostPort.format(_T("%s::%s"), host.getString(), m_options[PORT].getString());
+    m_conData->setHost(hostPort);
   } else {
-   if (isPresent(PORT)) {
-     StringStorage hostPort;
-
-     hostPort.format(_T("%s::%s"), host.getString(),
-                                  m_options[PORT].getString());
-     m_conData->setHost(hostPort);
-   }
-   m_conData->setHost(host);
+    m_conData->setHost(host);
   }
 }
 
