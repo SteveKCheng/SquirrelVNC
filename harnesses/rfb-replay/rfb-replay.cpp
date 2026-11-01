@@ -87,6 +87,7 @@ static const TCHAR USAGE[] =
   _T("                     the input then reads \"Connection has been\n")
   _T("                     gracefully closed\", logged as \"End of stream\n")
   _T("                     reached\" for comparison\n")
+  _T("  --tcp6             as --tcp, on ::1 (IPv6)\n")
   _T("\n")
   _T("Exit codes: 0 success or match, 1 mismatch, 2 usage or I/O error,\n")
   _T("3 timeout, 4 AddressSanitizer report (ReleaseAsan build).\n");
@@ -148,6 +149,8 @@ struct Options
   bool isSeedGiven = false;
   unsigned int seed = 0;
   bool isTcp = false;
+  // With isTcp: on ::1 instead of 127.0.0.1.
+  bool isIPv6 = false;
 };
 
 //
@@ -162,8 +165,9 @@ static bool parseOptions(int argc, TCHAR *argv[], Options *options)
   for (int i = 1; i < argc; i++) {
     const TCHAR *arg = argv[i];
     bool hasValue = i + 1 < argc;
-    if (_tcscmp(arg, _T("--tcp")) == 0) {
+    if (_tcscmp(arg, _T("--tcp")) == 0 || _tcscmp(arg, _T("--tcp6")) == 0) {
       options->isTcp = true;
+      options->isIPv6 = _tcscmp(arg, _T("--tcp6")) == 0;
     } else if (arg[0] == _T('-') && arg[1] == _T('-')) {
       if (!hasValue) {
         _ftprintf(stderr, _T("Missing value for %s\n\n%s"), arg, USAGE);
@@ -497,7 +501,10 @@ int _tmain(int argc, TCHAR *argv[])
   std::unique_ptr<LoopbackServer> server;
   if (options.isTcp) {
     try {
-      server = std::make_unique<LoopbackServer>(input);
+      asio::ip::address address = options.isIPv6
+        ? asio::ip::address(asio::ip::address_v6::loopback())
+        : asio::ip::address(asio::ip::address_v4::loopback());
+      server = std::make_unique<LoopbackServer>(input, address);
     } catch (const Exception &e) {
       _ftprintf(stderr, _T("Cannot listen: %s\n"), e.getMessage());
       return EXIT_ERROR;
@@ -524,7 +531,10 @@ int _tmain(int argc, TCHAR *argv[])
     startupOptions.maxFrameBufferPixels = options.maxPixels;
     startupOptions.rowAlignmentLog2 = options.rowAlignmentLog2;
     if (server) {
-      core->start(_T("127.0.0.1"), server->getPort(), adapterRef, startupOptions);
+      // A numeric address, as the viewer passes the host (resolved by the
+      // core, as a name would be).
+      core->start(options.isIPv6 ? _T("::1") : _T("127.0.0.1"), server->getPort(),
+                  adapterRef, startupOptions);
     } else {
       core->start(inputStream.get(), &outputStream, adapterRef, startupOptions);
     }

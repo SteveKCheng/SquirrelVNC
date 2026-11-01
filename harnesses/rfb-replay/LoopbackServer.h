@@ -48,12 +48,13 @@ class LoopbackServer final
 {
 public:
   //
-  // Listens on 127.0.0.1, on a port the system chooses (getPort()), and
-  // starts serving serverBytes.
+  // Listens on address (127.0.0.1 or ::1), on a port the system chooses
+  // (getPort()), and starts serving serverBytes.
   //
-  // Throws SocketException if the socket cannot be set up.
+  // Throws SocketException if the socket cannot be set up, as when the
+  // address is ::1 and IPv6 is turned off.
   //
-  explicit LoopbackServer(std::vector<char> serverBytes);
+  LoopbackServer(std::vector<char> serverBytes, const asio::ip::address &address);
 
   LoopbackServer(const LoopbackServer &) = delete;
   LoopbackServer &operator=(const LoopbackServer &) = delete;

@@ -30,12 +30,12 @@
 #include <asio/use_awaitable.hpp>
 #include <asio/write.hpp>
 
-LoopbackServer::LoopbackServer(std::vector<char> serverBytes)
+LoopbackServer::LoopbackServer(std::vector<char> serverBytes, const asio::ip::address &address)
 : m_serverBytes(std::move(serverBytes)),
   m_acceptor(m_context),
   m_port(0)
 {
-  asio::ip::tcp::endpoint endpoint(asio::ip::address_v4::loopback(), 0);
+  asio::ip::tcp::endpoint endpoint(address, 0);
   std::error_code error;
   m_acceptor.open(endpoint.protocol(), error);
   if (!error) {

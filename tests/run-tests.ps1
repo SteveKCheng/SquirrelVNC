@@ -65,17 +65,19 @@ $failed = @()
 if (Test-Path $replay) {
   $cases = Get-ChildItem (Join-Path $PSScriptRoot 'cases') -Filter "$Filter.rfb" |
     Sort-Object Name
-  # Each case runs four times: with the input given as the core asks for
+  # Each case runs five times: with the input given as the core asks for
   # it; one byte at a time; in pieces of random sizes up to 64 bytes, from a
-  # fixed seed; and over TCP on 127.0.0.1, connecting as the viewer does.
-  # All must give the same results: the first three exercise every point
-  # where the protocol code can suspend (notes/async-networking.md, Phase
-  # 3), the last the connection on the network thread (Phase 4).
+  # fixed seed; and over TCP on 127.0.0.1 and on ::1, connecting as the
+  # viewer does. All must give the same results: the first three exercise
+  # every point where the protocol code can suspend
+  # (notes/async-networking.md, Phase 3), the last two the connection on the
+  # network thread (Phase 4), over IPv4 and IPv6.
   $splits = @(
     @{ Label = ''; Args = @() },
     @{ Label = ' (1 byte at a time)'; Args = @('--split', '1') },
     @{ Label = ' (random pieces)'; Args = @('--split', '64', '--seed', '1') },
-    @{ Label = ' (over TCP)'; Args = @('--tcp') }
+    @{ Label = ' (over TCP)'; Args = @('--tcp') },
+    @{ Label = ' (over TCP on IPv6)'; Args = @('--tcp6') }
   )
   foreach ($case in $cases) {
     $name = $case.BaseName
