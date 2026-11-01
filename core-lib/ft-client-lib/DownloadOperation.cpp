@@ -131,7 +131,7 @@ void DownloadOperation::onDownloadReply()
 
   m_sender->sendDownloadDataRequest((UINT32)m_bufferSize,
                                     compression);
-  m_lastRequestTime = DateTime::now();
+  m_lastRequestTime = std::chrono::steady_clock::now();
 }
 
 void DownloadOperation::onDownloadDataReply()
@@ -175,8 +175,9 @@ void DownloadOperation::onDownloadDataReply()
 
   bool compression = m_replyBuffer->isCompressionSupported();
   
-  if ((DateTime::now() - m_lastRequestTime).getTime() > 300) {
-    m_bufferSize /= 2; 
+  auto now = std::chrono::steady_clock::now();
+  if (now - m_lastRequestTime > std::chrono::milliseconds(300)) {
+    m_bufferSize /= 2;
   } else {
     m_bufferSize *= 2;
   }
@@ -187,7 +188,7 @@ void DownloadOperation::onDownloadDataReply()
     m_bufferSize = 400000;
   }
   m_sender->sendDownloadDataRequest((UINT32)m_bufferSize, compression);
-  m_lastRequestTime = DateTime::now();
+  m_lastRequestTime = now;
 }
 
 void DownloadOperation::onDownloadEndReply()

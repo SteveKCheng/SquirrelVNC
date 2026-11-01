@@ -43,7 +43,7 @@ UploadOperation::UploadOperation(LogWriter *logWriter,
   m_toCopy = m_toCopyRoot.get();
 
   changeFileToUpload(m_toCopy);
-  m_lastRequestTime = DateTime::now();
+  m_lastRequestTime = std::chrono::steady_clock::now();
 }
 
 UploadOperation::UploadOperation(LogWriter *logWriter,
@@ -61,7 +61,7 @@ UploadOperation::UploadOperation(LogWriter *logWriter,
   m_toCopy = m_toCopyRoot.get();
 
   changeFileToUpload(m_toCopy);
-  m_lastRequestTime = DateTime::now();
+  m_lastRequestTime = std::chrono::steady_clock::now();
 }
 
 UploadOperation::~UploadOperation()
@@ -399,7 +399,8 @@ void UploadOperation::sendFileDataChunk()
     return;
   }
 
-  if ((DateTime::now() - m_lastRequestTime).getTime() > 300) {
+  auto now = std::chrono::steady_clock::now();
+  if (now - m_lastRequestTime > std::chrono::milliseconds(300)) {
     m_bufferSize /= 2;
   }
   else {
@@ -411,7 +412,7 @@ void UploadOperation::sendFileDataChunk()
   if (m_bufferSize > 400000) {
     m_bufferSize = 400000;
   }
-  m_lastRequestTime = DateTime::now();
+  m_lastRequestTime = now;
 
   std::vector<char> buffer(m_bufferSize);
   UINT32 read = 0;

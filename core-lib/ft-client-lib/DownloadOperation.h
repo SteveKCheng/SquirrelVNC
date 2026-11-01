@@ -28,9 +28,9 @@
 #include "file-lib/WinFileChannel.h"
 #include "FileInfoList.h"
 #include "CopyOperation.h"
-#include "util/DateTime.h"
 #include "file-lib/File.h"
 
+#include <chrono>
 #include <memory>
 
 //
@@ -140,7 +140,7 @@ protected:
 
   // request data size changes dynamicaly depends on request rate
   size_t m_bufferSize;
-  DateTime m_lastRequestTime;
+  std::chrono::steady_clock::time_point m_lastRequestTime;
 
 };
 
