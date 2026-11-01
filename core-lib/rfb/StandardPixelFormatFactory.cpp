@@ -23,7 +23,7 @@
 
 #include "StandardPixelFormatFactory.h"
 
-#include <crtdbg.h>
+#include <cassert>
 
 
 PixelFormat StandardPixelFormatFactory::create32bppPixelFormat()
@@ -79,7 +79,7 @@ PixelFormat StandardPixelFormatFactory::createPixelFormat(unsigned short bitsPer
   case 16:
     return create16bppPixelFormat();
   default:
-    _ASSERT(bitsPerPixel == 32);
+    assert(bitsPerPixel == 32);
     return create32bppPixelFormat();
   }
 }

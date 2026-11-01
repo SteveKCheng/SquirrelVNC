@@ -78,8 +78,8 @@ bool Decoder::isPseudo(int encoding)
   case PseudoEncDefs::LAST_RECT:
     return true;
   default:
-    // if the encoding type is unknown, then generate assertions.
-    _ASSERT(TRUE);
+    // An encoding the viewer does not know: the server's choice, so not
+    // asserted. processPseudoEncoding() rejects it.
     return true;
   }
 }

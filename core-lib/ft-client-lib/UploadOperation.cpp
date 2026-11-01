@@ -23,6 +23,8 @@
 
 #include "UploadOperation.h"
 
+#include <cassert>
+
 #include "ft-common/FolderListener.h"
 #include "file-lib/EOFException.h"
 
@@ -362,7 +364,7 @@ void UploadOperation::onTargetFileExistsAnswer(int action)
     gotoNext();
     break;
   default:
-    _ASSERT(FALSE);
+    assert(false);
   } // switch (action)
 }
 
@@ -415,7 +417,7 @@ void UploadOperation::sendFileDataChunk()
   UINT32 read = 0;
   try {
     size_t portion = m_fis->read(&buffer.front(), m_bufferSize);
-    _ASSERT((UINT32)portion == portion);
+    assert((UINT32)portion == portion);
     read = (UINT32)portion;
   } catch (const EOFException &) {
 

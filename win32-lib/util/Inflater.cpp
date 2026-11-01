@@ -22,7 +22,9 @@
 //
 
 #include "Inflater.h"
-#include <crtdbg.h>
+
+#include <cassert>
+#include <climits>
 
 Inflater::Inflater()
 : m_unpackedSize(0)
@@ -57,11 +59,12 @@ void Inflater::inflate()
   size_t avaliableOutput = m_unpackedSize + m_unpackedSize / 100 + 1024;
   unsigned long prevTotalOut = m_zlibStream.total_out;
 
-  // Check to overflow.
-  unsigned int constrainedValue = (unsigned int)avaliableOutput;
-  _ASSERT(avaliableOutput == constrainedValue);
-  constrainedValue = (unsigned int)m_inputSize;
-  _ASSERT(m_inputSize == constrainedValue);
+  // zlib counts in unsigned int. The callers' sizes are bounded by the
+  // largest frame buffer, or by 32-bit fields of the protocol. Were one
+  // larger, the casts below would only give zlib less than the buffers
+  // hold, so the output would come up short, not overrun.
+  assert(avaliableOutput <= UINT_MAX);
+  assert(m_inputSize <= UINT_MAX);
 
   m_output.resize(avaliableOutput);
 

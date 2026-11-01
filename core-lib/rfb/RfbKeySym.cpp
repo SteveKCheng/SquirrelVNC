@@ -27,6 +27,8 @@
 #define XK_MISCELLANY
 #include "rfb/keysymdef.h"
 
+#include <cassert>
+
 RfbKeySym::RfbKeySym(RfbKeySymListener *extKeySymListener, LogWriter *log)
 : m_extKeySymListener(extKeySymListener),
   m_allowProcessCharEvent(false),
@@ -451,7 +453,7 @@ void RfbKeySym::sendMappedKey(unsigned char virtKey, bool down)
   if (m_keyMap.virtualCodeToKeySym(&rfbSym, virtKey)) {
     sendKeySymEvent(rfbSym, down);
   } else {
-    _ASSERT(false);
+    assert(false);
   }
 }
 

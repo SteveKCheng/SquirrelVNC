@@ -320,7 +320,7 @@ bool FrameBuffer::setProperties(const Rect &dimByRect,
 
 UINT8 FrameBuffer::getBitsPerPixel() const
 {
-  _ASSERT((UINT8)m_pixelFormat.bitsPerPixel == m_pixelFormat.bitsPerPixel);
+  assert((UINT8)m_pixelFormat.bitsPerPixel == m_pixelFormat.bitsPerPixel);
   return (UINT8)m_pixelFormat.bitsPerPixel;
 }
 

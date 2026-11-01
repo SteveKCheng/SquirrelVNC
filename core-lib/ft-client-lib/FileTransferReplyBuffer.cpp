@@ -24,7 +24,6 @@
 #include "FileTransferReplyBuffer.h"
 #include "ft-common/FTMessage.h"
 #include "io-lib/ByteArrayInputStream.h"
-#include <crtdbg.h>
 
 FileTransferReplyBuffer::FileTransferReplyBuffer(LogWriter *logWriter)
 : m_logWriter(logWriter),

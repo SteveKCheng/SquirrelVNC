@@ -23,6 +23,8 @@
 
 #include "DownloadOperation.h"
 
+#include <cassert>
+
 DownloadOperation::DownloadOperation(LogWriter *logWriter,
                                      const FileInfo *filesToDownload,
                                      size_t filesCount,
@@ -317,7 +319,7 @@ void DownloadOperation::onTargetFileExistsAnswer(int action)
     m_fileOffset = m_existingTargetInfo.getSize();
     break;
   default:
-    _ASSERT(FALSE);
+    assert(false);
     return ;
   } // switch
 

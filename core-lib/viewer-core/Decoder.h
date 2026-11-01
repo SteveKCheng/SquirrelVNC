@@ -48,7 +48,9 @@ public:
   int getCode() const;
 
   //
-  // This static method return true, if "encoding" is pseudo encoding.
+  // Returns true if encoding is a pseudo-encoding, or one the viewer does
+  // not know (which the caller then rejects as an unsupported
+  // pseudo-encoding); false for the encodings of pixel data.
   //
   static bool isPseudo(int encoding);
 
