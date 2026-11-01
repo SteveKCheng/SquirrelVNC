@@ -25,6 +25,9 @@
     <Filter Include="network\socket">
       <UniqueIdentifier>{c7a3212d-35fb-5647-856b-f8a6d094056d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="rfb">
+      <UniqueIdentifier>{ed2675cf-a537-41a1-be90-639e4b4d34d3}</UniqueIdentifier>
+    </Filter>
     <Filter Include="util">
       <UniqueIdentifier>{e4267247-b8c3-5ffb-a7c9-10b7611ce222}</UniqueIdentifier>
     </Filter>
@@ -42,6 +45,9 @@
     <ClCompile Include="network\socket\SocketException.cpp">
       <Filter>network\socket</Filter>
     </ClCompile>
+    <ClCompile Include="rfb\RfbKeySym.cpp">
+      <Filter>rfb</Filter>
+    </ClCompile>
     <ClCompile Include="util\CommandLineArgs.cpp">
       <Filter>util</Filter>
     </ClCompile>
@@ -54,16 +60,7 @@
     <ClCompile Include="util\DateTime.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="util\DesCrypt.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
-    <ClCompile Include="util\Exception.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
     <ClCompile Include="util\GetCPUtime.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
-    <ClCompile Include="util\Inflater.cpp">
       <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="util\Keymap.cpp">
@@ -88,12 +85,6 @@
       <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="util\VncPassCrypt.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
-    <ClCompile Include="util\ZLibBase.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
-    <ClCompile Include="util\ZLibException.cpp">
       <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="log-writer\FileAccount.cpp">
@@ -272,6 +263,12 @@
     <ClInclude Include="network\socket\SocketException.h">
       <Filter>network\socket</Filter>
     </ClInclude>
+    <ClInclude Include="rfb\RfbKeySym.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
+    <ClInclude Include="rfb\RfbKeySymListener.h">
+      <Filter>rfb</Filter>
+    </ClInclude>
     <ClInclude Include="util\CharDefs.h">
       <Filter>util</Filter>
     </ClInclude>
@@ -290,25 +287,10 @@
     <ClInclude Include="util\DateTime.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="util\DesCrypt.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="util\Exception.h">
-      <Filter>util</Filter>
-    </ClInclude>
     <ClInclude Include="util\GetCPUtime.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="util\Inflater.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inttypes.h">
-      <Filter>util</Filter>
-    </ClInclude>
     <ClInclude Include="util\Keymap.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="util\ListenerContainer.h">
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="util\ResourceLoader.h">
@@ -333,12 +315,6 @@
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="util\winhdr.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="util\ZLibBase.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="util\ZLibException.h">
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="log-writer\FileAccount.h">

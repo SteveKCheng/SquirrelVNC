@@ -23,7 +23,7 @@
 
 #include "VncPassCrypt.h"
 #include "util/CommonHeader.h"
-#include "DesCrypt.h"
+#include "util/DesCrypt.h"
 
 const UINT8 VncPassCrypt::m_key[] = { 23, 82, 107, 6, 35, 78, 88, 7 };
 

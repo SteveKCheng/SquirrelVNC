@@ -98,6 +98,11 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="util\DesCrypt.cpp" />
+    <ClCompile Include="util\Exception.cpp" />
+    <ClCompile Include="util\Inflater.cpp" />
+    <ClCompile Include="util\ZLibBase.cpp" />
+    <ClCompile Include="util\ZLibException.cpp" />
     <ClCompile Include="region\Region.cpp" />
     <ClCompile Include="region\x11region.c" />
     <ClCompile Include="io-lib\AwaitableReader.cpp" />
@@ -114,7 +119,6 @@
     <ClCompile Include="rfb\HostPath.cpp" />
     <ClCompile Include="rfb\MsgDefs.cpp" />
     <ClCompile Include="rfb\PixelFormat.cpp" />
-    <ClCompile Include="rfb\RfbKeySym.cpp" />
     <ClCompile Include="rfb\StandardPixelFormatFactory.cpp" />
     <ClCompile Include="rfb\TunnelDefs.cpp" />
     <ClCompile Include="rfb\VendorDefs.cpp" />
@@ -181,8 +185,15 @@
     <ClCompile Include="ft-client-lib\UploadOperation.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="util\DesCrypt.h" />
+    <ClInclude Include="util\Exception.h" />
+    <ClInclude Include="util\Inflater.h" />
+    <ClInclude Include="util\inttypes.h" />
+    <ClInclude Include="util\ListenerContainer.h" />
     <ClInclude Include="util\ScopeExit.h" />
     <ClInclude Include="util\Task.h" />
+    <ClInclude Include="util\ZLibBase.h" />
+    <ClInclude Include="util\ZLibException.h" />
     <ClInclude Include="region\Dimension.h" />
     <ClInclude Include="region\Point.h" />
     <ClInclude Include="region\Rect.h" />
@@ -203,8 +214,6 @@
     <ClInclude Include="rfb\keysymdef.h" />
     <ClInclude Include="rfb\MsgDefs.h" />
     <ClInclude Include="rfb\PixelFormat.h" />
-    <ClInclude Include="rfb\RfbKeySym.h" />
-    <ClInclude Include="rfb\RfbKeySymListener.h" />
     <ClInclude Include="rfb\StandardPixelFormatFactory.h" />
     <ClInclude Include="rfb\TunnelDefs.h" />
     <ClInclude Include="rfb\VendorDefs.h" />

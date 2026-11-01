@@ -24,6 +24,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="util\DesCrypt.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\Exception.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\Inflater.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\ZLibBase.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\ZLibException.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
     <ClCompile Include="region\Region.cpp">
       <Filter>region</Filter>
     </ClCompile>
@@ -70,9 +85,6 @@
       <Filter>rfb</Filter>
     </ClCompile>
     <ClCompile Include="rfb\PixelFormat.cpp">
-      <Filter>rfb</Filter>
-    </ClCompile>
-    <ClCompile Include="rfb\RfbKeySym.cpp">
       <Filter>rfb</Filter>
     </ClCompile>
     <ClCompile Include="rfb\StandardPixelFormatFactory.cpp">
@@ -281,10 +293,31 @@
     <ClInclude Include="region\Region.h">
       <Filter>region</Filter>
     </ClInclude>
+    <ClInclude Include="util\DesCrypt.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\Exception.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\Inflater.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inttypes.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\ListenerContainer.h">
+      <Filter>util</Filter>
+    </ClInclude>
     <ClInclude Include="util\ScopeExit.h">
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="util\Task.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\ZLibBase.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\ZLibException.h">
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="region\x11region.h">
@@ -333,12 +366,6 @@
       <Filter>rfb</Filter>
     </ClInclude>
     <ClInclude Include="rfb\PixelFormat.h">
-      <Filter>rfb</Filter>
-    </ClInclude>
-    <ClInclude Include="rfb\RfbKeySym.h">
-      <Filter>rfb</Filter>
-    </ClInclude>
-    <ClInclude Include="rfb\RfbKeySymListener.h">
       <Filter>rfb</Filter>
     </ClInclude>
     <ClInclude Include="rfb\StandardPixelFormatFactory.h">

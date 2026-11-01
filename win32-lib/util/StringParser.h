@@ -24,7 +24,7 @@
 #ifndef _STRING_PARSER_H_
 #define _STRING_PARSER_H_
 
-#include "inttypes.h"
+#include "util/inttypes.h"
 #include "CommonHeader.h"
 
 class StringParser final

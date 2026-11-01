@@ -22,7 +22,7 @@
 
 #include "StringStorage.h"
 #include "CommonHeader.h"
-#include "Exception.h"
+#include "util/Exception.h"
 #include <stdio.h>
 
 #include <cassert>

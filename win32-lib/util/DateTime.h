@@ -24,7 +24,7 @@
 #ifndef _DATE_TIME_H_
 #define _DATE_TIME_H_
 
-#include "inttypes.h"
+#include "util/inttypes.h"
 #include "winhdr.h"
 #include "StringStorage.h"
 

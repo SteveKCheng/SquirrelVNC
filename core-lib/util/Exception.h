@@ -24,7 +24,7 @@
 #ifndef _EXCEPTION_H_
 #define _EXCEPTION_H_
 
-#include "StringStorage.h"
+#include "util/StringStorage.h"
 
 /**
  * Common Exception class.
