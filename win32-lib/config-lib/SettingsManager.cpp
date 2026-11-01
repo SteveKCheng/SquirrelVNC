@@ -22,7 +22,6 @@
 //
 
 #include "SettingsManager.h"
-#include <crtdbg.h>
 
 SettingsManager::SettingsManager()
 {

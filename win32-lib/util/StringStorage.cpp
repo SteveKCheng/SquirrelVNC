@@ -25,7 +25,7 @@
 #include "Exception.h"
 #include <stdio.h>
 
-#include <crtdbg.h>
+#include <cassert>
 
 #include <algorithm>
 #include <utility>
@@ -218,7 +218,7 @@ void StringStorage::remove(size_t startIndex, size_t count)
 {
   // Not startIndex + count > getLength(), which can wrap around.
   bool isFailed = startIndex > getLength() || count > getLength() - startIndex;
-  _ASSERT(!isFailed);
+  assert(!isFailed);
   if (isFailed) {
     throw Exception(_T("An incorrect StringStorage::remove() usage"));
   }

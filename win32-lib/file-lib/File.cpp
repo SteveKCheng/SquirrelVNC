@@ -25,7 +25,7 @@
 
 #include "util/DateTime.h"
 #include "util/ScopeExit.h"
-#include <crtdbg.h>
+#include <cassert>
 
 TCHAR File::s_separatorChar = _T('\\');
 
@@ -268,7 +268,7 @@ bool File::renameTo(const TCHAR *dest, const TCHAR *source)
 
 bool File::setLastModified(INT64 time)
 {
-  _ASSERT(time >= 0);
+  assert(time >= 0);
 
   HANDLE hfile = CreateFile(m_pathName.getString(),
                             GENERIC_READ | GENERIC_WRITE,

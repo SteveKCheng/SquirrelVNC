@@ -24,7 +24,6 @@
 #include "Keymap.h"
 
 #include "util/winhdr.h"
-#include <crtdbg.h>
 
 #define XK_MISCELLANY
 #define XK_CYRILLIC

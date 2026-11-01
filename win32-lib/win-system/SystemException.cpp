@@ -23,7 +23,6 @@
 
 #include "SystemException.h"
 
-#include <crtdbg.h>
 
 SystemException::SystemException()
 : Exception(), m_errcode(GetLastError())

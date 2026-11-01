@@ -26,7 +26,7 @@
 #include "tvnviewer/res/resource.h"
 #include "util/ResourceLoader.h"
 #include <algorithm>
-#include <crtdbg.h>
+#include <cassert>
 #include <stdio.h>
 
 FileInfoListView::FileInfoListView()
@@ -158,15 +158,15 @@ void FileInfoListView::loadImages()
   ResourceLoader *rLoader = ResourceLoader::getInstance();
 
   icon = rLoader->loadIcon(MAKEINTRESOURCE(IDI_FILEUP));
-  _ASSERT(icon != NULL);
+  assert(icon != NULL);
   ImageList_AddIcon(m_smallImageList, icon);
 
   icon = rLoader->loadIcon(MAKEINTRESOURCE(IDI_FOLDER_ICON));
-  _ASSERT(icon != NULL);
+  assert(icon != NULL);
   ImageList_AddIcon(m_smallImageList, icon);
 
   icon = rLoader->loadIcon(MAKEINTRESOURCE(IDI_FILE_ICON));
-  _ASSERT(icon != NULL);
+  assert(icon != NULL);
   ImageList_AddIcon(m_smallImageList, icon);
 }
 
@@ -261,7 +261,7 @@ int FileInfoListView::compareItem(LPARAM lParam1,
     }
   // It's unknown column.
   default:
-    _ASSERT(false);
+    assert(false);
     return 0;
   }
 }

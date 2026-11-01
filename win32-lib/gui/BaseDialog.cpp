@@ -27,7 +27,7 @@
 #include "util/CommonHeader.h"
 
 #include <commctrl.h>
-#include <crtdbg.h>
+#include <cassert>
 
 BaseDialog::BaseDialog()
   : BaseDialog(0)
@@ -103,7 +103,7 @@ void BaseDialog::create()
 
   m_isModal = false;
 
-  _ASSERT(window != NULL);
+  assert(window != NULL);
 }
 
 int BaseDialog::showModal()

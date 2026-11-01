@@ -23,7 +23,7 @@
 
 #include "ConnectionConfig.h"
 
-#include <crtdbg.h>
+#include <cassert>
 
 #define TEST_FAIL(C,R) if (!C) { R = false; }
 
@@ -281,7 +281,7 @@ void ConnectionConfig::setLocalCursorShape(int cursorShape)
 {
   if (!isValidLocalCursorShape(cursorShape)) {
     cursorShape = DOT_CURSOR;
-    _ASSERT(FALSE);
+    assert(FALSE);
   }
 
   m_localCursor = cursorShape;

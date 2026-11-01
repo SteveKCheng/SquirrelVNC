@@ -29,7 +29,6 @@
 
 #include <algorithm>
 #include <climits>
-#include <crtdbg.h>
 #include <span>
 #include <string>
 #include <vector>

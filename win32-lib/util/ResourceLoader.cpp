@@ -23,7 +23,7 @@
 
 #include "ResourceLoader.h"
 
-#include <crtdbg.h>
+#include <cassert>
 #include <vector>
 
 ResourceLoader::ResourceLoader(HINSTANCE appInst)
@@ -45,7 +45,7 @@ HICON ResourceLoader::loadIcon(const TCHAR *iconName)
 
 bool ResourceLoader::loadString(WORD id, StringStorage *string)
 {
-  _ASSERT(string != 0);
+  assert(string != 0);
   string->setString(_T("(Undef)"));
 
   //

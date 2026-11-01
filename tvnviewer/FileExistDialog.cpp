@@ -24,7 +24,7 @@
 #include "FileExistDialog.h"
 #include "util/DateTime.h"
 #include "res/resource.h"
-#include <crtdbg.h>
+#include <cassert>
 #include <stdio.h>
 
 FileExistDialog::FileExistDialog()
@@ -59,8 +59,8 @@ void FileExistDialog::setFilesInfo(FileInfo *existingFileInfo, FileInfo *newFile
 
   m_pathToFileCaption.setString(pathToFileCaption);
 
-  _ASSERT(m_newFileInfo != NULL);
-  _ASSERT(m_existingFileInfo != NULL);
+  assert(m_newFileInfo != NULL);
+  assert(m_existingFileInfo != NULL);
 
   m_canAppend = (m_existingFileInfo->getSize() < m_newFileInfo->getSize());
 
@@ -81,8 +81,8 @@ BOOL FileExistDialog::onInitDialog()
 {
   initControls();
 
-  _ASSERT(m_newFileInfo != NULL);
-  _ASSERT(m_existingFileInfo != NULL);
+  assert(m_newFileInfo != NULL);
+  assert(m_existingFileInfo != NULL);
 
   updateGui(m_newFileInfo, &m_newSizeLabel, &m_newModTimeLabel);
   updateGui(m_existingFileInfo, &m_existingSizeLabel, &m_existingModTimeLabel);

@@ -23,6 +23,8 @@
 
 #include "Menu.h"
 
+#include <cassert>
+
 Menu::Menu()
 : m_menu(nullptr),
   m_bCreated(false)
@@ -36,21 +38,21 @@ HMENU Menu::getMenu()
 
 void Menu::setMenu(HMENU hmenu)
 {
-  _ASSERT(m_menu == 0);
+  assert(m_menu == 0);
 
   m_menu = hmenu;
 }
 
 void Menu::getSystemMenu(HWND hwnd)
 {
-  _ASSERT(m_menu == 0);
+  assert(m_menu == 0);
 
   m_menu = GetSystemMenu(hwnd, FALSE);
 }
 
 void Menu::create()
 {
-  _ASSERT(m_menu == 0);
+  assert(m_menu == 0);
 
   m_menu = CreateMenu();
   m_bCreated = true;
@@ -58,7 +60,7 @@ void Menu::create()
 
 bool Menu::loadMenu(LPCTSTR lpMenuName)
 {
-  _ASSERT(m_menu == 0);
+  assert(m_menu == 0);
 
   m_menu = LoadMenu(GetModuleHandle(nullptr), lpMenuName);
   m_bCreated = true;
@@ -67,7 +69,7 @@ bool Menu::loadMenu(LPCTSTR lpMenuName)
 
 void Menu::createPopupMenu()
 {
-  _ASSERT(m_menu == 0);
+  assert(m_menu == 0);
 
   m_menu = CreatePopupMenu();
   m_bCreated = true;
@@ -75,28 +77,28 @@ void Menu::createPopupMenu()
 
 int Menu::getMenuItemCount()
 {
-  _ASSERT(m_menu != 0);
+  assert(m_menu != 0);
 
   return GetMenuItemCount(m_menu);
 }
 
 bool Menu::appendMenu(UINT uFlags, UINT_PTR uIDNewItem, LPCTSTR lpNewItem)
 {
-  _ASSERT(m_menu != 0);
+  assert(m_menu != 0);
 
   return !!AppendMenu(m_menu, uFlags, uIDNewItem, lpNewItem);
 }
 
 bool Menu::insertMenuItem(UINT uItem, BOOL fByPosition, LPCMENUITEMINFO lpmii)
 {
-  _ASSERT(m_menu != 0);
+  assert(m_menu != 0);
 
   return !!InsertMenuItem(m_menu, uItem, fByPosition, lpmii);
 }
 
 bool Menu::enableMenuItem(WORD uID, UINT uEnable)
 {
-  _ASSERT(m_menu != 0);
+  assert(m_menu != 0);
 
   return !!EnableMenuItem(m_menu, uID, uEnable);
 }
@@ -110,7 +112,7 @@ Menu::~Menu()
 
 int Menu::findMenuItem(WORD uID)
 {
-  _ASSERT(m_menu != 0);
+  assert(m_menu != 0);
 
   for (int i = 0; i < getMenuItemCount(); i++) {
     if (GetMenuItemID(m_menu, i) == uID) {
@@ -145,7 +147,7 @@ bool Menu::insertMenuItem(UINT uItem, StringStorage strVal, WORD uID)
 
 bool Menu::checkedMenuItem(WORD uID, bool bEnable)
 {
-  _ASSERT(m_menu != 0);
+  assert(m_menu != 0);
 
   int pos = findMenuItem(uID);
   if (pos == -1) {
@@ -168,7 +170,7 @@ bool Menu::insertSeparator(UINT uItem)
 
 bool Menu::setDefaultItem(WORD uID)
 {
-  _ASSERT(m_menu != 0);
+  assert(m_menu != 0);
 
   return !!SetMenuDefaultItem(m_menu, uID, FALSE);
 }

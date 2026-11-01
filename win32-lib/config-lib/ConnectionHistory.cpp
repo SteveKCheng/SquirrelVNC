@@ -26,7 +26,6 @@
 #include "win-system/Registry.h"
 
 #include <algorithm>
-#include <crtdbg.h>
 
 ConnectionHistory::ConnectionHistory(RegistryKey *key, size_t limit)
 : m_key(key), m_limit(limit)

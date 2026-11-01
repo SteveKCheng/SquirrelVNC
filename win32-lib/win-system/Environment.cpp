@@ -24,7 +24,7 @@
 #include "Environment.h"
 
 #include <shlobj.h>
-#include <crtdbg.h>
+#include <cassert>
 #include <vector>
 
 Environment::Environment()
@@ -61,7 +61,7 @@ void Environment::getErrStr(const TCHAR *specification, StringStorage *out)
 
 bool Environment::getSpecialFolderPath(int specialFolderId, StringStorage *out)
 {
-  _ASSERT(out != NULL);
+  assert(out != NULL);
 
   int csidl = 0;
 
@@ -73,7 +73,7 @@ bool Environment::getSpecialFolderPath(int specialFolderId, StringStorage *out)
     csidl = CSIDL_COMMON_APPDATA;
     break;
   default:
-    _ASSERT(FALSE);
+    assert(FALSE);
     return false;
   } // switch
 
