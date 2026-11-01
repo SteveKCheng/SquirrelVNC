@@ -14,6 +14,204 @@ rewrite is done, most of this note becomes historical, like
 are now just sub-directories of `core-lib` or `win32-lib`.
 No Win32-specific code has been ported, yet.
 
+**Status (2026-10-31).** The asynchronous rewrite is done, and with it
+much of what this note describes is gone: the `thread` folder,
+`WindowsEvent`, `FbUpdateNotifier`, the blocking socket classes,
+`WsaStartup`, the stream gates and `LocalMutex`. `core-lib` no longer
+includes anything from `win-system`, `gui`, `config-lib` or
+`client-config-lib`. The current state, what can move from `win32-lib`
+to `core-lib`, and what Win32 use is left in `core-lib`, are in
+"Current state (2026-10-31)", next. The sections after it are the
+original investigation (2026-10-20), kept as a record, with corrections
+inline.
+
+## Current state (2026-10-31)
+
+### What `core-lib` depends on
+
+`core-lib` has 177 source files. Its includes from `win32-lib` reach only
+these folders:
+
+| `win32-lib` header | Included by (`core-lib` files) | Windows-specific? |
+|---|---|---|
+| `util/inttypes.h` | 20 | no |
+| `util/Exception.h` | 12 | TCHAR only |
+| `log-writer/LogWriter.h` | 11 | TCHAR, and SAL's `_Printf_format_string_` |
+| `util/TextEncoding.h` | 8 | header: TCHAR; `.cpp`: `MultiByteToWideChar` |
+| `util/StringStorage.h` | 6 | TCHAR, `_vstprintf_s`, `_ASSERT`; includes `winhdr.h` |
+| `util/CommonHeader.h` | 4 | pulls in `winhdr.h` and `StringTable` (below) |
+| `file-lib/File.h`, `WinFileChannel.h`, `EOFException.h` | 5, for file transfer | `File`, `WinFile`: Win32 file API |
+| `util/Inflater.h`, `ZLibException.h` | 3, 2 | TCHAR, `_ASSERT` |
+| `util/DateTime.h` | 2 (file transfer) | `FILETIME`, `SYSTEMTIME` |
+| `util/ListenerContainer.h` | 2 | no |
+| `network/socket/SocketException.h` | 2 | `.cpp`: `FormatMessage`, `WSAGetLastError` |
+| `network/HostResolver.h`, `TcpKeepAlive.h` | 1 each | `.cpp`: `GetAddrInfoExW`; `SOCKET`, `DWORD`, `BOOL` |
+| `util/DesCrypt.h` | 1 | no |
+| `util/Keymap.h` | 1 (`rfb/RfbKeySym.h`) | Windows keyboard (`VK_*`) |
+
+The direction of the old plan's step 3 ("the core libraries never
+include `win-system`, `gui` or `config-lib`") has thus been reached,
+except for keyboard translation, and the file-transfer code's use of
+`file-lib`. What is left is mostly TCHAR, plus a few thin Win32
+implementations behind portable interfaces.
+
+### Files in `win32-lib` that are not Windows-specific
+
+Grouped by what stops each from building on another platform. "Users"
+are the files that include it, outside its own folder.
+
+**Portable now: no Win32 and no TCHAR.**
+
+| File | Users | Notes |
+|---|---|---|
+| `util/inttypes.h` | most of `core-lib` | `UINT8` … `INT64` as typedefs of standard types; could become `<cstdint>` aliases. |
+| `util/ListenerContainer.h` | `ft-client-lib` | Header only, `<vector>`. |
+| `util/DesCrypt.{h,cpp}` | `viewer-core/VncAuthentication.cpp`, `util/VncPassCrypt.cpp` | The `.cpp` includes `util/CommonHeader.h` but uses nothing from it, only `memset` (needs `<cstring>` instead). |
+| `util/ZLibBase.{h,cpp}` | `util/Inflater.h` | zlib only. |
+| `util/VncPassCrypt.{h,cpp}` | `tvnviewer/ConnectionData.cpp` | Same unneeded `CommonHeader.h` include as `DesCrypt.cpp`. Only the GUI uses it (passwords in `.vnc` files and the registry), so it can move or stay. |
+| `util/Unicode.{h,cpp}` | `log-writer/FileAccount.cpp` | Portable, but its only purpose is the UTF-16 BOM of the log file; stays with `log-writer`. |
+
+So `inttypes.h`, `ListenerContainer.h`, `DesCrypt` and `ZLibBase` can move
+to `core-lib` as they are (after dropping the stray include).
+
+**Portable except for TCHAR and `StringStorage`.** These move once the
+TCHAR question is settled (see "TCHAR" below), or with `StringStorage`
+itself, since it is what they need from Windows:
+
+- `util/Exception.{h,cpp}`, `util/ZLibException.{h,cpp}`,
+  `file-lib/EOFException.{h,cpp}` (whose base, `io-lib/IOException`, is
+  in `core-lib` already).
+- `util/Inflater.{h,cpp}`: also two `_ASSERT`s.
+- `log-writer/LogWriter.{h,cpp}`, `log-writer/Logger.h`: also SAL's
+  `_Printf_format_string_` (an empty macro elsewhere would do), and
+  `util/CharDefs.h`, which only includes `<tchar.h>` under `WIN32`.
+- `util/StringStorage.{h,cpp}`: `_tcs*`, `_vstprintf_s`, `_ASSERT`; its
+  header includes `winhdr.h`, which brings `windows.h`, WinSock,
+  `commctrl.h` and `ShellAPI.h` into every file that uses a string.
+  Trimming that include to `<tchar.h>` (plus what `StringStorage` really
+  needs) is worth doing first, on Windows: it shows which files rely on
+  `windows.h` arriving that way.
+- `util/TextEncoding.h`: the interface is portable; the `.cpp` converts
+  UTF-8 with `MultiByteToWideChar`/`WideCharToMultiByte`, and
+  `static_assert`s that `TCHAR` is UTF-16. A second implementation is
+  needed only with a non-UTF-16 `TCHAR`.
+- `network/socket/SocketException.h`: the header is portable; the
+  `.cpp` formats messages with `FormatMessage`.
+- `util/CommandLineArgs.{h,cpp}`, `util/CommandLineFormatException`,
+  `util/CommandLineFormatHelp`, `util/StringParser`: portable apart from
+  TCHAR, but only the GUI uses them; no reason to move them.
+
+**Portable interfaces over thin Win32 implementations.** `core-lib`
+needs these, so a non-Windows build needs a second implementation (or
+an `#ifdef`), but the headers can move, or the code can be rewritten
+portably:
+
+- `network/TcpKeepAlive.{h,cpp}`: `setsockopt` with option names that
+  Windows and Linux share; only the types (`SOCKET`, `DWORD`, `BOOL`)
+  and `SOCKET_ERROR` differ. Taking Asio's
+  `native_handle_type` and `int` would make it portable as it is.
+- `network/HostResolver.{h,cpp}`: the interface is portable Asio; the
+  implementation is `GetAddrInfoExW` by choice (cancellable, UTF-16
+  names). Elsewhere, `asio::ip::tcp::resolver` behind the same
+  `asyncResolve()` would do for tests.
+- `network/socket/SocketException.cpp`: `std::system_category().message()`
+  would be portable, but it returns a narrow string, whose encoding
+  under MSVC would need checking; `FormatMessageW` is safer on Windows.
+- `util/DateTime.{h,cpp}`: `FILETIME`-based. `ft-client-lib` uses it
+  only to throttle progress reports to one per 300 ms
+  (`DownloadOperation`, `UploadOperation`), which
+  `std::chrono::steady_clock` does better; the GUI and `file-lib` use it
+  for file times.
+- `file-lib/*`: `File` and `WinFile` call `CreateFile`,
+  `FindFirstFile`, `MoveFile` and so on, for file transfer only.
+  `std::filesystem` and `<cstdio>` cover it, as before.
+
+**Windows by nature, staying in `win32-lib`:** `win-system`, `gui`,
+`config-lib` (registry; `IniFileSettingsManager` also reads with
+`CreateFile`), `client-config-lib`, `util/ResourceLoader`,
+`util/StringTable`, `util/Keymap` (which should go with `RfbKeySym`; see
+below), `util/CommonHeader.h`, `util/winhdr.h`, and the rest of
+`log-writer` (`FileAccount`, `FileLogger`, `LogDump`: thread and process
+ids, `SYSTEMTIME`, UTF-16 log files).
+
+**Dead:** `util/GetCPUtime.{h,cpp}` is compiled but included nowhere.
+(Its header ends with `#endif _GETCPUTIME_H_`, a stray token MSVC only
+warns about.)
+
+### Win32-specific code left in `core-lib`
+
+Besides TCHAR (below), from a scan of every file for Win32 headers,
+types and calls:
+
+1. **Keyboard translation: `rfb/RfbKeySym.{h,cpp}`.** Turns Windows
+   virtual keys into keysyms, with `ToUnicodeEx`, `VK_*`, `WCHAR` and
+   `std::wstring`, and includes `util/Keymap.h` from `win32-lib`. Only
+   `tvnviewer/DesktopWindow` and `harnesses/viewer-keysym-test` use it;
+   `viewer-core` does not. Move it to `tvnviewer` (with `Keymap`, and
+   `RfbKeySymListener.h`, which is portable but only meaningful there).
+   This is the largest piece, and the only one that is Windows by nature.
+2. **`region/Rect.h`: conversions to and from Win32 `RECT`**: a
+   constructor from `RECT`, `toWindowsRect()`, `fromWindowsRect()`. For
+   them it includes `util/CommonHeader.h`, so every user of `Rect` gets
+   `windows.h`. About a dozen call sites in `tvnviewer` and `win32-lib`;
+   free functions in `win32-lib` (for instance next to the GDI helpers)
+   would take their place.
+3. **`util/CommonHeader.h` as a catch-all include**, in `region/Rect.h`,
+   `rfb/RfbKeySym.cpp`, `viewer-core/CapabilitiesManager.h` and
+   `viewer-core/RemoteViewerCore.h`. It brings `winhdr.h` and
+   `StringTable` (Win32 string resources). Each of these needs only
+   `StringStorage`, or nothing.
+4. **`_ASSERT` from `<crtdbg.h>`**, instead of `assert`:
+   `ft-client-lib/DownloadOperation.cpp` (`_ASSERT(FALSE)`),
+   `ft-client-lib/UploadOperation.cpp` (two), `rfb/FrameBuffer.cpp`,
+   `rfb/StandardPixelFormatFactory.cpp`, `rfb/RfbKeySym.cpp` and
+   `viewer-core/Decoder.cpp`. `ft-client-lib/FileTransferReplyBuffer.cpp`
+   includes `<crtdbg.h>` without using it. `Decoder.cpp`'s is
+   `_ASSERT(TRUE)` under "if the encoding type is unknown, then generate
+   assertions", so it never fires: either make it `assert(false)` or
+   delete it, after checking that unknown encodings really cannot reach
+   it.
+5. **`rfb/HostPath.cpp`**: `<tchar.h>`, `_tcs*`, and the Windows macros
+   `IS_HIGH_SURROGATE`/`IS_LOW_SURROGATE` (simple range checks to write
+   out). Its rules for internationalised names also rely on
+   `GetAddrInfoW()` converting them to Punycode.
+6. **`viewer-core/RemoteViewerCoreImpl.h`**: the keepalive constants are
+   `DWORD`, to match `enableTcpKeepAlive()`; they would follow that
+   function's types.
+
+Not Win32, but MSVC-specific: the secure-CRT `_s` functions appear in
+`win32-lib` (`_vstprintf_s` in `StringStorage`) and in the tests
+(`sprintf_s`), but not in `core-lib`'s own code.
+
+Fine as they are: `TRUE`/`FALSE` in `region/` come from the X11 region
+code's own definitions, and in `JpegDecompressor.cpp` from libjpeg.
+
+### TCHAR today
+
+65 of `core-lib`'s 177 files use TCHAR or `StringStorage` (29 in
+`ft-client-lib`, 31 in `viewer-core`, 9 in `io-lib`, 5 in `ft-common`, 3
+in `rfb`), with 455 `_T(` sites. 64 format strings use `%s` and 6 use
+`%hs`; with `TCHAR = char` on Linux, `%s` keeps its meaning, but `%hs` is
+a Microsoft extension, not standard C, so those six need a macro or a
+rewrite. The recommendation below (UTF-8 `char` as TCHAR off Windows)
+still stands.
+
+### Suggested order now
+
+1. Small clean-ups on Windows, with no behaviour change: drop the stray
+   `CommonHeader.h` includes; move the `RECT` conversions out of `Rect`;
+   `_ASSERT` to `assert`; `DateTime` to `steady_clock` in file transfer;
+   delete `GetCPUtime`.
+2. Move `RfbKeySym` and `Keymap` to `tvnviewer`.
+3. Move the files that are already portable (`inttypes.h`,
+   `ListenerContainer.h`, `DesCrypt`, `ZLibBase`) to `core-lib`.
+4. Trim `StringStorage.h`'s include of `winhdr.h`, then decide on TCHAR,
+   after which the second group above can move.
+5. Make file transfer optional in `viewer-core`, or port `file-lib`:
+   still the open question from the original plan. Until then, a
+   non-Windows build of `core-lib` leaves out `ft-client-lib` and
+   `ft-common`.
+
 ## Introduction
 
 Investigation (2026-10-20) of how far the code can be built away from
@@ -64,10 +262,12 @@ replacements:
   library for all platforms, with no `#ifdef`.~~ *Done: the `thread`
   folder and `WindowsEvent` are deleted (2026-10-29); the code uses
   `std::thread`, `std::mutex` and `std::condition_variable`.*
-- **Sockets.** Plain BSD calls (`socket`, `connect`, `select`, `recv`,
+- ~~**Sockets.** Plain BSD calls (`socket`, `connect`, `select`, `recv`,
   `send`, `getaddrinfo`). The only differences are `closesocket`,
   `ioctlsocket(FIONREAD)`, `WSAGetLastError`, `SOCKET`, `WSAStartup` and
-  `FormatMessage`; a small `#ifdef` layer covers them.
+  `FormatMessage`; a small `#ifdef` layer covers them.~~ *Replaced by
+  Asio (`async-networking.md`); what is left is `TcpKeepAlive`,
+  `HostResolver` and `SocketException` (see "Current state").*
 - **`util`.**
   - `DateTime` is built on `FILETIME`/`SYSTEMTIME`; it could move to
     `std::chrono`.
@@ -85,7 +285,7 @@ replacements:
   `GetCurrentThreadId`. `LogWriter` itself needs neither.
 - **Misplaced code.** `rfb/RfbKeySym` and `util/Keymap` translate Windows
   keystrokes (`ToUnicodeEx`, `VK_*`). They belong in `win-system` or
-  `tvnviewer`; `viewer-core` does not use them.
+  `tvnviewer`; `viewer-core` does not use them. *(Still so, 2026-10-31.)*
 
 ### TCHAR
 
@@ -110,6 +310,10 @@ both platforms, converting at the Win32 boundary. That is much bigger
 and not needed for the goals here.
 
 ## A command-line RFB client over stdin/stdout
+
+*Done in another form: `harnesses/rfb-replay` (`testing.md`) runs the
+core from bytes in memory or over a loopback socket. The gates, the
+core's own threads and `FbUpdateNotifier` described below are gone.*
 
 Feasible, and the hook already exists. Besides host/port and an
 existing socket, `RemoteViewerCore` can start from a pair of gates:
@@ -149,6 +353,10 @@ Caveats:
 ### Fuzzing
 
 The current plan is in `testing.md`.
+
+*Done on Windows: `harnesses/rfb-fuzz` and `harnesses/ini-fuzz`, in the
+`ReleaseFuzz` configuration (`testing.md`). The paragraphs below are the
+original reasoning.*
 
 Test below `RemoteViewerCore`. Its threads and blocking reads make it a
 poor libFuzzer target.
@@ -286,7 +494,7 @@ but brings a different CRT and headers, and more behaviour differences.
 (step 3) would be thrown away by the asynchronous rewrite, which replaces
 both with Asio; see `async-networking.md`.
 
-1. **Fuzz on Windows first, at almost no cost.** MSVC supports
+1. *(Done.)* **Fuzz on Windows first, at almost no cost.** MSVC supports
    AddressSanitizer (`/fsanitize=address`) and libFuzzer
    (`/fsanitize=fuzzer`) natively, and neither needs a desktop. The
    decoder fuzz targets above could run on the sandbox with no porting
@@ -298,7 +506,7 @@ both with Asio; see `async-networking.md`.
    - ~~rewrite `thread` and `WindowsEvent` on the standard library;~~
      *(done 2026-10-29)*
    - move `RfbKeySym`/`Keymap` out of the core;
-   - add a small socket compatibility header;
+   - ~~add a small socket compatibility header;~~ *(Asio instead)*
    - make file transfer optional in `viewer-core`, or port `file-lib`;
    - add a TCHAR compatibility header for the Linux build.
 4. **Add CMake alongside MSBuild**, at first only for the portable
