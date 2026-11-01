@@ -25,6 +25,9 @@
     <Filter Include="network\socket">
       <UniqueIdentifier>{c7a3212d-35fb-5647-856b-f8a6d094056d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="region">
+      <UniqueIdentifier>{3f27ccd5-9b3f-4b0a-bc8d-3929aabfc477}</UniqueIdentifier>
+    </Filter>
     <Filter Include="rfb">
       <UniqueIdentifier>{ed2675cf-a537-41a1-be90-639e4b4d34d3}</UniqueIdentifier>
     </Filter>
@@ -259,6 +262,9 @@
     </ClInclude>
     <ClInclude Include="network\socket\SocketException.h">
       <Filter>network\socket</Filter>
+    </ClInclude>
+    <ClInclude Include="region\WindowsRect.h">
+      <Filter>region</Filter>
     </ClInclude>
     <ClInclude Include="rfb\RfbKeySym.h">
       <Filter>rfb</Filter>

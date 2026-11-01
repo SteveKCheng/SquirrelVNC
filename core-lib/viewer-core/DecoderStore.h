@@ -31,6 +31,7 @@
 #include "Decoder.h"
 
 #include "log-writer/LogWriter.h"
+#include "util/inttypes.h"
 
 class DecoderStore final
 {

@@ -168,18 +168,23 @@ types and calls:
    This is the largest piece, and the only one that is Windows by nature.
    *Moved to `win32-lib/rfb` instead, with `RfbKeySymListener.h`, next
    to `util/Keymap`: the keysym test harness uses it too.*
-2. **`region/Rect.h`: conversions to and from Win32 `RECT`**: a
+2. ~~**`region/Rect.h`: conversions to and from Win32 `RECT`**:~~ a
    constructor from `RECT`, `toWindowsRect()`, `fromWindowsRect()`. For
    them it includes `util/CommonHeader.h`, so every user of `Rect` gets
    `windows.h`. About a dozen call sites in `tvnviewer` and `win32-lib`;
    free functions in `win32-lib` (for instance next to the GDI helpers)
-   would take their place.
-3. **`util/CommonHeader.h` as a catch-all include**, in `region/Rect.h`,
+   would take their place. *Done (2026-11-01): `toWindowsRect(const
+   Rect &)` and `fromWindowsRect(const RECT &)` in
+   `win32-lib/region/WindowsRect.h`, and `Rect.h` includes only
+   `<vector>`. The files that had `windows.h` or `inttypes.h` only
+   through it now include what they use (`FrameBuffer.h`,
+   `DecoderStore.h`, `JpegDecompressor.h`, `tvnviewer/ScaleManager.h`).*
+3. **`util/CommonHeader.h` as a catch-all include**, in ~~`region/Rect.h`~~,
    `rfb/RfbKeySym.cpp`, `viewer-core/CapabilitiesManager.h` and
    `viewer-core/RemoteViewerCore.h`. It brings `winhdr.h` and
    `StringTable` (Win32 string resources). Each of these needs only
    `StringStorage`, or nothing. *(`RfbKeySym.cpp` is no longer in
-   `core-lib`.)*
+   `core-lib`, and `Rect.h` no longer includes it.)*
 4. ~~**`_ASSERT` from `<crtdbg.h>`**, instead of `assert`:~~ *Done:
    each is `assert`, but `Decoder.cpp`'s, which is deleted. Unknown
    encodings do reach it, since the encoding comes from the server, and
@@ -234,9 +239,9 @@ so the extra storage of UTF-16 does not matter.
 ### Suggested order now
 
 1. Small clean-ups on Windows, with no behaviour change: drop the stray
-   `CommonHeader.h` includes; move the `RECT` conversions out of `Rect`;
+   `CommonHeader.h` includes; ~~move the `RECT` conversions out of `Rect`;~~
    ~~`_ASSERT` to `assert`;~~ `DateTime` to `steady_clock` in file transfer;
-   ~~delete `GetCPUtime`~~. *(`_ASSERT` and `GetCPUtime` done.)*
+   ~~delete `GetCPUtime`~~. *(`_ASSERT`, `GetCPUtime` and `RECT` done.)*
 2. ~~Move `RfbKeySym` and `Keymap` to `tvnviewer`.~~ *Done: `RfbKeySym`
    moved to `win32-lib`, where `Keymap` already is.*
 3. ~~Move the files that are already portable (`inttypes.h`,

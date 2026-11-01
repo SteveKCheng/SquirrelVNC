@@ -178,6 +178,7 @@
     <ClInclude Include="network\HostResolver.h" />
     <ClInclude Include="network\TcpKeepAlive.h" />
     <ClInclude Include="network\socket\SocketException.h" />
+    <ClInclude Include="region\WindowsRect.h" />
     <ClInclude Include="rfb\RfbKeySym.h" />
     <ClInclude Include="rfb\RfbKeySymListener.h" />
     <ClInclude Include="util\CharDefs.h" />

@@ -24,8 +24,6 @@
 #ifndef __RECT_H__
 #define __RECT_H__
 
-#include "util/CommonHeader.h"
-
 #include <vector>
 
 class Rect
@@ -35,7 +33,6 @@ public:
   Rect(const Rect &rect) { setRect(rect); }
   Rect(int lt, int tp, int rt, int bm) { setRect(lt, tp, rt, bm); }
   Rect(int width, int height) { setRect(0, 0, width, height); }
-  explicit Rect(const RECT &rect) {fromWindowsRect(rect);}
 
   ~Rect(void) {}
   
@@ -92,24 +89,6 @@ public:
     } else {
       return true;
     }
-  }
-
-  // Convert to windows RECT
-  inline RECT toWindowsRect() const {
-                                RECT winRect;
-                                winRect.left    = left;
-                                winRect.top     = top;
-                                winRect.right   = right;
-                                winRect.bottom  = bottom;
-                                return winRect; } const
-
-  // Load from windows RECT
-  inline void fromWindowsRect(const RECT &winRect)
-  {
-    left    = winRect.left;
-    top     = winRect.top;
-    right   = winRect.right;
-    bottom  = winRect.bottom;
   }
 
   inline void move(int offsetX, int offsetY)

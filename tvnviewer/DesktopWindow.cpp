@@ -24,6 +24,7 @@
 #include "DesktopWindow.h"
 
 #include "util/Exception.h"
+#include "region/WindowsRect.h"
 
 #include <algorithm>
 #include <cstring>
@@ -83,7 +84,7 @@ bool DesktopWindow::onCreate(LPCREATESTRUCT /* pcs */)
 
 void DesktopWindow::onPaint(DeviceContext *dc, PAINTSTRUCT *paintStruct)
 {
-  Rect paintRect(paintStruct->rcPaint);
+  Rect paintRect = fromWindowsRect(paintStruct->rcPaint);
 
   if (paintRect.area() != 0) {
     try {
@@ -360,10 +361,10 @@ void DesktopWindow::doDraw(DeviceContext *dc, HDC hdc)
   int iWidth = m_clientArea.getWidth() - dst.getWidth();
   int iHeight = m_clientArea.getHeight() - dst.getHeight();
 
-  RECT rcSrc = src.toWindowsRect();
-  RECT rcDst = dst.toWindowsRect();
+  RECT rcSrc = toWindowsRect(src);
+  RECT rcDst = toWindowsRect(dst);
   if (iWidth || iHeight) {
-    RECT rcClient = m_clientArea.toWindowsRect();
+    RECT rcClient = toWindowsRect(m_clientArea);
     drawBackground(dc, rcClient, rcDst);
   }
 
@@ -471,15 +472,15 @@ void DesktopWindow::calcClientArea() {
     RECT rc;
 
     getClientRect(&rc);
-    m_clientArea.fromWindowsRect(rc);
+    m_clientArea = fromWindowsRect(rc);
     m_scManager.setWindow(&m_clientArea);
   }
 }
 
 void DesktopWindow::drawImage(DeviceContext *dc, HDC hdc, const RECT &src, const RECT &dst)
 {
-  Rect srcRect(src);
-  Rect dstRect(dst);
+  Rect srcRect = fromWindowsRect(src);
+  Rect dstRect = fromWindowsRect(dst);
   if (m_viewerCore == nullptr || srcRect.area() == 0 || dstRect.area() == 0) {
     return;
   }
@@ -562,7 +563,7 @@ void DesktopWindow::repaint(const Rect &repaintRect)
     ++wnd.bottom;
   }
   wnd = wnd.intersection(rect);
-  RECT rcWnd = wnd.toWindowsRect();
+  RECT rcWnd = toWindowsRect(wnd);
   redraw(&rcWnd);
 }
 

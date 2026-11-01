@@ -25,6 +25,7 @@
 #define __SCALE_MANAGER_H__
 
 #include "region/Rect.h"
+#include "util/winhdr.h"
 
 class ScaleManager final 
 {

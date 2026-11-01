@@ -26,6 +26,7 @@
 
 #include "region/Dimension.h"
 #include "rfb/PixelFormat.h"
+#include "util/inttypes.h"
 
 #include <memory>
 
