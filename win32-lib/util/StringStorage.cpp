@@ -246,11 +246,11 @@ size_t StringStorage::findOneOf(const TCHAR *string) const
   return m_string.find_first_of(string);
 }
 
-void StringStorage::toLowerCase()
+void StringStorage::toAsciiLowerCase()
 {
   for (TCHAR &c : m_string) {
-    if (_istalpha(c) != 0) {
-      c = _totlower(c);
+    if (c >= _T('A') && c <= _T('Z')) {
+      c = (TCHAR)(c - _T('A') + _T('a'));
     }
   }
 }

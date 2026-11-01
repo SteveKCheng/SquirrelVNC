@@ -230,11 +230,13 @@ public:
   void truncate(size_t count);
 
   //
-  // Converts string notated by this container to lower case, as the C
-  // runtime's current locale converts each character (_totlower()).
+  // Converts the ASCII letters 'A' to 'Z' to lower case, and leaves every
+  // other character as it is. For programmatic names, such as command-line
+  // options, which must compare the same whatever the locale (in a Turkish
+  // one, for instance, 'I' does not lower to 'i'). Text for the user needs
+  // the system's locale-aware functions instead.
   //
-
-  void toLowerCase();
+  void toAsciiLowerCase();
 
   /**
    * Sets this string to the result of formatting with printf-style

@@ -69,6 +69,7 @@ int wmain()
     runFileTests(dir);
     runFileInfoListTests();
     runScopeExitTests();
+    runStringStorageTests();
     runExceptionTests();
     runTaskTests();
     runSocketTests();

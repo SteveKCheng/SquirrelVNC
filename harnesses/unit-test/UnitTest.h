@@ -47,6 +47,7 @@ void runDecoderStoreTests();
 void runFileTests(const std::wstring &dir);
 void runFileInfoListTests();
 void runScopeExitTests();
+void runStringStorageTests();
 void runExceptionTests();
 void runTaskTests();
 void runSocketTests();

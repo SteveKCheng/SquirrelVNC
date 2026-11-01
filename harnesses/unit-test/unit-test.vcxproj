@@ -105,6 +105,7 @@
     <ClCompile Include="TcpAcceptorTests.cpp" />
     <ClCompile Include="ScopeExitTests.cpp" />
     <ClCompile Include="SocketTests.cpp" />
+    <ClCompile Include="StringStorageTests.cpp" />
     <ClCompile Include="TaskTests.cpp" />
     <ClCompile Include="unit-test.cpp" />
   </ItemGroup>

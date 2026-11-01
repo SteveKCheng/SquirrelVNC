@@ -55,7 +55,7 @@ void WinProcessCommandLine::optionParser(StringStorage *out)
     strTemp.remove(ipos, strTemp.getLength()-ipos);
     strPair.first = strTemp;
   }
-  strPair.first.toLowerCase();
+  strPair.first.toAsciiLowerCase();
   m_strParams.push_back(strPair);
 }
 

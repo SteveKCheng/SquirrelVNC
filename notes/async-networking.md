@@ -357,8 +357,10 @@ can go in either order.
   protocol boundary, the core never iterates over characters: it only
   searches for and inserts ASCII delimiters (path separators, CR/LF,
   `:`), and in UTF-8 an ASCII byte never occurs inside a multi-byte
-  sequence. `toLowerCase()` touches only ASCII under `_istalpha` and is
-  used only by Windows command-line parsing. The one count that is not
+  sequence. ~~`toLowerCase()` touches only ASCII under `_istalpha` and is
+  used only by Windows command-line parsing.~~ *`toAsciiLowerCase()`
+  (2026-11-01), which replaced it, touches only `A` to `Z`, whatever the
+  locale; it is used only by Windows command-line parsing.* The one count that is not
   a delimiter is the VNC password, cut to 8 units: with UTF-8 that is 8
   bytes, which is what Linux servers (libvncserver, neatvnc) use.
   Character work proper (`RfbKeySym`, the clipboard, edit controls)
