@@ -60,7 +60,9 @@ these folders:
 
 *Since moved into `core-lib`: `inttypes.h`, `Exception`, `Inflater`,
 `ZLibException`, `ListenerContainer.h` and `DesCrypt`. `Keymap.h` is no
-longer included from `core-lib`, since `RfbKeySym` moved to `win32-lib`.*
+longer included from `core-lib`, since `RfbKeySym` moved to `win32-lib`.
+`DateTime.h` is no longer included from `core-lib` either, since file
+transfer stopped using it (it throttles with `std::chrono::steady_clock`).*
 
 The direction of the old plan's step 3 ("the core libraries never
 include `win-system`, `gui` or `config-lib`") has thus been reached,
@@ -133,11 +135,12 @@ portably:
 - `network/socket/SocketException.cpp`: `std::system_category().message()`
   would be portable, but it returns a narrow string, whose encoding
   under MSVC would need checking; `FormatMessageW` is safer on Windows.
-- `util/DateTime.{h,cpp}`: `FILETIME`-based. `ft-client-lib` uses it
-  only to throttle progress reports to one per 300 ms
-  (`DownloadOperation`, `UploadOperation`), which
-  `std::chrono::steady_clock` does better; the GUI and `file-lib` use it
-  for file times.
+- `util/DateTime.{h,cpp}`: `FILETIME`-based. The GUI and `file-lib` use
+  it for file times. ~~`ft-client-lib` uses it only to throttle progress
+  reports to one per 300 ms (`DownloadOperation`, `UploadOperation`),
+  which `std::chrono::steady_clock` does better.~~ *(Done 2026-11-01:
+  file transfer throttles with `steady_clock` directly; `DateTime` stays
+  in `win32-lib` for the GUI and file times.)*
 - `file-lib/*`: `File` and `WinFile` call `CreateFile`,
   `FindFirstFile`, `MoveFile` and so on, for file transfer only.
   `std::filesystem` and `<cstdio>` cover it, as before.
@@ -240,8 +243,9 @@ so the extra storage of UTF-16 does not matter.
 
 1. Small clean-ups on Windows, with no behaviour change: drop the stray
    `CommonHeader.h` includes; ~~move the `RECT` conversions out of `Rect`;~~
-   ~~`_ASSERT` to `assert`;~~ `DateTime` to `steady_clock` in file transfer;
-   ~~delete `GetCPUtime`~~. *(`_ASSERT`, `GetCPUtime` and `RECT` done.)*
+   ~~`_ASSERT` to `assert`;~~ ~~`DateTime` to `steady_clock` in file transfer;~~
+   ~~delete `GetCPUtime`~~. *(`_ASSERT`, `GetCPUtime`, `RECT` and
+   `DateTime` done.)*
 2. ~~Move `RfbKeySym` and `Keymap` to `tvnviewer`.~~ *Done: `RfbKeySym`
    moved to `win32-lib`, where `Keymap` already is.*
 3. ~~Move the files that are already portable (`inttypes.h`,
@@ -312,8 +316,10 @@ replacements:
   Asio (`async-networking.md`); what is left is `TcpKeepAlive`,
   `HostResolver` and `SocketException` (see "Current state").*
 - **`util`.**
-  - `DateTime` is built on `FILETIME`/`SYSTEMTIME`; it could move to
-    `std::chrono`.
+  - `DateTime` is built on `FILETIME`/`SYSTEMTIME`. *(File transfer no
+    longer uses it — it throttles with `std::chrono::steady_clock` as of
+    2026-11-01 — but the GUI and `file-lib` still need it for file
+    times, so it stays in `win32-lib`.)*
   - `TextEncoding` (which replaced `AnsiStringStorage`,
     `UnicodeStringStorage` and `Utf8StringStorage`; see
     `string-encoding.md`) converts UTF-8 with
