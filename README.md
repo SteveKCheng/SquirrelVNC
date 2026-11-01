@@ -34,7 +34,6 @@ aiming for major improvements in aesthetics, performance, features and security.
 
   - Continuous updates + fence
   - VeNCrypt (TLS encryption)
-  - IPv6
   - Decoding H.264
   - Reading and writing configuration from flat files, not Windows Registry
   - Saving passwords in Windows Credential Manager

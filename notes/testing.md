@@ -250,10 +250,11 @@ tests/
   platform, so it finds the executables under `bin\PLATFORM\CONFIG`.
   No logic belongs in it, so it can be replaced without touching the
   tests.
-- **Each case runs four ways** (since Phases 3 and 4 of
+- **Each case runs ~~four~~ five ways** (since Phases 3 and 4 of
   `async-networking.md`): with its input whole, one byte at a time
   (`--split 1`), in pieces of random sizes up to 64 bytes (`--split 64
-  --seed 1`), and over TCP (`--tcp`). The protocol code suspends whenever
+  --seed 1`), and over TCP (`--tcp`), *and over TCP on `::1` (`--tcp6`,
+  since IPv6 support, 2026-10-31; `networking.md`)*. The protocol code suspends whenever
   its reader runs short, so the split runs exercise every point where it
   can stop and resume. With `--tcp`, a `LoopbackServer` on 127.0.0.1
   serves the input and collects what the client sends, and the core

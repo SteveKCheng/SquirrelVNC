@@ -11,6 +11,10 @@ Notes for later work on the connection code. Host names are now looked
 up with `GetAddrInfo()`, asking for IPv4 addresses only; everything
 below is still to do.
 
+*Forward connections support IPv6 since 2026-10-31 (see "Status of
+IPv6", at the end). Listening mode stays IPv4-only, by decision: no
+open-source VNC server is known to make reverse connections.*
+
 ## IPv6 is not supported anywhere
 
 Four layers are IPv4-only, so changing the lookup alone would not help:
@@ -94,3 +98,50 @@ Windows has what is needed to fix this, unlike the portable sockets API:
   signal, or closing the socket from the stopping thread.
 
 Best done with the IPv6 work, which reworks the same connect path.
+
+## Status of IPv6 (2026-10-31)
+
+Done, for forward connections, in the order the plan suggested:
+
+- **Lookup**: `asyncResolve()` asks `GetAddrInfoExW()` for `AF_UNSPEC`,
+  and converts `AF_INET6` results with their scope (zone).
+  `asio::async_connect()` tries the addresses in the order Windows sorts
+  them (RFC 6724), so a host with A and AAAA records falls back to IPv4.
+  `AI_ADDRCONFIG` is not passed: on Windows it does not count loopback
+  addresses as configured, so it would make `::1` fail on a computer
+  with no other IPv6 address. (Windows' DNS client is said to skip AAAA
+  queries by itself on such a computer; not verified.)
+- **Sockets**: nothing to do; Asio's socket opens with the family of
+  each endpoint it tries.
+- **Parsing** (`HostPath`): bracketed literals as planned, validated with
+  Asio's `make_address_v6()`. The zone must be a number (Windows'
+  interface index); names like `%eth0` are refused, as Windows does not
+  use them. `getVncHost()` returns the address without brackets, which
+  is what `GetAddrInfoExW()` takes. An SSH host cannot be IPv6 (the SSH
+  tunnelling inherited from TightVNC is not implemented anyway).
+  `HostPath::joinHostAndPort()` brackets an IPv6 host when a host and
+  port come separately: from a `.vnc` file, which stores the bare
+  address, and from `-host` with `-port`.
+- **Display**: the connection log brackets an IPv6 host and names the
+  address connected to. The window title shows the path as typed,
+  brackets included.
+- **Listening**: not done, by decision (IPv4 only, `0.0.0.0`).
+
+Tests: `HostPathTests` (bracketed forms, malformed ones, bare literals
+keeping TightVNC's meaning, `joinHostAndPort()`), `HostResolverTests`
+(`::1`, and `fe80::1%5` keeping its scope), and every replay case run
+over `::1` (`rfb-replay --tcp6`). Not tested automatically: a real
+server over IPv6, a name with AAAA records, or the fallback to IPv4.
+
+Left for later:
+
+- **Slow fallback.** The addresses are tried one after another, each
+  until it fails. Where IPv6 is broken silently (packets dropped rather
+  than refused), the fallback to IPv4 waits for the connect timeout,
+  about 21 seconds on Windows. Happy Eyeballs (RFC 8305), staggered
+  attempts in parallel, would fix it; worth doing if it is met in
+  practice.
+- **A bare IPv6 address is silently misread**: `fd00::5` connects to the
+  host `fd00`, port 5, as TightVNC's syntax says. A warning, or
+  rejecting a "host" that is all hexadecimal followed by `::`, might
+  save confusion, but would break the rare host name of that form.

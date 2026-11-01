@@ -1137,8 +1137,6 @@ the other. The largest diff is Phase 2, but it is mechanical.
 
 ### Afterwards, as features
 
-- IPv6: resolve with `AF_UNSPEC`, and the bracketed host syntax in
-  `networking.md`.
 - Timeouts, and pointer coalescing in the post-to-loop path.
 - TLS, then Continuous Updates with Fence. With them, a refresh (and
   the refresh after an encoding change) can take effect on an idle
