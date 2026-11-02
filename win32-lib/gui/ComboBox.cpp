@@ -23,7 +23,7 @@
 
 #include "ComboBox.h"
 
-#include <Windowsx.h>
+#include <windowsx.h>
 #include <vector>
 
 ComboBox::ComboBox()

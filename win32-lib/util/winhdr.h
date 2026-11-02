@@ -42,6 +42,6 @@
 #include <windows.h>
 #include <tchar.h>
 #include <commctrl.h>
-#include <ShellAPI.h>
+#include <shellapi.h>
 
 #endif // __WINHDR_H__

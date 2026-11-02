@@ -22,5 +22,5 @@
 //
 
 #ifdef _WIN32
-#include <Tchar.h>
+#include <tchar.h>
 #endif // _WIN32
