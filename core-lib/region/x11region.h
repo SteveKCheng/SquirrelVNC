@@ -99,14 +99,14 @@ typedef struct _xRectangle {
  */
 
 typedef struct _RegData {
-    long	size;
-    long 	numRects;
-/*  BoxRec	rects[size];   in memory but not explicitly declared */
+    long        size;
+    long        numRects;
+/*  BoxRec      rects[size];   in memory but not explicitly declared */
 } RegDataRec, *RegDataPtr;
 
 typedef struct _Region {
-    BoxRec 	extents;
-    RegDataPtr	data;
+    BoxRec      extents;
+    RegDataPtr  data;
 } RegionRec, *RegionPtr;
 
 extern BoxRec miEmptyBox;
@@ -115,11 +115,11 @@ extern RegDataRec miBrokenData;
 
 #define REGION_NIL(reg) ((reg)->data && !(reg)->data->numRects)
 /* not a region */
-#define REGION_NAR(reg)	((reg)->data == &miBrokenData)
+#define REGION_NAR(reg) ((reg)->data == &miBrokenData)
 #define REGION_NUM_RECTS(reg) ((reg)->data ? (reg)->data->numRects : 1)
 #define REGION_SIZE(reg) ((reg)->data ? (reg)->data->size : 0)
 #define REGION_RECTS(reg) ((reg)->data ? (BoxPtr)((reg)->data + 1) \
-			               : &(reg)->extents)
+                                       : &(reg)->extents)
 #define REGION_BOXPTR(reg) ((BoxPtr)((reg)->data + 1))
 #define REGION_BOX(reg,i) (&REGION_BOXPTR(reg)[i])
 #define REGION_TOP(reg) REGION_BOX(reg, (reg)->data->numRects)
@@ -201,28 +201,28 @@ extern RegDataRec miBrokenData;
 { \
     if (_rect) \
     { \
-	(_pReg)->extents = *(_rect); \
-	(_pReg)->data = (RegDataPtr)NULL; \
+        (_pReg)->extents = *(_rect); \
+        (_pReg)->data = (RegDataPtr)NULL; \
     } \
     else \
     { \
-	(_pReg)->extents = miEmptyBox; \
-	if (((_size) > 1) && ((_pReg)->data = \
-			     (RegDataPtr)malloc(REGION_SZOF(_size)))) \
-	{ \
-	    (_pReg)->data->size = (_size); \
-	    (_pReg)->data->numRects = 0; \
-	} \
-	else \
-	    (_pReg)->data = &miEmptyData; \
+        (_pReg)->extents = miEmptyBox; \
+        if (((_size) > 1) && ((_pReg)->data = \
+                             (RegDataPtr)malloc(REGION_SZOF(_size)))) \
+        { \
+            (_pReg)->data->size = (_size); \
+            (_pReg)->data->numRects = 0; \
+        } \
+        else \
+            (_pReg)->data = &miEmptyData; \
     } \
 }
 
 #define REGION_UNINIT(_pReg) \
 { \
     if ((_pReg)->data && (_pReg)->data->size) { \
-	free((_pReg)->data); \
-	(_pReg)->data = NULL; \
+        free((_pReg)->data); \
+        (_pReg)->data = NULL; \
     } \
 }
 
