@@ -63,8 +63,8 @@ typedef struct _Box {
 } BoxRec, *BoxPtr;
 
 typedef struct _RegData {
-    long        size;
-    long        numRects;
+    int         size;
+    int         numRects;
 /*  BoxRec      rects[size];   in memory but not explicitly declared */
 } RegDataRec, *RegDataPtr;
 

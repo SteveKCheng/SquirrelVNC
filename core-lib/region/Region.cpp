@@ -156,9 +156,9 @@ void Region::getRectVector(std::vector<Rect> *dst) const
   dst->clear();
 
   const BoxRec *boxPtr = REGION_RECTS(&m_reg);
-  long numRects = REGION_NUM_RECTS(&m_reg);
+  int numRects = REGION_NUM_RECTS(&m_reg);
   dst->reserve((size_t)numRects);
-  for (long i = 0; i < numRects; i++) {
+  for (int i = 0; i < numRects; i++) {
     Rect rect(boxPtr[i].x1, boxPtr[i].y1, boxPtr[i].x2, boxPtr[i].y2);
     dst->push_back(rect);
   }
@@ -170,8 +170,8 @@ void Region::getRectList(std::list<Rect> *dst) const
   dst->clear();
 
   const BoxRec *boxPtr = REGION_RECTS(&m_reg);
-  long numRects = REGION_NUM_RECTS(&m_reg);
-  for (long i = 0; i < numRects; i++) {
+  int numRects = REGION_NUM_RECTS(&m_reg);
+  for (int i = 0; i < numRects; i++) {
     Rect rect(boxPtr[i].x1, boxPtr[i].y1, boxPtr[i].x2, boxPtr[i].y2);
     dst->push_back(rect);
   }
