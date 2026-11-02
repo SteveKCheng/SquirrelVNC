@@ -21,6 +21,10 @@
 //-------------------------------------------------------------------------
 //
 
+// Region embeds the X11 region types, and this file also calls the region
+// functions and macros, so it asks x11region.h (reached through Region.h)
+// for the gated API.
+#define X11REGION_API
 #include "Region.h"
 
 #include <algorithm>

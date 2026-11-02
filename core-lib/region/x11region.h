@@ -48,6 +48,41 @@ SOFTWARE.
 #ifndef REGIONSTRUCT_H
 #define REGIONSTRUCT_H
 
+/*
+ * The region data types, kept always visible.
+ *
+ * class Region (Region.h) embeds a RegionRec as its sole data member, so
+ * every translation unit that uses Region needs these definitions in full.
+ * RegionRec reaches BoxRec and RegDataPtr, so the five form a closed group:
+ * RegionRec, RegionPtr, BoxRec, RegDataRec, RegDataPtr (with the BoxPtr
+ * alias that comes with BoxRec).
+ */
+
+typedef struct _Box {
+    short x1, y1, x2, y2;
+} BoxRec, *BoxPtr;
+
+typedef struct _RegData {
+    long        size;
+    long        numRects;
+/*  BoxRec      rects[size];   in memory but not explicitly declared */
+} RegDataRec, *RegDataPtr;
+
+typedef struct _Region {
+    BoxRec      extents;
+    RegDataPtr  data;
+} RegionRec, *RegionPtr;
+
+/*
+ * The rest of the X region interface, visible only to the two files that
+ * implement and drive the region code (x11region.c and Region.cpp); they
+ * define X11REGION_API before including this header. Gating it keeps its
+ * many macros (FALSE, TRUE, MINSHORT, MAXSHORT, the REGION_* family, ...)
+ * out of every other file that merely uses Region -- some of which also
+ * pull in <windows.h>, whose own MINSHORT/MAXSHORT would otherwise clash.
+ */
+#ifdef X11REGION_API
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "util/inttypes.h"
@@ -60,8 +95,8 @@ SOFTWARE.
 #define NullBox ((BoxPtr)0)
 #define NullRegion ((RegionPtr)0)
 
-#ifndef MAXSHORT  
-#define MAXSHORT 32767   
+#ifndef MAXSHORT
+#define MAXSHORT 32767
 #endif
 #ifndef MINSHORT
 #define MINSHORT -MAXSHORT
@@ -79,10 +114,6 @@ SOFTWARE.
 #endif
 typedef int Bool;
 
-typedef struct _Box {
-    short x1, y1, x2, y2;
-} BoxRec, *BoxPtr;
-
 typedef struct _xPoint {
     INT16 x, y;
 } xPoint, *xPointPtr;
@@ -93,21 +124,6 @@ typedef struct _xRectangle {
     INT16 x, y;
     UINT16 width, height;
 } xRectangle, *xRectanglePtr;
-
-/* 
- *   clip region
- */
-
-typedef struct _RegData {
-    long        size;
-    long        numRects;
-/*  BoxRec      rects[size];   in memory but not explicitly declared */
-} RegDataRec, *RegDataPtr;
-
-typedef struct _Region {
-    BoxRec      extents;
-    RegDataPtr  data;
-} RegionRec, *RegionPtr;
 
 extern BoxRec miEmptyBox;
 extern RegDataRec miEmptyData;
@@ -280,5 +296,7 @@ extern Bool miValidRegion(RegionPtr reg);
 #ifdef DEBUG
 extern int miPrintRegion(RegionPtr rgn);
 #endif
+
+#endif /* X11REGION_API */
 
 #endif /* REGIONSTRUCT_H */

@@ -72,6 +72,9 @@ SOFTWARE.
 #include <string.h>
 #include <sys/types.h>
 
+// This file implements and uses the full region interface, not just the
+// RegionRec types, so it asks x11region.h for the gated API.
+#define X11REGION_API
 #include "x11region.h"
 
 /*
