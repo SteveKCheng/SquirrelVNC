@@ -920,7 +920,7 @@ void RemoteViewerCoreImpl::configureSocket()
     throw SocketException(error);
   }
   try {
-    enableTcpKeepAlive(m_socket->native_handle(),
+    enableTcpKeepAlive(*m_socket,
                        KEEPALIVE_IDLE_SECONDS,
                        KEEPALIVE_INTERVAL_SECONDS,
                        KEEPALIVE_PROBE_COUNT);

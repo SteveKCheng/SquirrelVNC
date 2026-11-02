@@ -23,20 +23,28 @@
 #include "TcpKeepAlive.h"
 
 #include "socket/SocketException.h"
+#include "util/winhdr.h"
 
+#include <cassert>
 #include <system_error>
 
-void enableTcpKeepAlive(SOCKET socket, DWORD idleSeconds,
-                        DWORD intervalSeconds, DWORD probeCount)
+void enableTcpKeepAlive(asio::ip::tcp::socket &socket, int idleSeconds,
+                        int intervalSeconds, int probeCount)
 {
-  auto set = [socket](int level, int name, const void *value, int length) {
-    if (setsockopt(socket, level, name, static_cast<const char *>(value), length) == SOCKET_ERROR) {
+  assert(idleSeconds >= 0 && intervalSeconds >= 0 && probeCount >= 0);
+
+  const SOCKET nativeSocket = socket.native_handle();
+  auto set = [nativeSocket](int level, int name, const void *value, int length) {
+    if (setsockopt(nativeSocket, level, name, static_cast<const char *>(value), length) == SOCKET_ERROR) {
       throw SocketException(std::error_code(WSAGetLastError(), std::system_category()));
     }
   };
-  BOOL enabled = TRUE;
+  const BOOL enabled = TRUE;
+  const DWORD idle = static_cast<DWORD>(idleSeconds);
+  const DWORD interval = static_cast<DWORD>(intervalSeconds);
+  const DWORD count = static_cast<DWORD>(probeCount);
   set(SOL_SOCKET, SO_KEEPALIVE, &enabled, sizeof(enabled));
-  set(IPPROTO_TCP, TCP_KEEPIDLE, &idleSeconds, sizeof(idleSeconds));
-  set(IPPROTO_TCP, TCP_KEEPINTVL, &intervalSeconds, sizeof(intervalSeconds));
-  set(IPPROTO_TCP, TCP_KEEPCNT, &probeCount, sizeof(probeCount));
+  set(IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(idle));
+  set(IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(interval));
+  set(IPPROTO_TCP, TCP_KEEPCNT, &count, sizeof(count));
 }

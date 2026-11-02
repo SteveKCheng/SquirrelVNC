@@ -550,9 +550,9 @@ private:
 
   // TCP keepalive (configureSocket()): a dead peer is noticed after about
   // 30 + 10 * 5 = 80 seconds without traffic.
-  static constexpr DWORD KEEPALIVE_IDLE_SECONDS = 30;
-  static constexpr DWORD KEEPALIVE_INTERVAL_SECONDS = 5;
-  static constexpr DWORD KEEPALIVE_PROBE_COUNT = 10;
+  static constexpr int KEEPALIVE_IDLE_SECONDS = 30;
+  static constexpr int KEEPALIVE_INTERVAL_SECONDS = 5;
+  static constexpr int KEEPALIVE_PROBE_COUNT = 10;
 
   // What start() was given: a host and port to connect to; a connected
   // socket (empty if none, and once connect() has moved it to m_socket);

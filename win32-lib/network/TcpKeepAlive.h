@@ -23,7 +23,7 @@
 #ifndef _TCP_KEEP_ALIVE_H_
 #define _TCP_KEEP_ALIVE_H_
 
-#include "util/CommonHeader.h"
+#include <asio/ip/tcp.hpp>
 
 //
 // Turns on TCP keepalive (SO_KEEPALIVE) on socket, so that a connection
@@ -31,7 +31,9 @@
 // ends with an error instead of waiting for data forever: after
 // idleSeconds without traffic, a probe is sent every intervalSeconds, and
 // the connection is reset once probeCount probes in a row are unanswered.
-// For an Asio socket, pass its native_handle().
+//
+// A portable wrapper: it takes the socket and plain ints, keeping the
+// native handle and the platform option types out of the interface.
 //
 // Pre-conditions: socket is an open TCP socket; each argument is at
 // least 1.
@@ -39,7 +41,7 @@
 // TCP_KEEPINTVL need Windows 10 version 1709, TCP_KEEPCNT version 1703.
 // The options set before the failing one stay set.
 //
-void enableTcpKeepAlive(SOCKET socket, DWORD idleSeconds,
-                        DWORD intervalSeconds, DWORD probeCount);
+void enableTcpKeepAlive(asio::ip::tcp::socket &socket, int idleSeconds,
+                        int intervalSeconds, int probeCount);
 
 #endif // _TCP_KEEP_ALIVE_H_

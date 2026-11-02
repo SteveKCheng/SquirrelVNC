@@ -38,7 +38,7 @@ void runSocketTests()
   try {
     asio::io_context context;
     asio::ip::tcp::socket socket(context, asio::ip::tcp::v4());
-    enableTcpKeepAlive(socket.native_handle(), 30, 5, 10);
+    enableTcpKeepAlive(socket, 30, 5, 10);
   } catch (const SocketException &) {
     ok = false;
   }
