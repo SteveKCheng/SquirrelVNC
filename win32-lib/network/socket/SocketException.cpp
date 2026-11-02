@@ -23,29 +23,29 @@
 
 #include "SocketException.h"
 
-SocketException::SocketException(int error)
+SocketException::SocketException(std::error_code error)
 : Exception()
 {
-  setErrno(error);
+  setError(error);
 }
 
 SocketException::~SocketException()
 {
 }
 
-void SocketException::setErrno(int error)
+void SocketException::setError(std::error_code error)
 {
-  m_errno = error;
+  m_error = error;
 
   TCHAR buffer[1024];
 
   // The buffer is only written on success.
   if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                    nullptr, m_errno,
+                    nullptr, m_error.value(),
                     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                     (LPTSTR)&buffer[0],
                     sizeof(buffer) / sizeof(TCHAR), nullptr) == 0) {
-    m_message.format(_T("Socket error %d"), m_errno);
+    m_message.format(_T("Socket error %d"), m_error.value());
     return;
   }
 

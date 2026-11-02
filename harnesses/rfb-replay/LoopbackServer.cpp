@@ -48,7 +48,7 @@ LoopbackServer::LoopbackServer(std::vector<char> serverBytes, const asio::ip::ad
     m_port = m_acceptor.local_endpoint(error).port();
   }
   if (error) {
-    throw SocketException(error.value());
+    throw SocketException(error);
   }
   asio::co_spawn(m_context, serve(), asio::detached);
   m_thread = std::thread([this] { m_context.run(); });

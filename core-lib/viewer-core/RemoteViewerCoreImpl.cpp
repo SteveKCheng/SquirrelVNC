@@ -881,7 +881,7 @@ asio::awaitable<void> RemoteViewerCoreImpl::connect()
     if (error == asio::error::operation_aborted) {
       throw IOException(_T("The connection was stopped"));
     }
-    throw SocketException(error.value());
+    throw SocketException(error);
   };
 
   if (m_acceptedSocket) {
@@ -917,7 +917,7 @@ void RemoteViewerCoreImpl::configureSocket()
   std::error_code error;
   m_socket->set_option(asio::ip::tcp::no_delay(true), error);
   if (error) {
-    throw SocketException(error.value());
+    throw SocketException(error);
   }
   try {
     enableTcpKeepAlive(m_socket->native_handle(),

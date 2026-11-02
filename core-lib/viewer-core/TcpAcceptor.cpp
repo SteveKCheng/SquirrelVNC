@@ -90,7 +90,7 @@ TcpAcceptor::TcpAcceptor(asio::any_io_executor executor,
   }
   if (error) {
     // The socket, if opened, is closed with m_state: nothing is pending.
-    throw SocketException(error.value());
+    throw SocketException(error);
   }
   m_state->logWriter.info(_T("Listening on %hs:%hu"),
                           endpoint.address().to_string().c_str(), m_port);

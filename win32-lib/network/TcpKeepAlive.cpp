@@ -24,12 +24,14 @@
 
 #include "socket/SocketException.h"
 
+#include <system_error>
+
 void enableTcpKeepAlive(SOCKET socket, DWORD idleSeconds,
                         DWORD intervalSeconds, DWORD probeCount)
 {
   auto set = [socket](int level, int name, const void *value, int length) {
     if (setsockopt(socket, level, name, static_cast<const char *>(value), length) == SOCKET_ERROR) {
-      throw SocketException(WSAGetLastError());
+      throw SocketException(std::error_code(WSAGetLastError(), std::system_category()));
     }
   };
   BOOL enabled = TRUE;

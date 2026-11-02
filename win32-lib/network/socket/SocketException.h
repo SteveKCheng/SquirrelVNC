@@ -28,22 +28,24 @@
 
 #include "util/CommonHeader.h"
 
+#include <system_error>
+
 class SocketException final : public Exception
 {
 public:
-  // Creates socket exception object with specified error numner.
-  // Error string generates automaticly;
-  SocketException(int error);
+  // Creates a socket exception for the given error code, with its message
+  // set to the system's description of that code.
+  SocketException(std::error_code error);
   // Destructor.
   ~SocketException() override;
 
 protected:
-  // Sets m_errno to error, and m_message to the system's description of it,
-  // or to "Socket error <error>" if the system has none.
-  void setErrno(int error);
+  // Sets m_error to error, and m_message to the system's description of it,
+  // or to "Socket error <value>" if the system has none.
+  void setError(std::error_code error);
 
 protected:
-  int m_errno;
+  std::error_code m_error;
 };
 
 #endif
