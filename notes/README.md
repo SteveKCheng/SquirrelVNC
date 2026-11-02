@@ -11,6 +11,7 @@
   - [Q&A on the Asio C++ library](cpp-asio.md)
   - [Q&A on C++20 coroutines](cpp-coro.md)
   - [Reducing CPU usage](cpu-usage.md)
+  - [Cross-compiling from Linux with clang-cl and xwin](cross-compiling.md)
   - [Dead code dropped from TightVNC](dead-code.md)
   - [Auto-generation of dialog resources](dialog-resources.md)
   - [Issues with VNC file transfer](file-transfer.md)

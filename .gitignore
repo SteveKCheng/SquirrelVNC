@@ -4,6 +4,8 @@
 # Build output
 bin/
 obj/
+# CMake cross-build tree (see notes/cross-compiling.md)
+/build/
 
 # Visual Studio
 .vs/
