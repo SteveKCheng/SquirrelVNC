@@ -38,14 +38,8 @@ public:
   // Creates socket exception object with specified error numner.
   // Error string generates automaticly;
   SocketException(int error);
-  // Creates socket exception object with specified message.
-  // Error number is sets to zero.
-  SocketException(const TCHAR *message);
   // Destructor.
   ~SocketException() override;
-
-  // Returns error number.
-  int errno();
 
 protected:
   // Sets m_errno to error, and m_message to the system's description of it,
