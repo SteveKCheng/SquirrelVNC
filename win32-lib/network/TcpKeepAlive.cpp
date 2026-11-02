@@ -29,7 +29,7 @@ void enableTcpKeepAlive(SOCKET socket, DWORD idleSeconds,
 {
   auto set = [socket](int level, int name, const void *value, int length) {
     if (setsockopt(socket, level, name, static_cast<const char *>(value), length) == SOCKET_ERROR) {
-      throw SocketException();
+      throw SocketException(WSAGetLastError());
     }
   };
   BOOL enabled = TRUE;

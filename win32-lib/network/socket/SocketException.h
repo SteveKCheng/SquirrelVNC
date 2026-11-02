@@ -31,10 +31,6 @@
 class SocketException final : public Exception
 {
 public:
-  // Creates socket exception object with error value eq to current value
-  // of WSAGetLastError().
-  // Error string generates automaticly;
-  SocketException();
   // Creates socket exception object with specified error numner.
   // Error string generates automaticly;
   SocketException(int error);

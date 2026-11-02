@@ -23,12 +23,6 @@
 
 #include "SocketException.h"
 
-SocketException::SocketException()
-: Exception()
-{
-  setErrno(WSAGetLastError());
-}
-
 SocketException::SocketException(int error)
 : Exception()
 {
