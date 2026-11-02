@@ -185,6 +185,7 @@
     <ClCompile Include="ft-client-lib\UploadOperation.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="network\TcpKeepAlive.h" />
     <ClInclude Include="util\DesCrypt.h" />
     <ClInclude Include="util\Exception.h" />
     <ClInclude Include="util\Inflater.h" />

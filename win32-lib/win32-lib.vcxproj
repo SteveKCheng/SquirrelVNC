@@ -176,7 +176,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="network\HostResolver.h" />
-    <ClInclude Include="network\TcpKeepAlive.h" />
     <ClInclude Include="network\socket\SocketException.h" />
     <ClInclude Include="region\WindowsRect.h" />
     <ClInclude Include="rfb\RfbKeySym.h" />

@@ -257,9 +257,6 @@
     <ClInclude Include="network\HostResolver.h">
       <Filter>network</Filter>
     </ClInclude>
-    <ClInclude Include="network\TcpKeepAlive.h">
-      <Filter>network</Filter>
-    </ClInclude>
     <ClInclude Include="network\socket\SocketException.h">
       <Filter>network\socket</Filter>
     </ClInclude>

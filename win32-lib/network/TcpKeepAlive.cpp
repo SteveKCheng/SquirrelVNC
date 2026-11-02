@@ -20,7 +20,7 @@
 //-------------------------------------------------------------------------
 //
 
-#include "TcpKeepAlive.h"
+#include "network/TcpKeepAlive.h"
 
 #include "socket/SocketException.h"
 #include "util/winhdr.h"

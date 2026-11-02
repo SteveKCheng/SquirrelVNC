@@ -10,6 +10,9 @@
     <Filter Include="io-lib">
       <UniqueIdentifier>{5605b1f6-6e18-5002-8296-5348145c5eaf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="network">
+      <UniqueIdentifier>{13ff9bfe-c276-4bca-a40f-2da9c3038de6}</UniqueIdentifier>
+    </Filter>
     <Filter Include="region">
       <UniqueIdentifier>{9e0c666a-4a16-5059-a2ec-0d1c23f5ca8d}</UniqueIdentifier>
     </Filter>
@@ -281,6 +284,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="network\TcpKeepAlive.h">
+      <Filter>network</Filter>
+    </ClInclude>
     <ClInclude Include="region\Dimension.h">
       <Filter>region</Filter>
     </ClInclude>
