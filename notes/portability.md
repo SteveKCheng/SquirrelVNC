@@ -34,6 +34,18 @@ is included nowhere); `DesCrypt`, `Exception`, `Inflater`, `inttypes.h`,
 `RfbKeySymListener.h` moved from `core-lib/rfb` to `win32-lib/rfb`.
 "Current state" below is corrected inline.
 
+**Status (2026-11-02, branch `portability-2`).** Two of the thin Win32
+foundations are tidied. `SocketException` lost its unused message
+constructor and `errno()` accessor, gave up its `WSAGetLastError()`
+default constructor (its one WinSock caller, `enableTcpKeepAlive`, reads
+the error itself now), and takes a `std::error_code` rather than a raw
+`int` — groundwork for formatting the message portably. `enableTcpKeepAlive`
+became a portable wrapper over `asio::ip::tcp::socket` and `int`, so its
+header no longer pulls in `<windows.h>`; the header then moved to
+`core-lib/network/`, correcting that dependency's direction, while the
+Windows `.cpp` stays in `win32-lib`. "Current state" below is corrected
+inline.
+
 ## Current state (2026-10-31)
 
 ### What `core-lib` depends on
@@ -62,7 +74,10 @@ these folders:
 `ZLibException`, `ListenerContainer.h` and `DesCrypt`. `Keymap.h` is no
 longer included from `core-lib`, since `RfbKeySym` moved to `win32-lib`.
 `DateTime.h` is no longer included from `core-lib` either, since file
-transfer stopped using it (it throttles with `std::chrono::steady_clock`).*
+transfer stopped using it (it throttles with `std::chrono::steady_clock`).
+`TcpKeepAlive.h` has itself moved into `core-lib/network`, so it is no
+longer a `core-lib`→`win32-lib` include; only its `.cpp` stays in
+`win32-lib`.*
 
 The direction of the old plan's step 3 ("the core libraries never
 include `win-system`, `gui` or `config-lib`") has thus been reached,
@@ -114,7 +129,10 @@ allowed in `core-lib`; see "TCHAR: decision".)*
   `static_assert`s that `TCHAR` is UTF-16. A second implementation is
   needed only with a non-UTF-16 `TCHAR`.
 - `network/socket/SocketException.h`: the header is portable; the
-  `.cpp` formats messages with `FormatMessage`.
+  `.cpp` formats messages with `FormatMessage`. *(2026-11-02: the
+  constructor now takes a `std::error_code`, not a raw `int`, and the
+  `WSAGetLastError()` default constructor is gone; the header stays in
+  `win32-lib` for now.)*
 - `util/CommandLineArgs.{h,cpp}`, `util/CommandLineFormatException`,
   `util/CommandLineFormatHelp`, `util/StringParser`: portable apart from
   TCHAR, but only the GUI uses them; no reason to move them.
@@ -126,8 +144,12 @@ portably:
 
 - `network/TcpKeepAlive.{h,cpp}`: `setsockopt` with option names that
   Windows and Linux share; only the types (`SOCKET`, `DWORD`, `BOOL`)
-  and `SOCKET_ERROR` differ. Taking Asio's
-  `native_handle_type` and `int` would make it portable as it is.
+  and `SOCKET_ERROR` differ. ~~Taking Asio's `native_handle_type` and
+  `int` would make it portable as it is.~~ *(Done 2026-11-02: the header
+  takes `asio::ip::tcp::socket &` and `int` and needs only
+  `<asio/ip/tcp.hpp>`, and has moved to `core-lib/network`. The `.cpp`,
+  still Windows-only, takes the socket's `native_handle()` and casts the
+  counts to `DWORD` after asserting they are non-negative.)*
 - `network/HostResolver.{h,cpp}`: the interface is portable Asio; the
   implementation is `GetAddrInfoExW` by choice (cancellable, UTF-16
   names). Elsewhere, `asio::ip::tcp::resolver` behind the same
@@ -135,6 +157,10 @@ portably:
 - `network/socket/SocketException.cpp`: `std::system_category().message()`
   would be portable, but it returns a narrow string, whose encoding
   under MSVC would need checking; `FormatMessageW` is safer on Windows.
+  *(2026-11-02: the constructor now carries a `std::error_code`, so the
+  intended shape is an `#ifdef _WIN32` branch — `FormatMessageW` on
+  Windows, the `error_code`'s own `message()` elsewhere — but the
+  branch is not yet written; it still formats with `FormatMessage`.)*
 - `util/DateTime.{h,cpp}`: `FILETIME`-based. The GUI and `file-lib` use
   it for file times. ~~`ft-client-lib` uses it only to throttle progress
   reports to one per 300 ms (`DownloadOperation`, `UploadOperation`),
@@ -205,9 +231,10 @@ types and calls:
    `IS_HIGH_SURROGATE`/`IS_LOW_SURROGATE` (simple range checks to write
    out). Its rules for internationalised names also rely on
    `GetAddrInfoW()` converting them to Punycode.
-6. **`viewer-core/RemoteViewerCoreImpl.h`**: the keepalive constants are
+6. ~~**`viewer-core/RemoteViewerCoreImpl.h`**: the keepalive constants are
    `DWORD`, to match `enableTcpKeepAlive()`; they would follow that
-   function's types.
+   function's types.~~ *(Done 2026-11-02: now `int`, following
+   `enableTcpKeepAlive`'s new `int` parameters.)*
 
 Not Win32, but MSVC-specific: the secure-CRT `_s` functions appear in
 `win32-lib` (`_vstprintf_s` in `StringStorage`) and in the tests
