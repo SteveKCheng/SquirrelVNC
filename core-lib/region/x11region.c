@@ -83,7 +83,7 @@ SOFTWARE.
 #define xrealloc(ptr, n) realloc((ptr), (n))
 #define xfree(ptr)       free(ptr)
 
-#ifdef WIN32
+#ifdef _MSC_VER
 // warning C4244: '=' : conversion from '__int64' to 'int', possible loss of data
 #pragma warning(disable : 4244)
 #endif

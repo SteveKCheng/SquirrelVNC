@@ -24,9 +24,9 @@
 #ifndef __COMMONHEADER_H__
 #define __COMMONHEADER_H__
 
-#ifdef WIN32
+#ifdef _WIN32
 #include "winhdr.h"
-#endif // WIN32
+#endif // _WIN32
 
 
 #include "StringStorage.h"
