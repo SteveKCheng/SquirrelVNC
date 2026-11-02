@@ -85,7 +85,6 @@ typedef struct _Region {
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "util/inttypes.h"
 
 /* Return values from RectIn() */
 #define rgnOUT 0
@@ -115,14 +114,14 @@ typedef struct _Region {
 typedef int Bool;
 
 typedef struct _xPoint {
-    INT16 x, y;
+    short x, y;
 } xPoint, *xPointPtr;
 
 typedef xPoint DDXPointRec, *DDXPointPtr;
 
 typedef struct _xRectangle {
-    INT16 x, y;
-    UINT16 width, height;
+    short x, y;
+    unsigned short width, height;
 } xRectangle, *xRectanglePtr;
 
 extern BoxRec miEmptyBox;
