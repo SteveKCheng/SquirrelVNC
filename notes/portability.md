@@ -102,7 +102,7 @@ allowed in `core-lib`; see "TCHAR: decision".)*
   `assert`.*
 - `log-writer/LogWriter.{h,cpp}`, `log-writer/Logger.h`: also SAL's
   `_Printf_format_string_` (an empty macro elsewhere would do), and
-  `util/CharDefs.h`, which only includes `<tchar.h>` under `WIN32`.
+  `util/CharDefs.h`, which only includes `<tchar.h>` under `_WIN32`.
 - `util/StringStorage.{h,cpp}`: `_tcs*`, `_vstprintf_s`, `_ASSERT`; its
   header includes `winhdr.h`, which brings `windows.h`, WinSock,
   `commctrl.h` and `ShellAPI.h` into every file that uses a string.
