@@ -59,6 +59,19 @@ function Get-Reason([int]$code) {
   }
 }
 
+# Runs a test program and returns its merged stdout and stderr as strings,
+# leaving the program's exit code in $LASTEXITCODE for the caller to inspect.
+# The script runs under $ErrorActionPreference = 'Stop' to catch its own
+# mistakes, but a program writing to stderr (merged here with 2>&1) or exiting
+# non-zero must not be turned into a terminating error: a failing case is
+# expected, and so is an error logged by a case that then passes (e.g.
+# tight-jpeg-wrong-size). The 'Continue' set here is scoped to this function,
+# so it relaxes only the program invocation.
+function Invoke-Native([string]$program, [string[]]$arguments = @()) {
+  $ErrorActionPreference = 'Continue'
+  & $program @arguments 2>&1 | ForEach-Object { "$_" }
+}
+
 $total = 0
 $failed = @()
 
@@ -86,7 +99,7 @@ if (Test-Path $replay) {
       $total++
       $label = "$name$($split.Label)"
       # The core's log goes to stderr; show it only for failures.
-      $output = & $replay --check $prefix --log 1 @($split.Args) 2>&1 | ForEach-Object { "$_" }
+      $output = Invoke-Native $replay (@('--check', $prefix, '--log', '1') + $split.Args)
       $code = $LASTEXITCODE
       if ($code -eq 0) {
         Write-Host "PASS $label"
@@ -103,7 +116,7 @@ if (Test-Path $replay) {
 
 if ((Test-Path $unitTest) -and 'unit-test' -like $Filter) {
   $total++
-  $output = & $unitTest 2>&1 | ForEach-Object { "$_" }
+  $output = Invoke-Native $unitTest
   $code = $LASTEXITCODE
   if ($code -eq 0) {
     Write-Host "PASS unit-test"
@@ -127,7 +140,7 @@ function Test-FuzzInputs([string]$program, [string]$dirName, [string]$label) {
   }
   if ($inputs.Count -gt 0) {
     $script:total++
-    $output = & $program $inputs.FullName 2>&1 | ForEach-Object { "$_" }
+    $output = Invoke-Native $program $inputs.FullName
     $code = $LASTEXITCODE
     if ($code -eq 0) {
       Write-Host "PASS $label ($($inputs.Count) files)"
