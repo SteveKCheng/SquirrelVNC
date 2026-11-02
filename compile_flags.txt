@@ -1,0 +1,3 @@
+-Icore-lib
+-Iwin32-lib
+-I.
