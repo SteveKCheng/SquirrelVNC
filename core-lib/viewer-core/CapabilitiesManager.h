@@ -24,7 +24,7 @@
 #ifndef _CAPABILITIES_MANAGER_H_
 #define _CAPABILITIES_MANAGER_H_
 
-#include "util/CommonHeader.h"
+#include "util/StringStorage.h"
 #include "util/inttypes.h"
 
 #include <functional>

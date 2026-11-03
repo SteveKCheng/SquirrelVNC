@@ -24,7 +24,7 @@
 #ifndef _REMOTE_VIEWER_CORE_H_
 #define _REMOTE_VIEWER_CORE_H_
 
-#include "util/CommonHeader.h"
+#include "util/StringStorage.h"
 #include "util/inttypes.h"
 
 #include "FrameBufferAccess.h"
