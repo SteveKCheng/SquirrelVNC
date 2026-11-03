@@ -22,7 +22,7 @@
 //
 
 #include "FileAccount.h"
-#include "util/Unicode.h"
+#include "util/TextEncoding.h"
 #include "file-lib/File.h"
 #include "file-lib/EOFException.h"
 
@@ -167,8 +167,12 @@ void FileAccount::format(unsigned int processId,
 
   // Writing string without null-termination symbol.
   if (m_file != nullptr) {
-    m_file->write(resultLine.getString(), resultLine.getSize() - sizeof(TCHAR));
-    m_file->write(endLine, sizeof(endLine));
+    // Add CRLF character sequence
+    resultLine.appendChar(_T('\r'));
+    resultLine.appendChar(_T('\n'));
+
+    auto resultLineUtf8 = TextEncoding::toUtf8(resultLine);
+    m_file->write(resultLineUtf8.data(), resultLineUtf8.size());
     if (logBarrier > 9) {
       m_file->flush();
     }
@@ -249,7 +253,7 @@ void FileAccount::openFile()
                                        shareToRead);
   }
 
-  if (Unicode::isEnabled() && asFirstOpen) {
+  if (asFirstOpen) {
     try {
       addUnicodeSignature();
       if (getLogDumpSize() != 0) {
@@ -272,15 +276,8 @@ void FileAccount::closeFile()
 
 void FileAccount::addUnicodeSignature()
 {
-  unsigned short firstTwoBytes = 0;
-  try {
-    m_file->read(&firstTwoBytes, sizeof(firstTwoBytes));
-  } catch (EOFException &) {
-  }
-  if (firstTwoBytes != Unicode::SIGNATURE) {
-    firstTwoBytes = Unicode::SIGNATURE;
-    m_file->write(&firstTwoBytes, sizeof(firstTwoBytes));
-  }
+  const std::byte utf8Bom[3] = {std::byte{0xEF}, std::byte{0xBB}, std::byte{0xBF}};
+  m_file->write(utf8Bom, sizeof(utf8Bom));
 }
 
 void FileAccount::createBackup(unsigned int backupLimit)

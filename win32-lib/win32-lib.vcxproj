@@ -116,7 +116,6 @@
     <ClCompile Include="util\StringStorage.cpp" />
     <ClCompile Include="util\StringTable.cpp" />
     <ClCompile Include="util\TextEncoding.cpp" />
-    <ClCompile Include="util\Unicode.cpp" />
     <ClCompile Include="util\VncPassCrypt.cpp" />
     <ClCompile Include="log-writer\FileAccount.cpp" />
     <ClCompile Include="log-writer\FileLogger.cpp" />
@@ -191,7 +190,6 @@
     <ClInclude Include="util\StringStorage.h" />
     <ClInclude Include="util\StringTable.h" />
     <ClInclude Include="util\TextEncoding.h" />
-    <ClInclude Include="util\Unicode.h" />
     <ClInclude Include="util\VncPassCrypt.h" />
     <ClInclude Include="util\winhdr.h" />
     <ClInclude Include="log-writer\FileAccount.h" />
