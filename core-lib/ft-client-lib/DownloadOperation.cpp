@@ -113,7 +113,7 @@ void DownloadOperation::onDownloadReply()
   try {
     StringStorage path;
     m_file->getPath(&path);
-    m_fos = std::make_unique<WinFile>(path.getString(), F_WRITE, FM_OPEN, true);
+    m_fos = std::make_unique<WinFile>(path.getString(), F_WRITE, FM_OPEN, /* shareToRead */ true);
     // Seek to initial file position to continue writting
     m_fos->seek((INT64)m_fileOffset);
     m_totalBytesCopied += m_fileOffset;
