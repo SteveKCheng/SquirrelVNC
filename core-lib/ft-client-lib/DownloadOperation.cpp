@@ -148,10 +148,9 @@ void DownloadOperation::onDownloadDataReply()
   }
 
   try {
-    DataOutputStream dos(m_fos.get());
     if (!m_replyBuffer->getDownloadBuffer().empty()) {
-      dos.writeFully(&m_replyBuffer->getDownloadBuffer().front(),
-                     m_replyBuffer->getDownloadBufferSize());
+      m_fos->write(&m_replyBuffer->getDownloadBuffer().front(),
+                   m_replyBuffer->getDownloadBufferSize());
     }
   } catch (IOException &ioEx) {
     notifyFailedToDownload(ioEx.getMessage());

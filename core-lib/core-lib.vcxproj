@@ -107,7 +107,6 @@
     <ClCompile Include="region\x11region.c" />
     <ClCompile Include="io-lib\AwaitableReader.cpp" />
     <ClCompile Include="io-lib\ByteArrayInputStream.cpp" />
-    <ClCompile Include="io-lib\Channel.cpp" />
     <ClCompile Include="io-lib\DataInputStream.cpp" />
     <ClCompile Include="io-lib\DataOutputStream.cpp" />
     <ClCompile Include="io-lib\InputStream.cpp" />
@@ -201,7 +200,6 @@
     <ClInclude Include="region\Region.h" />
     <ClInclude Include="region\x11region.h" />
     <ClInclude Include="io-lib\ByteArrayInputStream.h" />
-    <ClInclude Include="io-lib\Channel.h" />
     <ClInclude Include="io-lib\AwaitableReader.h" />
     <ClInclude Include="io-lib\DataInputStream.h" />
     <ClInclude Include="io-lib\DataOutputStream.h" />

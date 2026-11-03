@@ -24,11 +24,19 @@
 #ifndef __FILECHANNEL_H__
 #define __FILECHANNEL_H__
 
-#include "io-lib/Channel.h"
+#include "io-lib/InputStream.h"
+#include "io-lib/OutputStream.h"
 
-class FileChannel : public Channel
+#include "util/inttypes.h"
+
+// Joins InputStream and OutputStream for a seekable, closable file.
+class FileChannel : public InputStream, public OutputStream
 {
 public:
+  // Closes the file.
+  // @throw Exception on error.
+  virtual void close() = 0;
+
   // Set file pointer to specified position starting from current
   // file pointer position. Can move forward and backward.
   virtual void seek(INT64 n) = 0;

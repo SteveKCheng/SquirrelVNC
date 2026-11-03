@@ -43,16 +43,14 @@ public:
 
   // Inherited from FileChannel.
   void seek(INT64 n) override;
-
-  // Inherited from Channel.
-  size_t read(void *buffer, size_t len) override;
-
-  // Inherited from Channel.
-  size_t write(const void *buffer, size_t len) override;
-
-  // Inherited from Channel.
   void close() override;
+
+  // Inherited from InputStream.
+  size_t read(void *buffer, size_t len) override;
   size_t available() override;
+
+  // Inherited from OutputStream.
+  size_t write(const void *buffer, size_t len) override;
 
 private:
   WinFile m_winFile;

@@ -190,13 +190,20 @@ size_t WinFile::write(const void *buff, size_t count)
   if (count != count32) {
     throw IOException(_T("Requested size to write is too big"));
   }
-  DWORD result = 0;
-  if (WriteFile(m_hFile, buff, count32, &result, nullptr) == 0) {
-    StringStorage errText;
-    Environment::getErrStr(&errText);
-    throw IOException(errText.getString());
+  // WriteFile need not write the whole buffer in one call, so loop until it
+  // is all written (as DataOutputStream::writeFully used to do).
+  const char *from = static_cast<const char *>(buff);
+  for (DWORD left = count32; left > 0; ) {
+    DWORD written = 0;
+    if (WriteFile(m_hFile, from, left, &written, nullptr) == 0) {
+      StringStorage errText;
+      Environment::getErrStr(&errText);
+      throw IOException(errText.getString());
+    }
+    from += written;
+    left -= written;
   }
-  return result;
+  return count;
 }
 
 size_t WinFile::available() {

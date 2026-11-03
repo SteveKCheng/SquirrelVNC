@@ -48,7 +48,6 @@ add_library(core-lib STATIC
   core-lib/region/x11region.c
   core-lib/io-lib/AwaitableReader.cpp
   core-lib/io-lib/ByteArrayInputStream.cpp
-  core-lib/io-lib/Channel.cpp
   core-lib/io-lib/DataInputStream.cpp
   core-lib/io-lib/DataOutputStream.cpp
   core-lib/io-lib/InputStream.cpp

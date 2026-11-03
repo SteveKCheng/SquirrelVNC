@@ -54,9 +54,6 @@
     <ClCompile Include="io-lib\ByteArrayInputStream.cpp">
       <Filter>io-lib</Filter>
     </ClCompile>
-    <ClCompile Include="io-lib\Channel.cpp">
-      <Filter>io-lib</Filter>
-    </ClCompile>
     <ClCompile Include="io-lib\DataInputStream.cpp">
       <Filter>io-lib</Filter>
     </ClCompile>
@@ -330,9 +327,6 @@
       <Filter>region</Filter>
     </ClInclude>
     <ClInclude Include="io-lib\ByteArrayInputStream.h">
-      <Filter>io-lib</Filter>
-    </ClInclude>
-    <ClInclude Include="io-lib\Channel.h">
       <Filter>io-lib</Filter>
     </ClInclude>
     <ClInclude Include="io-lib\AwaitableReader.h">
