@@ -50,8 +50,6 @@ void WinFile::open(const TCHAR *pathToFile,
                    FileMode fMode,
                    bool shareToRead)
 {
-  m_pathToFile.setString(pathToFile);
-
   DWORD desiredAccess = 0;
   switch (dAcc) {
   case F_READ:
@@ -100,7 +98,7 @@ void WinFile::open(const TCHAR *pathToFile,
     shareMode |= FILE_SHARE_READ;
   }
 
-  m_hFile = CreateFile(m_pathToFile.getString(),
+  m_hFile = CreateFile(pathToFile,
                        desiredAccess,
                        shareMode,
                        nullptr,

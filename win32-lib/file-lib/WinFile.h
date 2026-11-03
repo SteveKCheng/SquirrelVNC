@@ -121,7 +121,6 @@ public:
 
 private:
   HANDLE m_hFile;
-  StringStorage m_pathToFile;
 };
 
 #endif // __WINFILE_H__
