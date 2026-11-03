@@ -125,7 +125,6 @@
     <ClCompile Include="file-lib\EOFException.cpp" />
     <ClCompile Include="file-lib\File.cpp" />
     <ClCompile Include="file-lib\WinFile.cpp" />
-    <ClCompile Include="file-lib\WinFileChannel.cpp" />
     <ClCompile Include="win-system\DisplayRequest.cpp" />
     <ClCompile Include="win-system\Environment.cpp" />
     <ClCompile Include="win-system\Registry.cpp" />
@@ -202,9 +201,7 @@
     <ClInclude Include="log-writer\LogWriter.h" />
     <ClInclude Include="file-lib\EOFException.h" />
     <ClInclude Include="file-lib\File.h" />
-    <ClInclude Include="file-lib\FileChannel.h" />
     <ClInclude Include="file-lib\WinFile.h" />
-    <ClInclude Include="file-lib\WinFileChannel.h" />
     <ClInclude Include="win-system\DisplayRequest.h" />
     <ClInclude Include="win-system\Environment.h" />
     <ClInclude Include="win-system\HookEventListener.h" />

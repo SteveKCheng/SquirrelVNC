@@ -25,7 +25,7 @@
 #define _UPLOAD_OPERATION_H_
 
 #include "file-lib/File.h"
-#include "file-lib/WinFileChannel.h"
+#include "file-lib/WinFile.h"
 #include "FileTransferOperation.h"
 #include "FileInfoList.h"
 #include "CopyOperation.h"
@@ -205,7 +205,7 @@ protected:
   // Source file that we uploading now
   std::unique_ptr<File> m_file;
   // File input stream associated with m_file
-  std::unique_ptr<WinFileChannel> m_fis;
+  std::unique_ptr<WinFile> m_fis;
 
   // File list of remote directory where we uploading
   // current file now

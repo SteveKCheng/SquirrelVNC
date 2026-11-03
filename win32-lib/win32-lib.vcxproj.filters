@@ -108,9 +108,6 @@
     <ClCompile Include="file-lib\WinFile.cpp">
       <Filter>file-lib</Filter>
     </ClCompile>
-    <ClCompile Include="file-lib\WinFileChannel.cpp">
-      <Filter>file-lib</Filter>
-    </ClCompile>
     <ClCompile Include="win-system\DisplayRequest.cpp">
       <Filter>win-system</Filter>
     </ClCompile>
@@ -335,13 +332,7 @@
     <ClInclude Include="file-lib\File.h">
       <Filter>file-lib</Filter>
     </ClInclude>
-    <ClInclude Include="file-lib\FileChannel.h">
-      <Filter>file-lib</Filter>
-    </ClInclude>
     <ClInclude Include="file-lib\WinFile.h">
-      <Filter>file-lib</Filter>
-    </ClInclude>
-    <ClInclude Include="file-lib\WinFileChannel.h">
       <Filter>file-lib</Filter>
     </ClInclude>
     <ClInclude Include="win-system\DisplayRequest.h">

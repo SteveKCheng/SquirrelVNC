@@ -375,7 +375,7 @@ void UploadOperation::uploadFile(UINT64 initialFileOffset)
   try {
     StringStorage path;
     m_file->getPath(&path);
-    m_fis = std::make_unique<WinFileChannel>(path.getString(), F_READ, FM_OPEN);
+    m_fis = std::make_unique<WinFile>(path.getString(), F_READ, FM_OPEN, true);
     // Try to seek
     m_fis->seek((INT64)initialFileOffset);
 

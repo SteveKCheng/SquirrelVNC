@@ -25,7 +25,7 @@
 #define _DOWNLOAD_OPERATION_H_
 
 #include "ft-common/FileInfo.h"
-#include "file-lib/WinFileChannel.h"
+#include "file-lib/WinFile.h"
 #include "FileInfoList.h"
 #include "CopyOperation.h"
 #include "file-lib/File.h"
@@ -129,7 +129,7 @@ protected:
   // Target local file
   std::unique_ptr<File> m_file;
   // File output stream associated with m_file
-  std::unique_ptr<WinFileChannel> m_fos;
+  std::unique_ptr<WinFile> m_fos;
 
   // Initial file offset for current download (broken downloads)
   UINT64 m_fileOffset;
